@@ -1,8 +1,7 @@
+.DS_Store
 node_modules
-
-#Hardhat files
-cache
-artifacts
+dist
+build
 
 # Remove some common IDE working directories
 .idea
