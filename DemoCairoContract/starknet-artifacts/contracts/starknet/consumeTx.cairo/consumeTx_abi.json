@@ -1,0 +1,61 @@
+[
+    {
+        "data": [
+            {
+                "name": "id",
+                "type": "felt"
+            }
+        ],
+        "keys": [],
+        "name": "tx_received",
+        "type": "event"
+    },
+    {
+        "inputs": [
+            {
+                "name": "param1",
+                "type": "felt"
+            },
+            {
+                "name": "param2",
+                "type": "felt"
+            }
+        ],
+        "name": "receive_tx",
+        "outputs": [],
+        "type": "function"
+    },
+    {
+        "inputs": [],
+        "name": "get_next_id",
+        "outputs": [
+            {
+                "name": "next_id",
+                "type": "felt"
+            }
+        ],
+        "stateMutability": "view",
+        "type": "function"
+    },
+    {
+        "inputs": [
+            {
+                "name": "id",
+                "type": "felt"
+            }
+        ],
+        "name": "get_tx_params",
+        "outputs": [
+            {
+                "name": "param1",
+                "type": "felt"
+            },
+            {
+                "name": "param2",
+                "type": "felt"
+            }
+        ],
+        "stateMutability": "view",
+        "type": "function"
+    }
+]
