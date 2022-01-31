@@ -6,6 +6,8 @@ async function main() {
     const VOTING_CONTRACT_ADDRESS = 
     "0x0414130848ed5100d0c3bb0dafc3cf2a6de63b4ea49862ee5c38ccec2145cbda";
 
+
+    //The owner of the voting contract 
     const ACCOUNT_CONTRACT_ADDRESS =
     "0x069053b14d69a52aebc20833452df0da83ed20a43396ae7bb922b6eeba56c9de";
 
@@ -50,3 +52,4 @@ main()
   .catch((error) => {
     console.error(error);
     process.exit(1);
+  });
