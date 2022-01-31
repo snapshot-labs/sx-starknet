@@ -4,6 +4,7 @@ node_modules
 #Hardhat files
 cache
 artifacts
+starknet-artifacts 
 
 # Remove some common IDE working directories
 .idea
