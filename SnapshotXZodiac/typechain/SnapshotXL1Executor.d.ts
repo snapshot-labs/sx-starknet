@@ -41,6 +41,7 @@ interface SnapshotXL1ExecutorInterface extends ethers.utils.Interface {
     "owner()": FunctionFragment;
     "proposalIndex()": FunctionFragment;
     "proposalIndexToProposalExecution(uint256)": FunctionFragment;
+    "receiveProposal(uint256,uint256,bytes32[])": FunctionFragment;
     "recieveProposalTest(uint256,uint256,bytes32[])": FunctionFragment;
     "renounceOwnership()": FunctionFragment;
     "setAvatar(address)": FunctionFragment;
@@ -127,6 +128,10 @@ interface SnapshotXL1ExecutorInterface extends ethers.utils.Interface {
     values: [BigNumberish]
   ): string;
   encodeFunctionData(
+    functionFragment: "receiveProposal",
+    values: [BigNumberish, BigNumberish, BytesLike[]]
+  ): string;
+  encodeFunctionData(
     functionFragment: "recieveProposalTest",
     values: [BigNumberish, BigNumberish, BytesLike[]]
   ): string;
@@ -211,6 +216,10 @@ interface SnapshotXL1ExecutorInterface extends ethers.utils.Interface {
   ): Result;
   decodeFunctionResult(
     functionFragment: "proposalIndexToProposalExecution",
+    data: BytesLike
+  ): Result;
+  decodeFunctionResult(
+    functionFragment: "receiveProposal",
     data: BytesLike
   ): Result;
   decodeFunctionResult(
@@ -447,8 +456,15 @@ export class SnapshotXL1Executor extends BaseContract {
       [BigNumber, boolean] & { executionCounter: BigNumber; cancelled: boolean }
     >;
 
-    recieveProposalTest(
+    receiveProposal(
       execution_details: BigNumberish,
+      hasPassed: BigNumberish,
+      txHashes: BytesLike[],
+      overrides?: Overrides & { from?: string | Promise<string> }
+    ): Promise<ContractTransaction>;
+
+    recieveProposalTest(
+      executionDetails: BigNumberish,
       hasPassed: BigNumberish,
       _txHashes: BytesLike[],
       overrides?: Overrides & { from?: string | Promise<string> }
@@ -584,8 +600,15 @@ export class SnapshotXL1Executor extends BaseContract {
     [BigNumber, boolean] & { executionCounter: BigNumber; cancelled: boolean }
   >;
 
-  recieveProposalTest(
+  receiveProposal(
     execution_details: BigNumberish,
+    hasPassed: BigNumberish,
+    txHashes: BytesLike[],
+    overrides?: Overrides & { from?: string | Promise<string> }
+  ): Promise<ContractTransaction>;
+
+  recieveProposalTest(
+    executionDetails: BigNumberish,
     hasPassed: BigNumberish,
     _txHashes: BytesLike[],
     overrides?: Overrides & { from?: string | Promise<string> }
@@ -721,8 +744,15 @@ export class SnapshotXL1Executor extends BaseContract {
       [BigNumber, boolean] & { executionCounter: BigNumber; cancelled: boolean }
     >;
 
-    recieveProposalTest(
+    receiveProposal(
       execution_details: BigNumberish,
+      hasPassed: BigNumberish,
+      txHashes: BytesLike[],
+      overrides?: CallOverrides
+    ): Promise<void>;
+
+    recieveProposalTest(
+      executionDetails: BigNumberish,
       hasPassed: BigNumberish,
       _txHashes: BytesLike[],
       overrides?: CallOverrides
@@ -985,8 +1015,15 @@ export class SnapshotXL1Executor extends BaseContract {
       overrides?: CallOverrides
     ): Promise<BigNumber>;
 
-    recieveProposalTest(
+    receiveProposal(
       execution_details: BigNumberish,
+      hasPassed: BigNumberish,
+      txHashes: BytesLike[],
+      overrides?: Overrides & { from?: string | Promise<string> }
+    ): Promise<BigNumber>;
+
+    recieveProposalTest(
+      executionDetails: BigNumberish,
       hasPassed: BigNumberish,
       _txHashes: BytesLike[],
       overrides?: Overrides & { from?: string | Promise<string> }
@@ -1127,8 +1164,15 @@ export class SnapshotXL1Executor extends BaseContract {
       overrides?: CallOverrides
     ): Promise<PopulatedTransaction>;
 
-    recieveProposalTest(
+    receiveProposal(
       execution_details: BigNumberish,
+      hasPassed: BigNumberish,
+      txHashes: BytesLike[],
+      overrides?: Overrides & { from?: string | Promise<string> }
+    ): Promise<PopulatedTransaction>;
+
+    recieveProposalTest(
+      executionDetails: BigNumberish,
       hasPassed: BigNumberish,
       _txHashes: BytesLike[],
       overrides?: Overrides & { from?: string | Promise<string> }
