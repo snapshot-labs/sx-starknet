@@ -6,6 +6,8 @@ cache
 artifacts
 starknet-artifacts 
 
+typechain
+
 # Remove some common IDE working directories
 .idea
 .vscode

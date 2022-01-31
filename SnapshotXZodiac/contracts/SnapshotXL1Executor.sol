@@ -100,16 +100,16 @@ contract SnapshotXL1Executor is Module, SnapshotXProposalRelayer {
     }
 
     //Consumes message from L2 containing finalized proposal, checks transaction hashes are valid, then stores transactions hashes
-    function receiveProposal(uint256 execution_details, uint256 hasPassed, bytes32[] memory txHashes) public {
+    function receiveProposal(uint256 executionDetails, uint256 hasPassed, bytes32[] memory txHashes) public {
 
         //External call will fail if finalized proposal message was not recieved on L1.
-        _recieveFinalizedProposal(execution_details, hasPassed);
+        _recieveFinalizedProposal(executionDetails, hasPassed);
 
         //Check that proposal passed
         require(hasPassed!=0, 'Proposal did not pass');    
 
         //check that execution details are valid
-        require(bytes32(execution_details) == keccak256(abi.encode(txHashes)), 'Invalid execution');      
+        require(bytes32(executionDetails) == keccak256(abi.encode(txHashes)), 'Invalid execution');      
 
 
         proposalIndexToProposalExecution[proposalIndex].txHashes = txHashes; 
