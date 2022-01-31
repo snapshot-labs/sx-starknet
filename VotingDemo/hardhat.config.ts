@@ -1,4 +1,5 @@
 import { task } from "hardhat/config";
+import "@shardlabs/starknet-hardhat-plugin";
 import { config as dotenvConfig } from "dotenv";
 import { resolve } from "path";
 dotenvConfig({ path: resolve(__dirname, "./.env") });
@@ -54,15 +55,7 @@ function createTestnetConfig(network: keyof typeof chainIds): NetworkUserConfig 
 }
 
 const config: HardhatUserConfig = {
-  solidity: {
-    version: "0.8.6",
-    settings: {
-      optimizer: {
-        enabled: true,
-        runs: 10,
-      },
-    },
-  },
+  solidity: "0.8.6",
   networks: {
     ropsten: {
       url: process.env.ROPSTEN_URL || "",
@@ -94,10 +87,4 @@ const config: HardhatUserConfig = {
 };
 
 export default config;
-
-
-
-
-
-
 

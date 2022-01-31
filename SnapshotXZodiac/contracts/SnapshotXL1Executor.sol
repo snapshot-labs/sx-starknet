@@ -4,13 +4,6 @@ import "@gnosis.pm/zodiac/contracts/core/Module.sol";
 
 import {SnapshotXProposalRelayer} from "./ProposalRelayer.sol";
 
-//Execution details is the hash of all of the transaction hashes in the proposal
-
-//TO DO:
-// ability to execute transactions individually but in ascending order only. Will need logic that stores transactions which have already been executed to achieve this
-// 
-//
-
 contract SnapshotXL1Executor is Module, SnapshotXProposalRelayer {
 
     bytes32 public constant DOMAIN_SEPARATOR_TYPEHASH =
@@ -28,6 +21,7 @@ contract SnapshotXL1Executor is Module, SnapshotXProposalRelayer {
     // counter that is incremented each time a proposal is recieved.
     uint256 public proposalIndex = 0; 
 
+    //The state of a proposal index exists in one of the 5 categories. This can be queried using the getProposalState view function 
     enum ProposalState {
         NotReceived, 
         Received, 
@@ -36,10 +30,9 @@ contract SnapshotXL1Executor is Module, SnapshotXProposalRelayer {
         Cancelled
     }
 
-    //struct is packed
     struct ProposalExecution { 
         bytes32[] txHashes; //array of Transaction Hashes for each transaction in the proposal
-        uint248 executionCounter; //counter which stores the number of transaction in the proposal that have so far been executed. This ensures that transactions cannot be executed twice and that transactions are executed in the predefined order.
+        uint256 executionCounter; //counter which stores the number of transaction in the proposal that have so far been executed. This ensures that transactions cannot be executed twice and that transactions are executed in the predefined order.
         bool cancelled;
         //timelock? (ignoring for now)
     }
@@ -106,27 +99,27 @@ contract SnapshotXL1Executor is Module, SnapshotXProposalRelayer {
         emit SnapshotXL1ExecutorSetUpComplete(msg.sender,  _owner, _avatar, _target, _decisionExecutorL2, _starknetCore);
     }
 
-    // //Consumes message from L2 containing finalized proposal, checks transaction hashes are valid, then stores transactions hashes
-    // function receiveProposal(uint256 execution_details, uint256 hasPassed, bytes32[] memory txHashes) public {
+    //Consumes message from L2 containing finalized proposal, checks transaction hashes are valid, then stores transactions hashes
+    function receiveProposal(uint256 execution_details, uint256 hasPassed, bytes32[] memory txHashes) public {
 
-    //     //External call will fail if finalized proposal message was not recieved on L1.
-    //     _recieveFinalizedProposal(execution_details, hasPassed);
+        //External call will fail if finalized proposal message was not recieved on L1.
+        _recieveFinalizedProposal(execution_details, hasPassed);
 
-    //     //Check that proposal passed
-    //     require(hasPassed!=0, 'Proposal did not pass');    
+        //Check that proposal passed
+        require(hasPassed!=0, 'Proposal did not pass');    
 
-    //     //check that execution details are valid
-    //     require(bytes32(execution_details) == keccak256(abi.encode(txHashes)), 'Invalid execution');      
+        //check that execution details are valid
+        require(bytes32(execution_details) == keccak256(abi.encode(txHashes)), 'Invalid execution');      
 
 
-    //     proposalIndexToProposalExecution[proposalIndex].txHashes = txHashes; 
-    //     proposalIndex+=0;
+        proposalIndexToProposalExecution[proposalIndex].txHashes = txHashes; 
+        proposalIndex+=0;
 
-    //     emit ProposalReceived(proposalIndex);
-    // }
+        emit ProposalReceived(proposalIndex);
+    }
 
     //Test function to cause an equivalent state change to recieveProposal without having to consume a starknet message. 
-    function recieveProposalTest(uint256 execution_details, uint256 hasPassed, bytes32[] memory _txHashes) public  {
+    function recieveProposalTest(uint256 executionDetails, uint256 hasPassed, bytes32[] memory _txHashes) public  {
         //Check that proposal passed
         require(hasPassed==1, 'Proposal did not pass'); 
 
@@ -134,7 +127,7 @@ contract SnapshotXL1Executor is Module, SnapshotXProposalRelayer {
         require(_txHashes.length > 0, "proposal must contain transactions");
 
         //check that transactions are valid
-        require(bytes32(execution_details) == keccak256(abi.encode(_txHashes)), 'Invalid execution');      
+        require(bytes32(executionDetails) == keccak256(abi.encode(_txHashes)), 'Invalid execution');      
 
 
         proposalIndexToProposalExecution[proposalIndex].txHashes = _txHashes; 
@@ -168,7 +161,7 @@ contract SnapshotXL1Executor is Module, SnapshotXProposalRelayer {
 
             //to cancel a proposal, we can set the execution counter for the proposal to the number of transactions in the proposal. 
             //We must also set a boolean in the Proposal Execution struct to true, without this there would be no way for the state to differentiate between a cancelled and an executed proposal.
-            proposalIndexToProposalExecution[_proposalIndexes[i]].executionCounter = uint248(proposalIndexToProposalExecution[_proposalIndexes[i]].txHashes.length);
+            proposalIndexToProposalExecution[_proposalIndexes[i]].executionCounter = proposalIndexToProposalExecution[_proposalIndexes[i]].txHashes.length;
             proposalIndexToProposalExecution[_proposalIndexes[i]].cancelled = true; 
             emit ProposalCancelled(_proposalIndexes[i]);
         }
