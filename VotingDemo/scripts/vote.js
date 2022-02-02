@@ -4,7 +4,7 @@ const { getSelectorFromName } = stark;
 async function main() {
 
     const VOTING_CONTRACT_ADDRESS = 
-    "0x0414130848ed5100d0c3bb0dafc3cf2a6de63b4ea49862ee5c38ccec2145cbda";
+    "0x0180abab6c7c3983e886bd4f8ca6090e068cf10f14be6ae9919e7b0c654d28c1";
 
 
     //The owner of the voting contract 
@@ -12,38 +12,59 @@ async function main() {
     "0x069053b14d69a52aebc20833452df0da83ed20a43396ae7bb922b6eeba56c9de";
 
 
+    //create proposal, emits event containing proposal id and proposer address
+    var addTokenResponse = await defaultProvider.addTransaction({
+    type: "INVOKE_FUNCTION",
+    contract_address: VOTING_CONTRACT_ADDRESS,
+    entry_point_selector: getSelectorFromName("propose"),
+    calldata: ["1234", "5678"],
+    });
+    console.log(addTokenResponse);   
+
+
+
     //cast vote, emits an event containing vote info
-    // const addTokenResponse = await defaultProvider.addTransaction({
-    // type: "INVOKE_FUNCTION",
-    // contract_address: VOTING_CONTRACT_ADDRESS,
-    // entry_point_selector: getSelectorFromName("vote"),
-    // calldata: ["0", "1234", "2", "5678"],
-    // });
-    // console.log(addTokenResponse);  
+    var addTokenResponse = await defaultProvider.addTransaction({
+    type: "INVOKE_FUNCTION",
+    contract_address: VOTING_CONTRACT_ADDRESS,
+    entry_point_selector: getSelectorFromName("vote"),
+    calldata: ["60265779274270434537323828408977526710079971372926889746684550312238229785", "33333", "2", "7777"],
+    });
+    console.log(addTokenResponse);  
 
-    //Gets the number of votes for each of the 3 choices: 
 
+
+    //get proposal id so that you can query the contract for vote info
+    var out = await defaultProvider.callContract({
+    contract_address: VOTING_CONTRACT_ADDRESS,
+    entry_point_selector: getSelectorFromName("get_proposal_id"),
+    calldata: ["1234", "5678"],
+    });
+    console.log(out.result[0])
+
+
+
+    //Gets the number of votes for each of the 3 choices for the given proposal id: 
     var out = await defaultProvider.callContract({
     contract_address: VOTING_CONTRACT_ADDRESS,
     entry_point_selector: getSelectorFromName("get_num_choice"),
-    calldata: ["0", "1"],
+    calldata: ["60265779274270434537323828408977526710079971372926889746684550312238229785", "1"],
     });
     console.log(out.result[0])
   
     var out = await defaultProvider.callContract({
     contract_address: VOTING_CONTRACT_ADDRESS,
     entry_point_selector: getSelectorFromName("get_num_choice"),
-    calldata: ["0", "2"],
+    calldata: ["60265779274270434537323828408977526710079971372926889746684550312238229785", "2"],
     });
     console.log(out.result[0])
 
     var out = await defaultProvider.callContract({
     contract_address: VOTING_CONTRACT_ADDRESS,
     entry_point_selector: getSelectorFromName("get_num_choice"),
-    calldata: ["0", "3"],
+    calldata: ["60265779274270434537323828408977526710079971372926889746684550312238229785", "3"],
     });
     console.log(out.result[0])
-
 
 }
 
