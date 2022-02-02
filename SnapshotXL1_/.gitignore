@@ -1,0 +1,9 @@
+node_modules
+
+#Hardhat files
+cache
+artifacts
+starknet-artifacts
+factories
+
+.env
