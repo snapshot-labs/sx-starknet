@@ -1,5 +1,5 @@
 <div align="center">
-    <img src="public/icon.svg" height="70" alt="Snapshot Logo">
+    <img src="https://raw.githubusercontent.com/snapshot-labs/snapshot/develop/public/icon.svg" height="70" alt="Snapshot Logo">
     <h1>Snapshot X</h1>
     <strong>Snapshot X is an on-chain multi-governance client deployed on <a href="https://starkware.co/starknet/">Starknet</a>.</strong>
 </div>
