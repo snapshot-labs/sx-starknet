@@ -4,7 +4,7 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "prettier:write": "prettier --write 'contracts/*.sol'",
+    "prettier:solidity": "prettier --write 'contracts/*.sol'",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "keywords": [],
