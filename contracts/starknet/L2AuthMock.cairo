@@ -21,12 +21,12 @@ end
 
 #event emitted after each proposal is created
 @event 
-func proposal_created(proposal_id : felt, proposer_address : felt):
+func proposal_created(proposal_id : felt, proposer_address : felt, block_number : felt, block_timestamp : felt):
 end
 
 #event emitted after ech vote is received 
 @event 
-func vote_received(proposal_id : felt, voter_address : felt, choice : felt):
+func vote_received(proposal_id : felt, voter_address : felt, choice : felt, block_number : felt, block_timestamp : felt):
 end 
 
 #Submit proposal to L2
@@ -49,8 +49,10 @@ func propose{
     proposal_id_store.write(proposal_id, 1)
 
     let (caller) = get_caller_address()
+    let (block_number) = get_block_number()
+    let (block_timestamp) = get_block_timestamp()
     #emit proposal creation event 
-    proposal_created.emit(proposal_id, caller)
+    proposal_created.emit(proposal_id, caller, block_number, block_timestamp)
     return ()
 end
 
@@ -73,8 +75,9 @@ func vote{
     let (num_choice) = choices_store.read(proposal_id, choice)
 
     choices_store.write(proposal_id, choice, num_choice+1) 
-
-    vote_received.emit(proposal_id, address, choice) 
+    let (block_number) = get_block_number()
+    let (block_timestamp) = get_block_timestamp()
+    vote_received.emit(proposal_id, address, choice, block_number, block_timestamp) 
 
     return ()
 end 

@@ -1,13 +1,9 @@
-.DS_Store
 node_modules
 
 #Hardhat files
 cache
 artifacts
-starknet-artifacts 
+starknet-artifacts
+factories
 
-typechain
-
-# Remove some common IDE working directories
-.idea
-.vscode
+.env

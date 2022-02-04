@@ -25,12 +25,12 @@ end
 
 #event emitted after each proposal is created
 @event 
-func proposal_created_from_L1(proposal_id : felt, proposer_address : felt):
+func proposal_created_from_L1(proposal_id : felt, proposer_address : felt, block_number : felt, block_timestamp : felt):
 end
 
 #event emitted after ech vote is received 
 @event 
-func vote_received_from_L1(proposal_id : felt, voter_address : felt, choice : felt):
+func vote_received_from_L1(proposal_id : felt, voter_address : felt, choice : felt, block_number : felt, block_timestamp : felt):
 end 
 
 #Submit proposal from L1 voting contract
@@ -55,8 +55,10 @@ func submit_proposal{
     #initialize proposal
     proposal_id_store.write(proposal_id, 1)
     let (caller) = get_caller_address()
+    let (block_number) = get_block_number()
+    let (block_timestamp) = get_block_timestamp()
     #emit proposal creation event 
-    proposal_created_from_L1.emit(proposal_id, caller)
+    proposal_created_from_L1.emit(proposal_id, caller, block_number, block_timestamp)
 
     #The voting contract would be called to store the proposal
     return ()
@@ -81,7 +83,10 @@ func submit_vote{
     assert (choice-1)*(choice-2)*(choice-3) = 0
     let (num_choice) = choices_store.read(proposal_id, choice)
     choices_store.write(proposal_id, choice, num_choice+1) 
-    vote_received_from_L1.emit(proposal_id, address, choice)
+
+    let (block_number) = get_block_number()
+    let (block_timestamp) = get_block_timestamp()
+    vote_received_from_L1.emit(proposal_id, address, choice, block_number, block_timestamp)
 
     #The voting contract would be called to store the vote
 
