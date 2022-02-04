@@ -1,0 +1,5 @@
+Deployments on goerli-alpha: 
+
+L1AuthMock: 0x03eb52e6394fac9f6fb2653fd9d10efba15f3dbb7ba8820b814b5c4f46632466
+
+L2AuthMock: 0x05a880858035c9f5234f4bb97e903b0e1b5cd4c5ae0e59d0b7087168b319c503
