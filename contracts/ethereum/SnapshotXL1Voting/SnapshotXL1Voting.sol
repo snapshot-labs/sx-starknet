@@ -21,13 +21,10 @@ interface IStarknetCore {
 
         Returns the hash of the message.
     */
-    function consumeMessageFromL2(uint256 fromAddress, uint256[] calldata payload)
-        external
-        returns (bytes32);
+    function consumeMessageFromL2(uint256 fromAddress, uint256[] calldata payload) external returns (bytes32);
 }
 
 abstract contract SnapshotXL1Voting is Ownable, Initializable {
-
     /*
     Contract that allows smart contract accounts or EOAs to vote or create proposal on SnapshotX via an L1 transaction.
     There will be one instance of this contract that will be shared between all DAOs. 
@@ -52,19 +49,22 @@ abstract contract SnapshotXL1Voting is Ownable, Initializable {
     from starkware.starknet.compiler.compile import get_selector_from_name
     print(get_selector_from_name('submit_vote'))
     */
-    uint256 private constant L1_VOTE_HANDLER = 1564459668182098068965022601237862430004789345537526898295871983090769185429;
+    uint256 private constant L1_VOTE_HANDLER =
+        1564459668182098068965022601237862430004789345537526898295871983090769185429;
 
     // print(get_selector_from_name('submit_proposal'))
-    uint256 private constant L1_PROPOSE_HANDLER = 1604523576536829311415694698171983789217701548682002859668674868169816264965;
+    uint256 private constant L1_PROPOSE_HANDLER =
+        1604523576536829311415694698171983789217701548682002859668674868169816264965;
 
     // print(get_selector_from_name('delegate'))
-    uint256 private constant L1_DELEGATE_HANDLER = 1746921722015266013928822119890040225899444559222897406293768364420627026412;
+    uint256 private constant L1_DELEGATE_HANDLER =
+        1746921722015266013928822119890040225899444559222897406293768364420627026412;
 
     event L1VoteSubmitted(uint256 votingContract, uint256 proposalID, address voter, uint256 choice);
     event L1ProposalSubmitted(uint256 votingContract, uint256 executionHash, uint256 metadataHash, address proposer);
 
     struct Vote {
-        uint256 vc_address; 
+        uint256 vc_address;
         uint256 proposalID;
         uint256 choice;
     }
@@ -74,27 +74,26 @@ abstract contract SnapshotXL1Voting is Ownable, Initializable {
         address _starknetCore,
         uint256 _votingAuthL1
     ) {
-        bytes memory initParams = abi.encode(
-            _owner,
-            _starknetCore,
-            _votingAuthL1
-        );
+        bytes memory initParams = abi.encode(_owner, _starknetCore, _votingAuthL1);
         setUp(initParams);
     }
 
     function setUp(bytes memory initParams) public initializer {
-        (
-            address _owner,
-            address _starknetCore,
-            uint256 _votingAuthL1
-        ) = abi.decode(initParams, (address, address, uint256));
+        (address _owner, address _starknetCore, uint256 _votingAuthL1) = abi.decode(
+            initParams,
+            (address, address, uint256)
+        );
 
         transferOwnership(_owner);
         starknetCore = IStarknetCore(_starknetCore);
         votingAuthL1 = _votingAuthL1;
     }
 
-    function voteOnL1(uint256 votingContract, uint256 proposalID, uint256 choice) external {
+    function voteOnL1(
+        uint256 votingContract,
+        uint256 proposalID,
+        uint256 choice
+    ) external {
         uint256[] memory payload = new uint256[](4);
         payload[0] = votingContract;
         payload[1] = proposalID;
@@ -103,14 +102,13 @@ abstract contract SnapshotXL1Voting is Ownable, Initializable {
         starknetCore.sendMessageToL2(votingAuthL1, L1_VOTE_HANDLER, payload);
 
         emit L1VoteSubmitted(votingContract, proposalID, msg.sender, choice);
-    } 
+    }
 
-    function proposeOnL1(uint256 executionHash, uint256 metadataHash) virtual external;
+    function proposeOnL1(uint256 executionHash, uint256 metadataHash) external virtual;
 
-    function delegateOnL1(uint256 proposalID, uint256 startBlockNumber, uint256 endBlockNumber) virtual external;
-
-
-
+    function delegateOnL1(
+        uint256 proposalID,
+        uint256 startBlockNumber,
+        uint256 endBlockNumber
+    ) external virtual;
 }
-
-

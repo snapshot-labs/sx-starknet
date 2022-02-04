@@ -1274,7 +1274,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@openzeppelin/contracts@npm:^4.3.2, @openzeppelin/contracts@npm:^4.4.2":
+"@openzeppelin/contracts@npm:^4.3.2":
   version: 4.4.2
   resolution: "@openzeppelin/contracts@npm:4.4.2"
   checksum: 5c6be7bfe757c6a43eb5b24aa9c61a79deaed9de4bc5f59356b35f5519b0fb340f4da8b4df99588bded5e6b6a773fc54961917a1c657063247c1763f9752bd0e
@@ -1958,16 +1958,15 @@ __metadata:
   languageName: node
   linkType: hard
 
-"SnapshotXZodiac@workspace:.":
+"SnapshotX@workspace:.":
   version: 0.0.0-use.local
-  resolution: "SnapshotXZodiac@workspace:."
+  resolution: "SnapshotX@workspace:."
   dependencies:
     "@gnosis.pm/safe-contracts": ^1.3.0
     "@gnosis.pm/zodiac": ^1.0.3
     "@nomiclabs/hardhat-ethers": ^2.0.4
     "@nomiclabs/hardhat-etherscan": ^2.1.8
     "@nomiclabs/hardhat-waffle": ^2.0.2
-    "@openzeppelin/contracts": ^4.4.2
     "@shardlabs/starknet-hardhat-plugin": ^0.3.10
     "@typechain/ethers-v5": ^7.2.0
     "@typechain/hardhat": ^2.3.1
