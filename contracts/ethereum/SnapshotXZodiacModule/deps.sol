@@ -1,4 +1,5 @@
-// SPDX-License-Identifier: Unlicense
+//SPDX-License-Identifier: UNLICENSED
+
 pragma solidity >=0.8.4;
 
 import "@gnosis.pm/safe-contracts/contracts/GnosisSafeL2.sol";

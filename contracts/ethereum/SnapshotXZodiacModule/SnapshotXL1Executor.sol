@@ -1,3 +1,5 @@
+// SPDX-License-Identifier: UNLICENSED
+
 pragma solidity ^0.8.6;
 
 import "@gnosis.pm/zodiac/contracts/core/Module.sol";
@@ -16,8 +18,8 @@ contract SnapshotXL1Executor is Module, SnapshotXProposalRelayer {
     //     "Transaction(address to,uint256 value,bytes data,uint8 operation,uint256 nonce)"
     // );
 
-    // counter that is incremented each time a proposal is received.
-    uint256 public proposalIndex = 0;
+    // counter that is incremented each time a proposal is recieved.
+    uint256 public proposalIndex;
 
     //The state of a proposal index exists in one of the 5 categories. This can be queried using the getProposalState view function
     enum ProposalState {
@@ -89,8 +91,8 @@ contract SnapshotXL1Executor is Module, SnapshotXProposalRelayer {
         uint256 hasPassed,
         bytes32[] memory txHashes
     ) public {
-        //External call will fail if finalized proposal message was not received on L1.
-        _receiveFinalizedProposal(executionDetails, hasPassed);
+        //External call will fail if finalized proposal message was not recieved on L1.
+        _recieveFinalizedProposal(executionDetails, hasPassed);
 
         //Check that proposal passed
         require(hasPassed != 0, "Proposal did not pass");
@@ -99,13 +101,13 @@ contract SnapshotXL1Executor is Module, SnapshotXProposalRelayer {
         require(bytes32(executionDetails) == keccak256(abi.encode(txHashes)), "Invalid execution");
 
         proposalIndexToProposalExecution[proposalIndex].txHashes = txHashes;
-        proposalIndex += 0;
+        proposalIndex += 1;
 
         emit ProposalReceived(proposalIndex);
     }
 
-    //Test function to cause an equivalent state change to receiveProposal without having to consume a starknet message.
-    function receiveProposalTest(
+    //Test function to cause an equivalent state change to recieveProposal without having to consume a starknet message.
+    function recieveProposalTest(
         uint256 executionDetails,
         uint256 hasPassed,
         bytes32[] memory _txHashes
@@ -132,7 +134,7 @@ contract SnapshotXL1Executor is Module, SnapshotXProposalRelayer {
         for (uint256 i = 0; i < _proposalIndexes.length; i++) {
             require(
                 getProposalState(_proposalIndexes[i]) != ProposalState.NotReceived,
-                "Proposal not received, nothing to cancel"
+                "Proposal not recieved, nothing to cancel"
             );
 
             require(
@@ -230,6 +232,7 @@ contract SnapshotXL1Executor is Module, SnapshotXProposalRelayer {
 
     //returns true if transaction specified by its index is executed
     function isTxExecuted(uint256 _proposalIndex, uint256 txIndex) public view returns (bool) {
+        require(_proposalIndex < proposalIndex, "Invalid Proposal Index");
         require(txIndex < proposalIndexToProposalExecution[_proposalIndex].txHashes.length);
         return proposalIndexToProposalExecution[_proposalIndex].executionCounter > txIndex;
     }
