@@ -4,15 +4,10 @@
 from starkware.cairo.common.cairo_builtins import HashBuiltin
 from starkware.cairo.common.math import assert_nn
 from starkware.cairo.common.hash import hash2
-from starkware.starknet.common.syscalls import get_caller_address
+from starkware.starknet.common.syscalls import (get_caller_address, get_block_number, get_block_timestamp)
 
+#Demo contract to test voting on snapshot X directly on starknet 
 #No signature verification or double voting prevention
-
-
-#stores owner of contract
-@storage_var
-func owner_store() -> (key : felt):
-end
 
 #mapping stores 1 if the proposal has been initialized, otherwise 0
 @storage_var 
@@ -34,46 +29,7 @@ end
 func vote_received(proposal_id : felt, voter_address : felt, choice : felt):
 end 
 
-@constructor 
-func constructor{
-        syscall_ptr : felt*, 
-        pedersen_ptr : HashBuiltin*, 
-        range_check_ptr
-    }(
-        owner : felt
-    ):
-    owner_store.write(owner)
-    return ()
-end 
-
-@view 
-func get_owner{
-        syscall_ptr : felt*, 
-        pedersen_ptr : HashBuiltin*, 
-        range_check_ptr
-    }() -> (
-        owner : felt
-    ):
-    let (owner) = owner_store.read()
-    return (owner)
-end
-
-@external 
-func change_owner{
-        syscall_ptr : felt*, 
-        pedersen_ptr : HashBuiltin*, 
-        range_check_ptr
-    }(
-        new_owner : felt
-    ):
-    let (caller) = get_caller_address()
-    let (owner) = owner_store.read()
-    assert caller = owner
-    owner_store.write(new_owner)  
-
-    return ()    
-end
-
+#Submit proposal to L2
 @external 
 func propose{
         syscall_ptr : felt*, 
@@ -98,7 +54,7 @@ func propose{
     return ()
 end
 
-
+#Submit vote to L2
 @external 
 func vote{
         syscall_ptr : felt*, 
@@ -151,5 +107,4 @@ func get_num_choice{
     ):
     let (num_choice) = choices_store.read(proposal_id, choice)
     return (num_choice)   
-
 end
