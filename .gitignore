@@ -5,5 +5,15 @@ cache
 artifacts
 starknet-artifacts
 factories
+typechain
 
 .env
+
+# Editor directories and files
+.idea
+.vscode
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+*.sw?
