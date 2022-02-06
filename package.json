@@ -46,6 +46,7 @@
   "dependencies": {
     "@gnosis.pm/safe-contracts": "^1.3.0",
     "@gnosis.pm/zodiac": "^1.0.3",
+    "starknet": "^2.5.1",
     "yargs": "^17.3.1"
   }
 }
