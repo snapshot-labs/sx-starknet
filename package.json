@@ -1,13 +1,19 @@
 {
   "name": "snapshot-x",
   "version": "1.0.0",
+  "repository": "snapshot-labs/snapshot-x",
   "license": "MIT",
   "scripts": {
-    "build": "hardhat compile && hardhat starknet-compile",
+    "compile:l1": "hardhat compile",
+    "compile:l2": "hardhat starknet-compile",
+    "compile": "yarn compile:l1 && yarn compile:l2",
+    "deploy:l2": "hardhat starknet-deploy",
     "test": "hardhat test",
-    "start": "hardhat node",
-    "lint": "prettier --write 'contracts/**/*.sol' && eslint . --ext .ts --fix"
-
+    "start:l1": "hardhat node",
+    "lint:l1": "prettier --write 'contracts/**/*.sol'",
+    "lint:l2": "cairo-format -i contracts/**/*.cairo",
+    "lint:ts": "eslint . --ext .ts --fix",
+    "lint": "yarn lint:l1 && yarn lint:l2 && yarn lint:ts"
   },
   "dependencies": {
     "@gnosis.pm/safe-contracts": "^1.3.0",
