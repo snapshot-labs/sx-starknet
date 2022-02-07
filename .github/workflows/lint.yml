@@ -20,6 +20,6 @@ jobs:
       - name: Run linters
         uses: wearerequired/lint-action@v1
         with:
-          github_token: ${{ secrets.WORKFLOW_TOKEN }}
+          github_token: ${{ secrets.WORKFLOW_TOKE }}
           prettier: true
           auto_fix: true
