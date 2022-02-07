@@ -18,8 +18,9 @@ jobs:
         run: yarn install
 
       - name: Run linters
-        uses: wearerequired/lint-action@v1
+        uses: wearerequired/lint-action@a8497ddb33fb1205941fd40452ca9fff07e0770d
         with:
-          github_token: ${{ secrets.WORKFLOW_TOKE }}
+          github_token: ${{ secrets.GITHUB_TOKEN }}
           prettier: true
           auto_fix: true
+          prettier_extensions: 'sol'
