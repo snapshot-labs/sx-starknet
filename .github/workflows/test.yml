@@ -1,5 +1,3 @@
-and add the following code.
-
 name: learn-github-actions
 on: [push]
 jobs:
