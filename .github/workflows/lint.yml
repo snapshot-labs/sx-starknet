@@ -4,6 +4,7 @@ on:
     branches:
       - master
   pull_request:
+  
 jobs:
   run-linters:
     name: Run linters
