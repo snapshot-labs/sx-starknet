@@ -27,4 +27,4 @@ jobs:
           github_token: ${{ secrets.GITHUB_TOKEN }}
           prettier: true
           auto_fix: true
-          prettier_extensions: 'sol,yml,yaml,js,ts'
+          prettier_extensions: 'sol'
