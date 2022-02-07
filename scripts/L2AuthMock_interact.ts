@@ -1,5 +1,5 @@
-const { defaultProvider, stark } = require('starknet');
-const { getSelectorFromName } = stark;
+import { defaultProvider } from 'starknet';
+import { getSelectorFromName } from 'stark';
 
 async function main() {
   const VOTING_CONTRACT_ADDRESS =
