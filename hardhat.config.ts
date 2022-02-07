@@ -1,20 +1,14 @@
-import { task } from "hardhat/config";
-import "@shardlabs/starknet-hardhat-plugin";
-
-import { config as dotenvConfig } from "dotenv";
-import { resolve } from "path";
-dotenvConfig({ path: resolve(__dirname, "./.env") });
-
-import { HardhatUserConfig } from "hardhat/types";
-import { NetworkUserConfig } from "hardhat/types";
-
-import "@nomiclabs/hardhat-waffle";
-import "@typechain/hardhat";
-import "@nomiclabs/hardhat-ethers";
-import "@nomiclabs/hardhat-waffle";
-
-import "hardhat-gas-reporter";
-import "@nomiclabs/hardhat-etherscan";
+import dotenv from 'dotenv';
+dotenv.config();
+import { task } from 'hardhat/config';
+import { HardhatUserConfig, NetworkUserConfig } from 'hardhat/types';
+import '@shardlabs/starknet-hardhat-plugin';
+import '@nomiclabs/hardhat-waffle';
+import '@typechain/hardhat';
+import '@nomiclabs/hardhat-ethers';
+import '@nomiclabs/hardhat-waffle';
+import 'hardhat-gas-reporter';
+import '@nomiclabs/hardhat-etherscan';
 
 const chainIds = {
   ganache: 1337,
@@ -26,14 +20,14 @@ const chainIds = {
   ropsten: 3,
 };
 
-const MNEMONIC = process.env.MNEMONIC || "";
-const ETHERSCAN_API_KEY = process.env.ETHERSCAN_API_KEY || "";
-const INFURA_API_KEY = process.env.INFURA_API_KEY || "";
-const ALCHEMY_KEY = process.env.ALCHEMY_KEY || "";
+const MNEMONIC = process.env.MNEMONIC || '';
+// const ETHERSCAN_API_KEY = process.env.ETHERSCAN_API_KEY || '';
+const INFURA_API_KEY = process.env.INFURA_API_KEY || '';
+// const ALCHEMY_KEY = process.env.ALCHEMY_KEY || '';
 
 // This is a sample Hardhat task. To learn how to create your own go to
 // https://hardhat.org/guides/create-task.html
-task("accounts", "Prints the list of accounts", async (args, hre) => {
+task('accounts', 'Prints the list of accounts', async (args, hre) => {
   const accounts = await hre.ethers.getSigners();
 
   for (const account of accounts) {
@@ -42,7 +36,7 @@ task("accounts", "Prints the list of accounts", async (args, hre) => {
 });
 
 function createTestnetConfig(network: keyof typeof chainIds): NetworkUserConfig {
-  const url: string = "https://" + network + ".infura.io/v3/" + INFURA_API_KEY;
+  const url: string = 'https://' + network + '.infura.io/v3/' + INFURA_API_KEY;
   return {
     accounts: {
       count: 10,
@@ -57,7 +51,7 @@ function createTestnetConfig(network: keyof typeof chainIds): NetworkUserConfig 
 
 const config: HardhatUserConfig = {
   solidity: {
-    version: "0.8.6",
+    version: '0.8.6',
     settings: {
       optimizer: {
         enabled: true,
@@ -67,20 +61,19 @@ const config: HardhatUserConfig = {
   },
   networks: {
     ropsten: {
-      url: process.env.ROPSTEN_URL || "",
-      accounts:
-        process.env.PRIVATE_KEY !== undefined ? [process.env.PRIVATE_KEY] : [],
+      url: process.env.ROPSTEN_URL || '',
+      accounts: process.env.PRIVATE_KEY !== undefined ? [process.env.PRIVATE_KEY] : [],
     },
     devnet: {
-      url: "http://localhost:8545"
+      url: 'http://localhost:8545',
     },
     starknetDevnet: {
-      url: "http://localhost:8000/"
-    }
+      url: 'http://localhost:8000/',
+    },
   },
   gasReporter: {
     enabled: process.env.REPORT_GAS !== undefined,
-    currency: "USD",
+    currency: 'USD',
   },
   etherscan: {
     apiKey: process.env.ETHERSCAN_API_KEY,
@@ -96,10 +89,3 @@ const config: HardhatUserConfig = {
 };
 
 export default config;
-
-
-
-
-
-
-
