@@ -3,10 +3,11 @@
   "version": "1.0.0",
   "license": "MIT",
   "scripts": {
-    "build": "hardhat compile",
+    "build": "hardhat compile && hardhat starknet-compile",
     "test": "hardhat test",
     "start": "hardhat node",
     "lint": "prettier --write 'contracts/**/*.sol' && eslint . --ext .ts --fix"
+
   },
   "dependencies": {
     "@gnosis.pm/safe-contracts": "^1.3.0",
