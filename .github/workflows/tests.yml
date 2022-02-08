@@ -27,4 +27,4 @@ jobs:
         run: yarn compile
     
       - name: Run unit tests
-        run: yarn test
+        run: yarn test 
