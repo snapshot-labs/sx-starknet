@@ -41,6 +41,9 @@ jobs:
       - name: Display Python version
         run: python -c "import sys; print(sys.version)"
 
+      - name: Install deps
+        run: pip install -r requirements.txt
+
       - name: Run l2 linters 
         run: yarn lint:l2
 
