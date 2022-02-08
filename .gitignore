@@ -7,6 +7,7 @@ starknet-artifacts
 factories
 typechain
 
+.yarn
 .env
 
 # Editor directories and files
