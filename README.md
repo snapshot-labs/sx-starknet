@@ -30,17 +30,14 @@ Snapshot is open-sourced software licensed under the © [MIT license](LICENSE).
 
 Usage
 -----
-### Setup Python 3.7 environment and install cairo : 
+The Starknet Hardhat plugin uses a docker container so make sure you have a running Docker daemon.
+
+### Install python and yarn requirements: 
 
 ```bash
 python3.7 -m venv ~/cairo_venv
 source ~/cairo_venv/bin/activate
 pip3 install -r requirements.txt
-```
-
-### Install requirements with yarn :
-
-```bash
 yarn
 ```
 
