@@ -50,6 +50,11 @@ yarn
 yarn compile
 ```
 
+###Deploy Starknet contracts to : 
+run
+```bash
+yarn 
+```
 ### Deployments
 
 A collection of the different Safe contract deployments and their addresses can be found in the [Safe deployments](https://github.com/gnosis/safe-deployments) repository.
