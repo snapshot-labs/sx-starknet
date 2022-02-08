@@ -27,3 +27,25 @@ This project is still under heavy development. Feel free to contact us on [Disco
 ## License
 
 Snapshot is open-sourced software licensed under the © [MIT license](LICENSE).
+
+Usage
+-----
+### Install requirements with yarn:
+
+```bash
+yarn
+```
+
+### Run all tests:
+
+```bash
+yarn build
+yarn test
+```
+
+### Deployments
+
+A collection of the different Safe contract deployments and their addresses can be found in the [Safe deployments](https://github.com/gnosis/safe-deployments) repository.
+
+To add support for a new network follow the steps of the ``Deploy`` section and create a PR in the [Safe deployments](https://github.com/gnosis/safe-deployments) repository. 
+
