@@ -20,8 +20,20 @@ jobs:
         with:
           node-version: 14
 
-      - name: Install dependencies
-        run: yarn install
+      - name: Get yarn cache directory path
+        id: yarn-cache-dir-path
+        run: echo "::set-output name=dir::$(yarn cache dir)"
+
+      - name: Cache YARN dependencies
+        uses: actions/cache@v2
+        with:
+          path: ${{ steps.yarn-cache-dir-path.outputs.dir }}
+          key: yarn-${{ hashFiles('**/yarn.lock') }}
+          restore-keys: |
+            yarn-
+
+      - name: Install node dependencies
+        run: yarn install --no-progress --non-interactive --frozen-lockfile
 
       - name: Compile Contracts
         run: yarn compile
