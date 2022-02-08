@@ -32,7 +32,7 @@ jobs:
             yarn-
 
       - name: Install node dependencies
-        run: yarn install --no-progress --non-interactive --frozen-lockfile
+        run: yarn install --no-progress --non-interactive
 
       - name: Set up python
         uses: actions/setup-python@v2
