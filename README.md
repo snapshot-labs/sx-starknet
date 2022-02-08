@@ -30,7 +30,7 @@ Snapshot is open-sourced software licensed under the © [MIT license](LICENSE).
 
 Usage
 -----
-The Starknet Hardhat plugin uses a docker container so make sure you have a running Docker daemon.
+The Starknet Hardhat plugin uses a docker container so make sure you have a running Docker daemon. More information about the plugin can be found [here](https://github.com/Shard-Labs/starknet-hardhat-plugin)
 
 ### Install python and yarn requirements: 
 
@@ -47,14 +47,15 @@ yarn
 yarn compile
 ```
 
-###Deploy Starknet contracts to : 
+### Run Tests:
+```bash
+yarn test
+```
+
+###Deploy Starknet contracts to alpha-goerli testnet: 
 run
 ```bash
-yarn 
+yarn deploy:l2:testnet
 ```
-### Deployments
 
-A collection of the different Safe contract deployments and their addresses can be found in the [Safe deployments](https://github.com/gnosis/safe-deployments) repository.
-
-To add support for a new network follow the steps of the ``Deploy`` section and create a PR in the [Safe deployments](https://github.com/gnosis/safe-deployments) repository. 
 
