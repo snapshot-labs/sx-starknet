@@ -19,40 +19,31 @@ jobs:
         with:
           node-version: 14
 
-      - name: Install dependencies
-        run: yarn install
+      - name: Get yarn cache directory path
+        id: yarn-cache-dir-path
+        run: echo "::set-output name=dir::$(yarn cache dir)"
+
+      - name: Cache YARN dependencies
+        uses: actions/cache@v2
+        with:
+          path: ${{ steps.yarn-cache-dir-path.outputs.dir }}
+          key: yarn-${{ hashFiles('**/yarn.lock') }}
+          restore-keys: |
+            yarn-
+
+      - name: Install node dependencies
+        run: yarn install --no-progress --non-interactive
 
       - name: Set up python
         uses: actions/setup-python@v2
         with:
           python-version: 3.7
 
-      - name: Install deps
+      - name: Install python dependencies
         run: pip install -r requirements.txt
 
       - name: Run linters
         run: yarn lint
 
-  # run-linters-l2:
-  #   name: l2 linting 
-  #   runs-on: ubuntu-latest 
-
-  #   steps:
-  #     - name: Check out Git repository
-  #       uses: actions/checkout@v2   
-
-  #     - name: Set up python
-  #       uses: actions/setup-python@v2
-  #       with:
-  #         python-version: 3.7
-
-  #     - name: Display Python version
-  #       run: python -c "import sys; print(sys.version)"
-
-  #     - name: Install deps
-  #       run: pip install -r requirements.txt
-
-  #     - name: Run l2 linters 
-  #       run: yarn lint:l2
 
   
