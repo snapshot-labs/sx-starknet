@@ -7,7 +7,7 @@
     "compile:l1": "hardhat compile",
     "compile:l2": "hardhat starknet-compile",
     "compile": "yarn compile:l1 && yarn compile:l2",
-    "deploy:l2": "hardhat starknet-deploy",
+    "deploy:l2:testnet": "hardhat starknet-deploy --starknet-network alpha",
     "test": "hardhat test",
     "start:l1": "hardhat node",
     "lint:l1": "prettier --write 'contracts/**/*.sol'",
