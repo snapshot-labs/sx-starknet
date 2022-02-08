@@ -1,66 +1,55 @@
 // SPDX-License-Identifier: UNLICENSED
 pragma solidity 0.8.6;
 
-import '@openzeppelin/contracts/access/Ownable.sol';
-import '@openzeppelin/contracts/proxy/utils/Initializable.sol';
+import './Interfaces/IStarknetCore.sol';
 
-interface IStarknetCore {
-  /**
-    Sends a message to an L2 contract.
-    Returns the hash of the message.
-  */
-  function sendMessageToL2(
-    uint256 to_address,
-    uint256 selector,
-    uint256[] calldata payload
-  ) external returns (bytes32);
-
-  /**
-    Consumes a message that was sent from an L2 contract.
-    Returns the hash of the message.
-   */
-  function consumeMessageFromL2(uint256 fromAddress, uint256[] calldata payload)
-    external
-    returns (bytes32);
-}
-
-abstract contract SnapshotXL1Voting is Ownable, Initializable {
-  /*
-    Contract that allows smart contract accounts or EOAs to vote or create proposal on SnapshotX via an L1 transaction.
-    There will be one instance of this contract that will be shared between all DAOs.
-
-    To vote via L1:
-      1) voteOnL1 is called by an EOA or a contract account with proposal id and choice as arguments.
-      2) send_message() function of the StarkNet core contract is called with the L1 vote authenticator as the "to" address and the function selector of submit_vote() as an argument.
-      Additionally, the proposal id and the choice are submitted along with the address of the voter found from msg.sender.
-      3) The StarkNet Sequencer automatically consumes the message and invokes the submit_vote() @l1_handler function in the L1 vote authenticator.
-      4) The vote is authenticated and stored in the voting contract for the DAO.
-      note: Until the sequencer is decentralized, we do not have censorship resistance here as the sequencer could choose to ignore the message.
-  */
-
-  // The StarkNet core contract.
-  IStarknetCore public starknetCore;
+/**
+ * @title Snapshot X L1 execution Zodiac module
+ * @author @Orland0x - <orlandothefraser@gmail.com>
+ * @notice Trustless L1 execution of Snapshot X decisions via a Gnosis Safe
+ * @dev Work in progress
+ */
+abstract contract SnapshotXL1Voting {
+  /// The StarkNet core contract.
+  IStarknetCore public immutable starknetCore;
 
   /// address of the voting Authenticator contract that handles L1 votes
-  uint256 public votingAuthL1;
+  uint256 public immutable votingAuthL1;
 
-  /*
-    Selector for the L1 handler submit_vote in the vote authenticator, found via:
-    from starkware.starknet.compiler.compile import get_selector_from_name
-    print(get_selector_from_name('submit_vote'))
+  /**
+   * @dev Selector for the L1 handler submit_vote in the vote authenticator, found via:
+   *      from starkware.starknet.compiler.compile import get_selector_from_name
+   *      print(get_selector_from_name('submit_vote'))
   */
   uint256 private constant L1_VOTE_HANDLER =
     1564459668182098068965022601237862430004789345537526898295871983090769185429;
 
-  // print(get_selector_from_name('submit_proposal'))
+  /// @dev print(get_selector_from_name('submit_proposal'))
   uint256 private constant L1_PROPOSE_HANDLER =
     1604523576536829311415694698171983789217701548682002859668674868169816264965;
 
-  // print(get_selector_from_name('delegate'))
+  /// @dev print(get_selector_from_name('delegate'))
   uint256 private constant L1_DELEGATE_HANDLER =
     1746921722015266013928822119890040225899444559222897406293768364420627026412;
 
+  /* EVENTS */ 
+
+  /** 
+   * @dev Emitted when a new L1 vote is submitted
+   * @param votingContract Address of Starknet voting contract
+   * @param proposalID ID of the proposal the vote was submitted to
+   * @param voter Address of the voter 
+   * @param choice The vote {1,2,3}
+   */
   event L1VoteSubmitted(uint256 votingContract, uint256 proposalID, address voter, uint256 choice);
+
+  /** 
+   * @dev Emitted when a new proposal is submitted via L1 vote
+   * @param votingContract Address of Starknet voting contract
+   * @param executionHash Hash of the proposal execution details
+   * @param metadataHash Hash of the proposal metadata
+   * @param proposer Address of the proposer
+   */
   event L1ProposalSubmitted(
     uint256 votingContract,
     uint256 executionHash,
@@ -68,32 +57,31 @@ abstract contract SnapshotXL1Voting is Ownable, Initializable {
     address proposer
   );
 
+  /// Vote object
   struct Vote {
     uint256 vc_address;
     uint256 proposalID;
     uint256 choice;
   }
 
+  /** 
+   * @dev Constructor
+   * @param _starknetCore Address of the Starknet core contract
+   * @param _votingAuthL1 Address of the Starknet vote authenticator for L1 votes
+   */
   constructor(
-    address _owner,
     address _starknetCore,
     uint256 _votingAuthL1
   ) {
-    bytes memory initParams = abi.encode(_owner, _starknetCore, _votingAuthL1);
-    setUp(initParams);
-  }
-
-  function setUp(bytes memory initParams) public initializer {
-    (address _owner, address _starknetCore, uint256 _votingAuthL1) = abi.decode(
-      initParams,
-      (address, address, uint256)
-    );
-
-    transferOwnership(_owner);
     starknetCore = IStarknetCore(_starknetCore);
     votingAuthL1 = _votingAuthL1;
   }
 
+  /** 
+   * @dev Submit vote to Snapshot X proposal via L1 transaction (No signature needed)
+   * @param proposalID ID of the proposal
+   * @param choice The vote {1,2,3}
+   */
   function voteOnL1(
     uint256 votingContract,
     uint256 proposalID,
@@ -105,7 +93,6 @@ abstract contract SnapshotXL1Voting is Ownable, Initializable {
     payload[2] = uint256(uint160(address(msg.sender)));
     payload[3] = choice;
     starknetCore.sendMessageToL2(votingAuthL1, L1_VOTE_HANDLER, payload);
-
     emit L1VoteSubmitted(votingContract, proposalID, msg.sender, choice);
   }
 
