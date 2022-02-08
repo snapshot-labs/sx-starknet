@@ -52,7 +52,7 @@ yarn compile
 yarn test
 ```
 
-###Deploy Starknet contracts to alpha-goerli testnet: 
+### Deploy Starknet contracts to alpha-goerli testnet: 
 run
 ```bash
 yarn deploy:l2:testnet
