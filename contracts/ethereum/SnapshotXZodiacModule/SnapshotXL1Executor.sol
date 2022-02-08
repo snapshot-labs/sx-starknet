@@ -1,28 +1,31 @@
-// SPDX-License-Identifier: UNLICENSED
+// SPDX-License-Identifier: MIT
 
 pragma solidity ^0.8.6;
 
 import '@gnosis.pm/zodiac/contracts/core/Module.sol';
+import './ProposalRelayer.sol';
 
-import {SnapshotXProposalRelayer} from './ProposalRelayer.sol';
-
+/**
+ * @title Snapshot X L1 execution Zodiac module
+ * @author @Orland0x - <orlandothefraser@gmail.com>
+ * @notice Trustless L1 execution of Snapshot X decisions via a Gnosis Safe
+ * @dev Work in progress
+ */
 contract SnapshotXL1Executor is Module, SnapshotXProposalRelayer {
+
+  /// @dev keccak256("EIP712Domain(uint256 chainId,address verifyingContract)");
   bytes32 public constant DOMAIN_SEPARATOR_TYPEHASH =
     0x47e79534a245952e8b16893a336b85a3d9ea9fa8c573f3d803afb92a79469218;
-  // keccak256(
-  //     "EIP712Domain(uint256 chainId,address verifyingContract)"
-  // );
 
+  /// @dev keccak256("Transaction(address to,uint256 value,bytes data,uint8 operation,uint256 nonce)");
   bytes32 public constant TRANSACTION_TYPEHASH =
     0x72e9670a7ee00f5fbf1049b8c38e3f22fab7e9b85029e85cf9412f17fdd5c2ad;
-  // keccak256(
-  //     "Transaction(address to,uint256 value,bytes data,uint8 operation,uint256 nonce)"
-  // );
 
-  // counter that is incremented each time a proposal is recieved.
+
+  /// counter that is incremented each time a proposal is recieved.
   uint256 public proposalIndex;
 
-  //The state of a proposal index exists in one of the 5 categories. This can be queried using the getProposalState view function
+  /// The state of a proposal index exists in one of the 5 categories. This can be queried using the getProposalState view function
   enum ProposalState {
     NotReceived,
     Received,
@@ -31,17 +34,31 @@ contract SnapshotXL1Executor is Module, SnapshotXProposalRelayer {
     Cancelled
   }
 
+  // stores the execution details and execution progress of each proposal received
   struct ProposalExecution {
-    bytes32[] txHashes; //array of Transaction Hashes for each transaction in the proposal
-    uint256 executionCounter; //counter which stores the number of transaction in the proposal that have so far been executed. This ensures that transactions cannot be executed twice and that transactions are executed in the predefined order.
+    // array of Transaction Hashes for each transaction in the proposal
+    bytes32[] txHashes; 
+    // counter which stores the index of the next transaction in the proposal that should be executed
+    uint256 executionCounter; 
+    // whether the proposal has been cancelled. Required to fully define the proposal state as a function of this struct
     bool cancelled;
-    //timelock? (ignoring for now)
   }
 
+  /// Map of proposal index to the corresponding proposal execution struct
   mapping(uint256 => ProposalExecution) public proposalIndexToProposalExecution;
 
-  // ######## EVENTS ########
 
+  /* EVENTS */
+
+  /** 
+   * @dev Emitted when a new module proxy instance has been deployed
+   * @param initiator Address of contract deployer
+   * @param _owner Address of the owner of this contract
+   * @param _avatar Address that will ultimately execute function calls
+   * @param _target Address that this contract will pass transactions to
+   * @param _decisionExecutorL2 Address of the starknet contract that will send execution details to this contract in a L2 -> L1 message
+   * @param _starknetCore Address of the Starknet Core contract 
+   */
   event SnapshotXL1ExecutorSetUpComplete(
     address indexed initiator,
     address indexed _owner,
@@ -51,16 +68,43 @@ contract SnapshotXL1Executor is Module, SnapshotXProposalRelayer {
     address _starknetCore
   );
 
+  /**
+   * @dev Emitted when a new proposal is received from Starknet 
+   * @param proposalIndex Index of proposal 
+   */
   event ProposalReceived(uint256 proposalIndex);
+
+  /**
+   * @dev Emitted when a Transaction in a proposal is executed.
+   * @param proposalIndex Index of proposal 
+   * @param txHash The transaction hash 
+   * @notice Could remove to save some gas and only emit event when all txs are executed
+   */
   event TransactionExecuted(uint256 proposalIndex, bytes32 txHash);
+
+  /**
+   * @dev Emitted when all transactions in a proposal have been executed 
+   * @param proposalIndex Index of proposal 
+   */
   event ProposalExecuted(uint256 proposalIndex);
+
+  /**
+   * @dev Emitted when a proposal get cancelled 
+   * @param proposalIndex Index of proposal 
+   */
   event ProposalCancelled(uint256 proposalIndex);
 
-  // @dev
-  // @param _owner
-  // @param _avatar The address of the programmable ethereum account contract that this module is linked to. the contract must implement IAvatar.sol. Gnosis is safe is one implementation.
-  // @param _target
-  // @param _decisionExecutorL2 is the starknet address of the Decision Executor contract for this DAO. This contract will be the L2 end of the L2 -> L1 message bridge
+
+  /* Constructor */
+
+  /** 
+   * @dev Constructs the master contract
+   * @param _owner Address of the owner of this contract
+   * @param _avatar Address that will ultimately execute function calls
+   * @param _target Address that this contract will pass transactions to
+   * @param _starknetCore Address of the Starknet Core contract 
+   * @param _decisionExecutorL2 Address of the starknet contract that will send execution details to this contract in a L2 -> L1 message
+   */
   constructor(
     address _owner,
     address _avatar,
@@ -78,6 +122,10 @@ contract SnapshotXL1Executor is Module, SnapshotXProposalRelayer {
     setUp(initParams);
   }
 
+  /**
+   * @dev Proxy constructor
+   * @param initParams Initialization parameters
+   */
   function setUp(bytes memory initParams) public override initializer {
     (
       address _owner,
@@ -86,14 +134,11 @@ contract SnapshotXL1Executor is Module, SnapshotXProposalRelayer {
       address _starknetCore,
       uint256 _decisionExecutorL2
     ) = abi.decode(initParams, (address, address, address, address, uint256));
-
     __Ownable_init();
     transferOwnership(_owner);
     avatar = _avatar;
     target = _target;
-
     setUpSnapshotXProposalRelayer(_starknetCore, _decisionExecutorL2);
-
     emit SnapshotXL1ExecutorSetUpComplete(
       msg.sender,
       _owner,
@@ -104,68 +149,67 @@ contract SnapshotXL1Executor is Module, SnapshotXProposalRelayer {
     );
   }
 
-  //Consumes message from L2 containing finalized proposal, checks transaction hashes are valid, then stores transactions hashes
+
+  /* External */
+
+  /** 
+   * @dev Initializes a new proposal execution struct on the receival of a completed proposal from Starknet
+   * @param executionDetails Hash of all the transactions in the proposal
+   * @param hasPassed Whether proposal passed or not 
+   * @param _txHashes Array of transaction hashes in proposal 
+   */
   function receiveProposal(
     uint256 executionDetails,
     uint256 hasPassed,
-    bytes32[] memory txHashes
-  ) public {
+    bytes32[] memory _txHashes
+  ) external {
     //External call will fail if finalized proposal message was not recieved on L1.
     _recieveFinalizedProposal(executionDetails, hasPassed);
-
-    //Check that proposal passed
     require(hasPassed != 0, 'Proposal did not pass');
-
-    //check that execution details are valid
-    require(bytes32(executionDetails) == keccak256(abi.encode(txHashes)), 'Invalid execution');
-
-    proposalIndexToProposalExecution[proposalIndex].txHashes = txHashes;
-    proposalIndex += 1;
-
+    require(_txHashes.length > 0, 'proposal must contain transactions');
+    require(bytes32(executionDetails) == keccak256(abi.encode(_txHashes)), 'Invalid execution');
+    proposalIndexToProposalExecution[proposalIndex].txHashes = _txHashes;
+    proposalIndex++;
     emit ProposalReceived(proposalIndex);
   }
 
-  //Test function to cause an equivalent state change to recieveProposal without having to consume a starknet message.
+  /** 
+   * @dev Initializes a new proposal execution struct (To test execution without actually receiving message)
+   * @param executionDetails Hash of all the transactions in the proposal
+   * @param hasPassed Whether proposal passed or not 
+   * @param _txHashes Array of transaction hashes in proposal 
+   */
   function recieveProposalTest(
     uint256 executionDetails,
     uint256 hasPassed,
     bytes32[] memory _txHashes
-  ) public {
-    //Check that proposal passed
+  ) external {
     require(hasPassed == 1, 'Proposal did not pass');
-
-    //Check proposal contains at least one transaction
     require(_txHashes.length > 0, 'proposal must contain transactions');
-
-    //check that transactions are valid
     require(bytes32(executionDetails) == keccak256(abi.encode(_txHashes)), 'Invalid execution');
-
     proposalIndexToProposalExecution[proposalIndex].txHashes = _txHashes;
-
-    proposalIndex++; //uint256(0); // Very weird error here: AssertionError: Expected "1" to be equal 0 when I increment by 1. ignored for now
-
+    proposalIndex++; 
     emit ProposalReceived(proposalIndex);
   }
 
-  /// @dev Cancels a proposal.
-  /// @param _proposalIndexes array of proposals to cancel.
-  function cancelProposals(uint256[] memory _proposalIndexes) public onlyOwner {
+  /**
+   * @dev Cancels a set of proposals
+   * @param _proposalIndexes Array of proposal indexes that should be cancelled
+   */
+  function cancelProposals(uint256[] memory _proposalIndexes) external onlyOwner {
     for (uint256 i = 0; i < _proposalIndexes.length; i++) {
       require(
         getProposalState(_proposalIndexes[i]) != ProposalState.NotReceived,
         'Proposal not recieved, nothing to cancel'
       );
-
       require(
         getProposalState(_proposalIndexes[i]) != ProposalState.Executed,
         'Execution completed, nothing to cancel'
       );
-
       require(
         proposalIndexToProposalExecution[_proposalIndexes[i]].cancelled == false,
-        'proposal is already canceled'
+        'proposal is already cancelled'
       );
-
       //to cancel a proposal, we can set the execution counter for the proposal to the number of transactions in the proposal.
       //We must also set a boolean in the Proposal Execution struct to true, without this there would be no way for the state to differentiate between a cancelled and an executed proposal.
       proposalIndexToProposalExecution[_proposalIndexes[i]]
@@ -175,52 +219,64 @@ contract SnapshotXL1Executor is Module, SnapshotXProposalRelayer {
     }
   }
 
+
+  /** 
+   * @dev Executes a single transaction in a proposal
+   * @param _proposalIndex Index of proposal
+   * @param to the contract to be called by the avatar 
+   * @param value ether value to pass with the call
+   * @param data the data to be executed from the call
+   * @param operation Call or DelegateCall indicator
+   */
   function executeProposalTx(
     uint256 _proposalIndex,
-    address target,
+    address to,
     uint256 value,
     bytes memory data,
     Enum.Operation operation
   ) public {
-    bytes32 txHash = getTransactionHash(target, value, data, operation);
-
-    //If all the Txs have been executed then the executionCounter will be exceed the length of the txHash array so the state look up will return nothing
+    bytes32 txHash = getTransactionHash(to, value, data, operation);
     require(
       proposalIndexToProposalExecution[_proposalIndex].txHashes[
         proposalIndexToProposalExecution[_proposalIndex].executionCounter
       ] == txHash,
       'Invalid transaction or invalid transaction order'
     );
-
     proposalIndexToProposalExecution[_proposalIndex].executionCounter++;
-
-    require(exec(target, value, data, operation), 'Module transaction failed');
-
+    require(exec(to, value, data, operation), 'Module transaction failed');
     emit TransactionExecuted(_proposalIndex, txHash);
-
-    //if final transaction, emit ProposalExecuted event - could remove to reduce gas costs a bit and infer offchain
     if (getProposalState(_proposalIndex) == ProposalState.Executed) {
       emit ProposalExecuted(_proposalIndex);
     }
   }
 
-  //Wrapper function around executeProposalTx to execute all transactions in a proposal with a single transaction.
-  //Will reach the block gas limit if too many/large transactions are included.
+  /** 
+   * @dev Wrapper function around executeProposalTx that will execute all transactions in a proposal
+   * @param _proposalIndex Index of proposal
+   * @param tos Array of contracts to be called by the avatar 
+   * @param values Array of ether values to pass with the calls
+   * @param data Array of data to be executed from the calls
+   * @param operations Array of Call or DelegateCall indicators
+   */
   function executeProposalTxBatch(
     uint256 _proposalIndex,
-    address[] memory targets,
+    address[] memory tos,
     uint256[] memory values,
     bytes[] memory data,
     Enum.Operation[] memory operations
-  ) public {
-    //execute each transaction individually
-    for (uint256 i = 0; i < targets.length; i++) {
-      executeProposalTx(_proposalIndex, targets[i], values[i], data[i], operations[i]);
+  ) external {
+    for (uint256 i = 0; i < tos.length; i++) {
+      executeProposalTx(_proposalIndex, tos[i], values[i], data[i], operations[i]);
     }
   }
 
-  //###### VIEW FUNCTIONS ######
 
+  /* VIEW FUNCTIONS */
+
+  /**
+   * @dev Returns state of proposal 
+   * @param _proposalIndex Index of proposal 
+   */
   function getProposalState(uint256 _proposalIndex) public view returns (ProposalState) {
     ProposalExecution storage proposalExecution = proposalIndexToProposalExecution[_proposalIndex];
     if (proposalExecution.txHashes.length == 0) {
@@ -236,33 +292,55 @@ contract SnapshotXL1Executor is Module, SnapshotXProposalRelayer {
     }
   }
 
-  function getNumOfTxInProposal(uint256 _proposalIndex) public view returns (uint256) {
+  /**
+   * @dev Gets number of transactions in a proposal
+   * @param _proposalIndex Index of proposal 
+   * @return numTx Number of transactions in the proposal
+   */
+  function getNumOfTxInProposal(uint256 _proposalIndex) public view returns (uint256 numTx) {
+    require(_proposalIndex < proposalIndex, 'Invalid Proposal Index');
     return proposalIndexToProposalExecution[_proposalIndex].txHashes.length;
   }
 
-  //returns hash of transaction at specified index in array.
-  //One can iterate through this up till isProposalExecuted to obtain all the Tx hashes in the proposal
-  function getTxHash(uint256 _proposalIndex, uint256 txIndex) public view returns (bytes32) {
+  /**
+   * @dev Gets hash of transaction in a proposal 
+   * @param _proposalIndex Index of proposal 
+   * @param txIndex Index of transaction in proposal
+   * @param txHash Transaction Hash
+   */
+  function getTxHash(uint256 _proposalIndex, uint256 txIndex) public view returns (bytes32 txHash) {
     require(_proposalIndex < proposalIndex, 'Invalid Proposal Index');
     require(txIndex < proposalIndexToProposalExecution[_proposalIndex].txHashes.length);
     return proposalIndexToProposalExecution[_proposalIndex].txHashes[txIndex];
   }
 
-  //returns true if transaction specified by its index is executed
-  function isTxExecuted(uint256 _proposalIndex, uint256 txIndex) public view returns (bool) {
+  /**
+   * @dev Gets whether transaction has been executed
+   * @param _proposalIndex Index of proposal 
+   * @param txIndex Index of transaction in proposal
+   * @param isExecuted Is transaction executed
+   */
+  function isTxExecuted(uint256 _proposalIndex, uint256 txIndex) public view returns (bool isExecuted) {
     require(_proposalIndex < proposalIndex, 'Invalid Proposal Index');
     require(txIndex < proposalIndexToProposalExecution[_proposalIndex].txHashes.length);
     return proposalIndexToProposalExecution[_proposalIndex].executionCounter > txIndex;
   }
 
-  /// @dev Generates the data for the module transaction hash (required for signing)
+  /** 
+   * @dev Generates the data for the module transaction hash (required for signing)
+   * @param to the contract to be called by the avatar 
+   * @param value ether value to pass with the call
+   * @param data the data to be executed from the call
+   * @param operation Call or DelegateCall indicator
+   * @return txHashData Transaction hash data
+   */
   function generateTransactionHashData(
     address to,
     uint256 value,
     bytes memory data,
     Enum.Operation operation,
     uint256 nonce
-  ) public view returns (bytes memory) {
+  ) public view returns (bytes memory txHashData) {
     uint256 chainId = block.chainid;
     bytes32 domainSeparator = keccak256(abi.encode(DOMAIN_SEPARATOR_TYPEHASH, chainId, this));
     bytes32 transactionHash = keccak256(
@@ -271,12 +349,20 @@ contract SnapshotXL1Executor is Module, SnapshotXProposalRelayer {
     return abi.encodePacked(bytes1(0x19), bytes1(0x01), domainSeparator, transactionHash);
   }
 
+  /** 
+   * @dev Generates transaction hash
+   * @param to the contract to be called by the avatar 
+   * @param value ether value to pass with the call
+   * @param data the data to be executed from the call
+   * @param operation Call or DelegateCall indicator
+   * @return txHash Transaction hash 
+   */
   function getTransactionHash(
     address to,
     uint256 value,
     bytes memory data,
     Enum.Operation operation
-  ) public view returns (bytes32) {
+  ) public view returns (bytes32 txHash) {
     return keccak256(generateTransactionHashData(to, value, data, operation, 0));
   }
 }
