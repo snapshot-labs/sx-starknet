@@ -7,7 +7,7 @@ on:
 
 jobs:
   run-linters:
-    name: Run linters
+    name: Run Linters
     runs-on: ubuntu-latest
 
     steps:
@@ -23,7 +23,7 @@ jobs:
         id: yarn-cache-dir-path
         run: echo "::set-output name=dir::$(yarn cache dir)"
 
-      - name: Cache YARN dependencies
+      - name: Cache yarn dependencies
         uses: actions/cache@v2
         with:
           path: ${{ steps.yarn-cache-dir-path.outputs.dir }}
@@ -31,7 +31,7 @@ jobs:
           restore-keys: |
             yarn-
 
-      - name: Install node dependencies
+      - name: Install yarn dependencies
         run: yarn install --no-progress --non-interactive
 
       - name: Set up python
