@@ -30,17 +30,24 @@ Snapshot is open-sourced software licensed under the © [MIT license](LICENSE).
 
 Usage
 -----
-### Install requirements with yarn:
+### Setup Python 3.7 environment and install cairo : 
+
+```bash
+python3.7 -m venv ~/cairo_venv
+source ~/cairo_venv/bin/activate
+pip3 install -r requirements.txt
+```
+
+### Install requirements with yarn :
 
 ```bash
 yarn
 ```
 
-### Run all tests:
+### Compile all contracts:
 
 ```bash
-yarn build
-yarn test
+yarn compile
 ```
 
 ### Deployments
