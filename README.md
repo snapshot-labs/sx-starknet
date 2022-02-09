@@ -51,6 +51,3 @@ yarn compile
 ```bash
 yarn test
 ```
-
-
-
