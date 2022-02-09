@@ -1,12 +1,13 @@
-// SPDX-License-Identifier: UNLICENSED
+/// SPDX-License-Identifier: MIT
+
 pragma solidity 0.8.6;
 
 import './Interfaces/IStarknetCore.sol';
 
 /**
- * @title Snapshot X L1 execution Zodiac module
+ * @title Snapshot X L1 Voting contract
  * @author @Orland0x - <orlandothefraser@gmail.com>
- * @notice Trustless L1 execution of Snapshot X decisions via a Gnosis Safe
+ * @notice Allows EOAs and contract accounts to vote on Snapshot X with an L1 transaction, no signature needed.
  * @dev Work in progress
  */
 abstract contract SnapshotXL1Voting {
@@ -20,7 +21,7 @@ abstract contract SnapshotXL1Voting {
    * @dev Selector for the L1 handler submit_vote in the vote authenticator, found via:
    *      from starkware.starknet.compiler.compile import get_selector_from_name
    *      print(get_selector_from_name('submit_vote'))
-  */
+   */
   uint256 private constant L1_VOTE_HANDLER =
     1564459668182098068965022601237862430004789345537526898295871983090769185429;
 
@@ -32,20 +33,20 @@ abstract contract SnapshotXL1Voting {
   uint256 private constant L1_DELEGATE_HANDLER =
     1746921722015266013928822119890040225899444559222897406293768364420627026412;
 
-  /* EVENTS */ 
+  /* EVENTS */
 
-  /** 
+  /**
    * @dev Emitted when a new L1 vote is submitted
-   * @param votingContract Address of Starknet voting contract
+   * @param votingContract Address of StarkNet voting contract
    * @param proposalID ID of the proposal the vote was submitted to
-   * @param voter Address of the voter 
+   * @param voter Address of the voter
    * @param choice The vote {1,2,3}
    */
   event L1VoteSubmitted(uint256 votingContract, uint256 proposalID, address voter, uint256 choice);
 
-  /** 
+  /**
    * @dev Emitted when a new proposal is submitted via L1 vote
-   * @param votingContract Address of Starknet voting contract
+   * @param votingContract Address of StarkNet voting contract
    * @param executionHash Hash of the proposal execution details
    * @param metadataHash Hash of the proposal metadata
    * @param proposer Address of the proposer
@@ -64,20 +65,17 @@ abstract contract SnapshotXL1Voting {
     uint256 choice;
   }
 
-  /** 
+  /**
    * @dev Constructor
-   * @param _starknetCore Address of the Starknet core contract
-   * @param _votingAuthL1 Address of the Starknet vote authenticator for L1 votes
+   * @param _starknetCore Address of the StarkNet core contract
+   * @param _votingAuthL1 Address of the StarkNet vote authenticator for L1 votes
    */
-  constructor(
-    address _starknetCore,
-    uint256 _votingAuthL1
-  ) {
+  constructor(address _starknetCore, uint256 _votingAuthL1) {
     starknetCore = IStarknetCore(_starknetCore);
     votingAuthL1 = _votingAuthL1;
   }
 
-  /** 
+  /**
    * @dev Submit vote to Snapshot X proposal via L1 transaction (No signature needed)
    * @param proposalID ID of the proposal
    * @param choice The vote {1,2,3}

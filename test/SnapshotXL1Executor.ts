@@ -155,7 +155,7 @@ async function baseSetup() {
   };
 }
 
-async function recieveProposalTest(SnapshotXModule: any, safe: any) {
+async function receiveProposalTest(SnapshotXModule: any) {
   const domain = {
     chainId: ethers.BigNumber.from(network.config.chainId),
     verifyingContract: SnapshotXModule.address,
@@ -170,7 +170,7 @@ async function recieveProposalTest(SnapshotXModule: any, safe: any) {
     abiCoder.encode(['bytes32[]'], [[tx_hash1, tx_hash2]])
   );
   const has_passed = 1;
-  await SnapshotXModule.recieveProposalTest(execution_details, has_passed, [tx_hash1, tx_hash2]);
+  await SnapshotXModule.receiveProposalTest(execution_details, has_passed, [tx_hash1, tx_hash2]);
 
   return {
     tx_hash1: tx_hash1 as any,
@@ -249,14 +249,14 @@ describe('Snapshot X L1 Proposal Executor:', () => {
 
   describe('Getters', async () => {
     it('The module should return the number of transactions in a proposal', async () => {
-      const { SnapshotXModule, safe } = await baseSetup();
-      await recieveProposalTest(SnapshotXModule, safe);
+      const { SnapshotXModule } = await baseSetup();
+      await receiveProposalTest(SnapshotXModule);
       expect(await SnapshotXModule.getNumOfTxInProposal(0)).to.equal(2);
     });
 
     it('The module should return whether a transaction in a proposal has been executed', async () => {
-      const { SnapshotXModule, safe } = await baseSetup();
-      await recieveProposalTest(SnapshotXModule, safe);
+      const { SnapshotXModule } = await baseSetup();
+      await receiveProposalTest(SnapshotXModule);
 
       expect(await SnapshotXModule.isTxExecuted(0, 0)).to.equal(false);
       expect(await SnapshotXModule.isTxExecuted(0, 1)).to.equal(false);
@@ -268,7 +268,7 @@ describe('Snapshot X L1 Proposal Executor:', () => {
 
   describe('Transaction Hashes', async () => {
     it('should hash transactions correctly', async () => {
-      const { SnapshotXModule, safe } = await baseSetup();
+      const { SnapshotXModule } = await baseSetup();
       const domain = {
         chainId: ethers.BigNumber.from(network.config.chainId),
         verifyingContract: SnapshotXModule.address,
@@ -282,9 +282,9 @@ describe('Snapshot X L1 Proposal Executor:', () => {
 
   describe('Proposal Receival', async () => {
     it('The module can receive a proposal', async () => {
-      const { SnapshotXModule, safe } = await baseSetup();
+      const { SnapshotXModule } = await baseSetup();
       expect(await SnapshotXModule.getProposalState(0)).to.equal(0);
-      const { tx_hash1, tx_hash2 } = await recieveProposalTest(SnapshotXModule, safe);
+      const { tx_hash1, tx_hash2 } = await receiveProposalTest(SnapshotXModule);
 
       expect(await SnapshotXModule.proposalIndex()).to.equal(1);
       expect(await SnapshotXModule.getTxHash(0, 0)).to.equal(tx_hash1);
@@ -293,9 +293,9 @@ describe('Snapshot X L1 Proposal Executor:', () => {
     });
 
     it('The module can receive multiple proposals', async () => {
-      const { SnapshotXModule, safe } = await baseSetup();
+      const { SnapshotXModule } = await baseSetup();
       expect(await SnapshotXModule.getProposalState(0)).to.equal(0);
-      const { tx_hash1, tx_hash2 } = await recieveProposalTest(SnapshotXModule, safe);
+      const { tx_hash1, tx_hash2 } = await receiveProposalTest(SnapshotXModule);
 
       expect(await SnapshotXModule.proposalIndex()).to.equal(1);
       expect(await SnapshotXModule.getTxHash(0, 0)).to.equal(tx_hash1);
@@ -307,7 +307,7 @@ describe('Snapshot X L1 Proposal Executor:', () => {
   describe('Proposal Cancellation', async () => {
     it('The safe can cancel a proposal', async () => {
       const { SnapshotXModule, safe } = await baseSetup();
-      await recieveProposalTest(SnapshotXModule, safe);
+      await receiveProposalTest(SnapshotXModule);
 
       expect(
         await executeContractCallWithSigners(
@@ -324,8 +324,8 @@ describe('Snapshot X L1 Proposal Executor:', () => {
     });
 
     it('proposal cancel should revert with only owner', async () => {
-      const { SnapshotXModule, safe } = await baseSetup();
-      await recieveProposalTest(SnapshotXModule, safe);
+      const { SnapshotXModule } = await baseSetup();
+      await receiveProposalTest(SnapshotXModule);
 
       await expect(SnapshotXModule.cancelProposals([0])).to.be.revertedWith(
         'Ownable: caller is not the owner'
@@ -335,7 +335,7 @@ describe('Snapshot X L1 Proposal Executor:', () => {
 
     it('Cancellation should fail if all transactions in proposal have been executed', async () => {
       const { SnapshotXModule, safe } = await baseSetup();
-      const { tx_hash1, tx_hash2 } = await recieveProposalTest(SnapshotXModule, safe);
+      await receiveProposalTest(SnapshotXModule);
 
       await SnapshotXModule.executeProposalTxBatch(
         0,
@@ -357,8 +357,8 @@ describe('Snapshot X L1 Proposal Executor:', () => {
 
   describe('Proposal Execution', async () => {
     it('The module can execute one transaction in a proposal', async () => {
-      const { SnapshotXModule, safe } = await baseSetup();
-      const { tx_hash1 } = await recieveProposalTest(SnapshotXModule, safe);
+      const { SnapshotXModule } = await baseSetup();
+      const { tx_hash1 } = await receiveProposalTest(SnapshotXModule);
 
       await expect(SnapshotXModule.executeProposalTx(0, tx1.to, tx1.value, tx1.data, tx1.operation))
         .to.emit(SnapshotXModule, 'TransactionExecuted')
@@ -368,8 +368,8 @@ describe('Snapshot X L1 Proposal Executor:', () => {
     });
 
     it('The module can execute all transactions in a proposal individually', async () => {
-      const { SnapshotXModule, safe } = await baseSetup();
-      const { tx_hash1, tx_hash2 } = await recieveProposalTest(SnapshotXModule, safe);
+      const { SnapshotXModule } = await baseSetup();
+      const { tx_hash1, tx_hash2 } = await receiveProposalTest(SnapshotXModule);
 
       await expect(SnapshotXModule.executeProposalTx(0, tx1.to, tx1.value, tx1.data, tx1.operation))
         .to.emit(SnapshotXModule, 'TransactionExecuted')
@@ -385,8 +385,8 @@ describe('Snapshot X L1 Proposal Executor:', () => {
     });
 
     it('The module can execute all transactions in a proposal via batch function', async () => {
-      const { SnapshotXModule, safe } = await baseSetup();
-      const { tx_hash1, tx_hash2 } = await recieveProposalTest(SnapshotXModule, safe);
+      const { SnapshotXModule } = await baseSetup();
+      await receiveProposalTest(SnapshotXModule);
 
       await expect(
         SnapshotXModule.executeProposalTxBatch(
@@ -404,8 +404,8 @@ describe('Snapshot X L1 Proposal Executor:', () => {
     });
 
     it('The module should revert if an incorrect transaction order was used', async () => {
-      const { SnapshotXModule, safe } = await baseSetup();
-      await recieveProposalTest(SnapshotXModule, safe);
+      const { SnapshotXModule } = await baseSetup();
+      await receiveProposalTest(SnapshotXModule);
 
       //attempting to execute tx2 before tx1
       await expect(
@@ -416,8 +416,8 @@ describe('Snapshot X L1 Proposal Executor:', () => {
     });
 
     it('The module should revert if a transaction was invalid', async () => {
-      const { SnapshotXModule, safe } = await baseSetup();
-      await recieveProposalTest(SnapshotXModule, safe);
+      const { SnapshotXModule } = await baseSetup();
+      await receiveProposalTest(SnapshotXModule);
 
       //attempting to execute tx3 (not in proposal) in place of tx1
       await expect(

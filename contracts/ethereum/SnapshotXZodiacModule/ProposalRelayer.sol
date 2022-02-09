@@ -1,4 +1,4 @@
-//SPDX-License-Identifier: MIT
+/// SPDX-License-Identifier: MIT
 
 pragma solidity ^0.8.6;
 
@@ -14,19 +14,19 @@ contract SnapshotXProposalRelayer is Guardable {
   /// The StarkNet Core contract
   IStarknetCore public starknetCore;
 
-  /// Address of the starknet contract that will send execution details to this contract in a L2 -> L1 message
+  /// Address of the StarkNet contract that will send execution details to this contract in a L2 -> L1 message
   uint256 public decisionExecutorL2;
 
   /**
-   * @dev Emitted when a the Starknet decision executor contract is changed
-   * @param _decisionExecutorL2 The new decision executor contract 
+   * @dev Emitted when a the StarkNet decision executor contract is changed
+   * @param _decisionExecutorL2 The new decision executor contract
    */
   event ChangedDecisionExecutorL2(uint256 _decisionExecutorL2);
 
   /**
    * @dev Initialization of the functionality. Called internally by the setUp function
    * @param _starknetCore Address of the StarkNet Core contract
-   * @param _decisionExecutorL2 Address of the new decision executor contract 
+   * @param _decisionExecutorL2 Address of the new decision executor contract
    */
   function setUpSnapshotXProposalRelayer(address _starknetCore, uint256 _decisionExecutorL2)
     internal
@@ -36,33 +36,33 @@ contract SnapshotXProposalRelayer is Guardable {
   }
 
   /**
-   * @dev Changes the Starknet decision executor contract
-   * @param _decisionExecutorL2 Address of the new decision executor contract 
-   */  
+   * @dev Changes the StarkNet decision executor contract
+   * @param _decisionExecutorL2 Address of the new decision executor contract
+   */
   function changeDecisionExecutorL2(uint256 _decisionExecutorL2) public onlyOwner {
     decisionExecutorL2 = _decisionExecutorL2;
     emit ChangedDecisionExecutorL2(_decisionExecutorL2);
   }
 
   /**
-   * @dev Receives L2 -> L1 message containing proposal execution details 
+   * @dev Receives L2 -> L1 message containing proposal execution details
    * @param executionDetails Hash of all the transactions in the proposal
    * @param hasPassed Whether the proposal passed
-   */  
+   */
   function _recieveFinalizedProposal(uint256 executionDetails, uint256 hasPassed) internal {
     uint256[] memory payload = new uint256[](2);
     payload[0] = executionDetails;
     payload[1] = hasPassed;
-    //Returns the message Hash. If proposal execution message did not exist/not received yet, then this will fail
+    /// Returns the message Hash. If proposal execution message did not exist/not received yet, then this will fail
     starknetCore.consumeMessageFromL2(decisionExecutorL2, payload);
   }
 
   /**
-   * @dev Checks whether proposal has been received on L1 yet 
+   * @dev Checks whether proposal has been received on L1 yet
    * @param executionDetails Hash of all the transactions in the proposal
    * @param hasPassed Whether the proposal passed
    * @return isReceived Has the proposal been received
-   */  
+   */
   function isFinalizedProposalRecieved(uint256 executionDetails, uint256 hasPassed)
     external
     view

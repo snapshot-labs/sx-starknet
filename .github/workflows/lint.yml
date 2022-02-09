@@ -4,7 +4,6 @@ on:
     branches:
       - master
   pull_request:
-
 jobs:
   run-linters:
     name: Run Linters
@@ -44,6 +43,3 @@ jobs:
 
       - name: Run linters
         run: yarn lint
-
-
-  

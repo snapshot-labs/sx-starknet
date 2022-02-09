@@ -32,7 +32,7 @@ Usage
 -----
 The Starknet Hardhat plugin uses a docker container so make sure you have a running Docker daemon. More information about the plugin can be found [here](https://github.com/Shard-Labs/starknet-hardhat-plugin)
 
-### Install python and yarn requirements: 
+### Install Python and Yarn requirements: 
 
 ```bash
 python3.7 -m venv ~/cairo_venv
@@ -47,7 +47,7 @@ yarn
 yarn compile
 ```
 
-### Run Tests:
+### Run tests:
 ```bash
 yarn test
 ```
