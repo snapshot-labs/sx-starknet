@@ -1,0 +1,1 @@
+https://github.com/starkware-libs/cairo-lang/releases/download/v0.7.0/cairo-lang-0.7.0.zip

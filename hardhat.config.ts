@@ -1,7 +1,7 @@
 import dotenv from 'dotenv';
 dotenv.config();
 import { task } from 'hardhat/config';
-import { HardhatUserConfig, NetworkUserConfig } from 'hardhat/types';
+import { HardhatUserConfig } from 'hardhat/types';
 import '@shardlabs/starknet-hardhat-plugin';
 import '@nomiclabs/hardhat-waffle';
 import '@typechain/hardhat';
@@ -10,23 +10,21 @@ import '@nomiclabs/hardhat-waffle';
 import 'hardhat-gas-reporter';
 import '@nomiclabs/hardhat-etherscan';
 
-const chainIds = {
-  ganache: 1337,
-  goerli: 5,
-  hardhat: 31337,
-  kovan: 42,
-  mainnet: 1,
-  rinkeby: 4,
-  ropsten: 3,
-};
+// const chainIds = {
+//   ganache: 1337,
+//   goerli: 5,
+//   hardhat: 31337,
+//   kovan: 42,
+//   mainnet: 1,
+//   rinkeby: 4,
+//   ropsten: 3,
+// };
 
-const MNEMONIC = process.env.MNEMONIC || '';
+// const MNEMONIC = process.env.MNEMONIC || '';
 // const ETHERSCAN_API_KEY = process.env.ETHERSCAN_API_KEY || '';
-const INFURA_API_KEY = process.env.INFURA_API_KEY || '';
+// const INFURA_API_KEY = process.env.INFURA_API_KEY || '';
 // const ALCHEMY_KEY = process.env.ALCHEMY_KEY || '';
 
-// This is a sample Hardhat task. To learn how to create your own go to
-// https://hardhat.org/guides/create-task.html
 task('accounts', 'Prints the list of accounts', async (args, hre) => {
   const accounts = await hre.ethers.getSigners();
 
@@ -34,20 +32,6 @@ task('accounts', 'Prints the list of accounts', async (args, hre) => {
     console.log(await account.getAddress());
   }
 });
-
-function createTestnetConfig(network: keyof typeof chainIds): NetworkUserConfig {
-  const url: string = 'https://' + network + '.infura.io/v3/' + INFURA_API_KEY;
-  return {
-    accounts: {
-      count: 10,
-      initialIndex: 0,
-      mnemonic: MNEMONIC,
-      path: "m/44'/60'/0'/0",
-    },
-    chainId: chainIds[network],
-    url,
-  };
-}
 
 const config: HardhatUserConfig = {
   solidity: {

@@ -1,3 +1,6 @@
+/* eslint-disable  @typescript-eslint/no-non-null-assertion */
+/* eslint-disable  @typescript-eslint/explicit-module-boundary-types */
+
 import {
   Contract,
   Wallet,
@@ -34,9 +37,6 @@ export const EIP712_TYPES = {
     },
   ],
 };
-
-const INVALIDATED_STATE = '0xffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff';
-const ZERO_STATE = '0x0000000000000000000000000000000000000000000000000000000000000000';
 
 export const EIP_DOMAIN = {
   EIP712Domain: [
