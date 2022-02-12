@@ -6,6 +6,7 @@ artifacts
 starknet-artifacts
 factories
 typechain
+coverage 
 
 .yarn
 .env

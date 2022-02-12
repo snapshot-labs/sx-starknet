@@ -9,6 +9,7 @@
     "compile": "yarn compile:l1 && yarn compile:l2",
     "deploy:l2:testnet": "hardhat starknet-deploy --starknet-network alpha",
     "test": "hardhat test",
+    "coverage": "hardhat coverage",
     "start:l1": "hardhat node",
     "lint:l1": "prettier --write 'contracts/**/*.sol'",
     "lint:l2": "cairo-format -i contracts/**/*.cairo",
@@ -51,7 +52,7 @@
     "prettier-plugin-solidity": "^1.0.0-beta.19",
     "solhint": "^3.3.6",
     "solhint-plugin-prettier": "^0.0.5",
-    "solidity-coverage": "^0.7.18",
+    "solidity-coverage": "^0.7.19",
     "ts-node": "^10.4.0",
     "typechain": "^5.2.0",
     "typescript": "^4.5.5"

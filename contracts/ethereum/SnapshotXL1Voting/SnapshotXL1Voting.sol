@@ -10,11 +10,11 @@ import './Interfaces/IStarknetCore.sol';
  * @notice Allows EOAs and contract accounts to vote on Snapshot X with an L1 transaction, no signature needed.
  * @dev Work in progress
  */
-abstract contract SnapshotXL1Voting {
+contract SnapshotXL1Voting {
   /// The StarkNet core contract.
   IStarknetCore public immutable starknetCore;
 
-  /// address of the voting Authenticator contract that handles L1 votes
+  /// Address of the voting Authenticator contract that handles L1 votes, proposals, and delegations. This could be split into 3 separate contracts.
   uint256 public immutable votingAuthL1;
 
   /**
@@ -39,22 +39,24 @@ abstract contract SnapshotXL1Voting {
    * @dev Emitted when a new L1 vote is submitted
    * @param votingContract Address of StarkNet voting contract
    * @param proposalID ID of the proposal the vote was submitted to
+   * @param choice The vote choice {1,2,3}
    * @param voter Address of the voter
-   * @param choice The vote {1,2,3}
    */
-  event L1VoteSubmitted(uint256 votingContract, uint256 proposalID, address voter, uint256 choice);
+  event L1VoteSubmitted(uint256 votingContract, uint256 proposalID, uint256 choice, address voter);
 
   /**
    * @dev Emitted when a new proposal is submitted via L1 vote
-   * @param votingContract Address of StarkNet voting contract
+   * @param votingContract Address of voting contract for the relevant DAO on StarkNet
    * @param executionHash Hash of the proposal execution details
    * @param metadataHash Hash of the proposal metadata
+   * @param domain Domain parameters for proposal
    * @param proposer Address of the proposer
    */
   event L1ProposalSubmitted(
     uint256 votingContract,
     uint256 executionHash,
     uint256 metadataHash,
+    uint256 domain,
     address proposer
   );
 
@@ -77,28 +79,45 @@ abstract contract SnapshotXL1Voting {
 
   /**
    * @dev Submit vote to Snapshot X proposal via L1 transaction (No signature needed)
+   * @param votingContract Address of voting contract for the relevant DAO on StarkNet
    * @param proposalID ID of the proposal
-   * @param choice The vote {1,2,3}
+   * @param choice The vote choice {1,2,3}
    */
   function voteOnL1(
     uint256 votingContract,
     uint256 proposalID,
     uint256 choice
   ) external {
+    require((choice - 1) * (choice - 2) * (choice - 3) == 0, 'Invalid choice');
     uint256[] memory payload = new uint256[](4);
     payload[0] = votingContract;
     payload[1] = proposalID;
-    payload[2] = uint256(uint160(address(msg.sender)));
-    payload[3] = choice;
-    starknetCore.sendMessageToL2(votingAuthL1, L1_VOTE_HANDLER, payload);
-    emit L1VoteSubmitted(votingContract, proposalID, msg.sender, choice);
+    payload[2] = choice;
+    payload[3] = uint256(uint160(address(msg.sender)));
+    //starknetCore.sendMessageToL2(votingAuthL1, L1_VOTE_HANDLER, payload);
+    emit L1VoteSubmitted(votingContract, proposalID, choice, msg.sender);
   }
 
-  function proposeOnL1(uint256 executionHash, uint256 metadataHash) external virtual;
-
-  function delegateOnL1(
-    uint256 proposalID,
-    uint256 startBlockNumber,
-    uint256 endBlockNumber
-  ) external virtual;
+  /**
+   * @dev Submit proposal to Snapshot X proposal via L1 transaction (No signature needed)
+   * @param votingContract Address of voting contract for the relevant DAO on StarkNet
+   * @param executionHash Hash of the proposal execution details
+   * @param metadataHash Hash of the proposal metadata
+   * @param domain Domain parameters for proposal
+   */
+  function proposeOnL1(
+    uint256 votingContract,
+    uint256 executionHash,
+    uint256 metadataHash,
+    uint256 domain
+  ) external {
+    uint256[] memory payload = new uint256[](5);
+    payload[0] = votingContract;
+    payload[1] = executionHash;
+    payload[2] = metadataHash;
+    payload[3] = domain;
+    payload[4] = uint256(uint160(address(msg.sender)));
+    //starknetCore.sendMessageToL2(votingAuthL1, L1_propose_HANDLER, payload);
+    emit L1ProposalSubmitted(votingContract, executionHash, metadataHash, domain, msg.sender);
+  }
 }

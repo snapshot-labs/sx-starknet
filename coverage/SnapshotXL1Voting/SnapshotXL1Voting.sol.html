@@ -1,0 +1,434 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <title>Code coverage report for SnapshotXL1Voting/SnapshotXL1Voting.sol</title>
+    <meta charset="utf-8" />
+    <link rel="stylesheet" href="../prettify.css" />
+    <link rel="stylesheet" href="../base.css" />
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <style type='text/css'>
+        .coverage-summary .sorter {
+            background-image: url(../sort-arrow-sprite.png);
+        }
+    </style>
+</head>
+<body>
+<div class='wrapper'>
+  <div class='pad1'>
+    <h1>
+      <a href="../index.html">all files</a> / <a href="index.html">SnapshotXL1Voting/</a> SnapshotXL1Voting.sol
+    </h1>
+    <div class='clearfix'>
+      <div class='fl pad1y space-right2'>
+        <span class="strong">100% </span>
+        <span class="quiet">Statements</span>
+        <span class='fraction'>16/16</span>
+      </div>
+      <div class='fl pad1y space-right2'>
+        <span class="strong">100% </span>
+        <span class="quiet">Branches</span>
+        <span class='fraction'>2/2</span>
+      </div>
+      <div class='fl pad1y space-right2'>
+        <span class="strong">100% </span>
+        <span class="quiet">Functions</span>
+        <span class='fraction'>3/3</span>
+      </div>
+      <div class='fl pad1y space-right2'>
+        <span class="strong">100% </span>
+        <span class="quiet">Lines</span>
+        <span class='fraction'>16/16</span>
+      </div>
+    </div>
+  </div>
+  <div class='status-line high'></div>
+<pre><table class="coverage">
+<tr><td class="line-count quiet">1
+2
+3
+4
+5
+6
+7
+8
+9
+10
+11
+12
+13
+14
+15
+16
+17
+18
+19
+20
+21
+22
+23
+24
+25
+26
+27
+28
+29
+30
+31
+32
+33
+34
+35
+36
+37
+38
+39
+40
+41
+42
+43
+44
+45
+46
+47
+48
+49
+50
+51
+52
+53
+54
+55
+56
+57
+58
+59
+60
+61
+62
+63
+64
+65
+66
+67
+68
+69
+70
+71
+72
+73
+74
+75
+76
+77
+78
+79
+80
+81
+82
+83
+84
+85
+86
+87
+88
+89
+90
+91
+92
+93
+94
+95
+96
+97
+98
+99
+100
+101
+102
+103
+104
+105
+106
+107
+108
+109
+110
+111
+112
+113
+114
+115
+116
+117
+118
+119
+120
+121
+122
+123
+124</td><td class="line-coverage quiet"><span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">18×</span>
+<span class="cline-any cline-yes">18×</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">3×</span>
+<span class="cline-any cline-yes">2×</span>
+<span class="cline-any cline-yes">2×</span>
+<span class="cline-any cline-yes">2×</span>
+<span class="cline-any cline-yes">2×</span>
+<span class="cline-any cline-yes">2×</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">2×</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">2×</span>
+<span class="cline-any cline-yes">2×</span>
+<span class="cline-any cline-yes">2×</span>
+<span class="cline-any cline-yes">2×</span>
+<span class="cline-any cline-yes">2×</span>
+<span class="cline-any cline-yes">2×</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">2×</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span></td><td class="text"><pre class="prettyprint lang-js">/// SPDX-License-Identifier: MIT
+&nbsp;
+pragma solidity 0.8.6;
+&nbsp;
+import './Interfaces/IStarknetCore.sol';
+&nbsp;
+/**
+ * @title Snapshot X L1 Voting contract
+ * @author @Orland0x - &lt;orlandothefraser@gmail.com&gt;
+ * @notice Allows EOAs and contract accounts to vote on Snapshot X with an L1 transaction, no signature needed.
+ * @dev Work in progress
+ */
+contract SnapshotXL1Voting {
+  /// The StarkNet core contract.
+  IStarknetCore public immutable starknetCore;
+&nbsp;
+  /// Address of the voting Authenticator contract that handles L1 votes, proposals, and delegations. This could be split into 3 separate contracts.
+  uint256 public immutable votingAuthL1;
+&nbsp;
+  /**
+   * @dev Selector for the L1 handler submit_vote in the vote authenticator, found via:
+   *      from starkware.starknet.compiler.compile import get_selector_from_name
+   *      print(get_selector_from_name('submit_vote'))
+   */
+  uint256 private constant L1_VOTE_HANDLER =
+    1564459668182098068965022601237862430004789345537526898295871983090769185429;
+&nbsp;
+  /// @dev print(get_selector_from_name('submit_proposal'))
+  uint256 private constant L1_PROPOSE_HANDLER =
+    1604523576536829311415694698171983789217701548682002859668674868169816264965;
+&nbsp;
+  /// @dev print(get_selector_from_name('delegate'))
+  uint256 private constant L1_DELEGATE_HANDLER =
+    1746921722015266013928822119890040225899444559222897406293768364420627026412;
+&nbsp;
+  /* EVENTS */
+&nbsp;
+  /**
+   * @dev Emitted when a new L1 vote is submitted
+   * @param votingContract Address of StarkNet voting contract
+   * @param proposalID ID of the proposal the vote was submitted to
+   * @param choice The vote choice {1,2,3}
+   * @param voter Address of the voter
+   */
+  event L1VoteSubmitted(uint256 votingContract, uint256 proposalID, uint256 choice, address voter);
+&nbsp;
+  /**
+   * @dev Emitted when a new proposal is submitted via L1 vote
+   * @param votingContract Address of voting contract for the relevant DAO on StarkNet
+   * @param executionHash Hash of the proposal execution details
+   * @param metadataHash Hash of the proposal metadata
+   * @param domain Domain parameters for proposal
+   * @param proposer Address of the proposer
+   */
+  event L1ProposalSubmitted(
+    uint256 votingContract,
+    uint256 executionHash,
+    uint256 metadataHash,
+    uint256 domain,
+    address proposer
+  );
+&nbsp;
+  /// Vote object
+  struct Vote {
+    uint256 vc_address;
+    uint256 proposalID;
+    uint256 choice;
+  }
+&nbsp;
+  /**
+   * @dev Constructor
+   * @param _starknetCore Address of the StarkNet core contract
+   * @param _votingAuthL1 Address of the StarkNet vote authenticator for L1 votes
+   */
+  constructor(address _starknetCore, uint256 _votingAuthL1) {
+    starknetCore = IStarknetCore(_starknetCore);
+    votingAuthL1 = _votingAuthL1;
+  }
+&nbsp;
+  /**
+   * @dev Submit vote to Snapshot X proposal via L1 transaction (No signature needed)
+   * @param votingContract Address of voting contract for the relevant DAO on StarkNet
+   * @param proposalID ID of the proposal
+   * @param choice The vote choice {1,2,3}
+   */
+  function voteOnL1(
+    uint256 votingContract,
+    uint256 proposalID,
+    uint256 choice
+  ) external {
+    require((choice - 1) * (choice - 2) * (choice - 3) == 0, 'Invalid choice');
+    uint256[] memory payload = new uint256[](4);
+    payload[0] = votingContract;
+    payload[1] = proposalID;
+    payload[2] = choice;
+    payload[3] = uint256(uint160(address(msg.sender)));
+    //starknetCore.sendMessageToL2(votingAuthL1, L1_VOTE_HANDLER, payload);
+    emit L1VoteSubmitted(votingContract, proposalID, choice, msg.sender);
+  }
+&nbsp;
+  /**
+   * @dev Submit proposal to Snapshot X proposal via L1 transaction (No signature needed)
+   * @param votingContract Address of voting contract for the relevant DAO on StarkNet
+   * @param executionHash Hash of the proposal execution details
+   * @param metadataHash Hash of the proposal metadata
+   * @param domain Domain parameters for proposal
+   */
+  function proposeOnL1(
+    uint256 votingContract,
+    uint256 executionHash,
+    uint256 metadataHash,
+    uint256 domain
+  ) external {
+    uint256[] memory payload = new uint256[](5);
+    payload[0] = votingContract;
+    payload[1] = executionHash;
+    payload[2] = metadataHash;
+    payload[3] = domain;
+    payload[4] = uint256(uint160(address(msg.sender)));
+    //starknetCore.sendMessageToL2(votingAuthL1, L1_propose_HANDLER, payload);
+    emit L1ProposalSubmitted(votingContract, executionHash, metadataHash, domain, msg.sender);
+  }
+}
+&nbsp;</pre></td></tr>
+</table></pre>
+<div class='push'></div><!-- for sticky footer -->
+</div><!-- /wrapper -->
+<div class='footer quiet pad2 space-top1 center small'>
+  Code coverage
+  generated by <a href="http://istanbul-js.org/" target="_blank">istanbul</a> at Fri Feb 11 2022 10:58:10 GMT+0000 (Greenwich Mean Time)
+</div>
+</div>
+<script src="../prettify.js"></script>
+<script>
+window.onload = function () {
+        if (typeof prettyPrint === 'function') {
+            prettyPrint();
+        }
+};
+</script>
+<script src="../sorter.js"></script>
+</body>
+</html>

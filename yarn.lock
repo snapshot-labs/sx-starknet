@@ -11516,7 +11516,7 @@ resolve@1.17.0:
     prettier-plugin-solidity: ^1.0.0-beta.19
     solhint: ^3.3.6
     solhint-plugin-prettier: ^0.0.5
-    solidity-coverage: ^0.7.18
+    solidity-coverage: ^0.7.19
     starknet: ^2.5.1
     ts-node: ^10.4.0
     typechain: ^5.2.0
@@ -11690,11 +11690,11 @@ resolve@1.17.0:
   languageName: node
   linkType: hard
 
-"solidity-coverage@npm:^0.7.18":
-  version: 0.7.18
-  resolution: "solidity-coverage@npm:0.7.18"
+"solidity-coverage@npm:^0.7.19":
+  version: 0.7.19
+  resolution: "solidity-coverage@npm:0.7.19"
   dependencies:
-    "@solidity-parser/parser": ^0.13.2
+    "@solidity-parser/parser": ^0.14.0
     "@truffle/provider": ^0.2.24
     chalk: ^2.4.2
     death: ^1.1.0
@@ -11715,7 +11715,7 @@ resolve@1.17.0:
     web3-utils: ^1.3.0
   bin:
     solidity-coverage: plugins/bin.js
-  checksum: f0ae865e355776cb34877fe49c1a83ea093862b2ac2aef32a8e0fc6ee258836d1c407e4dace0262b769a33da65ed930cf309d2bc15b31166ea86ad25f9e110f9
+  checksum: 1cf229d32974121521fb067b49ceed1aa2234a4c8fbf25608970ed6fd5a4fe63824d3da92e0d671edf768b0c1dad4dfb1685e405f46f2ff8dee5bbcab74b5b8f
   languageName: node
   linkType: hard
 
