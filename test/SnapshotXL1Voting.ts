@@ -59,13 +59,12 @@ async function baseSetup() {
   const L1AuthFactory = await starknet.getContractFactory('L1AuthMock');
 
   const L1Auth = await L1AuthFactory.deploy();
-//   console.log('Deployed at', L1Auth.address);
-//   console.log('str: ', votingAuthL1)
-  const L1Vote = await L1VotingContract.deploy(starknetCore, ethers.utils.toUtf8String(L1Auth.address));
-  console.log('Deployed at', L1Vote.address);
-  
+
+  const L1Vote = await L1VotingContract.deploy(starknetCore, L1Auth.address);
+
   return {
     L1Vote: L1Vote as any,
+    L1Auth: L1Auth as any,
     safe: safe as any,
     factory: factory as any,
   };
@@ -74,9 +73,9 @@ async function baseSetup() {
 describe('Snapshot X L1 Voting Contract:', () => {
   describe('Set up', async () => {
     it('can initialize and set up the contract', async () => {
-      const { L1Vote, safe } = await baseSetup();
+      const { L1Vote, L1Auth, safe } = await baseSetup();
       expect(await L1Vote.starknetCore()).to.equal(starknetCore);
-      expect(await L1Vote.votingAuthL1()).to.equal(votingAuthL1);
+      expect(await L1Vote.votingAuthL1()).to.equal(L1Auth.address);
     });
   });
 
