@@ -94,7 +94,7 @@ contract SnapshotXL1Voting {
     payload[1] = proposalID;
     payload[2] = choice;
     payload[3] = uint256(uint160(address(msg.sender)));
-    //starknetCore.sendMessageToL2(votingAuthL1, L1_VOTE_HANDLER, payload);
+    starknetCore.sendMessageToL2(votingAuthL1, L1_VOTE_HANDLER, payload);
     emit L1VoteSubmitted(votingContract, proposalID, choice, msg.sender);
   }
 

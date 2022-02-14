@@ -47,7 +47,7 @@ const config: HardhatUserConfig = {
   },
   networks: {
     goerli: {
-      url: 'https://goerli.infura.io/v3/aa5ec3fef30f4aa9b7b25709b7571ed3',
+      url: 'https://goerli.infura.io/v3/' + INFURA_API_KEY,
       accounts: [GOERLI_PRIVATE_KEY, GOERLI_PRIVATE_KEY2],
     },
     devnet: {
@@ -65,7 +65,8 @@ const config: HardhatUserConfig = {
     apiKey: process.env.ETHERSCAN_API_KEY,
   },
   mocha: {
-    starknetNetwork: 'starknetDevnet',
+    starknetNetwork: 'alpha-goerli',
+    timeout: 240000,
   },
   cairo: {
     venv: process.env.VIRTUAL_ENV,

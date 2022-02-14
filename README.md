@@ -49,5 +49,7 @@ yarn compile
 
 ### Run tests:
 ```bash
-yarn test
+yarn test:L1Executor 
+yarn test:L1Voting
 ```
+Note: The L1 Voting contract tests must run on the Goerli testnet as they interact with the StarkNet core contract. 

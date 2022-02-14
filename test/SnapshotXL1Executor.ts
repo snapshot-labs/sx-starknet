@@ -3,34 +3,35 @@ import hre, { ethers, network, waffle } from 'hardhat';
 import { _TypedDataEncoder } from '@ethersproject/hash';
 import { executeContractCallWithSigners, buildContractCall, EIP712_TYPES } from './shared/utils';
 import { AddressZero } from '@ethersproject/constants';
+import { SignerWithAddress } from '@nomiclabs/hardhat-ethers/dist/src/signer-with-address';
 
-const [wallet_0, wallet_1, wallet_2, wallet_3, wallet_4] = waffle.provider.getWallets();
+//const [wallet_0, wallet_1, wallet_2, wallet_3, wallet_4] = await ethers.getSigners();
 
-const tx1 = {
-  to: wallet_1.address,
-  value: 0,
-  data: '0x11',
-  operation: 0,
-  nonce: 0,
-};
+async function baseSetup(signers: { signer_0: SignerWithAddress; signer_1: SignerWithAddress }) {
+  const tx1 = {
+    to: signers.signer_0.address,
+    value: 0,
+    data: '0x11',
+    operation: 0,
+    nonce: 0,
+  };
 
-const tx2 = {
-  to: wallet_2.address,
-  value: 0,
-  data: '0x22',
-  operation: 0,
-  nonce: 0,
-};
+  const tx2 = {
+    to: signers.signer_1.address,
+    value: 0,
+    data: '0x22',
+    operation: 0,
+    nonce: 0,
+  };
 
-const tx3 = {
-  to: wallet_3.address,
-  value: 0,
-  data: '0x33',
-  operation: 0,
-  nonce: 0,
-};
+  const tx3 = {
+    to: signers.signer_0.address,
+    value: 0,
+    data: '0x33',
+    operation: 0,
+    nonce: 0,
+  };
 
-async function baseSetup() {
   const GnosisSafeL2 = await hre.ethers.getContractFactory(
     '@gnosis.pm/safe-contracts/contracts/GnosisSafeL2.sol:GnosisSafeL2'
   );
@@ -47,9 +48,16 @@ async function baseSetup() {
   await factory.createProxy(singleton.address, '0x');
 
   const safe = GnosisSafeL2.attach(template);
-  safe.setup([wallet_0.address], 1, AddressZero, '0x', AddressZero, AddressZero, 0, AddressZero);
-  const safe2 = GnosisSafeL2.attach(template2);
-  safe2.setup([wallet_0.address], 1, AddressZero, '0x', AddressZero, AddressZero, 0, AddressZero);
+  safe.setup(
+    [signers.signer_0.address],
+    1,
+    AddressZero,
+    '0x',
+    AddressZero,
+    AddressZero,
+    0,
+    AddressZero
+  );
 
   const moduleFactoryContract = await ethers.getContractFactory('ModuleProxyFactory');
   const moduleFactory = await moduleFactoryContract.deploy();
@@ -96,66 +104,25 @@ async function baseSetup() {
     .withArgs(expectedAddress, masterSnapshotXModule.address);
   const SnapshotXModule = SnapshotXContract.attach(expectedAddress);
 
-  const addCall = buildContractCall(
-    safe,
-    'addOwnerWithThreshold',
-    [wallet_2.address, 1],
-    await safe.nonce()
-  );
-  const addCall_1 = buildContractCall(
-    safe,
-    'addOwnerWithThreshold',
-    [wallet_3.address, 1],
-    await safe.nonce()
-  );
-  const addCall_2 = buildContractCall(
-    safe,
-    'addOwnerWithThreshold',
-    [wallet_4.address, 1],
-    await safe.nonce()
-  );
-  const txHash = await SnapshotXModule.getTransactionHash(
-    addCall.to,
-    addCall.value,
-    addCall.data,
-    addCall.operation
-  );
-  const txHash_1 = await SnapshotXModule.getTransactionHash(
-    addCall_1.to,
-    addCall_1.value,
-    addCall_1.data,
-    addCall_1.operation
-  );
-  const txHash_2 = await SnapshotXModule.getTransactionHash(
-    addCall_2.to,
-    addCall_2.value,
-    addCall_2.data,
-    addCall_2.operation
-  );
-
   await executeContractCallWithSigners(
     safe,
     safe,
     'enableModule',
     [SnapshotXModule.address],
-    [wallet_0]
+    [signers.signer_0]
   );
 
   return {
     SnapshotXModule: SnapshotXModule as any,
     safe: safe as any,
-    safe2: safe2 as any,
     factory: factory as any,
-    addCall: addCall as any,
-    addCall_1: addCall_1 as any,
-    addCall_2: addCall_2 as any,
-    txHash: txHash as any,
-    txHash_1: txHash_1 as any,
-    txHash_2: txHash_2 as any,
+    tx1: tx1 as any,
+    tx2: tx2 as any,
+    tx3: tx3 as any,
   };
 }
 
-async function receiveProposalTest(SnapshotXModule: any) {
+async function receiveProposalTest(SnapshotXModule: any, tx1: any, tx2: any) {
   const domain = {
     chainId: ethers.BigNumber.from(network.config.chainId),
     verifyingContract: SnapshotXModule.address,
@@ -182,7 +149,8 @@ describe('Snapshot X L1 Proposal Executor:', () => {
   // can use the safe and a cancel proposal role
   describe('setUp', async () => {
     it('can initialize and set up the SnapshotX module', async () => {
-      const { SnapshotXModule, safe } = await baseSetup();
+      const [signer_0, signer_1] = await ethers.getSigners();
+      const { SnapshotXModule, safe } = await baseSetup({ signer_0, signer_1 });
 
       expect(await SnapshotXModule.avatar()).to.equal(safe.address);
       expect(await SnapshotXModule.owner()).to.equal(safe.address);
@@ -195,41 +163,45 @@ describe('Snapshot X L1 Proposal Executor:', () => {
     });
 
     it('The safe can register Snapshot X module', async () => {
-      const { SnapshotXModule, safe } = await baseSetup();
+      const [signer_0, signer_1] = await ethers.getSigners();
+      const { SnapshotXModule, safe } = await baseSetup({ signer_0, signer_1 });
       expect(await safe.isModuleEnabled(SnapshotXModule.address)).to.equal(true);
     });
   });
 
   describe('Setters', async () => {
     it('The safe can change the address of the L2 decision executor contract', async () => {
-      const { SnapshotXModule, safe } = await baseSetup();
+      const [signer_0, signer_1] = await ethers.getSigners();
+      const { SnapshotXModule, safe } = await baseSetup({ signer_0, signer_1 });
       await expect(
         executeContractCallWithSigners(
           safe,
           SnapshotXModule,
           'changeDecisionExecutorL2',
           [4567],
-          [wallet_0]
+          [signer_0]
         )
       )
         .to.emit(SnapshotXModule, 'ChangedDecisionExecutorL2')
         .withArgs(4567);
     });
     it('Other accounts cannot change the address of the L2 decision executor contract', async () => {
-      const { SnapshotXModule, safe } = await baseSetup();
+      const [signer_0, signer_1] = await ethers.getSigners();
+      const { SnapshotXModule, safe } = await baseSetup({ signer_0, signer_1 });
       await expect(
         executeContractCallWithSigners(
           safe,
           SnapshotXModule,
           'changeDecisionExecutorL2',
           [4567],
-          [wallet_1]
+          [signer_1]
         )
       ).to.be.revertedWith('GS026');
     });
 
     it('The safe can disable Snapshot X module', async () => {
-      const { SnapshotXModule, safe } = await baseSetup();
+      const [signer_0, signer_1] = await ethers.getSigners();
+      const { SnapshotXModule, safe } = await baseSetup({ signer_0, signer_1 });
 
       await expect(
         executeContractCallWithSigners(
@@ -237,7 +209,7 @@ describe('Snapshot X L1 Proposal Executor:', () => {
           safe,
           'disableModule',
           ['0x0000000000000000000000000000000000000001', SnapshotXModule.address],
-          [wallet_0]
+          [signer_0]
         )
       )
         .to.emit(safe, 'DisabledModule')
@@ -249,14 +221,16 @@ describe('Snapshot X L1 Proposal Executor:', () => {
 
   describe('Getters', async () => {
     it('The module should return the number of transactions in a proposal', async () => {
-      const { SnapshotXModule } = await baseSetup();
-      await receiveProposalTest(SnapshotXModule);
+      const [signer_0, signer_1] = await ethers.getSigners();
+      const { SnapshotXModule, tx1, tx2 } = await baseSetup({ signer_0, signer_1 });
+      await receiveProposalTest(SnapshotXModule, tx1, tx2);
       expect(await SnapshotXModule.getNumOfTxInProposal(0)).to.equal(2);
     });
 
     it('The module should return whether a transaction in a proposal has been executed', async () => {
-      const { SnapshotXModule } = await baseSetup();
-      await receiveProposalTest(SnapshotXModule);
+      const [signer_0, signer_1] = await ethers.getSigners();
+      const { SnapshotXModule, tx1, tx2 } = await baseSetup({ signer_0, signer_1 });
+      await receiveProposalTest(SnapshotXModule, tx1, tx2);
 
       expect(await SnapshotXModule.isTxExecuted(0, 0)).to.equal(false);
       expect(await SnapshotXModule.isTxExecuted(0, 1)).to.equal(false);
@@ -268,7 +242,8 @@ describe('Snapshot X L1 Proposal Executor:', () => {
 
   describe('Transaction Hashes', async () => {
     it('should hash transactions correctly', async () => {
-      const { SnapshotXModule } = await baseSetup();
+      const [signer_0, signer_1] = await ethers.getSigners();
+      const { SnapshotXModule, tx1, tx2 } = await baseSetup({ signer_0, signer_1 });
       const domain = {
         chainId: ethers.BigNumber.from(network.config.chainId),
         verifyingContract: SnapshotXModule.address,
@@ -282,9 +257,10 @@ describe('Snapshot X L1 Proposal Executor:', () => {
 
   describe('Proposal Receival', async () => {
     it('The module can receive a proposal', async () => {
-      const { SnapshotXModule } = await baseSetup();
+      const [signer_0, signer_1] = await ethers.getSigners();
+      const { SnapshotXModule, tx1, tx2 } = await baseSetup({ signer_0, signer_1 });
       expect(await SnapshotXModule.getProposalState(0)).to.equal(0);
-      const { tx_hash1, tx_hash2 } = await receiveProposalTest(SnapshotXModule);
+      const { tx_hash1, tx_hash2 } = await receiveProposalTest(SnapshotXModule, tx1, tx2);
 
       expect(await SnapshotXModule.proposalIndex()).to.equal(1);
       expect(await SnapshotXModule.getTxHash(0, 0)).to.equal(tx_hash1);
@@ -293,9 +269,10 @@ describe('Snapshot X L1 Proposal Executor:', () => {
     });
 
     it('The module can receive multiple proposals', async () => {
-      const { SnapshotXModule } = await baseSetup();
+      const [signer_0, signer_1] = await ethers.getSigners();
+      const { SnapshotXModule, tx1, tx2 } = await baseSetup({ signer_0, signer_1 });
       expect(await SnapshotXModule.getProposalState(0)).to.equal(0);
-      const { tx_hash1, tx_hash2 } = await receiveProposalTest(SnapshotXModule);
+      const { tx_hash1, tx_hash2 } = await receiveProposalTest(SnapshotXModule, tx1, tx2);
 
       expect(await SnapshotXModule.proposalIndex()).to.equal(1);
       expect(await SnapshotXModule.getTxHash(0, 0)).to.equal(tx_hash1);
@@ -306,8 +283,9 @@ describe('Snapshot X L1 Proposal Executor:', () => {
 
   describe('Proposal Cancellation', async () => {
     it('The safe can cancel a proposal', async () => {
-      const { SnapshotXModule, safe } = await baseSetup();
-      await receiveProposalTest(SnapshotXModule);
+      const [signer_0, signer_1] = await ethers.getSigners();
+      const { SnapshotXModule, safe, tx1, tx2 } = await baseSetup({ signer_0, signer_1 });
+      await receiveProposalTest(SnapshotXModule, tx1, tx2);
 
       expect(
         await executeContractCallWithSigners(
@@ -315,7 +293,7 @@ describe('Snapshot X L1 Proposal Executor:', () => {
           SnapshotXModule,
           'cancelProposals',
           [[0]],
-          [wallet_0]
+          [signer_0]
         )
       )
         .to.emit(SnapshotXModule, 'ProposalCancelled')
@@ -324,8 +302,9 @@ describe('Snapshot X L1 Proposal Executor:', () => {
     });
 
     it('proposal cancel should revert with only owner', async () => {
-      const { SnapshotXModule } = await baseSetup();
-      await receiveProposalTest(SnapshotXModule);
+      const [signer_0, signer_1] = await ethers.getSigners();
+      const { SnapshotXModule, tx1, tx2 } = await baseSetup({ signer_0, signer_1 });
+      await receiveProposalTest(SnapshotXModule, tx1, tx2);
 
       await expect(SnapshotXModule.cancelProposals([0])).to.be.revertedWith(
         'Ownable: caller is not the owner'
@@ -334,8 +313,9 @@ describe('Snapshot X L1 Proposal Executor:', () => {
     });
 
     it('Cancellation should fail if all transactions in proposal have been executed', async () => {
-      const { SnapshotXModule, safe } = await baseSetup();
-      await receiveProposalTest(SnapshotXModule);
+      const [signer_0, signer_1] = await ethers.getSigners();
+      const { SnapshotXModule, safe, tx1, tx2 } = await baseSetup({ signer_0, signer_1 });
+      await receiveProposalTest(SnapshotXModule, tx1, tx2);
 
       await SnapshotXModule.executeProposalTxBatch(
         0,
@@ -348,7 +328,7 @@ describe('Snapshot X L1 Proposal Executor:', () => {
       expect(await SnapshotXModule.getProposalState(0)).to.equal(3);
 
       await expect(
-        executeContractCallWithSigners(safe, SnapshotXModule, 'cancelProposals', [[0]], [wallet_0])
+        executeContractCallWithSigners(safe, SnapshotXModule, 'cancelProposals', [[0]], [signer_0])
       ).to.be.reverted;
 
       expect(await SnapshotXModule.getProposalState(0)).to.equal(3);
@@ -357,8 +337,9 @@ describe('Snapshot X L1 Proposal Executor:', () => {
 
   describe('Proposal Execution', async () => {
     it('The module can execute one transaction in a proposal', async () => {
-      const { SnapshotXModule } = await baseSetup();
-      const { tx_hash1 } = await receiveProposalTest(SnapshotXModule);
+      const [signer_0, signer_1] = await ethers.getSigners();
+      const { SnapshotXModule, tx1, tx2 } = await baseSetup({ signer_0, signer_1 });
+      const { tx_hash1 } = await receiveProposalTest(SnapshotXModule, tx1, tx2);
 
       await expect(SnapshotXModule.executeProposalTx(0, tx1.to, tx1.value, tx1.data, tx1.operation))
         .to.emit(SnapshotXModule, 'TransactionExecuted')
@@ -368,8 +349,9 @@ describe('Snapshot X L1 Proposal Executor:', () => {
     });
 
     it('The module can execute all transactions in a proposal individually', async () => {
-      const { SnapshotXModule } = await baseSetup();
-      const { tx_hash1, tx_hash2 } = await receiveProposalTest(SnapshotXModule);
+      const [signer_0, signer_1] = await ethers.getSigners();
+      const { SnapshotXModule, tx1, tx2 } = await baseSetup({ signer_0, signer_1 });
+      const { tx_hash1, tx_hash2 } = await receiveProposalTest(SnapshotXModule, tx1, tx2);
 
       await expect(SnapshotXModule.executeProposalTx(0, tx1.to, tx1.value, tx1.data, tx1.operation))
         .to.emit(SnapshotXModule, 'TransactionExecuted')
@@ -385,8 +367,9 @@ describe('Snapshot X L1 Proposal Executor:', () => {
     });
 
     it('The module can execute all transactions in a proposal via batch function', async () => {
-      const { SnapshotXModule } = await baseSetup();
-      await receiveProposalTest(SnapshotXModule);
+      const [signer_0, signer_1] = await ethers.getSigners();
+      const { SnapshotXModule, tx1, tx2 } = await baseSetup({ signer_0, signer_1 });
+      await receiveProposalTest(SnapshotXModule, tx1, tx2);
 
       await expect(
         SnapshotXModule.executeProposalTxBatch(
@@ -404,8 +387,9 @@ describe('Snapshot X L1 Proposal Executor:', () => {
     });
 
     it('The module should revert if an incorrect transaction order was used', async () => {
-      const { SnapshotXModule } = await baseSetup();
-      await receiveProposalTest(SnapshotXModule);
+      const [signer_0, signer_1] = await ethers.getSigners();
+      const { SnapshotXModule, tx1, tx2 } = await baseSetup({ signer_0, signer_1 });
+      await receiveProposalTest(SnapshotXModule, tx1, tx2);
 
       //attempting to execute tx2 before tx1
       await expect(
@@ -416,8 +400,9 @@ describe('Snapshot X L1 Proposal Executor:', () => {
     });
 
     it('The module should revert if a transaction was invalid', async () => {
-      const { SnapshotXModule } = await baseSetup();
-      await receiveProposalTest(SnapshotXModule);
+      const [signer_0, signer_1] = await ethers.getSigners();
+      const { SnapshotXModule, tx1, tx2, tx3 } = await baseSetup({ signer_0, signer_1 });
+      await receiveProposalTest(SnapshotXModule, tx1, tx2);
 
       //attempting to execute tx3 (not in proposal) in place of tx1
       await expect(
