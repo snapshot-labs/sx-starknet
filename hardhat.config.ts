@@ -15,8 +15,8 @@ import 'solidity-coverage';
 //const ETHERSCAN_API_KEY = process.env.ETHERSCAN_API_KEY || '';
 const INFURA_API_KEY = process.env.INFURA_API_KEY || '';
 //const ALCHEMY_KEY = process.env.ALCHEMY_KEY || '';
-const GOERLI_PRIVATE_KEY = process.env.GOERLI_PRIVATE_KEY || '';
-const GOERLI_PRIVATE_KEY2 = process.env.GOERLI_PRIVATE_KEY2 || '';
+const GOERLI_PRIVATE_KEY = process.env.GOERLI_PRIVATE_KEY || 'XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX';
+const GOERLI_PRIVATE_KEY2 = process.env.GOERLI_PRIVATE_KEY2 || 'XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX';
 
 task('accounts', 'Prints the list of accounts and balances', async (args, hre) => {
   const accounts = await hre.ethers.getSigners();
