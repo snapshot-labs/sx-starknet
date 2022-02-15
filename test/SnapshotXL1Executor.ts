@@ -1,11 +1,9 @@
 import { expect } from 'chai';
-import hre, { ethers, network, waffle } from 'hardhat';
+import hre, { ethers, network } from 'hardhat';
 import { _TypedDataEncoder } from '@ethersproject/hash';
-import { executeContractCallWithSigners, buildContractCall, EIP712_TYPES } from './shared/utils';
+import { executeContractCallWithSigners, EIP712_TYPES } from './shared/utils';
 import { AddressZero } from '@ethersproject/constants';
 import { SignerWithAddress } from '@nomiclabs/hardhat-ethers/dist/src/signer-with-address';
-
-//const [wallet_0, wallet_1, wallet_2, wallet_3, wallet_4] = await ethers.getSigners();
 
 async function baseSetup(signers: { signer_0: SignerWithAddress; signer_1: SignerWithAddress }) {
   const tx1 = {
@@ -42,9 +40,6 @@ async function baseSetup(signers: { signer_0: SignerWithAddress; signer_1: Signe
   const factory = await FactoryContract.deploy();
 
   const template = await factory.callStatic.createProxy(singleton.address, '0x');
-  await factory.createProxy(singleton.address, '0x');
-
-  const template2 = await factory.callStatic.createProxy(singleton.address, '0x');
   await factory.createProxy(singleton.address, '0x');
 
   const safe = GnosisSafeL2.attach(template);
@@ -243,7 +238,7 @@ describe('Snapshot X L1 Proposal Executor:', () => {
   describe('Transaction Hashes', async () => {
     it('should hash transactions correctly', async () => {
       const [signer_0, signer_1] = await ethers.getSigners();
-      const { SnapshotXModule, tx1, tx2 } = await baseSetup({ signer_0, signer_1 });
+      const { SnapshotXModule, tx1 } = await baseSetup({ signer_0, signer_1 });
       const domain = {
         chainId: ethers.BigNumber.from(network.config.chainId),
         verifyingContract: SnapshotXModule.address,

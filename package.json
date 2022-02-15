@@ -8,7 +8,7 @@
     "compile:l2": "hardhat starknet-compile",
     "compile": "yarn compile:l1 && yarn compile:l2",
     "deploy:l2:testnet": "hardhat starknet-deploy --starknet-network alpha",
-    "test:L1Executor": "hardhat test test/SnapshotXL1Executor.ts",
+    "test": "hardhat test test/SnapshotXL1Executor.ts",
     "test:L1Voting": "yarn hardhat test test/SnapshotXL1VotingGoerli.ts --network goerli",
     "coverage": "hardhat coverage",
     "start:l1": "hardhat node",

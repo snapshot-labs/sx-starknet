@@ -1,11 +1,8 @@
 import { expect } from 'chai';
-import hre, { starknet, ethers, network, waffle } from 'hardhat';
-import { BigNumber, BigNumberish, constants, Wallet } from 'ethers';
-import { _TypedDataEncoder } from '@ethersproject/hash';
-import { executeContractCallWithSigners, buildContractCall, EIP712_TYPES } from './shared/utils';
+import hre, { starknet, ethers } from 'hardhat';
+import { executeContractCallWithSigners } from './shared/utils';
 import { AddressZero } from '@ethersproject/constants';
 import { SignerWithAddress } from '@nomiclabs/hardhat-ethers/dist/src/signer-with-address';
-import { SnapshotXL1Voting } from '../typechain';
 
 const starknetCore = '0xde29d060D45901Fb19ED6C6e959EB22d8626708e';
 
@@ -39,10 +36,10 @@ async function baseSetup(signers: { signer_0: SignerWithAddress; signer_1: Signe
   const singleton = await GnosisSafeL2.deploy();
   const factory = await FactoryContract.deploy();
   const template = await factory.callStatic.createProxy(singleton.address, '0x');
-  var tx = await factory.createProxy(singleton.address, '0x');
+  let tx = await factory.createProxy(singleton.address, '0x');
   await tx.wait();
   const safe = GnosisSafeL2.attach(template);
-  var tx = await safe.setup(
+  let tx = await safe.setup(
     [signers.signer_0.address],
     1,
     AddressZero,
@@ -70,8 +67,7 @@ describe('Snapshot X L1 Voting Contract:', () => {
   describe('Set up', async () => {
     it('can initialize and set up the contract', async () => {
       const [signer_0, signer_1] = await ethers.getSigners();
-      const { L1Vote, L1Auth, safe } = await baseSetup({ signer_0, signer_1 });
-
+      const { L1Vote, L1Auth } = await baseSetup({ signer_0, signer_1 });
       expect(await L1Vote.starknetCore()).to.equal(starknetCore);
       expect(await L1Vote.votingAuthL1()).to.equal(L1Auth.address);
     });
@@ -80,7 +76,7 @@ describe('Snapshot X L1 Voting Contract:', () => {
   describe('Vote', async () => {
     it('can vote submit a vote from an EOA', async () => {
       const [signer_0, signer_1] = await ethers.getSigners();
-      const { L1Vote, L1Auth } = await baseSetup({ signer_0, signer_1 });
+      const { L1Vote } = await baseSetup({ signer_0, signer_1 });
       await expect(
         L1Vote.voteOnL1(voteA.votingContract, voteA.proposalID, voteA.choice, {
           from: signer_0.address,
@@ -109,7 +105,7 @@ describe('Snapshot X L1 Voting Contract:', () => {
 
     it('should revert if an invalid vote is submitted', async () => {
       const [signer_0, signer_1] = await ethers.getSigners();
-      const { L1Vote, L1Auth } = await baseSetup({ signer_0, signer_1 });
+      const { L1Vote } = await baseSetup({ signer_0, signer_1 });
 
       // This tx does revert however hardhat thinks it doesnt. Issue only occurs when Goerli is used,
       // works fine with devnet.
@@ -128,7 +124,7 @@ describe('Snapshot X L1 Voting Contract:', () => {
 
     it('should revert if an invalid vote is submitted', async () => {
       const [signer_0, signer_1] = await ethers.getSigners();
-      const { L1Vote, safe } = await baseSetup({ signer_0, signer_1 });
+      const { L1Vote } = await baseSetup({ signer_0, signer_1 });
       await expect(
         L1Vote.voteOnL1(
           voteInvalidChoice.votingContract,

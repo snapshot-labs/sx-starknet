@@ -1,15 +1,7 @@
 /* eslint-disable  @typescript-eslint/no-non-null-assertion */
 /* eslint-disable  @typescript-eslint/explicit-module-boundary-types */
 
-import {
-  Contract,
-  Wallet,
-  utils,
-  BigNumber,
-  BigNumberish,
-  Signer,
-  PopulatedTransaction,
-} from 'ethers';
+import { Contract, utils, BigNumber, BigNumberish, Signer, PopulatedTransaction } from 'ethers';
 import { TypedDataSigner } from '@ethersproject/abstract-signer';
 import { AddressZero } from '@ethersproject/constants';
 import { SignerWithAddress } from '@nomiclabs/hardhat-ethers/dist/src/signer-with-address';

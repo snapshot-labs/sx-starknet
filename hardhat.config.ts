@@ -1,7 +1,7 @@
 import dotenv from 'dotenv';
 dotenv.config();
 import { task } from 'hardhat/config';
-import { HardhatUserConfig, NetworkUserConfig } from 'hardhat/types';
+import { HardhatUserConfig } from 'hardhat/types';
 import '@shardlabs/starknet-hardhat-plugin';
 import '@nomiclabs/hardhat-waffle';
 import '@typechain/hardhat';
@@ -11,27 +11,18 @@ import 'hardhat-gas-reporter';
 import '@nomiclabs/hardhat-etherscan';
 import 'solidity-coverage';
 
-const chainIds = {
-  ganache: 1337,
-  goerli: 5,
-  hardhat: 31337,
-  kovan: 42,
-  mainnet: 1,
-  rinkeby: 4,
-  ropsten: 3,
-};
-
-const MNEMONIC = process.env.MNEMONIC || '';
+//const MNEMONIC = process.env.MNEMONIC || '';
 //const ETHERSCAN_API_KEY = process.env.ETHERSCAN_API_KEY || '';
 const INFURA_API_KEY = process.env.INFURA_API_KEY || '';
 //const ALCHEMY_KEY = process.env.ALCHEMY_KEY || '';
 const GOERLI_PRIVATE_KEY = process.env.GOERLI_PRIVATE_KEY || '';
 const GOERLI_PRIVATE_KEY2 = process.env.GOERLI_PRIVATE_KEY2 || '';
-task('accounts', 'Prints the list of accounts', async (args, hre) => {
+
+task('accounts', 'Prints the list of accounts and balances', async (args, hre) => {
   const accounts = await hre.ethers.getSigners();
 
   for (const account of accounts) {
-    console.log(await account.getAddress());
+    console.log(await account.getAddress(), (await account.getBalance()).toString());
   }
 });
 
