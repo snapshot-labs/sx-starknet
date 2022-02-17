@@ -2,7 +2,7 @@ name: Lint
 on:
   push:
     branches:
-      - lint
+      - develop
   pull_request:
 jobs:
   run-linters:
