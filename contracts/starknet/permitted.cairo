@@ -29,7 +29,7 @@ end
 
 # Internals.
 
-func permitted_minter_only{syscall_ptr : felt*, pedersen_ptr : felt*, range_check_ptr}():
+func permitted_minter_only{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr}():
     let (caller_address) = get_caller_address()
     let (permitted_address) = permittedMinter()
     assert_not_zero(permitted_address)
