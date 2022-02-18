@@ -13,9 +13,13 @@ from starkware.starknet.common.syscalls import (
 
 const L1_VOTING_CONTRACT = (0x1234)
 
+
+
+
 # mapping stores 1 if the proposal has been initialized, otherwise 0
 @storage_var
-func proposal_id_store(proposal_id : felt) -> (bool : felt):
+func proposal_id_store(proposal_id : felt) 
+-> (bool : felt):
 end
 
 # double mapping that stores a counter for each vote type (1,2,3) for every proposal
