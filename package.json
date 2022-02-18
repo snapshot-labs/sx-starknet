@@ -10,10 +10,14 @@
     "deploy:l2:testnet": "hardhat starknet-deploy --starknet-network alpha",
     "test": "hardhat test",
     "start:l1": "hardhat node",
-    "lint:l1": "prettier --write 'contracts/**/*.sol'",
-    "lint:l2": "cairo-format contracts/**/*.cairo",
-    "lint:ts": "eslint . --ext .ts --fix",
-    "lint": "yarn lint:l1 && yarn lint:l2 && yarn lint:ts"
+    "format:l1": "prettier --write 'contracts/**/*.sol'",
+    "check-format:l1": "prettier -c 'contracts/**/*.sol'",
+    "format:l2": "cairo-format -i contracts/**/*.cairo",
+    "check-format:l2": "cairo-format -c contracts/**/*.cairo",
+    "format:ts": "eslint . --ext .ts --fix",
+    "check-format:ts": "eslint . --ext .ts",
+    "format": "yarn format:l1 && yarn format:l2 && yarn format:ts",
+    "check-format": "yarn check-format:l1 && yarn check-format:l2 && yarn check-format:ts"
   },
   "dependencies": {
     "@gnosis.pm/safe-contracts": "^1.3.0",
