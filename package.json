@@ -11,7 +11,7 @@
     "test": "hardhat test",
     "start:l1": "hardhat node",
     "lint:l1": "prettier --write 'contracts/**/*.sol'",
-    "lint:l2": "cairo-format contracts/**/*.cairo",
+    "lint:l2": "cairo-format -c contracts/**/*.cairo",
     "lint:ts": "eslint . --ext .ts --fix",
     "lint": "yarn lint:l1 && yarn lint:l2 && yarn lint:ts"
   },
