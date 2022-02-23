@@ -9,50 +9,56 @@ import '@nomiclabs/hardhat-ethers';
 import '@nomiclabs/hardhat-waffle';
 import 'hardhat-gas-reporter';
 import '@nomiclabs/hardhat-etherscan';
+import 'solidity-coverage';
 
-// const chainIds = {
-//   ganache: 1337,
-//   goerli: 5,
-//   hardhat: 31337,
-//   kovan: 42,
-//   mainnet: 1,
-//   rinkeby: 4,
-//   ropsten: 3,
-// };
+//const MNEMONIC = process.env.MNEMONIC || '';
+//const ETHERSCAN_API_KEY = process.env.ETHERSCAN_API_KEY || '';
+const INFURA_API_KEY = process.env.INFURA_API_KEY || '';
+//const ALCHEMY_KEY = process.env.ALCHEMY_KEY || '';
+const GOERLI_PRIVATE_KEY = process.env.GOERLI_PRIVATE_KEY || '0x1111111111111111111111111111111111111111111111111111111111111111';
+const GOERLI_PRIVATE_KEY2 = process.env.GOERLI_PRIVATE_KEY2 || '0x1111111111111111111111111111111111111111111111111111111111111111';
 
-// const MNEMONIC = process.env.MNEMONIC || '';
-// const ETHERSCAN_API_KEY = process.env.ETHERSCAN_API_KEY || '';
-// const INFURA_API_KEY = process.env.INFURA_API_KEY || '';
-// const ALCHEMY_KEY = process.env.ALCHEMY_KEY || '';
-
-task('accounts', 'Prints the list of accounts', async (args, hre) => {
+task('accounts', 'Prints the list of accounts and balances', async (args, hre) => {
   const accounts = await hre.ethers.getSigners();
 
   for (const account of accounts) {
-    console.log(await account.getAddress());
+    console.log(await account.getAddress(), (await account.getBalance()).toString());
   }
 });
 
 const config: HardhatUserConfig = {
   solidity: {
-    version: '0.8.6',
-    settings: {
-      optimizer: {
-        enabled: true,
-        runs: 10,
+    compilers: [
+      {
+        version: "0.8.6",
+        settings: {
+          optimizer: {
+            enabled: true,
+            runs: 10,
+          }
+        }
       },
-    },
+      {
+        version: "0.8.9",
+        settings: {
+          optimizer: {
+            enabled: true,
+            runs: 10,
+          }
+        }
+      }
+    ],
   },
   networks: {
-    ropsten: {
-      url: process.env.ROPSTEN_URL || '',
-      accounts: process.env.PRIVATE_KEY !== undefined ? [process.env.PRIVATE_KEY] : [],
+    goerli: {
+      url: 'https://goerli.infura.io/v3/' + INFURA_API_KEY,
+      accounts: [GOERLI_PRIVATE_KEY, GOERLI_PRIVATE_KEY2],
     },
     devnet: {
       url: 'http://localhost:8545',
     },
     starknetDevnet: {
-      url: 'http://localhost:8000/',
+      url: 'http://localhost:5000/',
     },
   },
   gasReporter: {
@@ -62,14 +68,13 @@ const config: HardhatUserConfig = {
   etherscan: {
     apiKey: process.env.ETHERSCAN_API_KEY,
   },
-  // cairo: {
-  //   venv: "active"
-  //   venv: process.env.VIRTUAL_ENV
-  // },
-  // paths: {
-  //   sources: "contracts/ethereum",
-  //   starknetSources: "contracts/starknet"
-  // }
+  mocha: {
+    starknetNetwork: 'alpha-goerli',
+    timeout: 240000,
+  },
+  cairo: {
+    venv: process.env.VIRTUAL_ENV,
+  },
 };
 
 export default config;
