@@ -38,3 +38,6 @@ jobs:
     
       - name: Run unit tests
         run: yarn test 
+
+      - name: Run python unit tests
+        run: py.test
