@@ -51,4 +51,4 @@ jobs:
         run: python -m pip install --upgrade cairo-lang>=0.7.1
 
       - name: Run python unit tests
-        run: py.test
+        run: yarn test:pytest
