@@ -37,7 +37,7 @@ jobs:
         run: yarn compile
     
       - name: Run unit tests
-        run: yarn test 
+        run: yarn test:hardhat 
 
       - name: Setup Python
         uses: actions/setup-python@v2
