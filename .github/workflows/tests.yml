@@ -31,13 +31,13 @@ jobs:
             yarn-
 
       - name: Install yarn dependencies
-        run: yarn install --no-progress --non-interactive 
+        run: yarn install --no-progress --non-interactive
 
       - name: Compile Contracts
         run: yarn compile
-    
+
       - name: Run unit tests
-        run: yarn test:hardhat 
+        run: yarn test:hardhat
 
       - name: Setup Python
         uses: actions/setup-python@v2
