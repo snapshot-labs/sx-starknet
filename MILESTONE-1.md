@@ -60,8 +60,8 @@ The role of the voting strategy contract is to calculate voting power for a spec
 
 #### Functions
 
-- **get_vp(address, at)**  
-Return the voting power for a specific address at a specific timestamp "at".
+- **get_vp(address, at, data)**  
+Return the voting power for a specific address at a specific timestamp "at", "data" are the params required to run voting power calculation, in milestone 1 it's just an empty array.
 
 ### Auth contract
 
