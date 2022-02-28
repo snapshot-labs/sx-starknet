@@ -49,10 +49,10 @@ Mapping of votes by proposal id with required informations: address, choice, vot
 #### Functions
 
 - **vote(address, proposal, choice)**  
-Function to cast a vote, payload include the address of the voter, the proposal id and the choice.
+Function to cast a vote, payload include the Ethereum address of the voter, the proposal id and the choice.
 
-- **propose(execution_hash, metadata_uri)**   
-Submit a new proposal. The execution hash is a hash from EIP-712 that include execution details, here is an example https://gist.github.com/bonustrack/45fdb2f0235d6ad3ccffa328234379aa the metadata_uri is an URL string that lead to a JSON file which include proposal metadata like title or body, this is similar than NFT tokenURI it can be "ipfs://AbC..." or "https://..." URL.
+- **propose(address, execution_hash, metadata_uri)**   
+Submit a new proposal. The **address** is an Ethereum address, **execution_hash** is a hash from EIP-712 that include execution details, here is an example https://gist.github.com/bonustrack/45fdb2f0235d6ad3ccffa328234379aa the **metadata_uri** is an URL string that lead to a JSON file which include proposal metadata like title or body, this is similar than NFT tokenURI it can be "ipfs://AbC..." or "https://..." URL.
 
 ### Voting strategy contract
 
