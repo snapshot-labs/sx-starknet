@@ -10,7 +10,7 @@
     "deploy:l2:testnet": "hardhat starknet-deploy --starknet-network alpha",
     "test:hardhat": "hardhat test",
     "test:pytest": "py.test",
-    "test": "yarn test:hardhat && yarn test:pytest", 
+    "test": "yarn test:hardhat && yarn test:pytest",
     "start:l1": "hardhat node",
     "format:l1": "prettier --write 'contracts/**/*.sol'",
     "check-format:l1": "prettier -c 'contracts/**/*.sol'",
