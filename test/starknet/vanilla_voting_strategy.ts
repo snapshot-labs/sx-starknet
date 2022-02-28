@@ -11,8 +11,8 @@ async function setup() {
     }
 }
 
-describe('Snapshot X L1 Proposal Executor:', () => {
-    it('The module should return the number of transactions in a proposal', async () => {
+describe('Snapshot X Vanilla Voting Strategy:', () => {
+    it('The voting strategy should return a voting power of 1', async () => {
         const {vanillaVotingStrategy} = await setup();
         const {voting_power: vp} = await vanillaVotingStrategy.call("get_voting_power", {block: 1, account_160: 2,  params: []});
         expect(new SplitUint256(vp.low, vp.high)).to.deep.equal(SplitUint256.fromUint(BigInt(1)));
