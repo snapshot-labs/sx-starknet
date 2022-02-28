@@ -1,4 +1,5 @@
 namespace Choice:
-    const YES = 0
-    const NO = 1
+    const AGAINST = 0
+    const FOR = 1
     const ABSTAIN = 2
+end
