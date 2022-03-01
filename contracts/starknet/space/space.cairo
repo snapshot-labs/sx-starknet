@@ -2,7 +2,7 @@
 
 from starkware.starknet.common.syscalls import ( get_caller_address, get_block_number )
 from starkware.cairo.common.cairo_builtins import HashBuiltin
-from starkware.cairo.common.math import assert_lt, assert_le
+from starkware.cairo.common.math import assert_lt, assert_le, assert_nn, assert_not_zero
 
 struct Vote:
     member choice: felt # TODO use Choice enum
@@ -57,7 +57,24 @@ end
 func votes(proposal_id: felt) -> (vote : Vote):
 end
 
-# TODO: contrsuctor to init storage variables
+@constructor
+func constructor{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_ptr: felt}(_voting_delay: felt, _voting_period: felt, _proposal_threshold: felt, _voting_strategy: felt, _authenticator: felt):
+    # Sanity checks
+    assert_nn(_voting_delay)
+    assert_nn(_voting_period)
+    assert_nn(_proposal_threshold)
+    assert_not_zero(_voting_strategy)
+    assert_not_zero(_authenticator)
+
+    # Initialize the storage variables
+    voting_delay.write(_voting_delay)
+    voting_period.write(_voting_period)
+    proposal_threshold.write(_proposal_threshold)
+    voting_strategy.write(_voting_strategy)
+    authenticator.write(_authenticator)
+
+    return ()
+end
 
 # TODO: should be address not felt, and choice should be of enum Choice not felt
 @external
