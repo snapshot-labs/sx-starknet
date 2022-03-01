@@ -15,8 +15,12 @@ import 'solidity-coverage';
 //const ETHERSCAN_API_KEY = process.env.ETHERSCAN_API_KEY || '';
 const INFURA_API_KEY = process.env.INFURA_API_KEY || '';
 //const ALCHEMY_KEY = process.env.ALCHEMY_KEY || '';
-const GOERLI_PRIVATE_KEY = process.env.GOERLI_PRIVATE_KEY || '0x1111111111111111111111111111111111111111111111111111111111111111';
-const GOERLI_PRIVATE_KEY2 = process.env.GOERLI_PRIVATE_KEY2 || '0x1111111111111111111111111111111111111111111111111111111111111111';
+const GOERLI_PRIVATE_KEY =
+  process.env.GOERLI_PRIVATE_KEY ||
+  '0x1111111111111111111111111111111111111111111111111111111111111111';
+const GOERLI_PRIVATE_KEY2 =
+  process.env.GOERLI_PRIVATE_KEY2 ||
+  '0x1111111111111111111111111111111111111111111111111111111111111111';
 
 task('accounts', 'Prints the list of accounts and balances', async (args, hre) => {
   const accounts = await hre.ethers.getSigners();
@@ -30,23 +34,23 @@ const config: HardhatUserConfig = {
   solidity: {
     compilers: [
       {
-        version: "0.8.6",
+        version: '0.8.6',
         settings: {
           optimizer: {
             enabled: true,
             runs: 10,
-          }
-        }
+          },
+        },
       },
       {
-        version: "0.8.9",
+        version: '0.8.9',
         settings: {
           optimizer: {
             enabled: true,
             runs: 10,
-          }
-        }
-      }
+          },
+        },
+      },
     ],
   },
   networks: {
@@ -72,7 +76,7 @@ const config: HardhatUserConfig = {
     starknetNetwork: 'starknetDevnet',
   },
   cairo: {
-    venv: "active",
+    venv: 'active',
   },
 };
 
