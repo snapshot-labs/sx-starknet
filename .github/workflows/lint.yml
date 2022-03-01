@@ -48,4 +48,4 @@ jobs:
       
       - name: Run unit tests
         run: |
-          cairo-format -c contracts/**/*.cairo
+          cairo-format -c contracts/starknet/lib/types.cairo
