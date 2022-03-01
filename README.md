@@ -30,7 +30,6 @@ Snapshot is open-sourced software licensed under the © [MIT license](LICENSE).
 
 Usage
 -----
-The Starknet Hardhat plugin uses a docker container so make sure you have a running Docker daemon. More information about the plugin can be found [here](https://github.com/Shard-Labs/starknet-hardhat-plugin)
 
 ### Install Python and Yarn requirements: 
 
