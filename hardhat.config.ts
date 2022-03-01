@@ -63,10 +63,9 @@ const config: HardhatUserConfig = {
     apiKey: process.env.ETHERSCAN_API_KEY,
   },
   starknet: {
-    venv: "active",
-    network: "starknetDevnet"
+    venv: 'active',
+    network: 'starknetDevnet',
   },
-
 };
 
 export default config;
