@@ -32,9 +32,6 @@ jobs:
       - name: Install yarn dependencies
         run: yarn install --no-progress --non-interactive 
 
-      - name: Compile Contracts
-        run: yarn compile
-
       - name: Set up Python 3.7
         uses: actions/setup-python@v2
         with:
@@ -46,6 +43,9 @@ jobs:
           python -m pip install --upgrade pip
           pip install starknet-devnet
           pip install -r requirements.txt
+
+      - name: Compile Contracts
+        run: yarn compile
       
       - name: Run unit tests
         run: |
