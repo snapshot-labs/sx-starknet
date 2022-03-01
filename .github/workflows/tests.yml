@@ -33,12 +33,6 @@ jobs:
       - name: Install yarn dependencies
         run: yarn install --no-progress --non-interactive
 
-      - name: Compile Contracts
-        run: yarn compile
-
-      - name: Run unit tests
-        run: yarn test:hardhat
-
       - name: Setup Python
         uses: actions/setup-python@v2
         with:
@@ -49,6 +43,12 @@ jobs:
 
       - name: Install cairo lang
         run: python -m pip install --upgrade cairo-lang>=0.7.1
+
+      - name: Compile Contracts
+        run: yarn compile
+
+      - name: Run unit tests
+        run: yarn test:hardhat
 
       - name: Run python unit tests
         run: yarn test:pytest
