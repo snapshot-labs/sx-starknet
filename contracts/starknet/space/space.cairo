@@ -62,7 +62,6 @@ func constructor{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_p
     return ()
 end
 
-# TODO: choice should be of enum Choice not felt
 @external
 func vote{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr : felt}(
         eth_address : EthAddress, proposal_id : felt, choice : felt) -> ():
