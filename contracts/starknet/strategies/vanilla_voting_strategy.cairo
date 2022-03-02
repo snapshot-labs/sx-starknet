@@ -8,6 +8,5 @@ from contracts.starknet.lib.types import EthAddress
 func get_voting_power{range_check_ptr}(
         block : felt, address : EthAddress, params_len : felt, params : felt*) -> (
         voting_power : Uint256):
-    tempvar voting_power : Uint256 = Uint256(1, 0)
-    return (voting_power)
+    return (Uint256(1, 0))
 end

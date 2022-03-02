@@ -45,6 +45,11 @@ yarn
 ```bash
 yarn compile
 ```
+### Install and start StarkNet Devnet (In separate terminal):
+```bash
+pip install starknet-devnet
+starknet-devnet
+```
 
 ### Run tests:
 ```bash
