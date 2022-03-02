@@ -105,13 +105,24 @@ func vote{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_ptr: felt}
     return ()
 end
 
-#Todo: use proper types
+# Throws if the caller address is not identical to the authenticator address (stored in the `authenticator` variable)
+func authenticator_only{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_ptr}():
+    let (caller_address) = get_caller_address()
+    let (authenticator_address) = authenticator.read()
+
+    # Ensure it has been initialized
+    assert_not_zero(authenticator_address)
+    # Ensure the caller is the authenticator contract
+    assert caller_address = authenticator_address
+
+    return ()
+end
+
+# Todo: use proper types
 @external
 func propose{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_ptr: felt}(eth_address: felt, execution_hash: felt, metadata_uri: felt) -> ():
     # Verify that the caller is the authenticator contract.
-    let (caller_address) = get_caller_address()
-    let (authenticator_address) = authenticator.read()
-    assert caller_address = authenticator_address
+    authenticator_only()
 
     let (current_block) = get_block_number()
     let (delay) = voting_delay.read()
