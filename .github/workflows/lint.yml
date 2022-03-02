@@ -2,7 +2,7 @@ name: Lint
 on:
   push:
     branches:
-      - master
+      - develop
   pull_request:
 jobs:
   run-linters:
@@ -33,13 +33,17 @@ jobs:
       - name: Install yarn dependencies
         run: yarn install --no-progress --non-interactive
 
-      - name: Set up python
+      - name: Set up Python 3.7
         uses: actions/setup-python@v2
         with:
           python-version: 3.7
 
-      - name: Install python dependencies
-        run: pip install -r requirements.txt
-
-      - name: Run linters
-        run: yarn lint
+      - name: Install dependencies
+        run: |
+          sudo apt install -y libgmp3-dev
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+      
+      - name: Run Linters
+        run: |
+          yarn check-format
