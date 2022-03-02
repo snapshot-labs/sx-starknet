@@ -5,18 +5,8 @@ from starkware.cairo.common.cairo_builtins import HashBuiltin
 from starkware.cairo.common.math import assert_lt, assert_le, assert_nn, assert_not_zero
 from contracts.starknet.strategies.interface import IVotingStrategy
 from contracts.starknet.lib.types import EthAddress
-
-struct Vote:
-    member choice : felt  # TODO use Choice enum
-    member eth_address : EthAddress
-    member voting_power : felt
-end
-
-struct Proposal:
-    member execution_hash : felt  # TODO: Use Hash type
-    member start_block : felt
-    member end_block : felt
-end
+from contracts.starknet.objects.proposal import Proposal
+from contracts.starknet.objects.vote import Vote
 
 @storage_var
 func voting_delay() -> (delay : felt):
