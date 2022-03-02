@@ -3,10 +3,12 @@
 from starkware.starknet.common.syscalls import ( get_caller_address, get_block_number )
 from starkware.cairo.common.cairo_builtins import HashBuiltin
 from starkware.cairo.common.math import assert_lt, assert_le, assert_nn, assert_not_zero
+from contracts.starknet.strategies.interface import IVotingStrategy
+from contracts.starknet.lib.types import EthAddress
 
 struct Vote:
     member choice: felt # TODO use Choice enum
-    member eth_address: felt # TODO: use address
+    member eth_address: EthAddress
     member voting_power: felt
 end
 
@@ -14,13 +16,6 @@ struct Proposal:
     member execution_hash: felt # TODO: Use Hash type
     member start_block: felt
     member end_block: felt
-end
-
-# TODO: use L1Address instead of felt
-@contract_interface
-namespace IVotingStrategy:
-    func get_voting_power(address: felt, at: felt) -> (voting_power: felt):
-    end
 end
 
 @storage_var
@@ -76,9 +71,9 @@ func constructor{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_ptr
     return ()
 end
 
-# TODO: should be address not felt, and choice should be of enum Choice not felt
+# TODO: choice should be of enum Choice not felt
 @external
-func vote{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_ptr: felt}(eth_address: felt, proposal_id: felt, choice: felt) -> ():
+func vote{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_ptr: felt}(eth_address: EthAddress, proposal_id: felt, choice: felt) -> ():
 
     # Verify that the caller is the authenticator contract.
     let (caller_address) = get_caller_address()
