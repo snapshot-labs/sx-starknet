@@ -1,27 +1,26 @@
 %lang starknet
 
-from starkware.starknet.common.syscalls import ( get_caller_address, get_block_number )
+from starkware.starknet.common.syscalls import get_caller_address, get_block_number
 from starkware.cairo.common.cairo_builtins import HashBuiltin
 from starkware.cairo.common.math import assert_lt, assert_le, assert_nn, assert_not_zero
 from contracts.starknet.strategies.interface import IVotingStrategy
 from contracts.starknet.lib.types import EthAddress
 
 struct Vote:
-    member choice: felt # TODO use Choice enum
-    member eth_address: EthAddress
-    member voting_power: felt
+    member choice : felt  # TODO use Choice enum
+    member eth_address : EthAddress
+    member voting_power : felt
 end
 
 struct Proposal:
-    member execution_hash: felt # TODO: Use Hash type
-    member start_block: felt
-    member end_block: felt
+    member execution_hash : felt  # TODO: Use Hash type
+    member start_block : felt
+    member end_block : felt
 end
 
 @storage_var
 func voting_delay() -> (delay : felt):
 end
-
 
 @storage_var
 func voting_period() -> (period : felt):
@@ -45,15 +44,17 @@ func next_proposal_nonce() -> (nonce : felt):
 end
 
 @storage_var
-func proposals(proposal_id: felt) -> (proposal : Proposal):
+func proposals(proposal_id : felt) -> (proposal : Proposal):
 end
 
 @storage_var
-func votes(proposal_id: felt) -> (vote : Vote):
+func votes(proposal_id : felt) -> (vote : Vote):
 end
 
 @constructor
-func constructor{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_ptr: felt}(_voting_delay: felt, _voting_period: felt, _proposal_threshold: felt, _voting_strategy: felt, _authenticator: felt):
+func constructor{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr : felt}(
+        _voting_delay : felt, _voting_period : felt, _proposal_threshold : felt,
+        _voting_strategy : felt, _authenticator : felt):
     # Sanity checks
     assert_nn(_voting_delay)
     assert_nn(_voting_period)
@@ -73,8 +74,8 @@ end
 
 # TODO: choice should be of enum Choice not felt
 @external
-func vote{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_ptr: felt}(eth_address: EthAddress, proposal_id: felt, choice: felt) -> ():
-
+func vote{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr : felt}(
+        eth_address : EthAddress, proposal_id : felt, choice : felt) -> ():
     # Verify that the caller is the authenticator contract.
     let (caller_address) = get_caller_address()
     let (authenticator_address) = authenticator.read()
@@ -92,7 +93,8 @@ func vote{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_ptr: felt}
     let (strategy_contract) = voting_strategy.read()
 
     # TODO: pass in `params_len` and `params`
-    let (voting_power) = IVotingStrategy.get_voting_power(contract_address=strategy_contract, address=eth_address, at=current_block)
+    let (voting_power) = IVotingStrategy.get_voting_power(
+        contract_address=strategy_contract, address=eth_address, at=current_block)
 
     let vote = Vote(choice, eth_address, voting_power)
     votes.write(proposal_id, vote)
@@ -101,7 +103,7 @@ func vote{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_ptr: felt}
 end
 
 # Throws if the caller address is not identical to the authenticator address (stored in the `authenticator` variable)
-func authenticator_only{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_ptr}():
+func authenticator_only{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr}():
     let (caller_address) = get_caller_address()
     let (authenticator_address) = authenticator.read()
 
@@ -115,7 +117,8 @@ end
 
 # Todo: use proper types
 @external
-func propose{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_ptr: felt}(eth_address: felt, execution_hash: felt, metadata_uri: felt) -> ():
+func propose{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr : felt}(
+        eth_address : felt, execution_hash : felt, metadata_uri : felt) -> ():
     # Verify that the caller is the authenticator contract.
     authenticator_only()
 
