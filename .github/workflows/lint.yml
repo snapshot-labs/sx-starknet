@@ -29,6 +29,7 @@ jobs:
           key: yarn-${{ hashFiles('**/yarn.lock') }}
           restore-keys: |
             yarn-
+            
       - name: Install yarn dependencies
         run: yarn install --no-progress --non-interactive 
 
@@ -42,10 +43,7 @@ jobs:
           sudo apt install -y libgmp3-dev
           python -m pip install --upgrade pip
           pip install -r requirements.txt
-  
-      - name: Compile Contracts
-        run: yarn compile
       
       - name: Run unit tests
         run: |
-          cairo-format -c contracts/starknet/**/*.cairo
+          yarn check-format
