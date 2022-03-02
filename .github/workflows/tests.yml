@@ -1,5 +1,9 @@
 name: Tests
-on: [push]
+on:
+  push:
+    branches:
+      - develop
+  pull_request:
 jobs:
   unit-tests:
     name: Unit Tests
@@ -25,26 +29,26 @@ jobs:
           key: yarn-${{ hashFiles('**/yarn.lock') }}
           restore-keys: |
             yarn-
-
       - name: Install yarn dependencies
-        run: yarn install --no-progress --non-interactive
+        run: yarn install --no-progress --non-interactive 
 
-      - name: Compile Contracts
-        run: yarn compile
-
-      - name: Run unit tests
-        run: yarn test:hardhat
-
-      - name: Setup Python
+      - name: Set up Python 3.7
         uses: actions/setup-python@v2
         with:
-          python-version: "3.7"
+          python-version: 3.7
 
-      - name: Install pytest
-        run: python -m pip install --upgrade pytest
-
-      - name: Install cairo lang
-        run: python -m pip install --upgrade cairo-lang>=0.7.1
-
-      - name: Run python unit tests
-        run: yarn test:pytest
+      - name: Install dependencies
+        run: |
+          sudo apt install -y libgmp3-dev
+          python -m pip install --upgrade pip
+          pip install starknet-devnet
+  
+      - name: Compile Contracts
+        run: yarn compile
+      
+      - name: Run unit tests
+        run: |
+          starknet-devnet -p 5000 &
+          sleep 10 &&
+          curl http://localhost:5000 &&
+          yarn test 

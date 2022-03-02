@@ -52,7 +52,7 @@ const config: HardhatUserConfig = {
       url: 'http://localhost:8545',
     },
     starknetDevnet: {
-      url: 'http://localhost:8000/',
+      url: 'http://localhost:5000/',
     },
   },
   gasReporter: {
@@ -62,14 +62,10 @@ const config: HardhatUserConfig = {
   etherscan: {
     apiKey: process.env.ETHERSCAN_API_KEY,
   },
-  // cairo: {
-  //   venv: "active"
-  //   venv: process.env.VIRTUAL_ENV
-  // },
-  // paths: {
-  //   sources: "contracts/ethereum",
-  //   starknetSources: "contracts/starknet"
-  // }
+  starknet: {
+    venv: 'active',
+    network: 'starknetDevnet',
+  },
 };
 
 export default config;
