@@ -30,7 +30,7 @@ jobs:
           restore-keys: |
             yarn-
       - name: Install yarn dependencies
-        run: yarn install --no-progress --non-interactive 
+        run: yarn install --no-progress --non-interactive
 
       - name: Set up Python 3.7
         uses: actions/setup-python@v2
@@ -45,7 +45,7 @@ jobs:
   
       - name: Compile Contracts
         run: yarn compile
-      
+
       - name: Run unit tests
         run: |
           starknet-devnet -p 5000 &
