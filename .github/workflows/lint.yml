@@ -5,8 +5,8 @@ on:
       - develop
   pull_request:
 jobs:
-  unit-tests:
-    name: Unit Tests
+  run-linters:
+    name: Run Linters
     runs-on: ubuntu-latest
 
     steps:
@@ -44,6 +44,6 @@ jobs:
           python -m pip install --upgrade pip
           pip install -r requirements.txt
       
-      - name: Run unit tests
+      - name: Run Linters
         run: |
           yarn check-format
