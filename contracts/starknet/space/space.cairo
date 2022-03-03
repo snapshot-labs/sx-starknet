@@ -104,10 +104,10 @@ func authenticator_only{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_
     return ()
 end
 
-# Todo: use proper types
+# TODO: execution_hash should be of type Hash
 @external
 func propose{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr : felt}(
-        eth_address : felt, execution_hash : felt, metadata_uri : felt) -> ():
+        eth_address : EthAddress, execution_hash : felt, metadata_uri : felt) -> ():
     # Verify that the caller is the authenticator contract.
     authenticator_only()
 
