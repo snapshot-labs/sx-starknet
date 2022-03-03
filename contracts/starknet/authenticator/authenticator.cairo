@@ -2,7 +2,6 @@
 from starkware.starknet.common.syscalls import call_contract
 
 # Forwards `data` to `target` without verifying anything.
-# TODO: use ADDRESS instead of felt
 @external
 func execute{syscall_ptr : felt*, range_check_ptr}(
         to : felt, selector : felt, calldata_len : felt, calldata : felt*):
