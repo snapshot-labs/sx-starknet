@@ -7,6 +7,8 @@ from contracts.starknet.strategies.interface import IVotingStrategy
 from contracts.starknet.lib.types import EthAddress
 from contracts.starknet.objects.proposal import Proposal
 from contracts.starknet.objects.vote import Vote
+from contracts.starknet.objects.bool import Boolean
+from contracts.starknet.objects.choice import Choice
 
 @storage_var
 func voting_delay() -> (delay : felt):
@@ -38,7 +40,19 @@ func proposals(proposal_id : felt) -> (proposal : Proposal):
 end
 
 @storage_var
-func votes(proposal_id : felt) -> (vote : Vote):
+func has_voted(proposal_id : felt, voter_address: EthAddress) -> (res: felt):
+end
+
+@storage_var
+func votes_for(proposal_id: felt) -> (number: felt):
+end
+
+@storage_var
+func votes_against(proposal_id: felt) -> (number: felt):
+end
+
+@storage_var
+func votes_abstain(proposal_id: felt) -> (number: felt):
 end
 
 @constructor
@@ -85,8 +99,34 @@ func vote{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr : fe
     let (voting_power) = IVotingStrategy.get_voting_power(
         contract_address=strategy_contract, address=eth_address, at=current_block)
 
-    let vote = Vote(choice, eth_address, voting_power)
-    votes.write(proposal_id, vote)
+    if choice == Choice.FOR:
+        let (for) = votes_for.read(proposal_id)
+        votes_for.write(proposal_id, for + voting_power)
+        tempvar range_check_ptr=range_check_ptr
+        tempvar syscall_ptr=syscall_ptr
+        tempvar pedersen_ptr=pedersen_ptr
+    else:
+        if choice == Choice.AGAINST:
+            let (against) = votes_against.read(proposal_id)
+            votes_against.write(proposal_id, against + voting_power)
+            tempvar range_check_ptr=range_check_ptr
+            tempvar syscall_ptr=syscall_ptr
+            tempvar pedersen_ptr=pedersen_ptr
+        else:
+            if choice == Choice.ABSTAIN:
+                let (_abstain) = votes_abstain.read(proposal_id)
+                votes_abstain.write(proposal_id, _abstain + voting_power)
+                tempvar range_check_ptr=range_check_ptr
+                tempvar syscall_ptr=syscall_ptr
+                tempvar pedersen_ptr=pedersen_ptr
+            else:
+                # choice is not a valid choice ?!
+                return ()
+            end
+        end
+    end
+
+    has_voted.write(proposal_id=proposal_id, voter_address=eth_address, value=Boolean.TRUE)
 
     return ()
 end
