@@ -104,7 +104,7 @@ func authenticator_only{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_
     return ()
 end
 
-# TODO: execution_hash should be of type Hash
+# TODO: execution_hash should be of type Hash and metadata_uri of type felt* (string)
 @external
 func propose{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr : felt}(
         eth_address : EthAddress, execution_hash : felt, metadata_uri : felt) -> ():
@@ -119,6 +119,16 @@ func propose{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr :
     let start_block = current_block + delay
     let end_block = start_block + duration
 
+    # Get the voting power of the proposer
+    let (strategy_contract) = voting_strategy.read()
+    let (voting_power) = IVotingStrategy.get_voting_power(
+        contract_address=strategy_contract, address=eth_address, at=current_block)
+
+    # Verify that the proposer has enough voting power to trigger a proposal
+    let (threshold) = proposal_threshold.read()
+    assert_le(threshold, voting_power)
+
+    # Create the proposal and its proposal id
     let proposal = Proposal(execution_hash, start_block, end_block)
     let (proposal_id) = next_proposal_nonce.read()
 
