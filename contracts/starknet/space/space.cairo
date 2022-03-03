@@ -6,6 +6,7 @@ from starkware.cairo.common.math import assert_lt, assert_le, assert_nn, assert_
 from contracts.starknet.strategies.interface import IVotingStrategy
 from contracts.starknet.lib.types import EthAddress
 from contracts.starknet.objects.proposal import Proposal
+from contracts.starknet.objects.proposal_info import ProposalInfo
 from contracts.starknet.objects.vote import Vote
 from contracts.starknet.objects.choice import Choice
 
@@ -43,15 +44,15 @@ func vote_registry(proposal_id : felt, voter_address : EthAddress) -> (vote : Vo
 end
 
 @storage_var
-func votes_for(proposal_id : felt) -> (number : felt):
+func power_for(proposal_id : felt) -> (number : felt):
 end
 
 @storage_var
-func votes_against(proposal_id : felt) -> (number : felt):
+func power_against(proposal_id : felt) -> (number : felt):
 end
 
 @storage_var
-func votes_abstain(proposal_id : felt) -> (number : felt):
+func power_abstain(proposal_id : felt) -> (number : felt):
 end
 
 @constructor
@@ -99,24 +100,24 @@ func vote{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr : fe
         contract_address=strategy_contract, address=voter_address, at=current_block)
 
     if choice == Choice.FOR:
-        let (for) = votes_for.read(proposal_id)
-        votes_for.write(proposal_id, for + voting_power)
+        let (for) = power_for.read(proposal_id)
+        power_for.write(proposal_id, for + voting_power)
         tempvar range_check_ptr = range_check_ptr
         tempvar syscall_ptr = syscall_ptr
         tempvar pedersen_ptr = pedersen_ptr
         tempvar voting_power = voting_power
     else:
         if choice == Choice.AGAINST:
-            let (against) = votes_against.read(proposal_id)
-            votes_against.write(proposal_id, against + voting_power)
+            let (against) = power_against.read(proposal_id)
+            power_against.write(proposal_id, against + voting_power)
             tempvar range_check_ptr = range_check_ptr
             tempvar syscall_ptr = syscall_ptr
             tempvar pedersen_ptr = pedersen_ptr
             tempvar voting_power = voting_power
         else:
             if choice == Choice.ABSTAIN:
-                let (_abstain) = votes_abstain.read(proposal_id)
-                votes_abstain.write(proposal_id, _abstain + voting_power)
+                let (_abstain) = power_abstain.read(proposal_id)
+                power_abstain.write(proposal_id, _abstain + voting_power)
                 tempvar range_check_ptr = range_check_ptr
                 tempvar syscall_ptr = syscall_ptr
                 tempvar pedersen_ptr = pedersen_ptr
@@ -185,11 +186,19 @@ func propose{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr :
 end
 
 @view
-func get_vote_info{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr : felt}(voter_address: EthAddress, proposal_id: felt) -> (vote: Vote):
+func get_vote_info{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr : felt}(
+        voter_address : EthAddress, proposal_id : felt) -> (vote : Vote):
     return vote_registry.read(proposal_id, voter_address)
 end
 
 @view
-func get_proposal_info{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr : felt}(proposal_id: felt) -> (vote: Proposal):
-    return proposal_registry.read(proposal_id)
+func get_proposal_info{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr : felt}(
+        proposal_id : felt) -> (vote : ProposalInfo):
+    let (proposal) = proposal_registry.read(proposal_id)
+
+    let (_power_for) = power_for.read(proposal_id)
+    let (_power_against) = power_against.read(proposal_id)
+    let (_power_abstain) = power_abstain.read(proposal_id)
+    return (
+        ProposalInfo(proposal.execution_hash, proposal.start_block, proposal.end_block, _power_for, _power_against, _power_abstain))
 end
