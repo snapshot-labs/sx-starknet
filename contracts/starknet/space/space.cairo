@@ -7,7 +7,6 @@ from contracts.starknet.strategies.interface import IVotingStrategy
 from contracts.starknet.lib.types import EthAddress
 from contracts.starknet.objects.proposal import Proposal
 from contracts.starknet.objects.vote import Vote
-from contracts.starknet.objects.bool import Boolean
 from contracts.starknet.objects.choice import Choice
 
 @storage_var
@@ -36,11 +35,11 @@ func next_proposal_nonce() -> (nonce : felt):
 end
 
 @storage_var
-func proposals(proposal_id : felt) -> (proposal : Proposal):
+func proposal_registry(proposal_id : felt) -> (proposal : Proposal):
 end
 
 @storage_var
-func has_voted(proposal_id : felt, voter_address : EthAddress) -> (res : felt):
+func vote_registry(proposal_id : felt, voter_address : EthAddress) -> (vote : Vote):
 end
 
 @storage_var
@@ -84,7 +83,7 @@ func vote{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr : fe
     let (authenticator_address) = authenticator.read()
     assert caller_address = authenticator_address
 
-    let (proposal) = proposals.read(proposal_id)
+    let (proposal) = proposal_registry.read(proposal_id)
     let (current_block) = get_block_number()
 
     # Make sure proposal is not closed
@@ -105,6 +104,7 @@ func vote{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr : fe
         tempvar range_check_ptr = range_check_ptr
         tempvar syscall_ptr = syscall_ptr
         tempvar pedersen_ptr = pedersen_ptr
+        tempvar voting_power = voting_power
     else:
         if choice == Choice.AGAINST:
             let (against) = votes_against.read(proposal_id)
@@ -112,6 +112,7 @@ func vote{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr : fe
             tempvar range_check_ptr = range_check_ptr
             tempvar syscall_ptr = syscall_ptr
             tempvar pedersen_ptr = pedersen_ptr
+            tempvar voting_power = voting_power
         else:
             if choice == Choice.ABSTAIN:
                 let (_abstain) = votes_abstain.read(proposal_id)
@@ -119,6 +120,7 @@ func vote{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr : fe
                 tempvar range_check_ptr = range_check_ptr
                 tempvar syscall_ptr = syscall_ptr
                 tempvar pedersen_ptr = pedersen_ptr
+                tempvar voting_power = voting_power
             else:
                 # choice is not a valid choice ?!
                 return ()
@@ -126,7 +128,8 @@ func vote{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr : fe
         end
     end
 
-    has_voted.write(proposal_id, voter_address, Boolean.TRUE)
+    let vote = Vote(choice=choice, voting_power=voting_power)
+    vote_registry.write(proposal_id, voter_address, vote)
 
     return ()
 end
@@ -173,10 +176,20 @@ func propose{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr :
     let (proposal_id) = next_proposal_nonce.read()
 
     # Store the proposal
-    proposals.write(proposal_id, proposal)
+    proposal_registry.write(proposal_id, proposal)
 
     # Increase the proposal nonce
     next_proposal_nonce.write(proposal_id + 1)
 
     return ()
+end
+
+@view
+func get_vote_info{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr : felt}(voter_address: EthAddress, proposal_id: felt) -> (vote: Vote):
+    return vote_registry.read(proposal_id, voter_address)
+end
+
+@view
+func get_proposal_info{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr : felt}(proposal_id: felt) -> (vote: Proposal):
+    return proposal_registry.read(proposal_id)
 end
