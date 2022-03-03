@@ -48,7 +48,7 @@ jobs:
 
       - name: Run unit tests
         run: |
-          starknet-devnet -p 5000 &
+          starknet-devnet -p 8000 &
           sleep 10 &&
-          curl http://localhost:5000 &&
+          curl http://localhost:8000 &&
           yarn test 

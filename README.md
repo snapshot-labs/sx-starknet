@@ -48,7 +48,7 @@ yarn compile
 ### Install and start StarkNet Devnet (In separate terminal):
 ```bash
 pip install starknet-devnet
-starknet-devnet
+starknet-devnet -p 8000
 ```
 
 ### Run tests:
