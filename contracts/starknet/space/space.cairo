@@ -78,7 +78,7 @@ end
 
 @external
 func vote{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr : felt}(
-        eth_address : EthAddress, proposal_id : felt, choice : felt) -> ():
+        voter_address : EthAddress, proposal_id : felt, choice : felt) -> ():
     # Verify that the caller is the authenticator contract.
     let (caller_address) = get_caller_address()
     let (authenticator_address) = authenticator.read()
@@ -97,7 +97,7 @@ func vote{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr : fe
 
     # TODO: pass in `params_len` and `params`
     let (voting_power) = IVotingStrategy.get_voting_power(
-        contract_address=strategy_contract, address=eth_address, at=current_block)
+        contract_address=strategy_contract, address=voter_address, at=current_block)
 
     if choice == Choice.FOR:
         let (for) = votes_for.read(proposal_id)
@@ -126,7 +126,7 @@ func vote{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr : fe
         end
     end
 
-    has_voted.write(proposal_id=proposal_id, voter_address=eth_address, value=Boolean.TRUE)
+    has_voted.write(proposal_id, voter_address, Boolean.TRUE)
 
     return ()
 end
@@ -147,7 +147,7 @@ end
 # TODO: execution_hash should be of type Hash and metadata_uri of type felt* (string)
 @external
 func propose{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr : felt}(
-        eth_address : EthAddress, execution_hash : felt, metadata_uri : felt) -> ():
+        proposer_address : EthAddress, execution_hash : felt, metadata_uri : felt) -> ():
     # Verify that the caller is the authenticator contract.
     authenticator_only()
 
@@ -162,7 +162,7 @@ func propose{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr :
     # Get the voting power of the proposer
     let (strategy_contract) = voting_strategy.read()
     let (voting_power) = IVotingStrategy.get_voting_power(
-        contract_address=strategy_contract, address=eth_address, at=current_block)
+        contract_address=strategy_contract, address=proposer_address, at=current_block)
 
     # Verify that the proposer has enough voting power to trigger a proposal
     let (threshold) = proposal_threshold.read()
