@@ -40,19 +40,19 @@ func proposals(proposal_id : felt) -> (proposal : Proposal):
 end
 
 @storage_var
-func has_voted(proposal_id : felt, voter_address: EthAddress) -> (res: felt):
+func has_voted(proposal_id : felt, voter_address : EthAddress) -> (res : felt):
 end
 
 @storage_var
-func votes_for(proposal_id: felt) -> (number: felt):
+func votes_for(proposal_id : felt) -> (number : felt):
 end
 
 @storage_var
-func votes_against(proposal_id: felt) -> (number: felt):
+func votes_against(proposal_id : felt) -> (number : felt):
 end
 
 @storage_var
-func votes_abstain(proposal_id: felt) -> (number: felt):
+func votes_abstain(proposal_id : felt) -> (number : felt):
 end
 
 @constructor
@@ -102,23 +102,23 @@ func vote{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr : fe
     if choice == Choice.FOR:
         let (for) = votes_for.read(proposal_id)
         votes_for.write(proposal_id, for + voting_power)
-        tempvar range_check_ptr=range_check_ptr
-        tempvar syscall_ptr=syscall_ptr
-        tempvar pedersen_ptr=pedersen_ptr
+        tempvar range_check_ptr = range_check_ptr
+        tempvar syscall_ptr = syscall_ptr
+        tempvar pedersen_ptr = pedersen_ptr
     else:
         if choice == Choice.AGAINST:
             let (against) = votes_against.read(proposal_id)
             votes_against.write(proposal_id, against + voting_power)
-            tempvar range_check_ptr=range_check_ptr
-            tempvar syscall_ptr=syscall_ptr
-            tempvar pedersen_ptr=pedersen_ptr
+            tempvar range_check_ptr = range_check_ptr
+            tempvar syscall_ptr = syscall_ptr
+            tempvar pedersen_ptr = pedersen_ptr
         else:
             if choice == Choice.ABSTAIN:
                 let (_abstain) = votes_abstain.read(proposal_id)
                 votes_abstain.write(proposal_id, _abstain + voting_power)
-                tempvar range_check_ptr=range_check_ptr
-                tempvar syscall_ptr=syscall_ptr
-                tempvar pedersen_ptr=pedersen_ptr
+                tempvar range_check_ptr = range_check_ptr
+                tempvar syscall_ptr = syscall_ptr
+                tempvar pedersen_ptr = pedersen_ptr
             else:
                 # choice is not a valid choice ?!
                 return ()
