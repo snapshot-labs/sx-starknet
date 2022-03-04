@@ -109,6 +109,14 @@ func vote{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr : fe
     # Make sure proposal has started
     assert_le(proposal.start_block, current_block)
 
+    # Make sure voter has not already voted
+    let (prev_vote) = vote_registry.read(proposal_id, voter_address)
+    if prev_vote.choice != 0:
+        # Voter has already voted!
+        assert 1 = 0
+    end
+
+
     let (local params : felt*) = alloc()
     let (strategy_contract) = voting_strategy.read()
 
@@ -164,8 +172,7 @@ end
 # TODO: execution_hash should be of type Hash and metadata_uri of type felt* (string)
 @external
 func propose{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr : felt}(
-        proposer_address : EthAddress, execution_hash : felt, metadata_uri : felt) -> (
-        proposal_id : felt):
+        proposer_address : EthAddress, execution_hash : felt, metadata_uri : felt) -> ():
     alloc_locals
 
     # Verify that the caller is the authenticator contract.
@@ -193,7 +200,8 @@ func propose{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr :
     let (threshold) = proposal_threshold.read()
     let (lower) = uint256_lt(voting_power, threshold)
     if lower == 1:
-        return (0)
+        # Not enough voting power to create a proposal
+        assert 1 = 0
     end
 
     # Create the proposal and its proposal id
@@ -206,7 +214,7 @@ func propose{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr :
     # Increase the proposal nonce
     next_proposal_nonce.write(proposal_id + 1)
 
-    return (proposal_id)
+    return ()
 end
 
 @view

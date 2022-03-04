@@ -11,9 +11,9 @@ const PROPOSAL_METHOD = 'propose';
 const VOTE_METHOD = 'vote';
 const GET_PROPOSAL_INFO = 'get_proposal_info';
 const GET_VOTE_INFO = 'get_vote_info';
-const VOTING_DELAY = BigInt(1);
+const VOTING_DELAY = BigInt(0);
 const VOTING_PERIOD = BigInt(20);
-const PROPOSAL_THRESHOLD = new SplitUint256(BigInt(1), BigInt(0));
+const PROPOSAL_THRESHOLD = SplitUint256.fromUint(BigInt(1));
 const VITALIK_ADDRESS = BigInt(0xd8da6bf26964af9d7eed9e03e53415d37aa96045);
 
 async function setup() {
@@ -46,36 +46,61 @@ async function setup() {
 }
 
 describe('Space testing', () => {
-  it('Creates a proposal', async () => {
+  it('Simple Vote', async () => {
     const { vanillaSpace, vanillaAuthenticator, vanillaVotingStrategy } = await setup();
     const space_contract = BigInt(vanillaSpace.address);
     const execution_hash = BigInt(1);
     const metadata_uri = BigInt(2);
     const proposer_address = VITALIK_ADDRESS;
+    const proposal_id = 1;
 
-    const {
-      retdata_len: len,
-      retdata: [proposal_id],
-    } = await vanillaAuthenticator.call(EXECUTE_METHOD, {
+    // -- Creates the proposal --
+    {
+    await vanillaAuthenticator.invoke(EXECUTE_METHOD, {
       to: space_contract,
       function_selector: BigInt(getSelectorFromName(PROPOSAL_METHOD)),
       calldata: [proposer_address, execution_hash, metadata_uri],
     });
-    expect(proposal_id).to.deep.equal(BigInt(1));
 
-    const { proposal_info: info } = await vanillaSpace.call('get_proposal_info', {
+    const { proposal_info: proposal_info } = await vanillaSpace.call('get_proposal_info', {
       proposal_id: proposal_id,
     });
 
     // We can't directly compare the `info` object because we don't know for sure the value of `start_block` (and hence `end_block`),
-    // so we compare it element by element (except start_block and end_block for which we simply check their difference)
-    expect(info.proposal.execution_hash).to.deep.equal(execution_hash);
-    expect(info.proposal.metadata_uri).to.deep.equal(metadata_uri);
-    expect(info.proposal.end_block - info.proposal.start_block).to.deep.equal(VOTING_PERIOD);
+    // so we compare it element by element (except start_block and end_block for which we simply compare their difference to `VOTING_PERIOD`).
+    expect(proposal_info.proposal.execution_hash).to.deep.equal(execution_hash);
+    expect(proposal_info.proposal.metadata_uri).to.deep.equal(metadata_uri);
+    expect(proposal_info.proposal.end_block - proposal_info.proposal.start_block).to.deep.equal(VOTING_PERIOD);
 
-    expect(info.power_against).to.deep.equal(BigInt(0));
-    expect(info.power_for).to.deep.equal(BigInt(0));
-    expect(info.power_abstain).to.deep.equal(BigInt(0));
+    const against = SplitUint256.fromObj(proposal_info.power_against).toUint();
+    expect(against).to.deep.equal(BigInt(0));
+    const _for = SplitUint256.fromObj(proposal_info.power_for).toUint();
+    expect(_for).to.deep.equal(BigInt(0));
+    const abstain = SplitUint256.fromObj(proposal_info.power_abstain).toUint();
+    expect(abstain).to.deep.equal(BigInt(0));
+  }
+
+
+    // -- Casts a vote FOR --
+    {
+    const voter_address = proposer_address
+    await vanillaAuthenticator.invoke(EXECUTE_METHOD, {
+      to: space_contract,
+      function_selector: BigInt(getSelectorFromName(VOTE_METHOD)),
+      calldata: [voter_address, proposal_id, FOR],
+    });
+
+    const { proposal_info: proposal_info } = await vanillaSpace.call('get_proposal_info', {
+      proposal_id: proposal_id,
+    });
+
+    const against = SplitUint256.fromObj(proposal_info.power_against).toUint();
+    expect(against).to.deep.equal(BigInt(0));
+    const _for = SplitUint256.fromObj(proposal_info.power_for).toUint();
+    expect(_for).to.deep.equal(BigInt(0));
+    const abstain = SplitUint256.fromObj(proposal_info.power_abstain).toUint();
+    expect(abstain).to.deep.equal(BigInt(0));
+  }
   }).timeout(60000);
 
   // TODO: how can we do tests that are expected to fail?
