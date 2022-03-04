@@ -87,6 +87,7 @@ func constructor{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_p
     proposal_threshold.write(_proposal_threshold)
     voting_strategy.write(_voting_strategy)
     authenticator.write(_authenticator)
+    next_proposal_nonce.write(1)
 
     return ()
 end
