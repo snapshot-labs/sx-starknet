@@ -116,7 +116,6 @@ func vote{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr : fe
         assert 1 = 0
     end
 
-
     let (local params : felt*) = alloc()
     let (strategy_contract) = voting_strategy.read()
 

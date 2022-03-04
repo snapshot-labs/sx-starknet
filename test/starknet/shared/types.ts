@@ -75,7 +75,7 @@ export class SplitUint256 {
     return '0x' + this.toUint().toString(16);
   }
 
-  static fromObj(s: {low: bigint, high: bigint}): SplitUint256 {
+  static fromObj(s: { low: bigint; high: bigint }): SplitUint256 {
     return new SplitUint256(s.low, s.high);
   }
 }
