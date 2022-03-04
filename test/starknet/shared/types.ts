@@ -1,5 +1,9 @@
 import { assert, hexToBytes, bytesToHex } from './helpers';
 
+export const AGAINST = 1;
+export const FOR = 2;
+export const ABSTAIN = 3;
+
 //TODO: add toBytes for IntsSequence
 export class IntsSequence {
   values: bigint[];
