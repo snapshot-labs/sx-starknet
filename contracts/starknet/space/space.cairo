@@ -252,5 +252,5 @@ func get_proposal_info{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_c
     let (_power_against) = power_against.read(proposal_id)
     let (_power_abstain) = power_abstain.read(proposal_id)
     return (
-        ProposalInfo(proposal=proposal, power_against=_power_against, power_for=_power_against, power_abstain=_power_abstain))
+        ProposalInfo(proposal=proposal, power_against=_power_against, power_for=_power_for, power_abstain=_power_abstain))
 end
