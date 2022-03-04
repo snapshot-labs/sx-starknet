@@ -1,10 +1,9 @@
 from starkware.cairo.common.uint256 import Uint256
+from contracts.starknet.objects.proposal import Proposal
 
 struct ProposalInfo:
-    member execution_hash : felt  # TODO: Use Hash type
-    member start_block : felt
-    member end_block : felt
-    member power_for : Uint256
+    member proposal : Proposal
     member power_against : Uint256
+    member power_for : Uint256
     member power_abstain : Uint256
 end

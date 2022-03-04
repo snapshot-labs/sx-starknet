@@ -165,7 +165,8 @@ end
 # TODO: execution_hash should be of type Hash and metadata_uri of type felt* (string)
 @external
 func propose{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr : felt}(
-        proposer_address : EthAddress, execution_hash : felt, metadata_uri : felt) -> ():
+        proposer_address : EthAddress, execution_hash : felt, metadata_uri : felt) -> (
+        proposal_id : felt):
     alloc_locals
 
     # Verify that the caller is the authenticator contract.
@@ -191,9 +192,9 @@ func propose{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr :
 
     # Verify that the proposer has enough voting power to trigger a proposal
     let (threshold) = proposal_threshold.read()
-    let (lt) = uint256_lt(voting_power, threshold)
-    if lt == 1:
-        return ()
+    let (lower) = uint256_lt(voting_power, threshold)
+    if lower == 1:
+        return (0)
     end
 
     # Create the proposal and its proposal id
@@ -206,13 +207,34 @@ func propose{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr :
     # Increase the proposal nonce
     next_proposal_nonce.write(proposal_id + 1)
 
-    return ()
+    return (proposal_id)
 end
 
 @view
 func get_vote_info{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr : felt}(
         voter_address : EthAddress, proposal_id : felt) -> (vote : Vote):
     return vote_registry.read(proposal_id, voter_address)
+end
+
+@view
+func get_nonce{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr : felt}() -> (
+        next_nonce : felt):
+    let (nonce) = next_proposal_nonce.read()
+    return (next_nonce=nonce)
+end
+
+@view
+func get_delay{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr : felt}() -> (
+        delay : felt):
+    let (delay) = voting_delay.read()
+    return (delay=delay)
+end
+
+@view
+func get_period{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr : felt}() -> (
+        period : felt):
+    let (period) = voting_period.read()
+    return (period=period)
 end
 
 @view
@@ -224,5 +246,5 @@ func get_proposal_info{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_c
     let (_power_against) = power_against.read(proposal_id)
     let (_power_abstain) = power_abstain.read(proposal_id)
     return (
-        ProposalInfo(proposal.execution_hash, proposal.start_block, proposal.end_block, _power_for, _power_against, _power_abstain))
+        ProposalInfo(proposal=proposal, power_against=_power_against, power_for=_power_against, power_abstain=_power_abstain))
 end
