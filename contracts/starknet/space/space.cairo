@@ -9,6 +9,8 @@ from contracts.starknet.objects.proposal import Proposal
 from contracts.starknet.objects.proposal_info import ProposalInfo
 from contracts.starknet.objects.vote import Vote
 from contracts.starknet.objects.choice import Choice
+from starkware.cairo.common.alloc import alloc
+from starkware.cairo.common.uint256 import Uint256, uint256_add, uint256_lt
 
 @storage_var
 func voting_delay() -> (delay : felt):
@@ -19,7 +21,7 @@ func voting_period() -> (period : felt):
 end
 
 @storage_var
-func proposal_threshold() -> (threshold : felt):
+func proposal_threshold() -> (threshold : Uint256):
 end
 
 # TODO: Should be Address not felt
@@ -44,15 +46,15 @@ func vote_registry(proposal_id : felt, voter_address : EthAddress) -> (vote : Vo
 end
 
 @storage_var
-func power_for(proposal_id : felt) -> (number : felt):
+func power_for(proposal_id : felt) -> (number : Uint256):
 end
 
 @storage_var
-func power_against(proposal_id : felt) -> (number : felt):
+func power_against(proposal_id : felt) -> (number : Uint256):
 end
 
 @storage_var
-func power_abstain(proposal_id : felt) -> (number : felt):
+func power_abstain(proposal_id : felt) -> (number : Uint256):
 end
 
 # Throws if the caller address is not identical to the authenticator address (stored in the `authenticator` variable)
@@ -70,14 +72,14 @@ end
 
 @constructor
 func constructor{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr : felt}(
-        _voting_delay : felt, _voting_period : felt, _proposal_threshold : felt,
+        _voting_delay : felt, _voting_period : felt, _proposal_threshold : Uint256,
         _voting_strategy : felt, _authenticator : felt):
     # Sanity checks
     assert_nn(_voting_delay)
     assert_nn(_voting_period)
-    assert_nn(_proposal_threshold)
     assert_not_zero(_voting_strategy)
     assert_not_zero(_authenticator)
+    # TODO: maybe use uint256_signed_nn to check proposal_threshold?
 
     # Initialize the storage variables
     voting_delay.write(_voting_delay)
@@ -92,6 +94,8 @@ end
 @external
 func vote{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr : felt}(
         voter_address : EthAddress, proposal_id : felt, choice : felt) -> ():
+    alloc_locals
+
     # Verify that the caller is the authenticator contract.
     authenticator_only()
 
@@ -104,15 +108,22 @@ func vote{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr : fe
     # Make sure proposal has started
     assert_le(proposal.start_block, current_block)
 
+    let (local params : felt*) = alloc()
     let (strategy_contract) = voting_strategy.read()
 
     # TODO: pass in `params_len` and `params`
     let (voting_power) = IVotingStrategy.get_voting_power(
-        contract_address=strategy_contract, address=voter_address, at=current_block)
+        contract_address=strategy_contract,
+        address=voter_address,
+        at=current_block,
+        params_len=0,
+        params=params)
 
     if choice == Choice.FOR:
         let (for) = power_for.read(proposal_id)
-        power_for.write(proposal_id, for + voting_power)
+        # TODO: what should we do about the carry
+        let (power, carry) = uint256_add(for, voting_power)
+        power_for.write(proposal_id, power)
         tempvar range_check_ptr = range_check_ptr
         tempvar syscall_ptr = syscall_ptr
         tempvar pedersen_ptr = pedersen_ptr
@@ -120,7 +131,9 @@ func vote{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr : fe
     else:
         if choice == Choice.AGAINST:
             let (against) = power_against.read(proposal_id)
-            power_against.write(proposal_id, against + voting_power)
+            # TODO: what should we do about the carry
+            let (power, carry) = uint256_add(against, voting_power)
+            power_against.write(proposal_id, power)
             tempvar range_check_ptr = range_check_ptr
             tempvar syscall_ptr = syscall_ptr
             tempvar pedersen_ptr = pedersen_ptr
@@ -128,7 +141,9 @@ func vote{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr : fe
         else:
             if choice == Choice.ABSTAIN:
                 let (_abstain) = power_abstain.read(proposal_id)
-                power_abstain.write(proposal_id, _abstain + voting_power)
+                # TODO: what should we do about the carry
+                let (power, carry) = uint256_add(_abstain, voting_power)
+                power_abstain.write(proposal_id, power)
                 tempvar range_check_ptr = range_check_ptr
                 tempvar syscall_ptr = syscall_ptr
                 tempvar pedersen_ptr = pedersen_ptr
@@ -150,6 +165,8 @@ end
 @external
 func propose{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr : felt}(
         proposer_address : EthAddress, execution_hash : felt, metadata_uri : felt) -> ():
+    alloc_locals
+
     # Verify that the caller is the authenticator contract.
     authenticator_only()
 
@@ -163,12 +180,20 @@ func propose{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr :
 
     # Get the voting power of the proposer
     let (strategy_contract) = voting_strategy.read()
+    let (local params : felt*) = alloc()
     let (voting_power) = IVotingStrategy.get_voting_power(
-        contract_address=strategy_contract, address=proposer_address, at=current_block)
+        contract_address=strategy_contract,
+        address=proposer_address,
+        at=current_block,
+        params_len=0,
+        params=params)
 
     # Verify that the proposer has enough voting power to trigger a proposal
     let (threshold) = proposal_threshold.read()
-    assert_le(threshold, voting_power)
+    let (lt) = uint256_lt(voting_power, threshold)
+    if lt == 1:
+        return ()
+    end
 
     # Create the proposal and its proposal id
     let proposal = Proposal(execution_hash, start_block, end_block)
