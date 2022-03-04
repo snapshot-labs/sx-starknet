@@ -197,7 +197,7 @@ func propose{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr :
     end
 
     # Create the proposal and its proposal id
-    let proposal = Proposal(execution_hash, start_block, end_block)
+    let proposal = Proposal(execution_hash, metadata_uri, start_block, end_block)
     let (proposal_id) = next_proposal_nonce.read()
 
     # Store the proposal
@@ -217,7 +217,7 @@ end
 
 @view
 func get_proposal_info{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr : felt}(
-        proposal_id : felt) -> (vote : ProposalInfo):
+        proposal_id : felt) -> (proposal_info : ProposalInfo):
     let (proposal) = proposal_registry.read(proposal_id)
 
     let (_power_for) = power_for.read(proposal_id)
