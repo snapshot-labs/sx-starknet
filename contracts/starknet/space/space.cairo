@@ -112,7 +112,6 @@ func vote{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr : fe
     let (local params : felt*) = alloc()
     let (strategy_contract) = voting_strategy.read()
 
-    # TODO: pass in `params_len` and `params`
     let (voting_power) = IVotingStrategy.get_voting_power(
         contract_address=strategy_contract,
         address=voter_address,
