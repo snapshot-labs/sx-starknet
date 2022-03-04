@@ -55,6 +55,19 @@ end
 func power_abstain(proposal_id : felt) -> (number : felt):
 end
 
+# Throws if the caller address is not identical to the authenticator address (stored in the `authenticator` variable)
+func authenticator_only{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr}():
+    let (caller_address) = get_caller_address()
+    let (authenticator_address) = authenticator.read()
+
+    # Ensure it has been initialized
+    assert_not_zero(authenticator_address)
+    # Ensure the caller is the authenticator contract
+    assert caller_address = authenticator_address
+
+    return ()
+end
+
 @constructor
 func constructor{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr : felt}(
         _voting_delay : felt, _voting_period : felt, _proposal_threshold : felt,
@@ -80,9 +93,7 @@ end
 func vote{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr : felt}(
         voter_address : EthAddress, proposal_id : felt, choice : felt) -> ():
     # Verify that the caller is the authenticator contract.
-    let (caller_address) = get_caller_address()
-    let (authenticator_address) = authenticator.read()
-    assert caller_address = authenticator_address
+    authenticator_only()
 
     let (proposal) = proposal_registry.read(proposal_id)
     let (current_block) = get_block_number()
@@ -131,19 +142,6 @@ func vote{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr : fe
 
     let vote = Vote(choice=choice, voting_power=voting_power)
     vote_registry.write(proposal_id, voter_address, vote)
-
-    return ()
-end
-
-# Throws if the caller address is not identical to the authenticator address (stored in the `authenticator` variable)
-func authenticator_only{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr}():
-    let (caller_address) = get_caller_address()
-    let (authenticator_address) = authenticator.read()
-
-    # Ensure it has been initialized
-    assert_not_zero(authenticator_address)
-    # Ensure the caller is the authenticator contract
-    assert caller_address = authenticator_address
 
     return ()
 end
