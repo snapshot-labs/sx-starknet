@@ -40,11 +40,11 @@ The authenticator contract address that is used to verify the addresses of voter
 - **next_proposal_nonce** = 1  
 An increasing nonce to make the proposal id unique.
 
-- **proposals** = TBD  
-A mapping of proposals by ids with required information: execution_hash, start, end.
+- **proposals** = { 1: { start: 123.., end: 456.., execution_hash: '0x123...', scores: { 0: 123, 1: 45, 3: 6 }]
+A mapping of proposals by ids with required information: execution_hash, start, end, scores with a counter for the vote For, Against and Abstain.
 
-- **votes** = TBD  
-A mapping of votes by proposal id with required information: address, choice, and voting power.
+- **has_voted** = { 1: [0x123..., 0x456...], 2: [0x789...] }  
+A mapping of addresses who voted by proposal id.
 
 #### Functions
 
@@ -60,7 +60,7 @@ The role of the voting strategy contract is to calculate voting power for a spec
 
 #### Functions
 
-- **get_vp(address, at, data)**  
+- **get_voting_power(address, at, data)**  
 Returns the voting power for a specific address at a specific timestamp "at", "data" are the params required to run the voting power calculation, in milestone 1 it's just an empty array.
 
 ### Auth contract
@@ -70,7 +70,7 @@ The authenticator acts as a proxy to the space contract, the contract is here to
 #### Functions
 
 - **execute(target, data)**    
-This function is a proxy to call another contract at address **target** with **data** as payload.
+This function is a proxy to call another contract at address **target** with **data** as payload. The payload **data** would include a **function_selector**, a **sig** as well as the action params, example for **propose** it will require an **address**, **execution_hash**, and **metadata_uri**
 
 
 ## Flows
@@ -85,8 +85,9 @@ This is the flow to create a proposal.
 - 2: This message and the signature are sent to the authenticator contract using **execute**, with the space contract address as **target** and the **sig**, **execution_hash**, and **metadata_uri** as **data**.
 - 3: The authenticator contract will accept the tx regardless of the signature being correct or not and relay that tx to the defined space.
 - 4: The space contract verifies that the tx comes from the authenticator contract address defined in the state variable **auth**.
-- 5: The space contract stores the proposal in the variable **proposals**, this include an id defined by **next_proposal_nonce**, a **start** and **end** date defined using the current block timestamp, the space **delay** and **period**.
-- 6: The Space contract increments **next_proposal_nonce** by 1. 
+- 5: The space contract verifies that the publisher of the proposal has a voting power equal or higher than the **proposal_threshold**.
+- 6: The space contract stores the proposal in the variable **proposals**, this include an id defined by **next_proposal_nonce**, a **start** and **end** date in plain defined using the current block timestamp, the space **delay** and **period**.
+- 7: The Space contract increments **next_proposal_nonce** by 1. 
 
 ### Cast a vote
 
