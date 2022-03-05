@@ -1,7 +1,7 @@
 import { assert, hexToBytes, bytesToHex } from './helpers';
 
-export const AGAINST = BigInt(1);
-export const FOR = BigInt(2);
+export const FOR = BigInt(1);
+export const AGAINST = BigInt(2);
 export const ABSTAIN = BigInt(3);
 
 //TODO: add toBytes for IntsSequence

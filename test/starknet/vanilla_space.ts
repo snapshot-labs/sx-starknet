@@ -74,10 +74,10 @@ describe('Space testing', () => {
         VOTING_PERIOD
       );
 
-      const against = SplitUint256.fromObj(proposal_info.power_against).toUint();
-      expect(against).to.deep.equal(BigInt(0));
       const _for = SplitUint256.fromObj(proposal_info.power_for).toUint();
       expect(_for).to.deep.equal(BigInt(0));
+      const against = SplitUint256.fromObj(proposal_info.power_against).toUint();
+      expect(against).to.deep.equal(BigInt(0));
       const abstain = SplitUint256.fromObj(proposal_info.power_abstain).toUint();
       expect(abstain).to.deep.equal(BigInt(0));
     }
@@ -95,10 +95,10 @@ describe('Space testing', () => {
         proposal_id: proposal_id,
       });
 
-      const against = SplitUint256.fromObj(proposal_info.power_against).toUint();
-      expect(against).to.deep.equal(BigInt(0));
       const _for = SplitUint256.fromObj(proposal_info.power_for).toUint();
       expect(_for).to.deep.equal(BigInt(1));
+      const against = SplitUint256.fromObj(proposal_info.power_against).toUint();
+      expect(against).to.deep.equal(BigInt(0));
       const abstain = SplitUint256.fromObj(proposal_info.power_abstain).toUint();
       expect(abstain).to.deep.equal(BigInt(0));
     }
