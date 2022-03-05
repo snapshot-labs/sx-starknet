@@ -91,7 +91,7 @@ describe('Space testing', () => {
         calldata: [voter_address, proposal_id, FOR],
       });
 
-      const { proposal_info: proposal_info } = await vanillaSpace.call('get_proposal_info', {
+      const { proposal_info } = await vanillaSpace.call('get_proposal_info', {
         proposal_id: proposal_id,
       });
 
