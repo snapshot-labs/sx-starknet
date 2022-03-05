@@ -223,27 +223,6 @@ func get_vote_info{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check
 end
 
 @view
-func get_nonce{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr : felt}() -> (
-        next_nonce : felt):
-    let (nonce) = next_proposal_nonce.read()
-    return (next_nonce=nonce)
-end
-
-@view
-func get_delay{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr : felt}() -> (
-        delay : felt):
-    let (delay) = voting_delay.read()
-    return (delay=delay)
-end
-
-@view
-func get_period{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr : felt}() -> (
-        period : felt):
-    let (period) = voting_period.read()
-    return (period=period)
-end
-
-@view
 func get_proposal_info{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr : felt}(
         proposal_id : felt) -> (proposal_info : ProposalInfo):
     let (proposal) = proposal_registry.read(proposal_id)
