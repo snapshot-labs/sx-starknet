@@ -57,6 +57,14 @@ end
 func power_abstain(proposal_id : felt) -> (number : Uint256):
 end
 
+@event
+func proposal_created(proposal_id : felt, proposer_address : EthAddress, proposal : Proposal):
+end
+
+@event
+func vote_created(proposal_id : felt, voter_address : EthAddress, vote : Vote):
+end
+
 # Throws if the caller address is not identical to the authenticator address (stored in the `authenticator` variable)
 func authenticator_only{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr}():
     let (caller_address) = get_caller_address()
@@ -165,6 +173,9 @@ func vote{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr : fe
     let vote = Vote(choice=choice, voting_power=voting_power)
     vote_registry.write(proposal_id, voter_address, vote)
 
+    # Emit event
+    vote_created.emit(proposal_id, voter_address, vote)
+
     return ()
 end
 
@@ -209,6 +220,9 @@ func propose{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr :
 
     # Store the proposal
     proposal_registry.write(proposal_id, proposal)
+
+    # Emit event
+    proposal_created.emit(proposal_id, proposer_address, proposal)
 
     # Increase the proposal nonce
     next_proposal_nonce.write(proposal_id + 1)
