@@ -127,7 +127,7 @@ func vote{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr : fe
         params=params)
 
     # Make sure `choice` is a valid choice
-    assert_le(Choice.AGAINST, choice)
+    assert_le(Choice.FOR, choice)
     assert_le(choice, Choice.ABSTAIN)
 
     let (previous_voting_power) = vote_power.read(proposal_id, choice)
