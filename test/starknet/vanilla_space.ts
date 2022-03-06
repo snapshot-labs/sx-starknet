@@ -70,9 +70,9 @@ describe('Space testing', () => {
       // so we compare it element by element (except start_block and end_block for which we simply compare their difference to `VOTING_PERIOD`).
       expect(proposal_info.proposal.execution_hash).to.deep.equal(execution_hash);
       expect(proposal_info.proposal.metadata_uri).to.deep.equal(metadata_uri);
-      expect(proposal_info.proposal.end_timestamp - proposal_info.proposal.start_timestamp).to.deep.equal(
-        VOTING_PERIOD
-      );
+      expect(
+        proposal_info.proposal.end_timestamp - proposal_info.proposal.start_timestamp
+      ).to.deep.equal(VOTING_PERIOD);
 
       const _for = SplitUint256.fromObj(proposal_info.power_for).toUint();
       expect(_for).to.deep.equal(BigInt(0));
