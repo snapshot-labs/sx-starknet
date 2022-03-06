@@ -1,6 +1,6 @@
 %lang starknet
 
-from starkware.starknet.common.syscalls import get_caller_address, get_block_number
+from starkware.starknet.common.syscalls import get_caller_address, get_block_timestamp
 from starkware.cairo.common.cairo_builtins import HashBuiltin
 from starkware.cairo.common.math import assert_lt, assert_le, assert_nn, assert_not_zero
 from contracts.starknet.strategies.interface import IVotingStrategy
@@ -101,13 +101,13 @@ func vote{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr : fe
     authenticator_only()
 
     let (proposal) = proposal_registry.read(proposal_id)
-    let (current_block) = get_block_number()
+    let (current_timestamp) = get_block_timestamp()
 
     # Make sure proposal is not closed
-    assert_lt(current_block, proposal.end_block)
+    assert_lt(current_timestamp, proposal.end_timestamp)
 
     # Make sure proposal has started
-    assert_le(proposal.start_block, current_block)
+    assert_le(proposal.start_timestamp, current_timestamp)
 
     # Make sure voter has not already voted
     let (prev_vote) = vote_registry.read(proposal_id, voter_address)
@@ -121,8 +121,8 @@ func vote{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr : fe
 
     let (user_voting_power) = IVotingStrategy.get_voting_power(
         contract_address=strategy_contract,
+        timestamp=current_timestamp,
         address=voter_address,
-        at=current_block,
         params_len=0,
         params=params)
 
@@ -153,21 +153,21 @@ func propose{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr :
     # Verify that the caller is the authenticator contract.
     authenticator_only()
 
-    let (current_block) = get_block_number()
+    let (current_timestamp) = get_block_timestamp()
     let (delay) = voting_delay.read()
     let (duration) = voting_period.read()
 
-    # Define start_block and end_block based on current block, delay and duration variables.
-    let start_block = current_block + delay
-    let end_block = start_block + duration
+    # Define start_timestamp and end_timestamp based on current timestamp, delay and duration variables.
+    let start_timestamp = current_timestamp + delay
+    let end_timestamp = start_timestamp + duration
 
     # Get the voting power of the proposer
     let (strategy_contract) = voting_strategy.read()
     let (local params : felt*) = alloc()
     let (voting_power) = IVotingStrategy.get_voting_power(
         contract_address=strategy_contract,
+        timestamp=current_timestamp,
         address=proposer_address,
-        at=current_block,
         params_len=0,
         params=params)
 
@@ -180,7 +180,7 @@ func propose{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr :
     end
 
     # Create the proposal and its proposal id
-    let proposal = Proposal(execution_hash, metadata_uri, start_block, end_block)
+    let proposal = Proposal(execution_hash, metadata_uri, start_timestamp, end_timestamp)
     let (proposal_id) = next_proposal_nonce.read()
 
     # Store the proposal
