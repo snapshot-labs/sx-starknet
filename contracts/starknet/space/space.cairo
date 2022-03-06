@@ -46,15 +46,7 @@ func vote_registry(proposal_id : felt, voter_address : EthAddress) -> (vote : Vo
 end
 
 @storage_var
-func power_for(proposal_id : felt) -> (number : Uint256):
-end
-
-@storage_var
-func power_against(proposal_id : felt) -> (number : Uint256):
-end
-
-@storage_var
-func power_abstain(proposal_id : felt) -> (number : Uint256):
+func vote_power(proposal_id : felt, choice : felt) -> (power : Uint256):
 end
 
 @event
@@ -127,50 +119,23 @@ func vote{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr : fe
     let (local params : felt*) = alloc()
     let (strategy_contract) = voting_strategy.read()
 
-    let (voting_power) = IVotingStrategy.get_voting_power(
+    let (user_voting_power) = IVotingStrategy.get_voting_power(
         contract_address=strategy_contract,
         address=voter_address,
         at=current_block,
         params_len=0,
         params=params)
 
-    if choice == Choice.FOR:
-        let (for) = power_for.read(proposal_id)
-        # TODO: what should we do about the carry
-        let (power, carry) = uint256_add(for, voting_power)
-        power_for.write(proposal_id, power)
-        tempvar range_check_ptr = range_check_ptr
-        tempvar syscall_ptr = syscall_ptr
-        tempvar pedersen_ptr = pedersen_ptr
-        tempvar voting_power = voting_power
-    else:
-        if choice == Choice.AGAINST:
-            let (against) = power_against.read(proposal_id)
-            # TODO: what should we do about the carry
-            let (power, carry) = uint256_add(against, voting_power)
-            power_against.write(proposal_id, power)
-            tempvar range_check_ptr = range_check_ptr
-            tempvar syscall_ptr = syscall_ptr
-            tempvar pedersen_ptr = pedersen_ptr
-            tempvar voting_power = voting_power
-        else:
-            if choice == Choice.ABSTAIN:
-                let (_abstain) = power_abstain.read(proposal_id)
-                # TODO: what should we do about the carry
-                let (power, carry) = uint256_add(_abstain, voting_power)
-                power_abstain.write(proposal_id, power)
-                tempvar range_check_ptr = range_check_ptr
-                tempvar syscall_ptr = syscall_ptr
-                tempvar pedersen_ptr = pedersen_ptr
-                tempvar voting_power = voting_power
-            else:
-                # choice is not a valid choice ?!
-                return ()
-            end
-        end
-    end
+    # Make sure `choice` is a valid choice
+    assert_le(Choice.AGAINST, choice)
+    assert_le(choice, Choice.ABSTAIN)
 
-    let vote = Vote(choice=choice, voting_power=voting_power)
+    let (previous_voting_power) = vote_power.read(proposal_id, choice)
+    # TODO: decide what to do with carry
+    let (new_voting_power, carry) = uint256_add(user_voting_power, previous_voting_power)
+    vote_power.write(proposal_id, choice, new_voting_power)
+
+    let vote = Vote(choice=choice, voting_power=user_voting_power)
     vote_registry.write(proposal_id, voter_address, vote)
 
     # Emit event
@@ -241,9 +206,9 @@ func get_proposal_info{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_c
         proposal_id : felt) -> (proposal_info : ProposalInfo):
     let (proposal) = proposal_registry.read(proposal_id)
 
-    let (_power_for) = power_for.read(proposal_id)
-    let (_power_against) = power_against.read(proposal_id)
-    let (_power_abstain) = power_abstain.read(proposal_id)
+    let (_power_against) = vote_power.read(proposal_id, Choice.AGAINST)
+    let (_power_for) = vote_power.read(proposal_id, Choice.FOR)
+    let (_power_abstain) = vote_power.read(proposal_id, Choice.ABSTAIN)
     return (
         ProposalInfo(proposal=proposal, power_for=_power_for, power_against=_power_against, power_abstain=_power_abstain))
 end
