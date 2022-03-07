@@ -1,4 +1,4 @@
-from starkware.cairo.common.math import assert_nn_le, assert_lt_felt
+from starkware.cairo.common.math import assert_lt_felt
 
 struct EthAddress:
     member value : felt
