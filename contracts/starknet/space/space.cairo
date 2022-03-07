@@ -131,8 +131,13 @@ func vote{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr : fe
     assert_le(choice, Choice.ABSTAIN)
 
     let (previous_voting_power) = vote_power.read(proposal_id, choice)
-    # TODO: decide what to do with carry
     let (new_voting_power, carry) = uint256_add(user_voting_power, previous_voting_power)
+
+    if carry != 0:
+        # Overflow happened, throw error
+        assert 1 = 0
+    end
+
     vote_power.write(proposal_id, choice, new_voting_power)
 
     let vote = Vote(choice=choice, voting_power=user_voting_power)
