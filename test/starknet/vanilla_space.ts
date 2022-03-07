@@ -53,13 +53,14 @@ describe('Space testing', () => {
     const metadata_uri = BigInt(2);
     const proposer_address = VITALIK_ADDRESS;
     const proposal_id = 1;
+    const params: Array<BigInt> = [];
 
     // -- Creates the proposal --
     {
       await vanillaAuthenticator.invoke(EXECUTE_METHOD, {
         to: space_contract,
         function_selector: BigInt(getSelectorFromName(PROPOSAL_METHOD)),
-        calldata: [proposer_address, execution_hash, metadata_uri],
+        calldata: [proposer_address, execution_hash, metadata_uri, BigInt(params.length)],
       });
 
       const { proposal_info: proposal_info } = await vanillaSpace.call('get_proposal_info', {
@@ -85,10 +86,11 @@ describe('Space testing', () => {
     // -- Casts a vote FOR --
     {
       const voter_address = proposer_address;
+      const params: Array<BigInt> = [];
       await vanillaAuthenticator.invoke(EXECUTE_METHOD, {
         to: space_contract,
         function_selector: BigInt(getSelectorFromName(VOTE_METHOD)),
-        calldata: [voter_address, proposal_id, FOR],
+        calldata: [voter_address, proposal_id, FOR, BigInt(params.length)],
       });
 
       const { proposal_info } = await vanillaSpace.call('get_proposal_info', {

@@ -94,7 +94,8 @@ end
 
 @external
 func vote{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr : felt}(
-        voter_address : EthAddress, proposal_id : felt, choice : felt) -> ():
+        voter_address : EthAddress, proposal_id : felt, choice : felt, params_len : felt,
+        params : felt*) -> ():
     alloc_locals
 
     # Verify that the caller is the authenticator contract.
@@ -116,14 +117,13 @@ func vote{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr : fe
         assert 1 = 0
     end
 
-    let (local params : felt*) = alloc()
     let (strategy_contract) = voting_strategy.read()
 
     let (user_voting_power) = IVotingStrategy.get_voting_power(
         contract_address=strategy_contract,
         timestamp=current_timestamp,
         address=voter_address,
-        params_len=0,
+        params_len=params_len,
         params=params)
 
     # Make sure `choice` is a valid choice
@@ -147,7 +147,8 @@ end
 # TODO: execution_hash should be of type Hash and metadata_uri of type felt* (string)
 @external
 func propose{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr : felt}(
-        proposer_address : EthAddress, execution_hash : felt, metadata_uri : felt) -> ():
+        proposer_address : EthAddress, execution_hash : felt, metadata_uri : felt,
+        params_len : felt, params : felt*) -> ():
     alloc_locals
 
     # Verify that the caller is the authenticator contract.
@@ -163,12 +164,11 @@ func propose{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr :
 
     # Get the voting power of the proposer
     let (strategy_contract) = voting_strategy.read()
-    let (local params : felt*) = alloc()
     let (voting_power) = IVotingStrategy.get_voting_power(
         contract_address=strategy_contract,
         timestamp=current_timestamp,
         address=proposer_address,
-        params_len=0,
+        params_len=params_len,
         params=params)
 
     # Verify that the proposer has enough voting power to trigger a proposal
