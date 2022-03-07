@@ -1,5 +1,9 @@
 import { assert, hexToBytes, bytesToHex } from './helpers';
 
+export const FOR = BigInt(1);
+export const AGAINST = BigInt(2);
+export const ABSTAIN = BigInt(3);
+
 //TODO: add toBytes for IntsSequence
 export class IntsSequence {
   values: bigint[];
@@ -69,5 +73,9 @@ export class SplitUint256 {
 
   toHex(): string {
     return '0x' + this.toUint().toString(16);
+  }
+
+  static fromObj(s: { low: bigint; high: bigint }): SplitUint256 {
+    return new SplitUint256(s.low, s.high);
   }
 }
