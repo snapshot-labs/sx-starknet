@@ -152,8 +152,8 @@ end
 # TODO: execution_hash should be of type Hash and metadata_uri of type felt* (string)
 @external
 func propose{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr : felt}(
-        proposer_address : EthAddress, execution_hash : felt,
-        metadata_uri : felt, ethereum_block_number: felt, params_len : felt, params : felt*) -> ():
+        proposer_address : EthAddress, execution_hash : felt, metadata_uri : felt,
+        ethereum_block_number : felt, params_len : felt, params : felt*) -> ():
     alloc_locals
 
     # Verify that the caller is the authenticator contract.
