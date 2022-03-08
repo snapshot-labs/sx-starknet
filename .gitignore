@@ -19,3 +19,6 @@ typechain
 *.njsproj
 *.sln
 *.sw?
+
+# Local deployments
+deployed_contracts/local.json
