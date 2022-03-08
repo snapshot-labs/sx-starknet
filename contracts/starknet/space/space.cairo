@@ -178,8 +178,8 @@ func propose{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr :
 
     # Verify that the proposer has enough voting power to trigger a proposal
     let (threshold) = proposal_threshold.read()
-    let (lower) = uint256_lt(voting_power, threshold)
-    if lower == 1:
+    let (is_lower) = uint256_lt(voting_power, threshold)
+    if is_lower == 1:
         # Not enough voting power to create a proposal
         assert 1 = 0
     end
