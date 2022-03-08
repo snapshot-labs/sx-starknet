@@ -3,7 +3,7 @@
 # Constants
 
 VOTING_DELAY=0
-VOTING_PERIOD=20
+VOTING_PERIOD=100000
 # Threshold should be two numbers because Uint256 has two members. We're just using the lowest number here.
 THRESHOLD=1
 FILE="deployed_contracts.json"
