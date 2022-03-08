@@ -1,5 +1,5 @@
 {
-        "authenticator": "0x0581866e007ab5c3f5e2a785e1baf8f91fbab3471d86d499ec855a736205fbac",
-        "voting_strategy": "0x0736826bcf8ed4f47a2137c30843ef4e6dfbfd1fe38aa9d55aa96684b84b4dc6",
-        "space": "0x03ec6636afbe012e3d298df6ae900f096b67b5ff19642ee70d0781b7f8c698f8",
+ 	"authenticator": "0x063bff2a98d2e5de09d5564172ee3f755ec6189d382756024116dca9ac122b2f",
+ 	"voting_strategy": "0x027c2937fd65a84f3c31c14682fdcf5c4f7bfae9dfcc0edceeb904f3ad9be3bd",
+ 	"space": "0x05a2a6f619b0489a890e4bb6ef59ed1960a7e405b630dfb6a1c7a8f8e926c462"
 }
