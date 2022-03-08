@@ -20,7 +20,7 @@ FILE="deployed_contracts/${FILE}"
 
 # Compile everything
 echo "Compiling..."
-# yarn compile:l2
+yarn compile:l2
 echo "✅ Compiilation done"
 
 echo "Deploying auth contract..."
