@@ -26,13 +26,13 @@ async function setup() {
   const vanillaAuthenticatorFactory = await starknet.getContractFactory(
     './contracts/starknet/authenticator/authenticator.cairo'
   );
-  console.log("Deploying auth...");
+  console.log('Deploying auth...');
   const vanillaAuthenticator = (await vanillaAuthenticatorFactory.deploy()) as StarknetContract;
-  console.log("Deploying strat...");
+  console.log('Deploying strat...');
   const vanillaVotingStrategy = (await vanillaVotingStategyFactory.deploy()) as StarknetContract;
   const voting_strategy = BigInt(vanillaVotingStrategy.address);
   const authenticator = BigInt(vanillaAuthenticator.address);
-  console.log("Deploying space...");
+  console.log('Deploying space...');
   const vanillaSpace = (await vanillaSpaceFactory.deploy({
     _voting_delay: VOTING_DELAY,
     _voting_period: VOTING_PERIOD,
@@ -50,7 +50,7 @@ async function setup() {
 
 describe('Space testing', () => {
   it('Simple Vote', async () => {
-    console.log("Setup...");
+    console.log('Setup...');
     const { vanillaSpace, vanillaAuthenticator, vanillaVotingStrategy } = await setup();
     const space_contract = BigInt(vanillaSpace.address);
     const execution_hash = BigInt(1);
@@ -62,7 +62,7 @@ describe('Space testing', () => {
 
     // -- Creates the proposal --
     {
-      console.log("Creating proposal...");
+      console.log('Creating proposal...');
       await vanillaAuthenticator.invoke(EXECUTE_METHOD, {
         to: space_contract,
         function_selector: BigInt(getSelectorFromName(PROPOSAL_METHOD)),
@@ -75,8 +75,7 @@ describe('Space testing', () => {
         ],
       });
 
-
-      console.log("Getting proposal info...");
+      console.log('Getting proposal info...');
       const { proposal_info } = await vanillaSpace.call('get_proposal_info', {
         proposal_id: proposal_id,
       });
@@ -101,14 +100,14 @@ describe('Space testing', () => {
     {
       const voter_address = proposer_address;
       const params: Array<BigInt> = [];
-      console.log("Voting FOR...");
+      console.log('Voting FOR...');
       await vanillaAuthenticator.invoke(EXECUTE_METHOD, {
         to: space_contract,
         function_selector: BigInt(getSelectorFromName(VOTE_METHOD)),
         calldata: [voter_address, proposal_id, FOR, BigInt(params.length)],
       });
 
-      console.log("Getting proposal info...");
+      console.log('Getting proposal info...');
       const { proposal_info } = await vanillaSpace.call('get_proposal_info', {
         proposal_id: proposal_id,
       });
