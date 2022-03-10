@@ -38,12 +38,13 @@ func get_voting_power{
         bitwise_ptr : BitwiseBuiltin*}(
         block : felt, account_160 : felt, params_len : felt, params : felt*) -> (
         voting_power : Uint256):
-    alloc_locals
     let (local fact_registry_addr) = fact_registry_store.read()
 
+    # Decoding voting strategy parameters
     let (slot, proof_sizes_bytes_len, proof_sizes_bytes, proof_sizes_words_len, proof_sizes_words,
         proofs_concat_len, proofs_concat) = decode_param_array(params_len, params)
 
+    # Calling Fossil Fact Registry to verify the storage proof of the slot value
     let (storage_bytes_len, storage_len, storage) = IFactsRegistry.get_storage(
         fact_registry_addr,
         block,
@@ -55,6 +56,8 @@ func get_voting_power{
         proof_sizes_words,
         proofs_concat_len,
         proofs_concat)
+    
+    # Converting the returned value to a cairo uint256 
     let (voting_power) = ints_to_uint256(storage_bytes_len, storage_len, storage)
 
     return (voting_power)
@@ -76,7 +79,6 @@ func decode_param_array{range_check_ptr}(param_array_len : felt, param_array : f
     tempvar proofs_concat_len = param_array_len - 5 - 2 * num_nodes
     # Could add check by summing proof_sizes_words array and checking that it is equal to proofs_concat_len
     # However this seems like unnecessary computation to do on-chain (proofs will fail if invalid params are sent anyway)
-
     return (
         slot,
         proof_sizes_bytes_len,
