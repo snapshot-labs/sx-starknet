@@ -35,13 +35,26 @@ task('accounts', 'Prints the list of accounts', async (args, hre) => {
 
 const config: HardhatUserConfig = {
   solidity: {
-    version: '0.8.6',
-    settings: {
-      optimizer: {
-        enabled: true,
-        runs: 10,
+    compilers: [
+      {
+        version: '0.8.6',
+        settings: {
+          optimizer: {
+            enabled: true,
+            runs: 10,
+          },
+        },
       },
-    },
+      {
+        version: '0.8.9',
+        settings: {
+          optimizer: {
+            enabled: true,
+            runs: 10,
+          },
+        },
+      },
+    ],
   },
   networks: {
     ropsten: {
@@ -65,6 +78,9 @@ const config: HardhatUserConfig = {
   starknet: {
     venv: 'active',
     network: 'starknetDevnet',
+  },
+  paths: {
+    cairoPaths: ['./contracts/starknet/fossil/contracts'],
   },
 };
 

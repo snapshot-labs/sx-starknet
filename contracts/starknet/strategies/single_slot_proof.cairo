@@ -1,0 +1,88 @@
+%lang starknet
+%builtins pedersen range_check bitwise
+
+from starkware.cairo.common.cairo_builtins import HashBuiltin, BitwiseBuiltin
+from starkware.cairo.common.uint256 import Uint256, uint256_add
+from starkware.cairo.common.math import unsigned_div_rem, assert_nn_le
+from starkware.cairo.common.pow import pow
+
+from contracts.starknet.fossil.contracts.starknet.types import StorageSlot
+from contracts.starknet.lib.type_conversions import ints_to_uint256
+
+# FactRegistry simplified interface
+@contract_interface
+namespace IFactsRegistry:
+    func get_storage(
+            block : felt, account_160 : felt, slot : StorageSlot, proof_sizes_bytes_len : felt,
+            proof_sizes_bytes : felt*, proof_sizes_words_len : felt, proof_sizes_words : felt*,
+            proofs_concat_len : felt, proofs_concat : felt*) -> (
+            res_bytes_len : felt, res_len : felt, res : felt*):
+    end
+end
+
+# Address of the fact registry. This is an immutable value that can be set at contract deployment only.
+@storage_var
+func fact_registry_store() -> (res : felt):
+end
+
+@constructor
+func constructor{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr}(
+        fact_registry : felt):
+    fact_registry_store.write(value=fact_registry)
+    return ()
+end
+
+@view
+func get_voting_power{
+        syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr,
+        bitwise_ptr : BitwiseBuiltin*}(
+        block : felt, account_160 : felt, params_len : felt, params : felt*) -> (
+        voting_power : Uint256):
+    alloc_locals
+    let (local fact_registry_addr) = fact_registry_store.read()
+
+    let (slot, proof_sizes_bytes_len, proof_sizes_bytes, proof_sizes_words_len, proof_sizes_words,
+        proofs_concat_len, proofs_concat) = decode_param_array(params_len, params)
+
+    let (storage_bytes_len, storage_len, storage) = IFactsRegistry.get_storage(
+        fact_registry_addr,
+        block,
+        account_160,
+        slot,
+        proof_sizes_bytes_len,
+        proof_sizes_bytes,
+        proof_sizes_words_len,
+        proof_sizes_words,
+        proofs_concat_len,
+        proofs_concat)
+    let (voting_power) = ints_to_uint256(storage_bytes_len, storage_len, storage)
+
+    return (voting_power)
+end
+
+@view
+func decode_param_array{range_check_ptr}(param_array_len : felt, param_array : felt*) -> (
+        slot : StorageSlot, proof_sizes_bytes_len : felt, proof_sizes_bytes : felt*,
+        proof_sizes_words_len : felt, proof_sizes_words : felt*, proofs_concat_len : felt,
+        proofs_concat : felt*):
+    assert_nn_le(4, param_array_len)
+    tempvar slot : StorageSlot = StorageSlot(param_array[0], param_array[1], param_array[2], param_array[3])
+    tempvar num_nodes = param_array[4]
+    tempvar proof_sizes_bytes_len = num_nodes
+    tempvar proof_sizes_bytes = param_array + 5
+    tempvar proof_sizes_words_len = num_nodes
+    tempvar proof_sizes_words = param_array + 5 + num_nodes
+    tempvar proofs_concat = param_array + 5 + 2 * num_nodes
+    tempvar proofs_concat_len = param_array_len - 5 - 2 * num_nodes
+    # Could add check by summing proof_sizes_words array and checking that it is equal to proofs_concat_len
+    # However this seems like unnecessary computation to do on-chain (proofs will fail if invalid params are sent anyway)
+
+    return (
+        slot,
+        proof_sizes_bytes_len,
+        proof_sizes_bytes,
+        proof_sizes_words_len,
+        proof_sizes_words,
+        proofs_concat_len,
+        proofs_concat)
+end
