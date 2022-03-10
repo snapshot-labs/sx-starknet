@@ -2,7 +2,7 @@
 
 # Constants
 VOTING_DELAY=0
-VOTING_PERIOD=100000
+VOTING_PERIOD=100000000
 # Threshold should be two numbers because Uint256 has two members. We're just using the lowest number here.
 THRESHOLD=1
 
