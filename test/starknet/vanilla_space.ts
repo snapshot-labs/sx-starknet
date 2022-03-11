@@ -63,7 +63,7 @@ function setupProposeCalldata(
     ...metadata_uri,
     eth_block_number,
     BigInt(params.length),
-    ...params
+    ...params,
   ];
 }
 
