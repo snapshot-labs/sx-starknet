@@ -31,11 +31,12 @@ Snapshot is open-sourced software licensed under the © [MIT license](LICENSE).
 Usage
 -----
 
-### Clone repository (--recursive is required to install the [Fossil](https://github.com/OilerNetwork/fossil) Storage Verifier submodule) 
+### Clone repository:
 
 ```bash 
 git clone --recursive https://github.com/snapshot-labs/sx-core.git
 ```
+Note: --recursive is required to install the [Fossil](https://github.com/OilerNetwork/fossil) Storage Verifier submodule
 
 ### Install Python and Yarn requirements: 
 
