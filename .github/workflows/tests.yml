@@ -12,6 +12,9 @@ jobs:
     steps:
       - name: Check out Git repository
         uses: actions/checkout@v2
+        
+      - name: Install Fossil submodule
+        run: git submodule update --init --recursive
 
       - name: Set up node
         uses: actions/setup-node@v1
