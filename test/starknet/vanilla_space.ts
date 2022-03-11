@@ -2,6 +2,7 @@ import { StarknetContract } from 'hardhat/types/runtime';
 import { starknet } from 'hardhat';
 import { stark } from 'starknet';
 import { SplitUint256, AGAINST, FOR, ABSTAIN } from './shared/types';
+import { strToShortStrArr } from './shared/short';
 import { expect } from 'chai';
 
 const { getSelectorFromName } = stark;
@@ -48,17 +49,51 @@ async function setup() {
   };
 }
 
+function setup_calldata(
+  proposer_address: bigint,
+  execution_hash: bigint,
+  metadata_uri: Array<bigint>,
+  eth_block_number: bigint,
+  params: Array<bigint>
+): Array<bigint> {
+  const calldata = [proposer_address, execution_hash];
+  calldata.push(BigInt(metadata_uri.length));
+
+  for (let i = 0; i < metadata_uri.length; i++) {
+    calldata.push(metadata_uri[i]);
+  }
+
+  calldata.push(eth_block_number);
+  calldata.push(BigInt(params.length));
+
+  for (let i = 0; i < params.length; i++) {
+    calldata.push(params[i]);
+  }
+
+  return calldata;
+}
+
 describe('Space testing', () => {
   it('Simple Vote', async () => {
     console.log('Setup...');
     const { vanillaSpace, vanillaAuthenticator, vanillaVotingStrategy } = await setup();
     const space_contract = BigInt(vanillaSpace.address);
     const execution_hash = BigInt(1);
-    const metadata_uri = BigInt(2);
+    const metadata_uri = strToShortStrArr(
+      'Hello and welcome to Snapshot X. This is the future of governance.'
+    );
+    console.log(metadata_uri);
     const proposer_address = VITALIK_ADDRESS;
     const proposal_id = 1;
-    const params: Array<BigInt> = [];
+    const params: Array<bigint> = [];
     const eth_block_number = BigInt(1337);
+    const calldata = setup_calldata(
+      proposer_address,
+      execution_hash,
+      metadata_uri,
+      eth_block_number,
+      params
+    );
 
     // -- Creates the proposal --
     {
@@ -66,13 +101,7 @@ describe('Space testing', () => {
       await vanillaAuthenticator.invoke(EXECUTE_METHOD, {
         to: space_contract,
         function_selector: BigInt(getSelectorFromName(PROPOSAL_METHOD)),
-        calldata: [
-          proposer_address,
-          execution_hash,
-          metadata_uri,
-          eth_block_number,
-          BigInt(params.length),
-        ],
+        calldata: calldata,
       });
 
       console.log('Getting proposal info...');
@@ -83,7 +112,6 @@ describe('Space testing', () => {
       // We can't directly compare the `info` object because we don't know for sure the value of `start_block` (and hence `end_block`),
       // so we compare it element by element (except start_block and end_block for which we simply compare their difference to `VOTING_PERIOD`).
       expect(proposal_info.proposal.execution_hash).to.deep.equal(execution_hash);
-      expect(proposal_info.proposal.metadata_uri).to.deep.equal(metadata_uri);
       expect(
         proposal_info.proposal.end_timestamp - proposal_info.proposal.start_timestamp
       ).to.deep.equal(VOTING_PERIOD);

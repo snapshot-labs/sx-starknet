@@ -50,7 +50,9 @@ func vote_power(proposal_id : felt, choice : felt) -> (power : Uint256):
 end
 
 @event
-func proposal_created(proposal_id : felt, proposer_address : EthAddress, proposal : Proposal):
+func proposal_created(
+        proposal_id : felt, proposer_address : EthAddress, proposal : Proposal,
+        metadata_uri_len : felt, metadata_uri : felt*):
 end
 
 @event
@@ -152,8 +154,9 @@ end
 # TODO: execution_hash should be of type Hash and metadata_uri of type felt* (string)
 @external
 func propose{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr : felt}(
-        proposer_address : EthAddress, execution_hash : felt, metadata_uri : felt,
-        ethereum_block_number : felt, params_len : felt, params : felt*) -> ():
+        proposer_address : EthAddress, execution_hash : felt, metadata_uri_len : felt,
+        metadata_uri : felt*, ethereum_block_number : felt, params_len : felt, params : felt*) -> (
+        ):
     alloc_locals
 
     # Verify that the caller is the authenticator contract.
@@ -185,15 +188,14 @@ func propose{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr :
     end
 
     # Create the proposal and its proposal id
-    let proposal = Proposal(
-        execution_hash, metadata_uri, start_timestamp, end_timestamp, ethereum_block_number)
+    let proposal = Proposal(execution_hash, start_timestamp, end_timestamp, ethereum_block_number)
     let (proposal_id) = next_proposal_nonce.read()
 
     # Store the proposal
     proposal_registry.write(proposal_id, proposal)
 
     # Emit event
-    proposal_created.emit(proposal_id, proposer_address, proposal)
+    proposal_created.emit(proposal_id, proposer_address, proposal, metadata_uri_len, metadata_uri)
 
     # Increase the proposal nonce
     next_proposal_nonce.write(proposal_id + 1)
