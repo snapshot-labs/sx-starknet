@@ -37,7 +37,7 @@ Usage
 git clone https://github.com/snapshot-labs/sx-core.git
 git submodule update --init --recursive
 ```
-Note: The submodule inlcuded in the repo is the [Fossil](https://github.com/OilerNetwork/fossil) Storage Verifier
+Note: The submodule included in the repo is the [Fossil](https://github.com/OilerNetwork/fossil) Storage Verifier
 
 ### Install Python and Yarn requirements: 
 
@@ -47,9 +47,6 @@ source ~/cairo_venv/bin/activate
 pip3 install -r requirements.txt
 yarn
 ```
-
-
-
 
 ### Compile all contracts:
 
