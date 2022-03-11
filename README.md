@@ -34,9 +34,10 @@ Usage
 ### Clone repository:
 
 ```bash 
-git clone --recursive https://github.com/snapshot-labs/sx-core.git
+git clone https://github.com/snapshot-labs/sx-core.git
+git submodule update --init --recursive
 ```
-Note: --recursive is required to install the [Fossil](https://github.com/OilerNetwork/fossil) Storage Verifier submodule
+Note: The submodule is the [Fossil](https://github.com/OilerNetwork/fossil) Storage Verifier
 
 ### Install Python and Yarn requirements: 
 
