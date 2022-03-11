@@ -56,21 +56,15 @@ function setupProposeCalldata(
   eth_block_number: bigint,
   params: Array<bigint>
 ): Array<bigint> {
-  const calldata = [proposer_address, execution_hash];
-  calldata.push(BigInt(metadata_uri.length));
-
-  for (let i = 0; i < metadata_uri.length; i++) {
-    calldata.push(metadata_uri[i]);
-  }
-
-  calldata.push(eth_block_number);
-  calldata.push(BigInt(params.length));
-
-  for (let i = 0; i < params.length; i++) {
-    calldata.push(params[i]);
-  }
-
-  return calldata;
+  return [
+    proposer_address,
+    execution_hash,
+    BigInt(metadata_uri.length),
+    ...metadata_uri,
+    eth_block_number,
+    BigInt(params.length),
+    ...params
+  ];
 }
 
 describe('Space testing', () => {
