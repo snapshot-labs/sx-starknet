@@ -1,3 +1,5 @@
+/* eslint-disable  @typescript-eslint/ban-types */
+
 import Common, { Chain, Hardfork } from '@ethereumjs/common';
 import { bufferToHex } from 'ethereumjs-util';
 import blockFromRpc from '@ethereumjs/block/dist/from-rpc';
@@ -20,7 +22,6 @@ export class ProcessBlockInputs {
     _chain: Chain = Chain.Mainnet,
     _hardfork: Hardfork = Hardfork.London
   ): ProcessBlockInputs {
-
     block.difficulty = '0x' + BigInt(block.difficulty).toString(16);
     block.totalDifficulty = '0x' + BigInt(block.totalDifficulty).toString(16);
     const common = new Common({ chain: _chain, hardfork: _hardfork });
@@ -62,7 +63,6 @@ export class ProofInputs {
   }
 
   static fromProofRPCData(blockNumber: number, proofs: any, encodeParams: Function): ProofInputs {
-    
     const accountProofArray = proofs.accountProof.map((node: string) =>
       IntsSequence.fromBytes(hexToBytes(node))
     );
@@ -94,6 +94,15 @@ export class ProofInputs {
       storageProofSizesWords,
       storageProof
     );
-    return new ProofInputs(blockNumber, 15, ethAddress, ethAddressFelt, accountProofSizesBytes, accountProofSizesWords, accountProof, votingPowerParams);
+    return new ProofInputs(
+      blockNumber,
+      15,
+      ethAddress,
+      ethAddressFelt,
+      accountProofSizesBytes,
+      accountProofSizesWords,
+      accountProof,
+      votingPowerParams
+    );
   }
 }

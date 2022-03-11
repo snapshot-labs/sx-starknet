@@ -1,9 +1,6 @@
 import { StarknetContract, Account } from 'hardhat/types/runtime';
 import { expect } from 'chai';
 import { starknet } from 'hardhat';
-import Common, { Chain, Hardfork } from '@ethereumjs/common';
-import { bufferToHex } from 'ethereumjs-util';
-import blockFromRpc from '@ethereumjs/block/dist/from-rpc';
 import { block } from './data/blocks';
 import { proofs } from './data/proofs';
 import { SplitUint256, IntsSequence } from './shared/types';
@@ -78,7 +75,6 @@ async function setup() {
   };
 }
 
-
 describe('Snapshot X Single Slot Strategy:', () => {
   it('The strategy should return the voting power', async () => {
     // Encode proof data to produce the inputs for the account and storage proofs.
@@ -97,7 +93,7 @@ describe('Snapshot X Single Slot Strategy:', () => {
         word_3: proofInputs.ethAddress.values[2],
       },
       proof_sizes_bytes: proofInputs.accountProofSizesBytes,
-      proof_sizes_words:proofInputs.accountProofSizesWords,
+      proof_sizes_words: proofInputs.accountProofSizesWords,
       proofs_concat: proofInputs.accountProof,
     });
 
@@ -128,4 +124,3 @@ describe('Snapshot X Single Slot Strategy:', () => {
     );
   }).timeout(1000000);
 });
-
