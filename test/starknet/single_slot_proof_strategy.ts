@@ -8,7 +8,8 @@ import { block } from './data/blocks';
 import { proofs } from './data/proofs';
 import { SplitUint256, IntsSequence } from './shared/types';
 import { hexToBytes } from './shared/helpers';
-import { encodeParams } from './shared/single_slot_proof_strategy_encoding';
+import { ProcessBlockInputs, ProofInputs } from './shared/parseRPCData';
+import { encodeParams } from './shared/singleSlotProofStrategyEncoding';
 
 class Fossil {
   factsRegistry: StarknetContract;
@@ -62,16 +63,13 @@ async function setup() {
     parent_hash: IntsSequence.fromBytes(hexToBytes(block.hash)).values,
     block_number: block.number + 1,
   });
-  // Rlp encode block header and then submit to L1 Headers Store
-  const common = new Common({ chain: Chain.Mainnet, hardfork: Hardfork.London });
-  const header = blockFromRpc(block, [], { common }).header;
-  const headerRlp = bufferToHex(header.serialize());
-  const headerInts = IntsSequence.fromBytes(hexToBytes(headerRlp));
+  // Encode block header and then submit to L1 Headers Store
+  const processBlockInputs = ProcessBlockInputs.fromBlockRPCData(block);
   await fossil.l1RelayerAccount.invoke(fossil.l1HeadersStore, 'process_block', {
-    options_set: 8,
-    block_number: block.number,
-    block_header_rlp_bytes_len: headerInts.bytesLength,
-    block_header_rlp: headerInts.values,
+    options_set: processBlockInputs.blockOptions,
+    block_number: processBlockInputs.blockNumber,
+    block_header_rlp_bytes_len: processBlockInputs.headerInts.bytesLength,
+    block_header_rlp: processBlockInputs.headerInts.values,
   });
   return {
     account: account as Account,
@@ -80,97 +78,54 @@ async function setup() {
   };
 }
 
-function getProofInputs() {
-  const account_proof = proofs.accountProof.map((node) => IntsSequence.fromBytes(hexToBytes(node)));
-  let flat_account_proof: bigint[] = [];
-  let flat_account_proof_sizes_bytes: bigint[] = [];
-  let flat_account_proof_sizes_words: bigint[] = [];
-  for (const node of account_proof) {
-    flat_account_proof = flat_account_proof.concat(node.values);
-    flat_account_proof_sizes_bytes = flat_account_proof_sizes_bytes.concat([
-      BigInt(node.bytesLength),
-    ]);
-    flat_account_proof_sizes_words = flat_account_proof_sizes_words.concat([
-      BigInt(node.values.length),
-    ]);
-  }
-  const ethAddress = IntsSequence.fromBytes(hexToBytes(proofs.address));
-  const slot = IntsSequence.fromBytes(hexToBytes(proofs.storageProof[0].key));
-  const storage_proof = proofs.storageProof[0].proof.map((node) =>
-    IntsSequence.fromBytes(hexToBytes(node))
-  );
-  let flat_storage_proof: bigint[] = [];
-  let flat_storage_proof_sizes_bytes: bigint[] = [];
-  let flat_storage_proof_sizes_words: bigint[] = [];
-  for (const node of storage_proof) {
-    flat_storage_proof = flat_storage_proof.concat(node.values);
-    flat_storage_proof_sizes_bytes = flat_storage_proof_sizes_bytes.concat([
-      BigInt(node.bytesLength),
-    ]);
-    flat_storage_proof_sizes_words = flat_storage_proof_sizes_words.concat([
-      BigInt(node.values.length),
-    ]);
-  }
-  const votingPowerParams = encodeParams(
-    slot.values,
-    flat_storage_proof_sizes_bytes,
-    flat_storage_proof_sizes_words,
-    flat_storage_proof
-  );
-  return {
-    ethAddress,
-    flat_account_proof_sizes_bytes,
-    flat_account_proof_sizes_words,
-    flat_account_proof,
-    votingPowerParams,
-  };
-}
 
 describe('Snapshot X Single Slot Strategy:', () => {
   it('The strategy should return the voting power', async () => {
+    // Encode proof data to produce the inputs for the account and storage proofs.
+    const proofInputs = ProofInputs.fromProofRPCData(block.number, proofs, encodeParams);
+
     // Deploy Fossil storage verifier instance and the voting strategy contract.
     const { account, singleSlotProofStrategy, fossil } = await setup();
 
-    // Encode proof data to produce the inputs for the account and storage proofs.
-    const {
-      ethAddress,
-      flat_account_proof_sizes_bytes,
-      flat_account_proof_sizes_words,
-      flat_account_proof,
-      votingPowerParams,
-    } = getProofInputs();
-
     // Verify an account proof to obtain the storage root for the account at the specified block number trustlessly on-chain.
     account.invoke(fossil.factsRegistry, 'prove_account', {
-      options_set: 15,
-      block_number: block.number,
+      options_set: proofInputs.accountOptions,
+      block_number: proofInputs.blockNumber,
       account: {
-        word_1: ethAddress.values[0],
-        word_2: ethAddress.values[1],
-        word_3: ethAddress.values[2],
+        word_1: proofInputs.ethAddress.values[0],
+        word_2: proofInputs.ethAddress.values[1],
+        word_3: proofInputs.ethAddress.values[2],
       },
-      proof_sizes_bytes: flat_account_proof_sizes_bytes,
-      proof_sizes_words: flat_account_proof_sizes_words,
-      proofs_concat: flat_account_proof,
+      proof_sizes_bytes: proofInputs.accountProofSizesBytes,
+      proof_sizes_words:proofInputs.accountProofSizesWords,
+      proofs_concat: proofInputs.accountProof,
     });
 
     // Check the storage root is stored. (This returns zero which shows that the prove_account tx has not been included yet)
     const { res: out } = await fossil.factsRegistry.call('get_verified_account_storage_hash', {
-      account_160: BigInt(proofs.address),
-      block: block.number,
+      account_160: proofInputs.ethAddressFelt,
+      block: proofInputs.blockNumber,
     });
     console.log(out);
 
+    // Second time it returns the hash showing that the prove_account tx has been included
+    const { res: out2 } = await fossil.factsRegistry.call('get_verified_account_storage_hash', {
+      account_160: proofInputs.ethAddressFelt,
+      block: proofInputs.blockNumber,
+    });
+    console.log(out2);
+
     // Obtain voting power for the account by verifying the storage proof.
     const { voting_power: vp } = await singleSlotProofStrategy.call('get_voting_power', {
-      block: block.number,
-      account_160: BigInt(proofs.address),
-      params: votingPowerParams,
+      block: proofInputs.blockNumber,
+      account_160: proofInputs.ethAddressFelt,
+      params: proofInputs.votingPowerParams,
     });
 
     // Assert voting power obtained from strategy is correct
     expect(new SplitUint256(vp.low, vp.high)).to.deep.equal(
       SplitUint256.fromUint(BigInt(proofs.storageProof[0].value))
     );
-  }).timeout(2400000);
+  }).timeout(1000000);
 });
+

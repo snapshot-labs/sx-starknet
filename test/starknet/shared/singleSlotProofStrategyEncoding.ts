@@ -1,3 +1,5 @@
+import { assert } from './helpers';
+
 // balanceOf strategy parameter array encoding (Inclusive -> Exclusive):
 
 // Start Index      End Index                             Name                Description
@@ -30,10 +32,4 @@ export function decodeParams(params: bigint[]): [bigint[], bigint[], bigint[], b
   }, BigInt(0));
   assert(total == BigInt(proofs_concat.length), 'Invalid parameter array');
   return [slot, proof_sizes_bytes, proof_sizes_words, proofs_concat];
-}
-
-function assert(condition: any, message = 'Assertion Failed') {
-  if (!condition) {
-    throw message;
-  }
 }
