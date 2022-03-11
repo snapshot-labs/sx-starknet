@@ -8,7 +8,7 @@ import { block } from './data/blocks';
 import { proofs } from './data/proofs';
 import { SplitUint256, IntsSequence } from './shared/types';
 import { hexToBytes } from './shared/helpers';
-import { encode_params } from './shared/single_slot_proof_strategy_encoding';
+import { encodeParams } from './shared/single_slot_proof_strategy_encoding';
 
 class Fossil {
   factsRegistry: StarknetContract;
@@ -111,7 +111,7 @@ function getProofInputs() {
       BigInt(node.values.length),
     ]);
   }
-  const votingPowerParams = encode_params(
+  const votingPowerParams = encodeParams(
     slot.values,
     flat_storage_proof_sizes_bytes,
     flat_storage_proof_sizes_words,

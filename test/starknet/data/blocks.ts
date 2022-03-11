@@ -123,4 +123,3 @@ export const block = {
   transactionsRoot: '0xb8c8b30535ed30d3f18f37e4f1f68d5b25dea5826999f2c6ac8b145f0ca44441',
   uncles: [],
 };
-

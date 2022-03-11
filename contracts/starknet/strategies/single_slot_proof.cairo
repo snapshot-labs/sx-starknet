@@ -38,6 +38,7 @@ func get_voting_power{
         bitwise_ptr : BitwiseBuiltin*}(
         block : felt, account_160 : felt, params_len : felt, params : felt*) -> (
         voting_power : Uint256):
+    alloc_locals
     let (local fact_registry_addr) = fact_registry_store.read()
 
     # Decoding voting strategy parameters
@@ -56,8 +57,8 @@ func get_voting_power{
         proof_sizes_words,
         proofs_concat_len,
         proofs_concat)
-    
-    # Converting the returned value to a cairo uint256 
+
+    # Converting the returned value to a cairo uint256
     let (voting_power) = ints_to_uint256(storage_bytes_len, storage_len, storage)
 
     return (voting_power)

@@ -12,7 +12,7 @@ const MASK_LOW = 2 ** 64
 @view
 func ints_to_uint256{range_check_ptr, bitwise_ptr : BitwiseBuiltin*}(
         element_size_bytes : felt, elements_len : felt, elements : felt*) -> (res : Uint256):
-    assert_nn_le(0, elements_len) # Must be at least 1 value
+    assert_nn_le(0, elements_len)  # Must be at least 1 value
     assert_nn_le(elements_len, 5)  # The max int sequence length for a uint256 is 4
     let (_, rem) = unsigned_div_rem(element_size_bytes, 8)
     let initial : Uint256 = Uint256(elements[elements_len - 1], 0)

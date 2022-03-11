@@ -7,7 +7,7 @@
 // 5+num_nodes   -> 5+2*num_nodes                       - proof_sizes_words - Array of the bigints of words in each node proof
 // 5+2*num_nodes -> 5+2*num_nodes+sum(proof_size_words) - proofs_concat     - Array of the node proofs
 
-export function encode_params(
+export function encodeParams(
   slot: bigint[],
   proof_sizes_bytes: bigint[],
   proof_sizes_words: bigint[],
@@ -18,7 +18,7 @@ export function encode_params(
   return slot.concat([num_nodes], proof_sizes_bytes, proof_sizes_words, proofs_concat);
 }
 
-export function decode_params(params: bigint[]): [bigint[], bigint[], bigint[], bigint[]] {
+export function decodeParams(params: bigint[]): [bigint[], bigint[], bigint[], bigint[]] {
   assert(params.length >= 5, 'Invalid parameter array');
   const slot: bigint[] = [params[0], params[1], params[2], params[3]];
   const num_nodes = Number(params[4]);
