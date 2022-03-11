@@ -49,7 +49,7 @@ async function setup() {
   };
 }
 
-function setup_calldata(
+function setupProposeCalldata(
   proposer_address: bigint,
   execution_hash: bigint,
   metadata_uri: Array<bigint>,
@@ -87,7 +87,7 @@ describe('Space testing', () => {
     const proposal_id = 1;
     const params: Array<bigint> = [];
     const eth_block_number = BigInt(1337);
-    const calldata = setup_calldata(
+    const calldata = setupProposeCalldata(
       proposer_address,
       execution_hash,
       metadata_uri,
@@ -101,7 +101,7 @@ describe('Space testing', () => {
       await vanillaAuthenticator.invoke(EXECUTE_METHOD, {
         to: space_contract,
         function_selector: BigInt(getSelectorFromName(PROPOSAL_METHOD)),
-        calldata: calldata,
+        calldata,
       });
 
       console.log('Getting proposal info...');
