@@ -70,14 +70,14 @@ func decode_param_array{range_check_ptr}(param_array_len : felt, param_array : f
         proof_sizes_words_len : felt, proof_sizes_words : felt*, proofs_concat_len : felt,
         proofs_concat : felt*):
     assert_nn_le(4, param_array_len)
-    tempvar slot : StorageSlot = StorageSlot(param_array[0], param_array[1], param_array[2], param_array[3])
-    tempvar num_nodes = param_array[4]
-    tempvar proof_sizes_bytes_len = num_nodes
-    tempvar proof_sizes_bytes = param_array + 5
-    tempvar proof_sizes_words_len = num_nodes
-    tempvar proof_sizes_words = param_array + 5 + num_nodes
-    tempvar proofs_concat = param_array + 5 + 2 * num_nodes
-    tempvar proofs_concat_len = param_array_len - 5 - 2 * num_nodes
+    let slot : StorageSlot = StorageSlot(param_array[0], param_array[1], param_array[2], param_array[3])
+    let num_nodes = param_array[4]
+    let proof_sizes_bytes_len = num_nodes
+    let proof_sizes_bytes = param_array + 5
+    let proof_sizes_words_len = num_nodes
+    let proof_sizes_words = param_array + 5 + num_nodes
+    let proofs_concat = param_array + 5 + 2 * num_nodes
+    let proofs_concat_len = param_array_len - 5 - 2 * num_nodes
     # Could add check by summing proof_sizes_words array and checking that it is equal to proofs_concat_len
     # However this seems like unnecessary computation to do on-chain (proofs will fail if invalid params are sent anyway)
     return (
