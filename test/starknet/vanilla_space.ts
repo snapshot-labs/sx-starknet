@@ -2,8 +2,9 @@ import { StarknetContract } from 'hardhat/types/runtime';
 import { starknet } from 'hardhat';
 import { stark } from 'starknet';
 import { SplitUint256, AGAINST, FOR, ABSTAIN } from './shared/types';
-import { strToShortStrArr } from './shared/short';
+import { shortStringArrToStr } from '@snapshot-labs/sx';
 import { expect } from 'chai';
+import { strToShortStrArr } from './shared/short';
 
 const { getSelectorFromName } = stark;
 
@@ -49,24 +50,6 @@ async function setup() {
   };
 }
 
-function setupProposeCalldata(
-  proposer_address: bigint,
-  execution_hash: bigint,
-  metadata_uri: Array<bigint>,
-  eth_block_number: bigint,
-  params: Array<bigint>
-): Array<bigint> {
-  return [
-    proposer_address,
-    execution_hash,
-    BigInt(metadata_uri.length),
-    ...metadata_uri,
-    eth_block_number,
-    BigInt(params.length),
-    ...params,
-  ];
-}
-
 describe('Space testing', () => {
   it('Simple Vote', async () => {
     console.log('Setup...');
@@ -81,13 +64,15 @@ describe('Space testing', () => {
     const proposal_id = 1;
     const params: Array<bigint> = [];
     const eth_block_number = BigInt(1337);
-    const calldata = setupProposeCalldata(
+    const calldata = [
       proposer_address,
       execution_hash,
-      metadata_uri,
+      BigInt(metadata_uri.length),
+      ...metadata_uri,
       eth_block_number,
-      params
-    );
+      BigInt(params.length),
+      ...params,
+    ];
 
     // -- Creates the proposal --
     {
