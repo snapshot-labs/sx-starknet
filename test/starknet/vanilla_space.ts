@@ -2,9 +2,8 @@ import { StarknetContract } from 'hardhat/types/runtime';
 import { starknet } from 'hardhat';
 import { stark } from 'starknet';
 import { SplitUint256, AGAINST, FOR, ABSTAIN } from './shared/types';
-import { shortStringArrToStr } from '@snapshot-labs/sx';
+import { strToShortStringArr } from '@snapshot-labs/sx';
 import { expect } from 'chai';
-import { strToShortStrArr } from './shared/short';
 
 const { getSelectorFromName } = stark;
 
@@ -56,7 +55,7 @@ describe('Space testing', () => {
     const { vanillaSpace, vanillaAuthenticator, vanillaVotingStrategy } = await setup();
     const space_contract = BigInt(vanillaSpace.address);
     const execution_hash = BigInt(1);
-    const metadata_uri = strToShortStrArr(
+    const metadata_uri = strToShortStringArr(
       'Hello and welcome to Snapshot X. This is the future of governance.'
     );
     console.log(metadata_uri);
