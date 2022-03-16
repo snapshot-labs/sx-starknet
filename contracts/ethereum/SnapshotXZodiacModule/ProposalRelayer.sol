@@ -49,7 +49,7 @@ contract SnapshotXProposalRelayer is Guardable {
    * @param executionDetails Hash of all the transactions in the proposal
    * @param hasPassed Whether the proposal passed
    */
-  function _recieveFinalizedProposal(uint256 executionDetails, uint256 hasPassed) internal {
+  function _receiveFinalizedProposal(uint256 executionDetails, uint256 hasPassed) internal {
     uint256[] memory payload = new uint256[](2);
     payload[0] = executionDetails;
     payload[1] = hasPassed;
@@ -63,7 +63,7 @@ contract SnapshotXProposalRelayer is Guardable {
    * @param hasPassed Whether the proposal passed
    * @return isReceived Has the proposal been received
    */
-  function isFinalizedProposalRecieved(uint256 executionDetails, uint256 hasPassed)
+  function isFinalizedProposalreceived(uint256 executionDetails, uint256 hasPassed)
     external
     view
     returns (bool isReceived)

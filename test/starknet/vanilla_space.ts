@@ -40,6 +40,7 @@ async function setup() {
     _proposal_threshold: PROPOSAL_THRESHOLD,
     _voting_strategy: voting_strategy,
     _authenticator: authenticator,
+    _l1_executor: BigInt(0x1234),
   })) as StarknetContract;
 
   return {

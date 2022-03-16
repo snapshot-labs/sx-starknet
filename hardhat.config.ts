@@ -52,7 +52,7 @@ const config: HardhatUserConfig = {
       url: 'http://localhost:8545',
     },
     starknetDevnet: {
-      url: 'http://localhost:8000/',
+      url: 'http://localhost:8000',
     },
   },
   gasReporter: {

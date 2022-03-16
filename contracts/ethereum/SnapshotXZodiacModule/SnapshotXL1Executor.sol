@@ -158,8 +158,8 @@ contract SnapshotXL1Executor is Module, SnapshotXProposalRelayer {
     uint256 hasPassed,
     bytes32[] memory _txHashes
   ) external {
-    //External call will fail if finalized proposal message was not recieved on L1.
-    _recieveFinalizedProposal(executionDetails, hasPassed);
+    //External call will fail if finalized proposal message was not received on L1.
+    _receiveFinalizedProposal(executionDetails, hasPassed);
     require(hasPassed != 0, 'Proposal did not pass');
     require(_txHashes.length > 0, 'proposal must contain transactions');
     require(bytes32(executionDetails) == keccak256(abi.encode(_txHashes)), 'Invalid execution');
@@ -195,7 +195,7 @@ contract SnapshotXL1Executor is Module, SnapshotXProposalRelayer {
     for (uint256 i = 0; i < _proposalIndexes.length; i++) {
       require(
         getProposalState(_proposalIndexes[i]) != ProposalState.NotReceived,
-        'Proposal not recieved, nothing to cancel'
+        'Proposal not received, nothing to cancel'
       );
       require(
         getProposalState(_proposalIndexes[i]) != ProposalState.Executed,
