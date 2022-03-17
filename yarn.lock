@@ -828,10 +828,10 @@
     "@sentry/types" "5.30.0"
     tslib "^1.9.3"
 
-"@shardlabs/starknet-hardhat-plugin@^0.4.2":
-  version "0.4.3"
-  resolved "https://registry.yarnpkg.com/@shardlabs/starknet-hardhat-plugin/-/starknet-hardhat-plugin-0.4.3.tgz#ba4defcc4367f4af8fe2ee559364e37be57e3ce3"
-  integrity sha512-w3BBVk9+DfI7/iu/428kLH7wTnrbP7RrHAY1fjFmiW44gB/RR8lBGNwruVWHYIM0G7guaOiukfBsQVA3wVATLQ==
+"@shardlabs/starknet-hardhat-plugin@^0.5.1":
+  version "0.5.1"
+  resolved "https://registry.yarnpkg.com/@shardlabs/starknet-hardhat-plugin/-/starknet-hardhat-plugin-0.5.1.tgz#cd5ea357f02e7fba0514f22ca4a3c46eccd08bc6"
+  integrity sha512-l+mVlB6POvVdLwdDteFIWO+tNqGyQb8uLvUnDJ5oPv7C66TdF4EUTkWDBJEQA+jNBpqLgDJU42wzxleylQwv6w==
   dependencies:
     "@nomiclabs/hardhat-docker" "^2.0.2"
     axios "^0.24.0"
@@ -9877,7 +9877,7 @@ ts-generator@^0.1.1:
     resolve "^1.8.1"
     ts-essentials "^1.0.0"
 
-ts-node@^10.4.0, ts-node@^10.7.0:
+ts-node@^10.7.0:
   version "10.7.0"
   resolved "https://registry.yarnpkg.com/ts-node/-/ts-node-10.7.0.tgz#35d503d0fab3e2baa672a0e94f4b40653c2463f5"
   integrity sha512-TbIGS4xgJoX2i3do417KSaep1uRAW/Lu+WAL2doDHC0D6ummjirVOXU5/7aiZotbQ5p1Zp9tP7U6cYhA0O7M8A==
