@@ -828,15 +828,15 @@
     "@sentry/types" "5.30.0"
     tslib "^1.9.3"
 
-"@shardlabs/starknet-hardhat-plugin@^0.4.2":
-  version "0.4.3"
-  resolved "https://registry.yarnpkg.com/@shardlabs/starknet-hardhat-plugin/-/starknet-hardhat-plugin-0.4.3.tgz#ba4defcc4367f4af8fe2ee559364e37be57e3ce3"
-  integrity sha512-w3BBVk9+DfI7/iu/428kLH7wTnrbP7RrHAY1fjFmiW44gB/RR8lBGNwruVWHYIM0G7guaOiukfBsQVA3wVATLQ==
+"@shardlabs/starknet-hardhat-plugin@^0.5.2":
+  version "0.5.2"
+  resolved "https://registry.yarnpkg.com/@shardlabs/starknet-hardhat-plugin/-/starknet-hardhat-plugin-0.5.2.tgz#c0173c8a0e18cf7c24939b761abcab3953d82f49"
+  integrity sha512-vHIbAAH69gmO3r3xB4en8W7UcTryFLfX6KV2xdxsji6ISPhYOn7wPQpymDI7GJ3uHOAjcedrlYK0goCpDkLAaA==
   dependencies:
     "@nomiclabs/hardhat-docker" "^2.0.2"
     axios "^0.24.0"
     glob "^7.2.0"
-    starknet "^2.5.1"
+    starknet "^3.5.1"
 
 "@sindresorhus/is@^0.14.0":
   version "0.14.0"
@@ -9320,7 +9320,7 @@ starknet@^2.5.1, starknet@^2.9.0:
     superstruct "^0.15.3"
     url-join "^4.0.1"
 
-starknet@^3.2.0:
+starknet@^3.2.0, starknet@^3.5.1:
   version "3.5.1"
   resolved "https://registry.yarnpkg.com/starknet/-/starknet-3.5.1.tgz#b51fc89105235e14a71a576c60db5034e51d9734"
   integrity sha512-iFmdx2FF16x1hItQysMVRvCQr2VYEp+WBfSk5c3VAyDI22HIa+5Zh3p9S6Q9YL2eLKJK8Ys/b2fRmeTPtnxHTw==
@@ -9877,7 +9877,7 @@ ts-generator@^0.1.1:
     resolve "^1.8.1"
     ts-essentials "^1.0.0"
 
-ts-node@^10.4.0, ts-node@^10.7.0:
+ts-node@^10.7.0:
   version "10.7.0"
   resolved "https://registry.yarnpkg.com/ts-node/-/ts-node-10.7.0.tgz#35d503d0fab3e2baa672a0e94f4b40653c2463f5"
   integrity sha512-TbIGS4xgJoX2i3do417KSaep1uRAW/Lu+WAL2doDHC0D6ummjirVOXU5/7aiZotbQ5p1Zp9tP7U6cYhA0O7M8A==
