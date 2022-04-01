@@ -48,10 +48,10 @@ const config: HardhatUserConfig = {
       url: process.env.ROPSTEN_URL || '',
       accounts: process.env.PRIVATE_KEY !== undefined ? [process.env.PRIVATE_KEY] : [],
     },
-    devnet: {
+    ethereumLocal: {
       url: 'http://localhost:8545',
     },
-    starknetDevnet: {
+    starknetLocal: {
       url: 'http://localhost:8000',
     },
   },
@@ -64,7 +64,7 @@ const config: HardhatUserConfig = {
   },
   starknet: {
     venv: 'active',
-    network: 'starknetDevnet',
+    network: 'starknetLocal',
   },
 };
 

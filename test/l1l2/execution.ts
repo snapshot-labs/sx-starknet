@@ -2,7 +2,7 @@ import { SignerWithAddress } from '@nomiclabs/hardhat-ethers/signers';
 import { expect } from 'chai';
 import { Contract, ContractFactory } from 'ethers';
 import { starknet, network, ethers } from 'hardhat';
-import { FOR, SplitUint256 } from './shared/types';
+import { FOR, SplitUint256 } from '../starknet/shared/types';
 import { StarknetContractFactory, StarknetContract, HttpNetworkConfig } from 'hardhat/types';
 import { stark } from 'starknet';
 import { strToShortStringArr } from '@snapshot-labs/sx';
@@ -16,7 +16,7 @@ import {
   PROPOSAL_METHOD,
   VOTE_METHOD,
   expectAddressEquality,
-} from './shared/helpers';
+} from '../starknet/shared/helpers';
 
 const { getSelectorFromName } = stark;
 
@@ -71,7 +71,6 @@ describe('Postman', function () {
 
   const user = 1;
   const networkUrl: string = (network.config as HttpNetworkConfig).url;
-  // const networkUrl = "http://127.0.0.1:8545";
   let L2contractFactory: StarknetContractFactory;
   let l1ExecutorFactory: ContractFactory;
   let MockStarknetMessaging: ContractFactory;
