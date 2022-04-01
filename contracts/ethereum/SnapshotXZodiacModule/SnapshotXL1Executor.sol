@@ -149,20 +149,26 @@ contract SnapshotXL1Executor is Module, SnapshotXProposalRelayer {
 
   /**
    * @dev Initializes a new proposal execution struct on the receival of a completed proposal from StarkNet
-   * @param executionDetails Hash of all the transactions in the proposal
+   * @param executionHashLow Lowest 128 bits of the hash of all the transactions in the proposal
+   * @param executionHashHigh Highest 128 bits of the hash of all the transactions in the proposal
    * @param hasPassed Whether proposal passed or not
    * @param _txHashes Array of transaction hashes in proposal
    */
   function receiveProposal(
-    uint256 executionDetails,
+    uint256 executionHashLow,
+    uint256 executionHashHigh,
     uint256 hasPassed,
     bytes32[] memory _txHashes
   ) external {
     //External call will fail if finalized proposal message was not received on L1.
-    _receiveFinalizedProposal(executionDetails, hasPassed);
+    _receiveFinalizedProposal(executionHashLow, executionHashHigh, hasPassed);
     require(hasPassed != 0, 'Proposal did not pass');
     require(_txHashes.length > 0, 'proposal must contain transactions');
-    require(bytes32(executionDetails) == keccak256(abi.encode(_txHashes)), 'Invalid execution');
+
+    // Re-assemble the lowest and highest bytes to get the full execution hash
+    uint256 executionHash = (executionHashHigh << 128) + executionHashLow;
+    require(bytes32(executionHash) == keccak256(abi.encode(_txHashes)), 'Invalid execution');
+
     proposalIndexToProposalExecution[proposalIndex].txHashes = _txHashes;
     proposalIndex++;
     emit ProposalReceived(proposalIndex);
@@ -170,18 +176,18 @@ contract SnapshotXL1Executor is Module, SnapshotXProposalRelayer {
 
   /**
    * @dev Initializes a new proposal execution struct (To test execution without actually receiving message)
-   * @param executionDetails Hash of all the transactions in the proposal
+   * @param executionHash Hash of all the transactions in the proposal
    * @param hasPassed Whether proposal passed or not
    * @param _txHashes Array of transaction hashes in proposal
    */
   function receiveProposalTest(
-    uint256 executionDetails,
+    uint256 executionHash,
     uint256 hasPassed,
     bytes32[] memory _txHashes
   ) external {
     require(hasPassed == 1, 'Proposal did not pass');
     require(_txHashes.length > 0, 'proposal must contain transactions');
-    require(bytes32(executionDetails) == keccak256(abi.encode(_txHashes)), 'Invalid execution');
+    require(bytes32(executionHash) == keccak256(abi.encode(_txHashes)), 'Invalid execution');
     proposalIndexToProposalExecution[proposalIndex].txHashes = _txHashes;
     proposalIndex++;
     emit ProposalReceived(proposalIndex);

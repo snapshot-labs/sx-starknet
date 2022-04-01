@@ -46,30 +46,36 @@ contract SnapshotXProposalRelayer is Guardable {
 
   /**
    * @dev Receives L2 -> L1 message containing proposal execution details
-   * @param executionDetails Hash of all the transactions in the proposal
+   * @param executionHashLow Lowest 128 bits of the hash of all the transactions in the proposal
+   * @param executionHashHigh Highest 128 bits of the hash of all the transactions in the proposal
    * @param hasPassed Whether the proposal passed
    */
-  function _receiveFinalizedProposal(uint256 executionDetails, uint256 hasPassed) internal {
-    uint256[] memory payload = new uint256[](2);
-    payload[0] = executionDetails;
-    payload[1] = hasPassed;
+  function _receiveFinalizedProposal(
+    uint256 executionHashLow,
+    uint256 executionHashHigh,
+    uint256 hasPassed
+  ) internal {
+    uint256[] memory payload = new uint256[](3);
+    payload[0] = executionHashLow;
+    payload[1] = executionHashHigh;
+    payload[2] = hasPassed;
     /// Returns the message Hash. If proposal execution message did not exist/not received yet, then this will fail
     starknetCore.consumeMessageFromL2(decisionExecutorL2, payload);
   }
 
   /**
    * @dev Checks whether proposal has been received on L1 yet
-   * @param executionDetails Hash of all the transactions in the proposal
+   * @param executionHash Hash of all the transactions in the proposal
    * @param hasPassed Whether the proposal passed
    * @return isReceived Has the proposal been received
    */
-  function isFinalizedProposalreceived(uint256 executionDetails, uint256 hasPassed)
+  function isFinalizedProposalreceived(uint256 executionHash, uint256 hasPassed)
     external
     view
     returns (bool isReceived)
   {
     uint256[] memory payload = new uint256[](2);
-    payload[0] = executionDetails;
+    payload[0] = executionHash;
     payload[1] = hasPassed;
     bytes32 msgHash = keccak256(
       abi.encodePacked(decisionExecutorL2, uint256(uint160(msg.sender)), payload.length, payload)

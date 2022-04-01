@@ -48,7 +48,7 @@ func proposal_registry(proposal_id : felt) -> (proposal : Proposal):
 end
 
 @storage_var
-func executed_proposals(proposal_id: felt) -> (executed: felt):
+func executed_proposals(proposal_id : felt) -> (executed : felt):
 end
 
 @storage_var
@@ -109,7 +109,8 @@ end
 # TODO: L1 needs to know about L2 address, but L2 needs to know about the L2 address... need to fix that.
 # TODO: this should either be on the l1 contract or the l2 contract. Since l1 contract has an `owner` I think it should be on l1.
 @external
-func set_l1_executor{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr : felt}(_l1_executor: felt):
+func set_l1_executor{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr : felt}(
+        _l1_executor : felt):
     l1_executor.write(EthAddress(_l1_executor))
     return ()
 end
@@ -208,8 +209,7 @@ func propose{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr :
     end
 
     # Create the proposal and its proposal id
-    let proposal = Proposal(
-        execution_hash, start_timestamp, end_timestamp, ethereum_block_number)
+    let proposal = Proposal(execution_hash, start_timestamp, end_timestamp, ethereum_block_number)
     let (proposal_id) = next_proposal_nonce.read()
 
     # Store the proposal
@@ -264,7 +264,7 @@ func finalize_proposal{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_c
     assert message_payload[1] = proposal.execution_hash.high
     assert message_payload[2] = has_passed
 
-    # Send message to L1 Contract (executionDetail, hasPassed)
+    # Send message to L1 Contract (executionHash, hasPassed)
     let (l1_executor_address) = l1_executor.read()
     send_message_to_l1(
         to_address=l1_executor_address.value, payload_size=3, payload=message_payload)
@@ -279,11 +279,6 @@ end
 func get_vote_info{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr : felt}(
         voter_address : EthAddress, proposal_id : felt) -> (vote : Vote):
     return vote_registry.read(proposal_id, voter_address)
-end
-
-@view
-func get_l1_executor{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr : felt}() -> (executor_address: EthAddress):
-    return l1_executor.read()
 end
 
 @view

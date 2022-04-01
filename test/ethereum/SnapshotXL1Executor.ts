@@ -162,19 +162,19 @@ async function receiveProposalTest(SnapshotXModule: any) {
   };
 
   //2 transactions in proposal
-  const tx_hash1 = _TypedDataEncoder.hash(domain, EIP712_TYPES, tx1);
-  const tx_hash2 = _TypedDataEncoder.hash(domain, EIP712_TYPES, tx2);
+  const txHash1 = _TypedDataEncoder.hash(domain, EIP712_TYPES, tx1);
+  const txHash2 = _TypedDataEncoder.hash(domain, EIP712_TYPES, tx2);
 
   const abiCoder = new ethers.utils.AbiCoder();
-  const execution_details = ethers.utils.keccak256(
-    abiCoder.encode(['bytes32[]'], [[tx_hash1, tx_hash2]])
+  const executionHash = ethers.utils.keccak256(
+    abiCoder.encode(['bytes32[]'], [[txHash1, txHash2]])
   );
   const has_passed = 1;
-  await SnapshotXModule.receiveProposalTest(execution_details, has_passed, [tx_hash1, tx_hash2]);
+  await SnapshotXModule.receiveProposalTest(executionHash, has_passed, [txHash1, txHash2]);
 
   return {
-    tx_hash1: tx_hash1 as any,
-    tx_hash2: tx_hash2 as any,
+    tx_hash1: txHash1 as any,
+    tx_hash2: txHash2 as any,
   };
 }
 
