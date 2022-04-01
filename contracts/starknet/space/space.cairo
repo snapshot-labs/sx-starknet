@@ -180,6 +180,10 @@ func propose{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr :
         ):
     alloc_locals
 
+    # We cannot have `0` as the `ethereum_block_number` because we rely on checking
+    # if it's different than 0 in `finalize_proposal`.
+    assert_not_zero(ethereum_block_number)
+
     # Verify that the caller is the authenticator contract.
     authenticator_only()
 
