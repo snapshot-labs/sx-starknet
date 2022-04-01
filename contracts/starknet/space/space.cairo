@@ -224,7 +224,7 @@ func propose{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr :
     return ()
 end
 
-# Finalizes the proposal, counts the voting power FOR and AGAINST, and send the corresponding result to the L1 executor contract
+# Finalizes the proposal, counts the voting power, and send the corresponding result to the L1 executor contract
 @external
 func finalize_proposal{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr : felt}(
         proposal_id : felt):
