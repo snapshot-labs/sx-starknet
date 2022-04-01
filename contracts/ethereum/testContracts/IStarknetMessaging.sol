@@ -2,7 +2,6 @@
 pragma solidity ^0.8.6;
 
 interface IStarknetMessaging {
-  // This event needs to be compatible with the one defined in Output.sol.
   event LogMessageToL1(uint256 indexed from_address, address indexed to_address, uint256[] payload);
 
   // An event that is raised when a message is sent from L1 to L2.
