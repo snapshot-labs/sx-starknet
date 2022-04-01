@@ -1,3 +1,4 @@
+
 namespace Choice:
     const FOR = 1
     const AGAINST = 2
