@@ -31,6 +31,14 @@ Snapshot is open-sourced software licensed under the © [MIT license](LICENSE).
 Usage
 -----
 
+### Clone repository:
+
+```bash 
+git clone https://github.com/snapshot-labs/sx-core.git
+git submodule update --init --recursive
+```
+Note: The submodule included in the repo is the [Fossil](https://github.com/OilerNetwork/fossil) Storage Verifier
+
 ### Install Python and Yarn requirements: 
 
 ```bash
@@ -45,7 +53,7 @@ yarn
 ```bash
 yarn compile
 ```
-### Install and start StarkNet Devnet (In separate terminal):
+### Install and run StarkNet Devnet (In separate terminal):
 ```bash
 pip install starknet-devnet
 starknet-devnet -p 8000
