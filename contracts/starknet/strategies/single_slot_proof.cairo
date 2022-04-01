@@ -1,22 +1,17 @@
 %lang starknet
-%builtins pedersen range_check bitwise
 
 from starkware.cairo.common.cairo_builtins import HashBuiltin, BitwiseBuiltin
 from starkware.cairo.common.uint256 import Uint256, uint256_add
 from starkware.cairo.common.math import unsigned_div_rem, assert_nn_le
-from starkware.cairo.common.pow import pow
-
 from contracts.starknet.fossil.contracts.starknet.types import StorageSlot
-from contracts.starknet.lib.type_conversions import ints_to_uint256
 
 # FactRegistry simplified interface
 @contract_interface
 namespace IFactsRegistry:
-    func get_storage(
+    func get_storage_uint256(
             block : felt, account_160 : felt, slot : StorageSlot, proof_sizes_bytes_len : felt,
             proof_sizes_bytes : felt*, proof_sizes_words_len : felt, proof_sizes_words : felt*,
-            proofs_concat_len : felt, proofs_concat : felt*) -> (
-            res_bytes_len : felt, res_len : felt, res : felt*):
+            proofs_concat_len : felt, proofs_concat : felt*) -> (res : Uint256):
     end
 end
 
@@ -46,7 +41,7 @@ func get_voting_power{
         proofs_concat_len, proofs_concat) = decode_param_array(params_len, params)
 
     # Calling Fossil Fact Registry to verify the storage proof of the slot value
-    let (storage_bytes_len, storage_len, storage) = IFactsRegistry.get_storage(
+    let (voting_power) = IFactsRegistry.get_storage_uint256(
         fact_registry_addr,
         block,
         account_160,
@@ -57,9 +52,6 @@ func get_voting_power{
         proof_sizes_words,
         proofs_concat_len,
         proofs_concat)
-
-    # Converting the returned value to a cairo uint256
-    let (voting_power) = ints_to_uint256(storage_bytes_len, storage_len, storage)
 
     return (voting_power)
 end
