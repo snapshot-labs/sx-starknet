@@ -66,7 +66,7 @@ function createExecutionHash(_verifyingContract: string): {
   };
 }
 
-describe('Postman', function () {
+describe('Create proposal, cast vote, and send execution to l1', function () {
   this.timeout(500000);
 
   const user = 1;
