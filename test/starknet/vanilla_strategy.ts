@@ -5,7 +5,7 @@ import { SplitUint256 } from './shared/types';
 
 async function setup() {
   const vanillaVotingStrategyFactory = await starknet.getContractFactory(
-    './contracts/starknet/strategies/vanilla_voting_strategy.cairo'
+    './contracts/starknet/strategies/vanilla.cairo'
   );
   const vanillaVotingStrategy = await vanillaVotingStrategyFactory.deploy();
   return {
@@ -22,5 +22,5 @@ describe('Snapshot X Vanilla Voting Strategy:', () => {
       params: [],
     });
     expect(new SplitUint256(vp.low, vp.high)).to.deep.equal(SplitUint256.fromUint(BigInt(1)));
-  }).timeout(60000);
+  }).timeout(600000);
 });
