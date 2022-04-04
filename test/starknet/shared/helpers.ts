@@ -17,3 +17,21 @@ export function bytesToHex(bytes: number[]): string {
   }).join('');
   return '0x' + body;
 }
+
+export function wordsToUint(word1: bigint, word2: bigint, word3: bigint, word4: bigint): bigint {
+  const s3 = BigInt(2 ** 64);
+  const s2 = BigInt(2 ** 128);
+  const s1 = BigInt(2 ** 192);
+  return word4 + word3 * s3 + word2 * s2 + word1 * s1;
+}
+
+export function uintToWords(
+  uint: bigint
+): [word1: bigint, word2: bigint, word3: bigint, word4: bigint] {
+  const word4 = uint & ((BigInt(1) << BigInt(64)) - BigInt(1));
+  const word3 = (uint & ((BigInt(1) << BigInt(128)) - (BigInt(1) << BigInt(64)))) >> BigInt(64);
+  const word2 = (uint & ((BigInt(1) << BigInt(192)) - (BigInt(1) << BigInt(128)))) >> BigInt(128);
+  const word1 = uint >> BigInt(192);
+
+  return [word1, word2, word3, word4];
+}
