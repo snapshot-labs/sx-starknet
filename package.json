@@ -22,6 +22,9 @@
   "dependencies": {
     "@gnosis.pm/safe-contracts": "^1.3.0",
     "@gnosis.pm/zodiac": "^1.0.3",
+    "ethereumjs-util": "^7.1.4",
+    "install": "^0.13.0",
+    "npm": "^8.6.0",
     "starknet": "^2.5.1",
     "sx-api": "snapshot-labs/sx-api",
     "yargs": "^17.3.1"

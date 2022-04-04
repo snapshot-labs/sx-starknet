@@ -112,10 +112,10 @@ describe('Snapshot X Single Slot Strategy:', () => {
 
     // Second time it returns the hash showing that the prove_account tx has been included
     const { res: out3 } = await fossil.factsRegistry.call('get_verified_account_storage_hash', {
-        account_160: proofInputs.ethAddressFelt,
-        block: proofInputs.blockNumber,
-      });
-      console.log(out3);
+      account_160: proofInputs.ethAddressFelt,
+      block: proofInputs.blockNumber,
+    });
+    console.log(out3);
 
     // Obtain voting power for the account by verifying the storage proof.
     const { voting_power: vp } = await singleSlotProofStrategy.call('get_voting_power', {
