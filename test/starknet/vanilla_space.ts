@@ -22,7 +22,7 @@ async function setup() {
     './contracts/starknet/space/space.cairo'
   );
   const vanillaVotingStategyFactory = await starknet.getContractFactory(
-    './contracts/starknet/strategies/vanilla_voting_strategy.cairo'
+    './contracts/starknet/strategies/vanilla.cairo'
   );
   const vanillaAuthenticatorFactory = await starknet.getContractFactory(
     './contracts/starknet/authenticator/authenticator.cairo'

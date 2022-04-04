@@ -1,0 +1,3 @@
+[submodule "contracts/starknet/fossil"]
+	path = contracts/starknet/fossil
+	url = https://github.com/OilerNetwork/fossil.git
