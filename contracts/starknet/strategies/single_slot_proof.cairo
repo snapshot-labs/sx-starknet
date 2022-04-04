@@ -8,7 +8,7 @@ from contracts.starknet.fossil.contracts.starknet.types import StorageSlot
 # FactRegistry simplified interface
 @contract_interface
 namespace IFactsRegistry:
-    func get_storage_uint256(
+    func get_storage_uint(
             block : felt, account_160 : felt, slot : StorageSlot, proof_sizes_bytes_len : felt,
             proof_sizes_bytes : felt*, proof_sizes_words_len : felt, proof_sizes_words : felt*,
             proofs_concat_len : felt, proofs_concat : felt*) -> (res : Uint256):
@@ -41,7 +41,7 @@ func get_voting_power{
         proofs_concat_len, proofs_concat) = decode_param_array(params_len, params)
 
     # Calling Fossil Fact Registry to verify the storage proof of the slot value
-    let (voting_power) = IFactsRegistry.get_storage_uint256(
+    let (voting_power) = IFactsRegistry.get_storage_uint(
         fact_registry_addr,
         block,
         account_160,

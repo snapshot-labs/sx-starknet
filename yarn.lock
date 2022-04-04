@@ -535,7 +535,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@ethersproject/rlp@npm:5.6.0, @ethersproject/rlp@npm:^5.6.0":
+"@ethersproject/rlp@npm:5.6.0, @ethersproject/rlp@npm:^5.5.0, @ethersproject/rlp@npm:^5.6.0":
   version: 5.6.0
   resolution: "@ethersproject/rlp@npm:5.6.0"
   dependencies:
@@ -764,6 +764,80 @@ __metadata:
   version: 1.2.1
   resolution: "@humanwhocodes/object-schema@npm:1.2.1"
   checksum: a824a1ec31591231e4bad5787641f59e9633827d0a2eaae131a288d33c9ef0290bd16fda8da6f7c0fcb014147865d12118df10db57f27f41e20da92369fcb3f1
+  languageName: node
+  linkType: hard
+
+"@ledgerhq/cryptoassets@npm:^6.27.0":
+  version: 6.28.0
+  resolution: "@ledgerhq/cryptoassets@npm:6.28.0"
+  dependencies:
+    invariant: 2
+  checksum: 5000ef69b7c4a647e31fb46f81dd85b566878264e858f6dfe317012e7c198222311dc09f7dbcd814cad2280529e2bab028b92681e54d1c84d803b9381eaf3de7
+  languageName: node
+  linkType: hard
+
+"@ledgerhq/devices@npm:^6.24.1":
+  version: 6.24.1
+  resolution: "@ledgerhq/devices@npm:6.24.1"
+  dependencies:
+    "@ledgerhq/errors": ^6.10.0
+    "@ledgerhq/logs": ^6.10.0
+    rxjs: 6
+    semver: ^7.3.5
+  checksum: f42bce5c0d3bda8b4f3ccdfcdf576e916f736fbffef3820c742cafd9baa49335a6cdfeed473cb055fb95a6bb2ae37f02753246cf4b9e623dfc2ad39212379f17
+  languageName: node
+  linkType: hard
+
+"@ledgerhq/errors@npm:^6.10.0":
+  version: 6.10.0
+  resolution: "@ledgerhq/errors@npm:6.10.0"
+  checksum: d9fab0e6ae164a605dc7929c31bda43d4c2d42b5070786ce429e1cfc1cd05b85e15d27c5c403304936711077a45d3d8989eb582b809a73bd19af252182546920
+  languageName: node
+  linkType: hard
+
+"@ledgerhq/hw-app-eth@npm:^6.26.0":
+  version: 6.27.0
+  resolution: "@ledgerhq/hw-app-eth@npm:6.27.0"
+  dependencies:
+    "@ethersproject/abi": ^5.5.0
+    "@ethersproject/rlp": ^5.5.0
+    "@ledgerhq/cryptoassets": ^6.27.0
+    "@ledgerhq/errors": ^6.10.0
+    "@ledgerhq/hw-transport": ^6.24.1
+    "@ledgerhq/logs": ^6.10.0
+    axios: ^0.26.1
+    bignumber.js: ^9.0.2
+  checksum: 363c3b9ed5c2ba36e1ffa5e29851f9a083c37898a620c9b133b846f39ba3b7a61f1aea498835179cf8db341b9615997df0926b2888b7f1c6d1c4f8e6a5c06e3f
+  languageName: node
+  linkType: hard
+
+"@ledgerhq/hw-transport-webhid@npm:^6.24.1":
+  version: 6.24.1
+  resolution: "@ledgerhq/hw-transport-webhid@npm:6.24.1"
+  dependencies:
+    "@ledgerhq/devices": ^6.24.1
+    "@ledgerhq/errors": ^6.10.0
+    "@ledgerhq/hw-transport": ^6.24.1
+    "@ledgerhq/logs": ^6.10.0
+  checksum: 5b3000bdbbf26b247b54743dc24596e684316f73f512c4c73d180668acb84934235e950eb71bc9ddf85948f6fa41fe8a2aadbc2e0fc6895f935b9879d9dea33c
+  languageName: node
+  linkType: hard
+
+"@ledgerhq/hw-transport@npm:^6.24.1":
+  version: 6.24.1
+  resolution: "@ledgerhq/hw-transport@npm:6.24.1"
+  dependencies:
+    "@ledgerhq/devices": ^6.24.1
+    "@ledgerhq/errors": ^6.10.0
+    events: ^3.3.0
+  checksum: 31920d43268f65240fd6e48cdfb94059f676bdf2fd1a63a1a15b4dbd8ece2802e2fbfc6933019c80a2b4f830bf3fc5554065a4c5ee6dd6856084db26426e73e1
+  languageName: node
+  linkType: hard
+
+"@ledgerhq/logs@npm:^6.10.0":
+  version: 6.10.0
+  resolution: "@ledgerhq/logs@npm:6.10.0"
+  checksum: 6194311890ccc3879fb1371e37a6ca67e7e13ea67199885b15ba8dd1c6613f31fd52a5248bdc541c2d2632aadd099af34524adc34f0e0f94732ba3ff6e3069fe
   languageName: node
   linkType: hard
 
@@ -1046,17 +1120,17 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@shardlabs/starknet-hardhat-plugin@npm:^0.4.3":
-  version: 0.4.3
-  resolution: "@shardlabs/starknet-hardhat-plugin@npm:0.4.3"
+"@shardlabs/starknet-hardhat-plugin@npm:^0.5.2":
+  version: 0.5.2
+  resolution: "@shardlabs/starknet-hardhat-plugin@npm:0.5.2"
   dependencies:
     "@nomiclabs/hardhat-docker": ^2.0.2
     axios: ^0.24.0
     glob: ^7.2.0
-    starknet: ^2.5.1
+    starknet: ^3.5.1
   peerDependencies:
     hardhat: ^2.9.0
-  checksum: 104c8f09fa5b0cc3f75b4623fac33cbce5a85f6e7d0fdaa71a4d3c2bff780d6c4b8dd4f29d1cfd4578934b74784297c8a88d6ec9c2db30aeaaea9d463a9fdf0c
+  checksum: bad45291d6650908f15425fedc8ae1855abda97350ccc029ddf2543db8cb7b082c6ade5095f0a45f85c0a6e9ee3cf85b8948e6987c21bc2a1231d3a656b7ccf9
   languageName: node
   linkType: hard
 
@@ -2245,6 +2319,15 @@ __metadata:
   languageName: node
   linkType: hard
 
+"axios@npm:^0.26.1":
+  version: 0.26.1
+  resolution: "axios@npm:0.26.1"
+  dependencies:
+    follow-redirects: ^1.14.8
+  checksum: d9eb58ff4bc0b36a04783fc9ff760e9245c829a5a1052ee7ca6013410d427036b1d10d04e7380c02f3508c5eaf3485b1ae67bd2adbfec3683704745c8d7a6e1a
+  languageName: node
+  linkType: hard
+
 "babel-code-frame@npm:^6.26.0":
   version: 6.26.0
   resolution: "babel-code-frame@npm:6.26.0"
@@ -2944,7 +3027,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"bignumber.js@npm:^9.0.0, bignumber.js@npm:^9.0.1":
+"bignumber.js@npm:^9.0.0, bignumber.js@npm:^9.0.1, bignumber.js@npm:^9.0.2":
   version: 9.0.2
   resolution: "bignumber.js@npm:9.0.2"
   checksum: 8637b71d0a99104b20413c47578953970006fec6b4df796b9dcfd9835ea9c402ea0e727eba9a5ca9f9a393c1d88b6168c5bbe0887598b708d4f8b4870ad62e1f
@@ -5917,7 +6000,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"events@npm:^3.0.0":
+"events@npm:^3.0.0, events@npm:^3.3.0":
   version: 3.3.0
   resolution: "events@npm:3.3.0"
   checksum: f6f487ad2198aa41d878fa31452f1a3c00958f46e9019286ff4787c84aac329332ab45c9cdc8c445928fc6d7ded294b9e005a7fce9426488518017831b272780
@@ -6361,7 +6444,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"follow-redirects@npm:^1.12.1, follow-redirects@npm:^1.14.4":
+"follow-redirects@npm:^1.12.1, follow-redirects@npm:^1.14.4, follow-redirects@npm:^1.14.8":
   version: 1.14.9
   resolution: "follow-redirects@npm:1.14.9"
   peerDependenciesMeta:
@@ -7641,7 +7724,7 @@ fsevents@~2.3.2:
   languageName: node
   linkType: hard
 
-"invariant@npm:^2.2.2":
+"invariant@npm:2, invariant@npm:^2.2.2":
   version: 2.2.4
   resolution: "invariant@npm:2.2.4"
   dependencies:
@@ -11661,7 +11744,7 @@ resolve@1.17.0:
   languageName: node
   linkType: hard
 
-"rxjs@npm:^6.4.0, rxjs@npm:^6.6.0":
+"rxjs@npm:6, rxjs@npm:^6.4.0, rxjs@npm:^6.6.0":
   version: 6.6.7
   resolution: "rxjs@npm:6.6.7"
   dependencies:
@@ -12154,7 +12237,7 @@ resolve@1.17.0:
     "@nomiclabs/hardhat-etherscan": ^2.1.8
     "@nomiclabs/hardhat-solhint": ^2.0.0
     "@nomiclabs/hardhat-waffle": ^2.0.2
-    "@shardlabs/starknet-hardhat-plugin": ^0.4.3
+    "@shardlabs/starknet-hardhat-plugin": ^0.5.2
     "@typechain/ethers-v5": ^7.2.0
     "@typechain/hardhat": ^2.3.1
     "@types/chai": ^4.3.0
@@ -12588,6 +12671,27 @@ resolve@1.17.0:
     superstruct: ^0.15.3
     url-join: ^4.0.1
   checksum: 76d3b861e47dcc0fa0a7b084b76773b305dab99d3916e0c7f74e1acaa00699a59ddfb1d8befd1c1190462ca3f1776466fd37e1a61f7d8131e7ef8be88c985f41
+  languageName: node
+  linkType: hard
+
+"starknet@npm:^3.5.1":
+  version: 3.7.0
+  resolution: "starknet@npm:3.7.0"
+  dependencies:
+    "@ledgerhq/hw-app-eth": ^6.26.0
+    "@ledgerhq/hw-transport": ^6.24.1
+    "@ledgerhq/hw-transport-webhid": ^6.24.1
+    axios: ^0.23.0
+    bn.js: ^5.2.0
+    elliptic: ^6.5.4
+    ethereum-cryptography: ^0.2.0
+    hash.js: ^1.1.7
+    json-bigint: ^1.0.0
+    minimalistic-assert: ^1.0.1
+    pako: ^2.0.4
+    superstruct: ^0.15.3
+    url-join: ^4.0.1
+  checksum: 92bde000bb726a942bad09a85dcf4b8ee61fe8078b2f9c08fb4b563b2ca5668c28d1c0a24101acff759ea46562b046aa0daa1dc835aa37714c1a4e6453d075af
   languageName: node
   linkType: hard
 
