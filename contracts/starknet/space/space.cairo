@@ -11,8 +11,11 @@ from contracts.starknet.lib.proposal import Proposal
 from contracts.starknet.lib.proposal_info import ProposalInfo
 from contracts.starknet.lib.vote import Vote
 from contracts.starknet.lib.choice import Choice
+from contracts.starknet.execution.interface import IExecutionStrategy
 from starkware.cairo.common.alloc import alloc
 from starkware.cairo.common.uint256 import Uint256, uint256_add, uint256_lt
+from starkware.cairo.common.memcpy import memcpy
+from starkware.cairo.common.hash_state import hash_init, hash_update
 
 @storage_var
 func voting_delay() -> (delay : felt):
@@ -36,7 +39,7 @@ func authenticator() -> (authenticator_address : felt):
 end
 
 @storage_var
-func l1_executor() -> (l1_executor_address : EthAddress):
+func executor() -> (executor_address : felt):
 end
 
 @storage_var
@@ -62,7 +65,8 @@ end
 @event
 func proposal_created(
         proposal_id : felt, proposer_address : EthAddress, proposal : Proposal,
-        metadata_uri_len : felt, metadata_uri : felt*):
+        metadata_uri_len : felt, metadata_uri : felt*, execution_params_len : felt,
+        execution_params : felt*):
 end
 
 @event
@@ -82,17 +86,27 @@ func authenticator_only{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_
     return ()
 end
 
+# Internal utility function to hash data
+func hash_pedersen{pedersen_ptr : HashBuiltin*}(calldata_len : felt, calldata : felt*) -> (
+        hash : felt):
+    let (hash_state_ptr) = hash_init()
+    let (hash_state_ptr) = hash_update{hash_ptr=pedersen_ptr}(
+        hash_state_ptr, calldata, calldata_len)
+
+    return (hash_state_ptr.current_hash)
+end
+
 @constructor
 func constructor{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr : felt}(
         _voting_delay : felt, _voting_period : felt, _proposal_threshold : Uint256,
-        _voting_strategy : felt, _authenticator : felt, _l1_executor : felt):
+        _voting_strategy : felt, _authenticator : felt, _executor : felt):
     # Sanity checks
     assert_nn(_voting_delay)
     assert_nn(_voting_period)
     assert_not_zero(_voting_strategy)
     assert_not_zero(_authenticator)
     # TODO: maybe use uint256_signed_nn to check proposal_threshold?
-    # TODO: maybe check that _l1_executor is not 0?
+    # TODO: maybe check that _executor is not 0?
 
     # Initialize the storage variables
     voting_delay.write(_voting_delay)
@@ -100,18 +114,9 @@ func constructor{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_p
     proposal_threshold.write(_proposal_threshold)
     voting_strategy.write(_voting_strategy)
     authenticator.write(_authenticator)
-    l1_executor.write(EthAddress(_l1_executor))
+    executor.write(_executor)
     next_proposal_nonce.write(1)
 
-    return ()
-end
-
-# TODO: L1 needs to know about L2 address, but L2 needs to know about the L2 address... need to fix that.
-# TODO: this should either be on the l1 contract or the l2 contract. Since l1 contract has an `owner` I think it should be on l1.
-@external
-func set_l1_executor{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr : felt}(
-        _l1_executor : felt):
-    l1_executor.write(EthAddress(_l1_executor))
     return ()
 end
 
@@ -172,12 +177,11 @@ func vote{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr : fe
     return ()
 end
 
-# TODO: execution_hash should be of type Hash and metadata_uri of type felt* (string)
 @external
 func propose{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr : felt}(
         proposer_address : EthAddress, execution_hash : Uint256, metadata_uri_len : felt,
-        metadata_uri : felt*, ethereum_block_number : felt, params_len : felt, params : felt*) -> (
-        ):
+        metadata_uri : felt*, ethereum_block_number : felt, voting_params_len : felt,
+        voting_params : felt*, execution_params_len : felt, execution_params : felt*) -> ():
     alloc_locals
 
     # We cannot have `0` as the `ethereum_block_number` because we rely on checking
@@ -201,8 +205,8 @@ func propose{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr :
         contract_address=strategy_contract,
         timestamp=start_timestamp,
         address=proposer_address,
-        params_len=params_len,
-        params=params)
+        params_len=voting_params_len,
+        params=voting_params)
 
     # Verify that the proposer has enough voting power to trigger a proposal
     let (threshold) = proposal_threshold.read()
@@ -212,15 +216,27 @@ func propose{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr :
         assert 1 = 0
     end
 
+    # Hash the execution params
+    let (hash) = hash_pedersen(execution_params_len, execution_params)
+
     # Create the proposal and its proposal id
-    let proposal = Proposal(execution_hash, start_timestamp, end_timestamp, ethereum_block_number)
+    let proposal = Proposal(
+        execution_hash, start_timestamp, end_timestamp, ethereum_block_number, hash)
+
     let (proposal_id) = next_proposal_nonce.read()
 
     # Store the proposal
     proposal_registry.write(proposal_id, proposal)
 
     # Emit event
-    proposal_created.emit(proposal_id, proposer_address, proposal, metadata_uri_len, metadata_uri)
+    proposal_created.emit(
+        proposal_id,
+        proposer_address,
+        proposal,
+        metadata_uri_len,
+        metadata_uri,
+        execution_params_len,
+        execution_params)
 
     # Increase the proposal nonce
     next_proposal_nonce.write(proposal_id + 1)
@@ -231,7 +247,7 @@ end
 # Finalizes the proposal, counts the voting power, and send the corresponding result to the L1 executor contract
 @external
 func finalize_proposal{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr : felt}(
-        proposal_id : felt):
+        proposal_id : felt, execution_params_len : felt, execution_params : felt*):
     alloc_locals
 
     let (has_been_executed) = executed_proposals.read(proposal_id)
@@ -253,6 +269,10 @@ func finalize_proposal{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_c
     # Please uncomment before pushing to prod.
     # assert_lt_felt(proposal.end_timestamp, current_timestamp)
 
+    # Make sure execution params match the stored hash
+    let (recovered_hash) = hash_pedersen(execution_params_len, execution_params)
+    assert recovered_hash = proposal.execution_params_hash
+
     # Count votes for
     let (for) = vote_power.read(proposal_id, Choice.FOR)
 
@@ -262,18 +282,20 @@ func finalize_proposal{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_c
     # If AGAINST < FOR set has_passed to 0 else set to 1
     let (has_passed) = uint256_lt(against, for)
 
-    # Create the payload
-    let (message_payload : felt*) = alloc()
-    assert message_payload[0] = proposal.execution_hash.low
-    assert message_payload[1] = proposal.execution_hash.high
-    assert message_payload[2] = has_passed
+    let (executor_address) = executor.read()
 
-    # Send message to L1 Contract (executionHash, hasPassed)
-    let (l1_executor_address) = l1_executor.read()
-    send_message_to_l1(
-        to_address=l1_executor_address.value, payload_size=3, payload=message_payload)
+    IExecutionStrategy.execute(
+        contract_address=executor_address,
+        has_passed=has_passed,
+        execution_hash=proposal.execution_hash,
+        execution_params_len=execution_params_len,
+        execution_params=execution_params)
 
     # Flag this proposal as executed
+    # This should not create re-entrency vulnerability because the message
+    # executor is a whitelisted address. If we set this flag BEFORE the call
+    # to the executor, we could have a malicious attacker sending some random
+    # invlalid execution_params and cancel out the vote.
     executed_proposals.write(proposal_id, 1)
 
     return ()
