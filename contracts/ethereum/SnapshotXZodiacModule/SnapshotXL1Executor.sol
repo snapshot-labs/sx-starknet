@@ -102,16 +102,18 @@ contract SnapshotXL1Executor is Module, SnapshotXProposalRelayer {
    * @param _avatar Address that will ultimately execute function calls
    * @param _target Address that this contract will pass transactions to
    * @param _starknetCore Address of the StarkNet Core contract
-   * @param _executorL2 Address of the StarkNet contract that will send execution details to this contract in a L2 -> L1 message
+   * @param _l2ExecutionRelayer Address of the StarkNet contract that will send execution details to this contract in a L2 -> L1 message
+   * @param _l2SpacesToWhitelist Array of spaces deployed on L2 that are allowed to interact with this contract
    */
   constructor(
     address _owner,
     address _avatar,
     address _target,
     address _starknetCore,
-    uint256[] memory _executorL2
+    uint256 _l2ExecutionRelayer,
+    uint256[] memory _l2SpacesToWhitelist
   ) {
-    bytes memory initParams = abi.encode(_owner, _avatar, _target, _starknetCore, _executorL2);
+    bytes memory initParams = abi.encode(_owner, _avatar, _target, _starknetCore, _l2ExecutionRelayer, _l2SpacesToWhitelist);
     setUp(initParams);
   }
 
@@ -203,6 +205,7 @@ contract SnapshotXL1Executor is Module, SnapshotXProposalRelayer {
    * @param _txHashes Array of transaction hashes in proposal
    */
   function receiveProposalTest(
+    uint256 callerAddress,
     uint256 executionHash,
     uint256 hasPassed,
     bytes32[] memory _txHashes

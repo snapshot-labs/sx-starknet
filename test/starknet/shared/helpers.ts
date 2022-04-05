@@ -43,32 +43,44 @@ export async function setup() {
   const vanillaAuthenticatorFactory = await starknet.getContractFactory(
     './contracts/starknet/authenticator/authenticator.cairo'
   );
+  const zodiacRelayerFactory = await starknet.getContractFactory(
+    './contracts/starknet/execution/zodiac_l1.cairo'
+  );
 
-  console.log('Deploying auth...');
-  const vanillaAuthenticator = (await vanillaAuthenticatorFactory.deploy()) as StarknetContract;
-  console.log('Deploying strat...');
-  const vanillaVotingStrategy = (await vanillaVotingStategyFactory.deploy()) as StarknetContract;
+  const deployments = [
+    vanillaAuthenticatorFactory.deploy(),
+    vanillaVotingStategyFactory.deploy(),
+    zodiacRelayerFactory.deploy(),
+  ];
+  console.log("Deploying auth, voting and zodiac relayer contracts...");
+  const contracts = await Promise.all(deployments);
+  const vanillaAuthenticator = contracts[0] as StarknetContract;
+  const vanillaVotingStrategy = contracts[1] as StarknetContract;
+  const zodiacRelayer = contracts[2] as StarknetContract;
+
   const voting_strategy = BigInt(vanillaVotingStrategy.address);
   const authenticator = BigInt(vanillaAuthenticator.address);
-  console.log('Deploying space...');
+  const zodiac_relayer = BigInt(zodiacRelayer.address);
 
   // This should be declared along with the other const but doing so will make the compiler unhappy as `SplitUin256`
   // will be undefined for some reason?
   const PROPOSAL_THRESHOLD = SplitUint256.fromUint(BigInt(1));
 
+  console.log("Deploying space contract...");
   const vanillaSpace = (await vanillaSpaceFactory.deploy({
     _voting_delay: VOTING_DELAY,
     _voting_period: VOTING_PERIOD,
     _proposal_threshold: PROPOSAL_THRESHOLD,
     _voting_strategy: voting_strategy,
     _authenticator: authenticator,
-    _l1_executor: BigInt(0x1234),
+    _executor: zodiac_relayer,
   })) as StarknetContract;
 
   return {
     vanillaSpace,
     vanillaAuthenticator,
     vanillaVotingStrategy,
+    zodiacRelayer,
   };
 }
 

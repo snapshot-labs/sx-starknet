@@ -10,32 +10,61 @@ import {
   VOTE_METHOD,
   VOTING_PERIOD,
 } from './shared/helpers';
+import { StarknetContract } from 'hardhat/types';
 
 const { getSelectorFromName } = stark;
 
 describe('Space testing', () => {
-  it('Simple Vote', async () => {
-    const { vanillaSpace, vanillaAuthenticator, vanillaVotingStrategy } = await setup();
-    const spaceContract = BigInt(vanillaSpace.address);
-    const executionHash = new SplitUint256(BigInt(1), BigInt(2)); // Dummy uint256
-    const metadataUri = strToShortStringArr(
-      'Hello and welcome to Snapshot X. This is the future of governance.'
-    );
-    const proposerAddress = VITALIK_ADDRESS;
-    const proposalId = 1;
-    const params: Array<bigint> = [];
-    const ethBlockNumber = BigInt(1337);
-    const calldata = [
-      proposerAddress,
+  let vanillaSpace: StarknetContract;
+  let vanillaAuthenticator: StarknetContract;
+  let vanillaVotingStrategy: StarknetContract;
+  let zodiacRelayer: StarknetContract;
+  const executionHash = new SplitUint256(BigInt(1), BigInt(2)); // Dummy uint256
+  const metadataUri = strToShortStringArr(
+    'Hello and welcome to Snapshot X. This is the future of governance.'
+  );
+  const proposerAddress = {value: VITALIK_ADDRESS};
+  const proposalId = 1;
+  const votingParams: Array<bigint> = [];
+  let executionParams: Array<bigint>;
+  const ethBlockNumber = BigInt(1337);
+  let calldata: Array<bigint>;
+  let spaceContract: bigint;
+
+  before(async function () {
+    ({vanillaSpace, vanillaAuthenticator, vanillaVotingStrategy, zodiacRelayer} = await setup());
+    executionParams = [BigInt(zodiacRelayer.address)];
+    spaceContract = BigInt(vanillaSpace.address);
+
+    calldata = [
+      proposerAddress.value,
       executionHash.low,
       executionHash.high,
       BigInt(metadataUri.length),
       ...metadataUri,
       ethBlockNumber,
-      BigInt(params.length),
-      ...params,
-    ];
+      BigInt(votingParams.length),
+      ...votingParams,
+      BigInt(executionParams.length),
+      ...executionParams,
+    ]
+  });
 
+  // `to.be.reverted` doesn't work yet with starknet (to my knowledge)
+  // it('Fails if proposing without going through the authenticator', async () => {
+  //   console.log('Creating proposal...');
+  //   let invoke = vanillaSpace.invoke(PROPOSAL_METHOD, {
+  //     proposer_address: proposerAddress,
+  //     execution_hash: executionHash,
+  //     metadata_uri: metadataUri,
+  //     ethereum_block_number: ethBlockNumber,
+  //     voting_params: votingParams,
+  //     execution_params: executionParams,
+  //   });
+  //   expect (await invoke).to.be.reverted;
+  // });
+
+  it('Should create a proposal and cast a vote', async () => {
     // -- Creates the proposal --
     {
       console.log('Creating proposal...');
@@ -69,7 +98,7 @@ describe('Space testing', () => {
     // -- Casts a vote FOR --
     {
       console.log('Casting a vote FOR...');
-      const voter_address = proposerAddress;
+      const voter_address = proposerAddress.value;
       const params: Array<BigInt> = [];
       await vanillaAuthenticator.invoke(EXECUTE_METHOD, {
         to: spaceContract,
@@ -90,32 +119,4 @@ describe('Space testing', () => {
       expect(abstain).to.deep.equal(BigInt(0));
     }
   }).timeout(6000000);
-
-  // TODO: how can we do tests that are expected to fail?
-  // it('Fails if proposing without going through the authenticator', async () => {
-  //   const { vanillaSpace, vanillaAuthenticator, vanillaVotingStrategy } = await setup();
-  //   const execution_hash = BigInt(1);
-  //   const metadata_uri = BigInt(2);
-  //   const proposer_address = VITALIK_ADDRESS;
-
-  //   const proposal_id = await vanillaSpace.call(PROPOSAL_METHOD, {
-  //     proposer_address: proposer_address,
-  //     execution_hash: execution_hash,
-  //     metadata_uri: metadata_uri,
-  //   });
-  // }).timeout(60000);
-
-  // TODO: how can we do tests that are expected to fail?
-  // it('Fails if voting without going through the authenticator', async () => {
-  //   const { vanillaSpace, vanillaAuthenticator, vanillaVotingStrategy } = await setup();
-  //   const voter_address = VITALIK_ADDRESS;
-  //   const proposal_id = 1;
-  //   const choice = ABSTAIN;
-
-  //   const proposal_id = await vanillaSpace.call(VOTE_METHOD, {
-  //     proposer_address: proposer_address,
-  //     proposal_id: proposal_id,
-  //     choice: choice,
-  //   });
-  // }).timeout(60000);
 });
