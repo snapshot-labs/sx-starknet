@@ -1,6 +1,6 @@
 /// SPDX-License-Identifier: MIT
 
-pragma solidity ^0.8.6;
+pragma solidity 0.8.9;
 
 import '@gnosis.pm/zodiac/contracts/core/Module.sol';
 import './ProposalRelayer.sol';

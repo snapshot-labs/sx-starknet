@@ -13,6 +13,9 @@ jobs:
       - name: Check out Git repository
         uses: actions/checkout@v2
 
+      - name: Install Fossil submodule
+        run: git submodule update --init --recursive
+        
       - name: Set up node
         uses: actions/setup-node@v1
         with:
@@ -42,6 +45,7 @@ jobs:
           sudo apt install -y libgmp3-dev
           python -m pip install --upgrade pip
           pip install starknet-devnet
+          pip install werkzeug==2.0.3
   
       - name: Compile Contracts
         run: yarn compile
