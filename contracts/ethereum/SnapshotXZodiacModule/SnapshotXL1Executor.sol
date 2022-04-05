@@ -210,6 +210,7 @@ contract SnapshotXL1Executor is Module, SnapshotXProposalRelayer {
     uint256 hasPassed,
     bytes32[] memory _txHashes
   ) external {
+    require(callerAddress != 0);
     require(hasPassed == 1, 'Proposal did not pass');
     require(_txHashes.length > 0, 'proposal must contain transactions');
     require(bytes32(executionHash) == keccak256(abi.encode(_txHashes)), 'Invalid execution');
