@@ -72,7 +72,7 @@ contract SnapshotXProposalRelayer is Guardable {
    * @param hasPassed Whether the proposal passed
    * @return isReceived Has the proposal been received
    */
-  function isFinalizedProposalreceived(uint256 executionHash, uint256 hasPassed)
+  function isFinalizedProposalReceived(uint256 executionHash, uint256 hasPassed)
     external
     view
     returns (bool isReceived)
