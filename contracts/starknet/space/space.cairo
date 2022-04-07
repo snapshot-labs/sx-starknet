@@ -25,11 +25,11 @@ func proposal_threshold() -> (threshold : Uint256):
 end
 
 @storage_var
-func voting_strategies(voting_strategy_contract: felt) -> (is_valid : felt):
+func voting_strategies(voting_strategy_contract : felt) -> (is_valid : felt):
 end
 
 @storage_var
-func authenticators(authenticator_address: felt) -> (is_valid : felt):
+func authenticators(authenticator_address : felt) -> (is_valid : felt):
 end
 
 @storage_var
@@ -59,7 +59,8 @@ func vote_created(proposal_id : felt, voter_address : EthAddress, vote : Vote):
 end
 
 # Throws if the caller address is not identical to the authenticator address (stored in the `authenticator` variable)
-func assert_valid_authenticator{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr}():
+func assert_valid_authenticator{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr}(
+        ):
     let (caller_address) = get_caller_address()
     let (is_valid) = authenticators.read(caller_address)
 
@@ -70,7 +71,9 @@ func assert_valid_authenticator{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*
 end
 
 # Throws if the caller address is not identical to the authenticator address (stored in the `authenticator` variable)
-func assert_valid_voting_strategy{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr}(voting_strategy_contract: felt):
+func assert_valid_voting_strategy{
+        syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr}(
+        voting_strategy_contract : felt):
     let (is_valid) = voting_strategies.read(voting_strategy_contract)
 
     # Ensure it has been initialized
@@ -79,7 +82,8 @@ func assert_valid_voting_strategy{syscall_ptr : felt*, pedersen_ptr : HashBuilti
     return ()
 end
 
-func register_voting_strategies{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr}(_voting_strategies_len: felt, _voting_strategies: felt*):
+func register_voting_strategies{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr}(
+        _voting_strategies_len : felt, _voting_strategies : felt*):
     if _voting_strategies_len == 0:
         # List is empty
         return ()
@@ -98,7 +102,8 @@ func register_voting_strategies{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*
     end
 end
 
-func register_authenticators{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr}(_authenticators_len: felt, _authenticators: felt*):
+func register_authenticators{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr}(
+        _authenticators_len : felt, _authenticators : felt*):
     if _authenticators_len == 0:
         # List is empty
         return ()
@@ -120,7 +125,8 @@ end
 @constructor
 func constructor{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr : felt}(
         _voting_delay : felt, _voting_period : felt, _proposal_threshold : Uint256,
-        _voting_strategies_len : felt, _voting_strategies: felt*, _authenticators_len : felt, _authenticators: felt*):
+        _voting_strategies_len : felt, _voting_strategies : felt*, _authenticators_len : felt,
+        _authenticators : felt*):
     # Sanity checks
     assert_nn(_voting_delay)
     assert_nn(_voting_period)
@@ -143,8 +149,8 @@ end
 
 @external
 func vote{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr : felt}(
-        voting_strategy_contract: felt, voter_address : EthAddress, proposal_id : felt, choice : felt, params_len : felt,
-        params : felt*) -> ():
+        voting_strategy_contract : felt, voter_address : EthAddress, proposal_id : felt,
+        choice : felt, params_len : felt, params : felt*) -> ():
     alloc_locals
 
     # Verify that the caller is the authenticator contract.
@@ -200,9 +206,9 @@ end
 # TODO: execution_hash should be of type Hash and metadata_uri of type felt* (string)
 @external
 func propose{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr : felt}(
-        voting_strategy_contract: felt, proposer_address : EthAddress, execution_hash : felt, metadata_uri_len : felt,
-        metadata_uri : felt*, ethereum_block_number : felt, params_len : felt, params : felt*) -> (
-        ):
+        voting_strategy_contract : felt, proposer_address : EthAddress, execution_hash : felt,
+        metadata_uri_len : felt, metadata_uri : felt*, ethereum_block_number : felt,
+        params_len : felt, params : felt*) -> ():
     alloc_locals
 
     # Verify that the caller is the authenticator contract.
