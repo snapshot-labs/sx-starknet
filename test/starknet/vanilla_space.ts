@@ -38,8 +38,8 @@ async function setup() {
     _voting_delay: VOTING_DELAY,
     _voting_period: VOTING_PERIOD,
     _proposal_threshold: PROPOSAL_THRESHOLD,
-    _voting_strategy: voting_strategy,
-    _authenticator: authenticator,
+    _voting_strategies: [voting_strategy],
+    _authenticators: [authenticator],
   })) as StarknetContract;
 
   return {
@@ -64,6 +64,7 @@ describe('Space testing', () => {
     const params: Array<bigint> = [];
     const eth_block_number = BigInt(1337);
     const calldata = [
+      BigInt(vanillaVotingStrategy.address),
       proposer_address,
       execution_hash,
       BigInt(metadata_uri.length),
@@ -110,7 +111,7 @@ describe('Space testing', () => {
       await vanillaAuthenticator.invoke(EXECUTE_METHOD, {
         to: space_contract,
         function_selector: BigInt(getSelectorFromName(VOTE_METHOD)),
-        calldata: [voter_address, proposal_id, FOR, BigInt(params.length)],
+        calldata: [BigInt(vanillaVotingStrategy.address), voter_address, proposal_id, FOR, BigInt(params.length)],
       });
 
       console.log('Getting proposal info...');
