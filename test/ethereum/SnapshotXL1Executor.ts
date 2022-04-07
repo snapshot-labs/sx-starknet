@@ -68,7 +68,14 @@ async function baseSetup() {
 
   const encodedInitParams = ethers.utils.defaultAbiCoder.encode(
     ['address', 'address', 'address', 'address', 'uint256', 'uint256[]'],
-    [safe.address, safe.address, safe.address, '0xB0aC056995C4904a9cc04A6Cc3a864A9E9A7d3a9', 1234, []]
+    [
+      safe.address,
+      safe.address,
+      safe.address,
+      '0xB0aC056995C4904a9cc04A6Cc3a864A9E9A7d3a9',
+      1234,
+      [],
+    ]
   );
 
   const initData = masterSnapshotXModule.interface.encodeFunctionData('setUp', [encodedInitParams]);
@@ -172,10 +179,13 @@ async function receiveProposalTest(SnapshotXModule: any) {
   );
 
   // vitalik.eth
-  const callerAddress = "0xd8da6bf26964af9d7eed9e03e53415d37aa96045";
+  const callerAddress = '0xd8da6bf26964af9d7eed9e03e53415d37aa96045';
 
   const has_passed = 1;
-  await SnapshotXModule.receiveProposalTest(callerAddress, executionHash, has_passed, [txHash1, txHash2]);
+  await SnapshotXModule.receiveProposalTest(callerAddress, executionHash, has_passed, [
+    txHash1,
+    txHash2,
+  ]);
 
   return {
     tx_hash1: txHash1 as any,

@@ -23,17 +23,20 @@ describe('Space testing', () => {
   const metadataUri = strToShortStringArr(
     'Hello and welcome to Snapshot X. This is the future of governance.'
   );
-  const proposerAddress = {value: VITALIK_ADDRESS};
+  const proposerAddress = { value: VITALIK_ADDRESS };
   const proposalId = 1;
   const votingParams: Array<bigint> = [];
   let executionParams: Array<bigint>;
   const ethBlockNumber = BigInt(1337);
+  const l1_zodiac_module = BigInt('0xaaaaaaaaaaaa');
   let calldata: Array<bigint>;
   let spaceContract: bigint;
 
   before(async function () {
-    ({vanillaSpace, vanillaAuthenticator, vanillaVotingStrategy, zodiacRelayer} = await setup());
-    executionParams = [BigInt(zodiacRelayer.address)];
+    this.timeout(80000);
+
+    ({ vanillaSpace, vanillaAuthenticator, vanillaVotingStrategy, zodiacRelayer } = await setup());
+    executionParams = [BigInt(l1_zodiac_module)];
     spaceContract = BigInt(vanillaSpace.address);
 
     calldata = [
@@ -47,22 +50,8 @@ describe('Space testing', () => {
       ...votingParams,
       BigInt(executionParams.length),
       ...executionParams,
-    ]
+    ];
   });
-
-  // `to.be.reverted` doesn't work yet with starknet (to my knowledge)
-  // it('Fails if proposing without going through the authenticator', async () => {
-  //   console.log('Creating proposal...');
-  //   let invoke = vanillaSpace.invoke(PROPOSAL_METHOD, {
-  //     proposer_address: proposerAddress,
-  //     execution_hash: executionHash,
-  //     metadata_uri: metadataUri,
-  //     ethereum_block_number: ethBlockNumber,
-  //     voting_params: votingParams,
-  //     execution_params: executionParams,
-  //   });
-  //   expect (await invoke).to.be.reverted;
-  // });
 
   it('Should create a proposal and cast a vote', async () => {
     // -- Creates the proposal --

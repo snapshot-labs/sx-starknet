@@ -113,7 +113,14 @@ contract SnapshotXL1Executor is Module, SnapshotXProposalRelayer {
     uint256 _l2ExecutionRelayer,
     uint256[] memory _l2SpacesToWhitelist
   ) {
-    bytes memory initParams = abi.encode(_owner, _avatar, _target, _starknetCore, _l2ExecutionRelayer, _l2SpacesToWhitelist);
+    bytes memory initParams = abi.encode(
+      _owner,
+      _avatar,
+      _target,
+      _starknetCore,
+      _l2ExecutionRelayer,
+      _l2SpacesToWhitelist
+    );
     setUp(initParams);
   }
 

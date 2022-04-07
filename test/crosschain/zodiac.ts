@@ -67,9 +67,6 @@ function createExecutionHash(_verifyingContract: string): {
 }
 
 describe('Create proposal, cast vote, and send execution to l1', function () {
-  this.timeout(500000);
-
-  const user = 1;
   const networkUrl: string = (network.config as HttpNetworkConfig).url;
   let L2contractFactory: StarknetContractFactory;
   let l1ExecutorFactory: ContractFactory;
@@ -80,18 +77,19 @@ describe('Create proposal, cast vote, and send execution to l1', function () {
   let spaceContract: StarknetContract;
   let authContract: StarknetContract;
   let votingContract: StarknetContract;
+  let zodiacRelayer: StarknetContract;
 
   before(async function () {
+    this.timeout(80000);
+
     L2contractFactory = await starknet.getContractFactory('./contracts/starknet/space/space.cairo');
 
-    const {
-      vanillaSpace: _spaceContract,
-      vanillaAuthenticator: _authContract,
-      vanillaVotingStrategy: _votingContract,
-    } = await setup();
-    spaceContract = _spaceContract;
-    authContract = _authContract;
-    votingContract = _votingContract;
+    ({
+      vanillaSpace: spaceContract,
+      vanillaAuthenticator: authContract,
+      vanillaVotingStrategy: votingContract,
+      zodiacRelayer,
+    } = await setup());
 
     const signers = await ethers.getSigners();
     signer = signers[0];
@@ -107,15 +105,11 @@ describe('Create proposal, cast vote, and send execution to l1', function () {
     const avatar = signer.address; // Dummy
     const target = signer.address; // Dummy
     const starknetCore = mockStarknetMessaging.address;
-    const decisionExecutor = spaceContract.address;
+    const relayer = BigInt(zodiacRelayer.address);
     l1ExecutorFactory = await ethers.getContractFactory('SnapshotXL1Executor', signer);
-    l1Executor = await l1ExecutorFactory.deploy(
-      owner,
-      avatar,
-      target,
-      starknetCore,
-      decisionExecutor
-    );
+    l1Executor = await l1ExecutorFactory.deploy(owner, avatar, target, starknetCore, relayer, [
+      BigInt(spaceContract.address),
+    ]);
     await l1Executor.deployed();
   });
 
@@ -143,8 +137,9 @@ describe('Create proposal, cast vote, and send execution to l1', function () {
     );
     const proposer_address = VITALIK_ADDRESS;
     const proposal_id = 1;
-    const params: Array<bigint> = [];
+    const voting_params: Array<bigint> = [];
     const eth_block_number = BigInt(1337);
+    const execution_params: Array<bigint> = [BigInt(l1Executor.address)];
     const calldata = [
       proposer_address,
       executionHash.low,
@@ -152,14 +147,11 @@ describe('Create proposal, cast vote, and send execution to l1', function () {
       BigInt(metadata_uri.length),
       ...metadata_uri,
       eth_block_number,
-      BigInt(params.length),
-      ...params,
+      BigInt(voting_params.length),
+      ...voting_params,
+      BigInt(execution_params.length),
+      execution_params,
     ];
-
-    // -- Sets the l1 executor --
-    {
-      await spaceContract.invoke('set_l1_executor', { _l1_executor: BigInt(l1Executor.address) });
-    }
 
     // -- Creates a proposal --
     await authContract.invoke(EXECUTE_METHOD, {
@@ -190,7 +182,10 @@ describe('Create proposal, cast vote, and send execution to l1', function () {
 
     // -- Finalize proposal and send execution hash to L1 --
     {
-      await spaceContract.invoke('finalize_proposal', { proposal_id: proposal_id });
+      await spaceContract.invoke('finalize_proposal', {
+        proposal_id: proposal_id,
+        execution_params: [BigInt(l1Executor.address)],
+      });
     }
 
     // --  Flush messages and check that communication went well --
@@ -200,7 +195,7 @@ describe('Create proposal, cast vote, and send execution to l1', function () {
       const flushL2Messages = flushL2Response.consumed_messages.from_l2;
 
       expect(flushL2Messages).to.have.a.lengthOf(1);
-      expectAddressEquality(flushL2Messages[0].from_address, spaceContract.address);
+      expectAddressEquality(flushL2Messages[0].from_address, zodiacRelayer.address);
       expectAddressEquality(flushL2Messages[0].to_address, l1Executor.address);
     }
 
@@ -209,18 +204,49 @@ describe('Create proposal, cast vote, and send execution to l1', function () {
       const hasPassed = BigInt(1);
 
       const fakeTxHashes = txHashes.slice(0, -1);
+      const callerAddress = BigInt(spaceContract.address);
+      const fakeCallerAddress = BigInt(zodiacRelayer.address);
       // Check that if the tx hash is incorrect, the transaction reverts.
       await expect(
-        l1Executor.receiveProposal(executionHash.low, executionHash.high, hasPassed, fakeTxHashes)
+        l1Executor.receiveProposal(
+          callerAddress,
+          hasPassed,
+          executionHash.low,
+          executionHash.high,
+          fakeTxHashes
+        )
       ).to.be.reverted;
 
       // Check that if `hasPassed` parameter is incorrect, transaction reverts.
       await expect(
-        l1Executor.receiveProposal(executionHash.low, executionHash.high, !hasPassed, txHashes)
+        l1Executor.receiveProposal(
+          callerAddress,
+          !hasPassed,
+          executionHash.low,
+          executionHash.high,
+          txHashes
+        )
+      ).to.be.reverted;
+
+      // Check that if `callerAddress` parameter is incorrect, transaction reverts.
+      await expect(
+        l1Executor.receiveProposal(
+          fakeCallerAddress,
+          hasPassed,
+          executionHash.low,
+          executionHash.high,
+          txHashes
+        )
       ).to.be.reverted;
 
       // Check that it works when provided correct parameters.
-      await l1Executor.receiveProposal(executionHash.low, executionHash.high, hasPassed, txHashes);
+      await l1Executor.receiveProposal(
+        callerAddress,
+        hasPassed,
+        executionHash.low,
+        executionHash.high,
+        txHashes
+      );
     }
   });
 });

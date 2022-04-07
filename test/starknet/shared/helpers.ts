@@ -52,7 +52,7 @@ export async function setup() {
     vanillaVotingStategyFactory.deploy(),
     zodiacRelayerFactory.deploy(),
   ];
-  console.log("Deploying auth, voting and zodiac relayer contracts...");
+  console.log('Deploying auth, voting and zodiac relayer contracts...');
   const contracts = await Promise.all(deployments);
   const vanillaAuthenticator = contracts[0] as StarknetContract;
   const vanillaVotingStrategy = contracts[1] as StarknetContract;
@@ -66,7 +66,7 @@ export async function setup() {
   // will be undefined for some reason?
   const PROPOSAL_THRESHOLD = SplitUint256.fromUint(BigInt(1));
 
-  console.log("Deploying space contract...");
+  console.log('Deploying space contract...');
   const vanillaSpace = (await vanillaSpaceFactory.deploy({
     _voting_delay: VOTING_DELAY,
     _voting_period: VOTING_PERIOD,
@@ -75,6 +75,7 @@ export async function setup() {
     _authenticator: authenticator,
     _executor: zodiac_relayer,
   })) as StarknetContract;
+  console.log('deployed!');
 
   return {
     vanillaSpace,
