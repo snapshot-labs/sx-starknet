@@ -23,7 +23,7 @@ contract SnapshotXL1Executor is Module, SnapshotXProposalRelayer {
   /// Counter that is incremented each time a proposal is received.
   uint256 public proposalIndex;
 
-  /// Mapping of whitelisted contracts (addresses are L2 contracts)
+  /// Mapping of whitelisted contracts (addresses should be L2 space contracts)
   mapping(uint256 => bool) public whitelistedSpaces;
 
   /// The state of a proposal index exists in one of the 5 categories. This can be queried using the getProposalState view function
