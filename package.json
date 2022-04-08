@@ -8,7 +8,9 @@
     "compile:l2": "hardhat starknet-compile",
     "compile": "yarn compile:l1 && yarn compile:l2",
     "deploy": "sh deploy.sh",
-    "test": "hardhat test",
+    "test:hardhat": "yarn hardhat test test/ethereum/*.ts test/starknet/*.ts --network 'hardhat' --starknet-network 'starknetLocal'",
+    "test:l1l2": "yarn hardhat test test/l1l2/*.ts --network 'ethereumLocal' --starknet-network 'starknetLocal'",
+    "test": "yarn test:hardhat && yarn test:l1l2",
     "start:l1": "hardhat node",
     "format:l1": "prettier --write 'contracts/**/*.sol'",
     "check-format:l1": "prettier -c 'contracts/**/*.sol'",
@@ -22,6 +24,7 @@
   "dependencies": {
     "@gnosis.pm/safe-contracts": "^1.3.0",
     "@gnosis.pm/zodiac": "^1.0.3",
+    "@openzeppelin/contracts": "^4.5.0",
     "ethereumjs-util": "^7.1.4",
     "install": "^0.13.0",
     "npm": "^8.6.0",

@@ -6,7 +6,7 @@ import { wordsToUint } from './shared/helpers';
 
 async function setup() {
   const testWordsFactory = await starknet.getContractFactory(
-    './contracts/starknet/test/test_words.cairo'
+    './contracts/starknet/testContracts/test_words.cairo'
   );
   const testWords = await testWordsFactory.deploy();
   return {

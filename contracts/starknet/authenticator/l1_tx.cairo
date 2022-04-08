@@ -1,23 +1,21 @@
 %lang starknet
-from starkware.cairo.common.cairo_builtins import HashBuiltin, BitwiseBuiltin
+from starkware.cairo.common.cairo_builtins import HashBuiltin
 from starkware.starknet.common.syscalls import call_contract
 from starkware.cairo.common.registers import get_fp_and_pc
 from starkware.cairo.common.alloc import alloc
 from starkware.cairo.common.memcpy import memcpy
 from starkware.cairo.common.hash_state import hash_init, hash_update
-from starknet.lib.keccak_256_hash import Keccak256Hash
-from starknet.lib.ints import IntsSequence
-from starknet.lib.words import felt_to_words, Words
-from starknet.fossil.contracts.starknet.lib.keccak import keccak256
+from starkware.cairo.common.math import assert_not_equal
+from contracts.starknet.lib.eth_address import EthAddress
 
 # Address of the StarkNet Commit L1 contract which acts as the origin address of the message sent to this contract.
 @storage_var
 func starknet_commit_address_store() -> (res : felt):
 end
 
-# Mapping between a hash and a boolean on whether the hash is stored in the contract and has not yet been consumed.
+# Mapping between a commit and the L1 address of the sender.
 @storage_var
-func commit_store(hash : Keccak256Hash) -> (stored : felt):
+func commit_store(hash : felt) -> (address : EthAddress):
 end
 
 @constructor
@@ -29,28 +27,21 @@ end
 
 # Receives hash from StarkNet commit contract and stores it in state.
 @l1_handler
-func commit_handler{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr : felt}(
-        from_address : felt, hash : Keccak256Hash):
+func commit{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr : felt}(
+        from_address : felt, sender : EthAddress, hash : felt):
     # Check L1 message origin
     let (origin) = starknet_commit_address_store.read()
     with_attr error_message("Invalid message origin address"):
         assert from_address = origin
     end
-    # Check if hash is already stored
-    let (stored) = commit_store.read(hash)
-    with_attr error_message("Hash already committed"):
-        assert stored = 0
-    end
-    commit_store.write(hash, 1)
+    # If the same hash is committed twice, then the mapping will be overwritten but with the same value as before.
+    commit_store.write(hash, sender)
     return ()
 end
 
 @external
-func execute{
-        syscall_ptr : felt*, range_check_ptr, pedersen_ptr : HashBuiltin*,
-        bitwise_ptr : BitwiseBuiltin*}(
-        target : felt, function_selector : felt, calldata_len : felt, calldata : felt*) -> (
-        hash : felt):
+func execute{syscall_ptr : felt*, range_check_ptr, pedersen_ptr : HashBuiltin*}(
+        target : felt, function_selector : felt, calldata_len : felt, calldata : felt*):
     alloc_locals
     let (input_array : felt*) = alloc()
     assert input_array[0] = target
@@ -63,20 +54,24 @@ func execute{
         hash_state_ptr, input_array, calldata_len + 3)
 
     # Check that the hash has been received by the contract
-    # let (stored) = commit_store.read(hash)
-    # with_attr error_message("Hash not committed"):
-    #     assert stored = 1
-    # end
+    let (address) = commit_store.read(hash_state_ptr.current_hash)
+    with_attr error_message("Hash not yet committed or already executed"):
+        assert_not_equal(address.value, 0)
+    end
 
-    # # Clear the hash from the contract
-    # commit_store.write(hash, 0)
+    with_attr error_message("Commit made by invalid L1 address"):
+        assert calldata[0] = address.value
+    end
 
-    # # Execute the function call with calldata supplied.
-    # call_contract(
-    #     contract_address=target,
-    #     function_selector=function_selector,
-    #     calldata_size=calldata_len,
-    #     calldata=calldata)
+    # Clear the hash from the contract by writing the zero address to the mapping.
+    commit_store.write(hash_state_ptr.current_hash, EthAddress(0))
 
-    return (hash_state_ptr.current_hash)
+    # Execute the function call with calldata supplied.
+    call_contract(
+        contract_address=target,
+        function_selector=function_selector,
+        calldata_size=calldata_len,
+        calldata=calldata)
+
+    return ()
 end

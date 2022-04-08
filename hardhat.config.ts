@@ -35,28 +35,24 @@ task('accounts', 'Prints the list of accounts', async (args, hre) => {
 
 const config: HardhatUserConfig = {
   solidity: {
-    compilers: [
-      {
-        version: '0.8.9',
-        settings: {
-          optimizer: {
-            enabled: true,
-            runs: 10,
-          },
-        },
+    version: '0.8.9',
+    settings: {
+      optimizer: {
+        enabled: true,
+        runs: 10,
       },
-    ],
+    },
   },
   networks: {
     ropsten: {
       url: process.env.ROPSTEN_URL || '',
       accounts: process.env.PRIVATE_KEY !== undefined ? [process.env.PRIVATE_KEY] : [],
     },
-    devnet: {
+    ethereumLocal: {
       url: 'http://localhost:8545',
     },
-    starknetDevnet: {
-      url: 'http://localhost:8000/',
+    starknetLocal: {
+      url: 'http://localhost:8000',
     },
   },
   gasReporter: {
@@ -68,7 +64,7 @@ const config: HardhatUserConfig = {
   },
   starknet: {
     venv: 'active',
-    network: 'starknetDevnet',
+    network: 'starknetLocal',
   },
   paths: {
     cairoPaths: ['./contracts/starknet/fossil/contracts'],
