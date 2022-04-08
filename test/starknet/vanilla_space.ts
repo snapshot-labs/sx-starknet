@@ -40,6 +40,7 @@ describe('Space testing', () => {
     spaceContract = BigInt(vanillaSpace.address);
 
     calldata = [
+      BigInt(vanillaVotingStrategy.address),
       proposerAddress.value,
       executionHash.low,
       executionHash.high,
@@ -88,11 +89,17 @@ describe('Space testing', () => {
     {
       console.log('Casting a vote FOR...');
       const voter_address = proposerAddress.value;
-      const params: Array<BigInt> = [];
+      const votingparams: Array<BigInt> = [];
       await vanillaAuthenticator.invoke(EXECUTE_METHOD, {
         to: spaceContract,
         function_selector: BigInt(getSelectorFromName(VOTE_METHOD)),
-        calldata: [voter_address, proposalId, FOR, BigInt(params.length)],
+        calldata: [
+          BigInt(vanillaVotingStrategy.address),
+          voter_address,
+          proposalId,
+          FOR,
+          BigInt(votingParams.length),
+        ],
       });
 
       console.log('Getting proposal info...');

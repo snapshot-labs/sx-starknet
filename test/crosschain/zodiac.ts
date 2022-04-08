@@ -130,17 +130,18 @@ describe('Create proposal, cast vote, and send execution to l1', function () {
     expect(mockStarknetMessaging.address).to.equal(loadedFrom);
   });
 
-  it('should corectly receive and accept a finalized proposal on l1', async () => {
+  it('should correctly receive and accept a finalized proposal on l1', async () => {
     const { executionHash, txHashes } = createExecutionHash(l1Executor.address);
     const metadata_uri = strToShortStringArr(
       'Hello and welcome to Snapshot X. This is the future of governance.'
     );
     const proposer_address = VITALIK_ADDRESS;
-    const proposal_id = 1;
+    const proposal_id = BigInt(1);
     const voting_params: Array<bigint> = [];
     const eth_block_number = BigInt(1337);
     const execution_params: Array<bigint> = [BigInt(l1Executor.address)];
     const calldata = [
+      BigInt(votingContract.address),
       proposer_address,
       executionHash.low,
       executionHash.high,
@@ -163,11 +164,11 @@ describe('Create proposal, cast vote, and send execution to l1', function () {
     // -- Casts a vote FOR --
     {
       const voter_address = proposer_address;
-      const params: Array<BigInt> = [];
+      const votingParams: Array<BigInt> = [];
       await authContract.invoke(EXECUTE_METHOD, {
         to: BigInt(spaceContract.address),
         function_selector: BigInt(getSelectorFromName(VOTE_METHOD)),
-        calldata: [voter_address, proposal_id, FOR, BigInt(params.length)],
+        calldata: [BigInt(votingContract.address), voter_address, proposal_id, FOR, BigInt(votingParams.length), ...votingParams],
       });
 
       const { proposal_info } = await spaceContract.call('get_proposal_info', {

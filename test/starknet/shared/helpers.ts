@@ -71,9 +71,9 @@ export async function setup() {
     _voting_delay: VOTING_DELAY,
     _voting_period: VOTING_PERIOD,
     _proposal_threshold: PROPOSAL_THRESHOLD,
-    _voting_strategy: voting_strategy,
-    _authenticator: authenticator,
     _executor: zodiac_relayer,
+    _voting_strategies: [voting_strategy],
+    _authenticators: [authenticator],
   })) as StarknetContract;
   console.log('deployed!');
 
