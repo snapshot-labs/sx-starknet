@@ -52,14 +52,36 @@ yarn
 
 ```bash
 yarn compile
+# You can also use yarn compile:l1 to just compile solidity contracts
+# or yarn compile:l2 to just compile cairo contracts
 ```
-### Install and run StarkNet Devnet (In separate terminal):
+
+### Testing
+
+Tests are separated into three categories:
+
+- Ethereum tests in `tests/ethereum`: they are tests for our solidity contracts
+- Starknet tests in `tests/starknet`: they are tests for our cairo contracts
+- Crosschain tests in `tests/crosschain`: they are tests that will do a full flow of interaction between cairo <-> solidity code
+
+To run those tests, you need to install and run `starknet-devent`, and run `
+
+#### Install and run StarkNet Devnet (In a separate terminal):
 ```bash
 pip install starknet-devnet
 starknet-devnet -p 8000
 ```
 
-### Run tests:
+#### Run an ethereum hardhat node (In a separate terminal)
+
+```bash
+npx hardhat node
+```
+
+#### Run tests:
 ```bash
 yarn test
+# You can also use `yarn test:l1` to test our solidity contracts,
+# `yarn test:l2` to test ou cairo contracts,
+# and `yarn test:l1l2` to test ou crosschain flow
 ```
