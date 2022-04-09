@@ -44,7 +44,7 @@ export async function setup() {
     './contracts/starknet/authenticator/authenticator.cairo'
   );
   const zodiacRelayerFactory = await starknet.getContractFactory(
-    './contracts/starknet/execution/zodiac_l1.cairo'
+    './contracts/starknet/execution/zodiac_relayer.cairo'
   );
 
   const deployments = [
