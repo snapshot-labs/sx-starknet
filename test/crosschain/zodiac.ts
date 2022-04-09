@@ -67,6 +67,7 @@ function createExecutionHash(_verifyingContract: string): {
 }
 
 describe('Create proposal, cast vote, and send execution to l1', function () {
+  this.timeout(12000000);
   const networkUrl: string = (network.config as HttpNetworkConfig).url;
   let L2contractFactory: StarknetContractFactory;
   let l1ExecutorFactory: ContractFactory;
@@ -80,7 +81,7 @@ describe('Create proposal, cast vote, and send execution to l1', function () {
   let zodiacRelayer: StarknetContract;
 
   before(async function () {
-    this.timeout(80000);
+    this.timeout(800000);
 
     L2contractFactory = await starknet.getContractFactory('./contracts/starknet/space/space.cairo');
 
@@ -131,6 +132,7 @@ describe('Create proposal, cast vote, and send execution to l1', function () {
   });
 
   it('should correctly receive and accept a finalized proposal on l1', async () => {
+    this.timeout(1200000);
     const { executionHash, txHashes } = createExecutionHash(l1Executor.address);
     const metadata_uri = strToShortStringArr(
       'Hello and welcome to Snapshot X. This is the future of governance.'

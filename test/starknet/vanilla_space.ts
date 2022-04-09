@@ -33,7 +33,7 @@ describe('Space testing', () => {
   let spaceContract: bigint;
 
   before(async function () {
-    this.timeout(80000);
+    this.timeout(800000);
 
     ({ vanillaSpace, vanillaAuthenticator, vanillaVotingStrategy, zodiacRelayer } = await setup());
     executionParams = [BigInt(l1_zodiac_module)];
