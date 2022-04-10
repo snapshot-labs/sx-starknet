@@ -18,15 +18,15 @@ contract SnapshotXProposalRelayer is Guardable {
   uint256 public l2ExecutionRelayer;
 
   /**
-   * @dev Emitted when a the StarkNet decision executor contract is changed
-   * @param _l2ExecutionRelayer The new decision executor contract
+   * @dev Emitted when the StarkNet execution relayer contract is changed
+   * @param _l2ExecutionRelayer The new execution relayer contract
    */
   event ChangedL2ExecutionRelayer(uint256 _l2ExecutionRelayer);
 
   /**
    * @dev Initialization of the functionality. Called internally by the setUp function
    * @param _starknetCore Address of the StarkNet Core contract
-   * @param _l2ExecutionRelayer Address of the new decision executor contract
+   * @param _l2ExecutionRelayer Address of the new execution relayer contract
    */
   function setUpSnapshotXProposalRelayer(address _starknetCore, uint256 _l2ExecutionRelayer)
     internal
@@ -36,7 +36,7 @@ contract SnapshotXProposalRelayer is Guardable {
   }
 
   /**
-   * @dev Changes the StarkNet decision executor contract
+   * @dev Changes the StarkNet execution relayer contract
    * @param _l2ExecutionRelayer Address of the new execution relayer contract
    */
   function changeL2ExecutionRelayer(uint256 _l2ExecutionRelayer) public onlyOwner {
