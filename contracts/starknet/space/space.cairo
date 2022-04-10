@@ -13,7 +13,7 @@ from starkware.cairo.common.alloc import alloc
 from starkware.cairo.common.uint256 import Uint256, uint256_add, uint256_lt
 
 @storage_var
-func voting_delay() -> (delay : felt):
+func voting_duration() -> (delay : felt):
 end
 
 @storage_var
@@ -74,17 +74,17 @@ end
 
 @constructor
 func constructor{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr : felt}(
-        _voting_delay : felt, _voting_period : felt, _proposal_threshold : Uint256,
+        _voting_duration : felt, _voting_period : felt, _proposal_threshold : Uint256,
         _voting_strategy : felt, _authenticator : felt):
     # Sanity checks
-    assert_nn(_voting_delay)
+    assert_nn(_voting_duration)
     assert_nn(_voting_period)
     assert_not_zero(_voting_strategy)
     assert_not_zero(_authenticator)
     # TODO: maybe use uint256_signed_nn to check proposal_threshold?
 
     # Initialize the storage variables
-    voting_delay.write(_voting_delay)
+    voting_duration.write(_voting_duration)
     voting_period.write(_voting_period)
     proposal_threshold.write(_proposal_threshold)
     voting_strategy.write(_voting_strategy)
@@ -163,7 +163,7 @@ func propose{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr :
     authenticator_only()
 
     let (current_timestamp) = get_block_timestamp()
-    let (delay) = voting_delay.read()
+    let (delay) = voting_duration.read()
     let (duration) = voting_period.read()
 
     # Define start_timestamp and end_timestamp based on current timestamp, delay and duration variables.
