@@ -2,8 +2,9 @@
 
 pragma solidity 0.8.9;
 
-// import './Interfaces/IStarknetCore.sol';
 import '@openzeppelin/contracts/proxy/utils/Initializable.sol';
+// import './Interfaces/IStarknetCore.sol';
+// For testing purposes, we use a mock StarkNet messaging contract.
 import 'contracts/ethereum/testContracts/MockStarknetMessaging.sol';
 
 /**
@@ -21,7 +22,7 @@ contract StarkNetCommit is Initializable {
   uint256 public authL1;
 
   /**
-   * @dev Selector for the L1 handler commit_handler in the authenticator on StarkNet, found via:
+   * @dev Selector for the L1 handler in the authenticator on StarkNet, found via:
    *      from starkware.starknet.compiler.compile import get_selector_from_name
    *      print(get_selector_from_name('commit'))
    */

@@ -8,7 +8,7 @@ from starkware.cairo.common.hash_state import hash_init, hash_update
 from starkware.cairo.common.math import assert_not_equal
 from contracts.starknet.lib.eth_address import EthAddress
 
-# Address of the StarkNet Commit L1 contract which acts as the origin address of the message sent to this contract.
+# Address of the StarkNet Commit L1 contract which acts as the origin address of the messages sent to this contract.
 @storage_var
 func starknet_commit_address_store() -> (res : felt):
 end
@@ -29,12 +29,12 @@ end
 @l1_handler
 func commit{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr : felt}(
         from_address : felt, sender : EthAddress, hash : felt):
-    # Check L1 message origin
+    # Check L1 message origin is equal to the StarkNet commit address.
     let (origin) = starknet_commit_address_store.read()
     with_attr error_message("Invalid message origin address"):
         assert from_address = origin
     end
-    # If the same hash is committed twice, then the mapping will be overwritten but with the same value as before.
+    # Note: If the same hash is committed twice by the same sender, then the mapping will be overwritten but with the same value as before.
     commit_store.write(hash, sender)
     return ()
 end
@@ -52,26 +52,22 @@ func execute{syscall_ptr : felt*, range_check_ptr, pedersen_ptr : HashBuiltin*}(
     let (hash_state_ptr) = hash_init()
     let (hash_state_ptr) = hash_update{hash_ptr=pedersen_ptr}(
         hash_state_ptr, input_array, calldata_len + 3)
-
     # Check that the hash has been received by the contract
     let (address) = commit_store.read(hash_state_ptr.current_hash)
     with_attr error_message("Hash not yet committed or already executed"):
         assert_not_equal(address.value, 0)
     end
-
+    # The sender of the commit on L1 must be the same as the voter/proposer L1 address in the calldata.
     with_attr error_message("Commit made by invalid L1 address"):
         assert calldata[0] = address.value
     end
-
     # Clear the hash from the contract by writing the zero address to the mapping.
     commit_store.write(hash_state_ptr.current_hash, EthAddress(0))
-
     # Execute the function call with calldata supplied.
     call_contract(
         contract_address=target,
         function_selector=function_selector,
         calldata_size=calldata_len,
         calldata=calldata)
-
     return ()
 end

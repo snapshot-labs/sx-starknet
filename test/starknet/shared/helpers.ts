@@ -42,6 +42,7 @@ export function expectAddressEquality(actual: string, expected: string) {
   expect(adaptAddress(actual)).to.equal(adaptAddress(expected));
 }
 
+
 export function wordsToUint(word1: bigint, word2: bigint, word3: bigint, word4: bigint): bigint {
   const s3 = BigInt(2 ** 64);
   const s2 = BigInt(2 ** 128);
@@ -56,6 +57,20 @@ export function uintToWords(
   const word3 = (uint & ((BigInt(1) << BigInt(128)) - (BigInt(1) << BigInt(64)))) >> BigInt(64);
   const word2 = (uint & ((BigInt(1) << BigInt(192)) - (BigInt(1) << BigInt(128)))) >> BigInt(128);
   const word1 = uint >> BigInt(192);
-
   return [word1, word2, word3, word4];
+}
+
+/**
+ * Computes the Pedersen hash of a execution payload for StarkNet 
+ * This can be used to produce the input for calling the commit method in the StarkNet Commit contract.
+ * @param target the target address of the execution.
+ * @param selector the selector for the method at address target one wants to execute.
+ * @param calldata the payload for the method at address target one wants to execute.
+ * @returns A Pedersen hash of the data as a Big Int.
+ */
+export function getCommit(target: bigint, function_selector: bigint, calldata: bigint[]): bigint {
+  const targetBigNum = toBN('0x' + target.toString(16));
+  const function_selectorBigNum = toBN('0x' + function_selector.toString(16));
+  const calldataBigNum = calldata.map((x) => toBN('0x' + x.toString(16)));
+  return BigInt(computeHashOnElements([targetBigNum, function_selectorBigNum, ...calldataBigNum]));
 }

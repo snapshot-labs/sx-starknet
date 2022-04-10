@@ -4,35 +4,14 @@ import { Contract, ContractFactory } from 'ethers';
 import { starknet, network, ethers } from 'hardhat';
 import { FOR, SplitUint256 } from '../starknet/shared/types';
 import { StarknetContractFactory, StarknetContract, HttpNetworkConfig } from 'hardhat/types';
-import { computeHashOnElements } from 'starknet/dist/utils/hash';
-import { toBN, BigNumberish } from 'starknet/dist/utils/number';
-import { stark } from 'starknet';
 import { strToShortStringArr } from '@snapshot-labs/sx';
-import { _TypedDataEncoder } from '@ethersproject/hash';
-import { EIP712_TYPES } from '../ethereum/shared/utils';
-const { getSelectorFromName } = stark;
+import { getCommit } from '..starknet/shared/helpers';
 
-const propose_selector = BigInt(
-  '0x1BFD596AE442867EF71CA523061610682AF8B00FC2738329422F4AD8D220B81'
-);
+const propose_selector = BigInt('0x1BFD596AE442867EF71CA523061610682AF8B00FC2738329422F4AD8D220B81');
 const vote_selector = BigInt('0x132BDF85FC8AA10AC3C22F02317F8F53D4B4F52235ED1EABB3A4CBBE08B5C41');
-export const EXECUTE_METHOD = 'execute';
-export const PROPOSAL_METHOD = 'propose';
-export const VOTE_METHOD = 'vote';
-export const GET_PROPOSAL_INFO = 'get_proposal_info';
-export const GET_VOTE_INFO = 'get_vote_info';
-export const VOTING_DELAY = BigInt(0);
-export const VOTING_PERIOD = BigInt(20);
-export const VITALIK_ADDRESS = BigInt(0xd8da6bf26964af9d7eed9e03e53415d37aa96045);
-export const VITALIK_STRING_ADDRESS = '0xd8da6bf26964af9d7eed9e03e53415d37aa96045';
-export const RANDOM_ADDRESS = BigInt('0xAD4Eb63b9a2F1A4D241c92e2bBa78eEFc56ab990');
-
-function getCommit(target: bigint, function_selector: bigint, calldata: bigint[]): bigint {
-  const targetBigNum = toBN('0x' + target.toString(16));
-  const function_selectorBigNum = toBN('0x' + function_selector.toString(16));
-  const calldataBigNum = calldata.map((x) => toBN('0x' + x.toString(16)));
-  return BigInt(computeHashOnElements([targetBigNum, function_selectorBigNum, ...calldataBigNum]));
-}
+const VOTING_DELAY = BigInt(0);
+const VOTING_PERIOD = BigInt(20);
+const RANDOM_ADDRESS = BigInt('0xAD4Eb63b9a2F1A4D241c92e2bBa78eEFc56ab990');
 
 export async function setup(signer: SignerWithAddress) {
   const SpaceFactory = await starknet.getContractFactory('./contracts/starknet/space/space.cairo');
@@ -104,7 +83,7 @@ describe('L1 interaction with Snapshot X', function () {
   let l1TxAuthenticator: StarknetContract;
   let vanillaVotingStrategy: StarknetContract;
   let starknetCommit: Contract;
-  let create_proposal_calldata: bigint[];
+  let propose_calldata: bigint[];
   let vote_calldata: bigint[];
 
   before(async function () {
@@ -119,7 +98,7 @@ describe('L1 interaction with Snapshot X', function () {
     const proposal_id = BigInt(1);
     const params: Array<bigint> = [];
     const eth_block_number = BigInt(1337);
-    create_proposal_calldata = [
+    propose_calldata = [
       BigInt(signer.address),
       execution_hash,
       BigInt(metadata_uri.length),
@@ -152,7 +131,7 @@ describe('L1 interaction with Snapshot X', function () {
     const target = BigInt(space.address);
 
     // Finding the pedersen hash of the payload
-    const propose_commit = getCommit(target, propose_selector, create_proposal_calldata);
+    const propose_commit = getCommit(target, propose_selector, propose_calldata);
     // Committing the hash of the payload to the StarkNet Commit L1 contract
     await starknetCommit.commit(propose_commit);
 
@@ -163,7 +142,7 @@ describe('L1 interaction with Snapshot X', function () {
     await l1TxAuthenticator.invoke('execute', {
       target: target,
       function_selector: propose_selector,
-      calldata: create_proposal_calldata,
+      calldata: propose_calldata,
     });
 
     const vote_commit = getCommit(target, vote_selector, vote_calldata);
@@ -183,21 +162,21 @@ describe('L1 interaction with Snapshot X', function () {
       await starknet.devnet.loadL1MessagingContract(networkUrl, mockStarknetMessaging.address);
     const target = BigInt(space.address);
 
-    const propose_commit = getCommit(target, propose_selector, create_proposal_calldata);
+    const propose_commit = getCommit(target, propose_selector, propose_calldata);
     await starknetCommit.commit(propose_commit);
 
     await starknet.devnet.flush();
     await l1TxAuthenticator.invoke('execute', {
       target: target,
       function_selector: propose_selector,
-      calldata: create_proposal_calldata,
+      calldata: propose_calldata,
     });
     // Second execute should fail
     try {
       await l1TxAuthenticator.invoke('execute', {
         target: target,
         function_selector: propose_selector,
-        calldata: create_proposal_calldata,
+        calldata: propose_calldata,
       });
     } catch (err: any) {
       expect(err.message).to.contain('Hash not yet committed or already executed');
@@ -217,7 +196,7 @@ describe('L1 interaction with Snapshot X', function () {
       await l1TxAuthenticator.invoke('execute', {
         target: target,
         function_selector: propose_selector,
-        calldata: create_proposal_calldata,
+        calldata: propose_calldata,
       });
     } catch (err: any) {
       expect(err.message).to.contain('Hash not yet committed or already executed');
@@ -230,15 +209,15 @@ describe('L1 interaction with Snapshot X', function () {
     const target = BigInt(space.address);
 
     // Random l1 address in the calldata
-    create_proposal_calldata[0] = RANDOM_ADDRESS;
-    const propose_commit = getCommit(target, propose_selector, create_proposal_calldata);
+    propose_calldata[0] = RANDOM_ADDRESS;
+    const propose_commit = getCommit(target, propose_selector, propose_calldata);
     await starknetCommit.commit(propose_commit);
     await starknet.devnet.flush();
     try {
       await l1TxAuthenticator.invoke('execute', {
         target: target,
         function_selector: propose_selector,
-        calldata: create_proposal_calldata,
+        calldata: propose_calldata,
       });
     } catch (err: any) {
       expect(err.message).to.contain('Commit made by invalid L1 address');
