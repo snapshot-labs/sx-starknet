@@ -80,7 +80,7 @@ func hash_pedersen{pedersen_ptr : HashBuiltin*}(calldata_len : felt, calldata : 
     return (hash_state_ptr.current_hash)
 end
 
-# Throws if the caller address is not identical to the authenticator address (stored in the `authenticator` variable)
+# Throws if the caller address is not a member of the set of whitelisted authenticators (stored in the `authenticators` mapping)
 func assert_valid_authenticator{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr}(
         ):
     let (caller_address) = get_caller_address()
