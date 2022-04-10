@@ -3,10 +3,8 @@
 from contracts.starknet.lib.eth_address import EthAddress
 from starkware.cairo.common.uint256 import Uint256
 from starkware.starknet.common.syscalls import get_caller_address
-from starkware.cairo.common.memcpy import memcpy
 from starkware.cairo.common.alloc import alloc
 from starkware.starknet.common.messages import send_message_to_l1
-from starkware.cairo.common.math import assert_not_zero
 
 @external
 func execute{syscall_ptr : felt*}(
