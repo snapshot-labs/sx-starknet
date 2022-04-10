@@ -13,7 +13,7 @@ const VOTE_METHOD = 'vote';
 const GET_PROPOSAL_INFO = 'get_proposal_info';
 const GET_VOTE_INFO = 'get_vote_info';
 const VOTING_DELAY = BigInt(0);
-const VOTING_PERIOD = BigInt(20);
+const VOTING_DURATION = BigInt(20);
 const PROPOSAL_THRESHOLD = SplitUint256.fromUint(BigInt(1));
 const VITALIK_ADDRESS = BigInt(0xd8da6bf26964af9d7eed9e03e53415d37aa96045);
 
@@ -36,7 +36,7 @@ async function setup() {
   console.log('Deploying space...');
   const vanillaSpace = (await vanillaSpaceFactory.deploy({
     _voting_delay: VOTING_DELAY,
-    _voting_period: VOTING_PERIOD,
+    _voting_duration: VOTING_DURATION,
     _proposal_threshold: PROPOSAL_THRESHOLD,
     _voting_strategy: voting_strategy,
     _authenticator: authenticator,
@@ -88,11 +88,11 @@ describe('Space testing', () => {
       });
 
       // We can't directly compare the `info` object because we don't know for sure the value of `start_block` (and hence `end_block`),
-      // so we compare it element by element (except start_block and end_block for which we simply compare their difference to `VOTING_PERIOD`).
+      // so we compare it element by element (except start_block and end_block for which we simply compare their difference to `VOTING_DURATION`).
       expect(proposal_info.proposal.execution_hash).to.deep.equal(execution_hash);
       expect(
         proposal_info.proposal.end_timestamp - proposal_info.proposal.start_timestamp
-      ).to.deep.equal(VOTING_PERIOD);
+      ).to.deep.equal(VOTING_DURATION);
 
       const _for = SplitUint256.fromObj(proposal_info.power_for).toUint();
       expect(_for).to.deep.equal(BigInt(0));

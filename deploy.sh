@@ -2,7 +2,7 @@
 
 # Constants
 VOTING_DELAY=0
-VOTING_PERIOD=100000000
+VOTING_DURATION=100000000
 # Threshold should be two numbers because Uint256 has two members. We're just using the lowest number here.
 THRESHOLD=1
 
@@ -30,7 +30,7 @@ echo "Deploying strategy contract"
 STRATEGY=$(hardhat starknet-deploy ${NETWORK_OPTION} starknet-artifacts/contracts/starknet/strategies/vanilla_voting_strategy.cairo/vanilla_voting_strategy.json | grep 'Contract address' | tail -c 67)
 echo "✅ Strategy: ${STRATEGY}"
 echo "Deploying space contract"
-SPACE=$(hardhat starknet-deploy ${NETWORK_OPTION} --inputs "${VOTING_DELAY} ${VOTING_PERIOD} ${THRESHOLD} 0 ${STRATEGY} ${AUTH}" starknet-artifacts/contracts/starknet/space/space.cairo/space.json | grep 'Contract address' | tail -c 67)
+SPACE=$(hardhat starknet-deploy ${NETWORK_OPTION} --inputs "${VOTING_DELAY} ${VOTING_DURATION} ${THRESHOLD} 0 ${STRATEGY} ${AUTH}" starknet-artifacts/contracts/starknet/space/space.cairo/space.json | grep 'Contract address' | tail -c 67)
 echo "✅ Space: ${SPACE}"
 
 JSON="{\n
