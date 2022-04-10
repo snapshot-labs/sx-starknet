@@ -92,7 +92,7 @@ func assert_valid_authenticator{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*
     return ()
 end
 
-# Throws if the caller address is not identical to the authenticator address (stored in the `authenticator` variable)
+# Throws if the address given is not a member of the set of whitelisted voting strategies (stored in the `voting_strategies` mapping)
 func assert_valid_voting_strategy{
         syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr}(
         voting_strategy_contract : felt):
