@@ -1,7 +1,6 @@
 %lang starknet
 
 from starkware.starknet.common.syscalls import get_caller_address, get_block_timestamp
-from starkware.starknet.common.messages import send_message_to_l1
 from starkware.cairo.common.cairo_builtins import HashBuiltin
 from starkware.cairo.common.math import (
     assert_lt, assert_le, assert_nn, assert_not_zero, assert_lt_felt)
@@ -14,7 +13,6 @@ from contracts.starknet.lib.choice import Choice
 from contracts.starknet.execution.interface import IExecutionStrategy
 from starkware.cairo.common.alloc import alloc
 from starkware.cairo.common.uint256 import Uint256, uint256_add, uint256_lt
-from starkware.cairo.common.memcpy import memcpy
 from starkware.cairo.common.hash_state import hash_init, hash_update
 
 @storage_var
