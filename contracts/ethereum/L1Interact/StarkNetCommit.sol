@@ -16,6 +16,7 @@ import 'contracts/ethereum/testContracts/MockStarknetMessaging.sol';
 contract StarkNetCommit is Initializable {
   /// The StarkNet core contract.
   // IStarknetCore public immutable starknetCore;
+  /// Using a mock here for testing purposes
   MockStarknetMessaging public immutable starknetCore;
 
   /// Address of the L1 tx authenticator contract
@@ -29,6 +30,10 @@ contract StarkNetCommit is Initializable {
   uint256 private constant L1_COMMIT_HANDLER =
     674623595553689999852507866835294387286428733459551884504121875060358224925;
 
+  /**
+    * @dev Constructor
+    * @param _starknetCore The StarkNet Core contract.
+    */
   constructor(MockStarknetMessaging _starknetCore) {
     starknetCore = _starknetCore;
   }
