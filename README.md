@@ -24,7 +24,21 @@
 
 Snapshot X is a voting framework built on StarkNet, a ZK-rollup based Layer 2 for Ethereum. It will allow any DAO to easily incorporate a fully on-chain governance system without having to deal with the very high gas costs one would occur by running the governance system directly on Ethereum Layer 1. 
 
-![](./docs/architecture.png)
+### Motivation
+
+Governance mechanisms obey a trillemma between decentralization, cost, and flexibility. On the one end you have systems like Snapshot that provide a very cheap experience [1] will losts of flexibility. However it relies on one trusting the Snapshot off-chain protocol to deliver the verdict of a particular governance proposal and to not censor votes. Flexibility comes from the wide range of voting strategies than one can employ to calculate the voting power for each user. 
+
+On the other end you have governance systems that run fully on-chain on Ethereum mainnet. Compound Governor is one example of such a sytem. All the voting logic is computed on-chain which provides an equivalent degree of decentralization to Ethereum itself. The compromise of such a system is a high cost of participation due to the high gas costs incurred when transacting on the blockchain. The flexibility of the system is also limited by cost as sophisticated voting strategies require increased on-chain logic and therfore will cost even more.
+
+
+
+![](./docs/milestones/comparisons.png)
+
+### Architecture 
+
+
+
+![](./docs/milestones/architecture.png)
 
 
 ### Code overview
@@ -129,3 +143,5 @@ This project is still under heavy development. Feel free to contact us on [Disco
 ## License
 
 Snapshot is open-sourced software licensed under the © [MIT license](LICENSE).
+
+[1] Despite being off-chain, there are some costs associated with running the off-chain infrastructure which are sufficiently low that it is possible for them to be fully subsidized by Snapshot Labs, providing a zero cost user experience. 
