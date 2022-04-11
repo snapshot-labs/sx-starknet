@@ -30,20 +30,20 @@ Governance mechanisms obey a trillemma between decentralization, cost, and flexi
 
 On the other end you have governance systems that run fully on-chain on Ethereum mainnet. Compound Governor is one example of such a sytem. All the voting logic is computed on-chain which provides an equivalent degree of decentralization to Ethereum itself. The compromise of such a system is a high cost of participation due to the high gas costs incurred when transacting on the blockchain. The flexibility of the system is also limited by cost as sophisticated voting strategies require increased on-chain logic and therfore will cost even more.
 
-
+Snapshot X aims to bridge this divide by providing a fully on-chain governance system that is 50-100x cheaper than current solutions that run on Ethereum mainnet. We hope that this will unlock massive increases in governance participation without having to make any comprimises on decentralization. This is achieved by running the voting logic on StarkNet, which provides cheap computation whilst inheriting all of the security guarrantees of Ethereum itself. Once voting on a proposal has ended, an L1-L2 message bridge is utilized to allow Ethereum transactions inside the proposal to be permissionlessly executed. 
 
 ![](./docs/milestones/comparisons.png)
 
 ### Architecture 
 
-
+Snapshot X is designed to be as modular as possible to provide maximum configurability. As displayed in the diagram below, certain contracts have new instances which are deployed for each DAO (or more specifically per space) that utilizes Snapshot X. Whilst others are treated more like library contracts and have a single instance which is shared between all DAOs.
 
 ![](./docs/milestones/architecture.png)
 
 
 ### Code overview
 
-Snapshot X is designed to be as modular as possible. Let's go over the core contracts that every DAO will need:
+We now discuss the various contracts that make up Snapshot X. 
 
 #### Space contract
 
@@ -144,4 +144,4 @@ This project is still under heavy development. Feel free to contact us on [Disco
 
 Snapshot is open-sourced software licensed under the © [MIT license](LICENSE).
 
-[1] Despite being off-chain, there are some costs associated with running the off-chain infrastructure which are sufficiently low that it is possible for them to be fully subsidized by Snapshot Labs, providing a zero cost user experience. 
+[1] Despite being off-chain, there are some costs associated with running the infrastructure. These costs are sufficiently low that it is possible for them to be fully subsidized by Snapshot Labs, providing a zero cost user experience. 
