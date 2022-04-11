@@ -7,7 +7,9 @@ import { StarknetContractFactory, StarknetContract, HttpNetworkConfig } from 'ha
 import { strToShortStringArr } from '@snapshot-labs/sx';
 import { getCommit } from '..starknet/shared/helpers';
 
-const propose_selector = BigInt('0x1BFD596AE442867EF71CA523061610682AF8B00FC2738329422F4AD8D220B81');
+const propose_selector = BigInt(
+  '0x1BFD596AE442867EF71CA523061610682AF8B00FC2738329422F4AD8D220B81'
+);
 const vote_selector = BigInt('0x132BDF85FC8AA10AC3C22F02317F8F53D4B4F52235ED1EABB3A4CBBE08B5C41');
 const VOTING_DELAY = BigInt(0);
 const VOTING_PERIOD = BigInt(20);

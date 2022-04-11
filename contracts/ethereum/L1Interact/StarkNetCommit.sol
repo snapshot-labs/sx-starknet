@@ -31,9 +31,9 @@ contract StarkNetCommit is Initializable {
     674623595553689999852507866835294387286428733459551884504121875060358224925;
 
   /**
-    * @dev Constructor
-    * @param _starknetCore The StarkNet Core contract.
-    */
+   * @dev Constructor
+   * @param _starknetCore The StarkNet Core contract.
+   */
   constructor(MockStarknetMessaging _starknetCore) {
     starknetCore = _starknetCore;
   }

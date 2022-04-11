@@ -42,7 +42,6 @@ export function expectAddressEquality(actual: string, expected: string) {
   expect(adaptAddress(actual)).to.equal(adaptAddress(expected));
 }
 
-
 export function wordsToUint(word1: bigint, word2: bigint, word3: bigint, word4: bigint): bigint {
   const s3 = BigInt(2 ** 64);
   const s2 = BigInt(2 ** 128);
@@ -61,7 +60,7 @@ export function uintToWords(
 }
 
 /**
- * Computes the Pedersen hash of a execution payload for StarkNet 
+ * Computes the Pedersen hash of a execution payload for StarkNet
  * This can be used to produce the input for calling the commit method in the StarkNet Commit contract.
  * @param target the target address of the execution.
  * @param selector the selector for the method at address target one wants to execute.
