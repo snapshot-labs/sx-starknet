@@ -24,6 +24,8 @@
 
 Snapshot X is a voting framework built on StarkNet, a ZK-rollup based Layer 2 for Ethereum. It will allow any DAO to easily incorporate a fully on-chain governance system without having to deal with the very high gas costs one would occur by running the governance system directly on Ethereum Layer 1. 
 
+![](./docs/architecture.png)
+
 
 ### Code overview
 
