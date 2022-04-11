@@ -5,7 +5,7 @@ import { starknet, network, ethers } from 'hardhat';
 import { FOR, SplitUint256 } from '../starknet/shared/types';
 import { StarknetContractFactory, StarknetContract, HttpNetworkConfig } from 'hardhat/types';
 import { strToShortStringArr } from '@snapshot-labs/sx';
-import { getCommit } from '..starknet/shared/helpers';
+import { getCommit } from '../starknet/shared/helpers';
 
 const propose_selector = BigInt(
   '0x1BFD596AE442867EF71CA523061610682AF8B00FC2738329422F4AD8D220B81'
