@@ -10,7 +10,7 @@ const SPACE_CONTRACT = BigInt(1337);
 
 async function setup() {
   const vanillaAuthenticatorFactory = await starknet.getContractFactory(
-    './contracts/starknet/authenticator/authenticator.cairo'
+    './contracts/starknet/authenticator/vanilla.cairo'
   );
   const vanillaAuthenticator = await vanillaAuthenticatorFactory.deploy();
   return {
@@ -19,7 +19,7 @@ async function setup() {
 }
 
 describe('Authenticator execute call:', () => {
-  it('Calls the vote methd correctly', async () => {
+  it('Calls the vote method correctly', async () => {
     const { vanillaAuthenticator } = await setup();
 
     // TODO: Uncomment these when merging vanilla_space
