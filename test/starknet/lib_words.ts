@@ -21,8 +21,6 @@ describe('Words:', () => {
     const { words: words } = await testWords.call('test_felt_to_words', {
       input: input,
     });
-
-    console.log(words);
     const uint = wordsToUint(words.word_1, words.word_2, words.word_3, words.word_4);
     expect(uint).to.deep.equal(input);
   }).timeout(60000);
