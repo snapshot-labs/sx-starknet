@@ -113,7 +113,7 @@ We will also be adding a StarkNet transaction execution strategy in the near fut
 To enable an easy way to deploy and keep track of spaces, each DAO will have a space factory contract that will do this. The factory pattern has not yet been released on StarkNet therefore we are waiting to implement this feature.  
 
 
-### Off-Chain Architecture 
+### Off Chain Architecture 
 
 We will now briefly provide an overview of the off-chain aspects of Snapshot X and how they will interact with the on-chain code. 
 
