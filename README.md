@@ -82,32 +82,45 @@ The backbone of the voting strategies is the Fossil module built by the awesome 
 
 #### Authenticators
 
-Authenticators are the contracts in charge of authenticating users. This repository provides three useful authenticators:
+Authenticators are the contracts in charge of authenticating users. All authenticators have a function titled `execute` that takes the following arguments: 
+- `to`: The address of the space contract the user wants to interact with. 
+- `function selector`: The function selector for the function inside the space contract that the user wants to invoke (vote or propose).
+- `calldata`: An array of parameters that are required by the function specified by `function selector`. 
+
+Beyond this, each authenticator implements different logic depending on the type of authentication that is being done. This repository provides three useful authenticators:
 - [Ethereum_Signature Authenticator](contracts/starknet/authenticator/ethereum.cairo): Will authenticate a user based on a message signed by Ethereum private keys.
 - [StarkNet_Signature Authenticator](contracts/starknet/authenticator/starknet.cairo): Will authenticate a user based on a message signed by Starknet private keys.
-- [L1 Transaction Authenticator](contracts/starknet/authenticator/l1_tx.cairo): Will authenticate a user via getting them to submit a transaction on Ethereum and checking that the sender address is valid. The core usecase for this is to allow smart contract accounts such as multi-sigs to use Snapshot X as they have no way to generate a signature and therefore cannot authenticate via signature verification. 
+- [L1 Transaction Authenticator](contracts/starknet/authenticator/l1_tx.cairo): Will authenticate a user via getting them to submit a transaction on Ethereum and checking that the sender address is valid.  Specifically, the user will call the commit method of the StarkNet Commit L1 contract with a hash of their desired `to`, `function_selector`, and `calldata`. This hash along with the users Ethereum address will then be sent to the L1 Transaction Authenticator by the StarkNet message bridge and will be stored there. The user then submits the hash pre-image to the `execute` method of the authenticator and the hash will be computed and checked against the one stored. If the hashes match and the sender address stored corresponds to the address in the `calldata`, then authentication was successful. The core usecase for this is to allow smart contract accounts such as multi-sigs to use Snapshot X as they have no way to generate a signature and therefore cannot authenticate via signature verification.
+
+Upon successful authentication of the user, the `execute` method will call the function specified by `function selector` in the space contract `to` with `calldata` as arguments. 
 
 This modularity allows spaces to authenticate users using other authentication methods: For example, if you wanted to use Solana keys to authenticate users, you would simply need to write the authenticator contract on Starknet, and you would be able to authenticate Solana users to vote on Snapshot X!
 
 #### Execution
 
-The execution contract is the contract that gets called when voting for a proposal is done. The interface can be found [here](contracts/starknet/execution/interface.cairo). The execution contract receives:
+The `executor` contract implements the execution strategy that gets called when voting for a proposal is done. The interface can be found [here](contracts/starknet/execution/interface.cairo). 
+Once voting has ended, calling `finalize_proposal` in the space contract will pass the following parameters to the `execute` method of the `executor`:
 - `has_passed`: Whether the proposal has passed or not (majority of voting power allocated to `FOR` signifies that the proposal has passed).
 - `execution_hash`: Hash of the transactions to be executed.
-- `execution_params`: Array of additional parameters that are be needed to properly execute these transactions in the way specified by the proposal creator.
+- `execution_params`: Array of additional parameters that are needed by the execution strategy. 
 
-This repo provides the [Zodiac Relayer](contracts/starknet/execution/zodiac_relayer.cairo`), which will forward the execution to the l1 Zodiac module address specified in `executions_params[0]`. To better understand this flow, you can look at the [corresponding test](test/crosschain/zodiac.ts).
+Currently this repo provides the Zodiac Execution Strategy. This enables a DAO to permissionlessly execute L1 Gnosis Safe transactions upon the successful completion of a proposal. The [Zodiac Relayer](contracts/starknet/execution/zodiac_relayer.cairo`) contract is the `executor` for this strategy, which will forward the execution to the [L1 Zodiac module](contracts/ethereum/SnapshotXZodiacModule/SnapshotXL1Executor.sol) address specified in `executions_params[0]`. To use this strategy, DAOs will need a Gnosis Safe with the Snapshot X Zodiac module activated. 
 
-
-[1] Despite being off-chain, there are some costs associated with running the infrastructure. These costs are sufficiently low that it is possible for them to be fully subsidized by Snapshot Labs, providing a zero cost user experience.
+We will also be adding a StarkNet transaction execution strategy in the near future. 
 
 #### Space Factory 
 
 
+
+
+
 ### Off Chain Architecture 
 
+<p align="center">
+<img src="./docs/milestones/offchain_architecture.png" width="600">
+</p>
 
-
+[1] Despite being off-chain, there are some costs associated with running the infrastructure. These costs are sufficiently low that it is possible for them to be fully subsidized by Snapshot Labs, providing a zero cost user experience.
 
 ## Usage
 
