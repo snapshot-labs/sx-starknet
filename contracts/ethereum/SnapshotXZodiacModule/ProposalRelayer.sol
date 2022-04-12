@@ -65,24 +65,4 @@ contract SnapshotXProposalRelayer is Guardable {
     /// Returns the message Hash. If proposal execution message did not exist/not received yet, then this will fail
     starknetCore.consumeMessageFromL2(l2ExecutionRelayer, payload);
   }
-
-  /**
-   * @dev Checks whether proposal has been received on L1 yet
-   * @param executionHash Hash of all the transactions in the proposal
-   * @param proposalOutcome Whether the proposal has been accepted / rejected / cancelled
-   * @return isReceived Has the proposal been received
-   */
-  function isFinalizedProposalReceived(uint256 executionHash, uint256 proposalOutcome)
-    external
-    view
-    returns (bool isReceived)
-  {
-    uint256[] memory payload = new uint256[](2);
-    payload[0] = executionHash;
-    payload[1] = proposalOutcome;
-    bytes32 msgHash = keccak256(
-      abi.encodePacked(l2ExecutionRelayer, uint256(uint160(msg.sender)), payload.length, payload)
-    );
-    return starknetCore.l2ToL1Messages(msgHash) > 0;
-  }
 }
