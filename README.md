@@ -48,14 +48,15 @@ To deploy a new space, you will need to provide:
 - `proposal_threshold`: The minimum amount of voting power needed to be able to create a new proposal in the space. Used to avoid having anyone be able to create a proposal.
 - `voting_strategies`: A list of voting strategy contracts addresses that define the voting strategies used by the space. The voting power of each user will be calculated as the sum of voting powers returned for each strategy in the list for that user. More information in the [Voting Strategy](#Voting-Strategies) section.
 - `authenticators`: A list of accepted authenticators. These are the ways in which a user can authenticate themselves in order to vote or propose. For more information, refer to the [Authenticators](#Authenticators) section.
+- `executor`: The execution strategy contract that will handle the execution of transactions inside proposals once voting is complete. More information about execution in the [Execution Contract](#Execution-Contract) section.
 
-Once a space has been created, users can create new proposals by calling the `propose` method (provided the caller has at least `proposal_threshold` voting power). Users don't directly interact with the `space` contract, but use one of the `authenticator` as a proxy. Once a proposal has been created, and the `voting_delay` has elapsed, users can then vote for the proposal (once again, using an `authenticator` as a proxy). Once the `voting_duration` has passed, votes are closed, and anyone can call `finalize_proposal` (this time directly on the space contract as no authentication is required): this will finalize the proposal, count the votes for/against/abstain, and call the execution contract. More information about execution in the [Execution Contract](#Execution-Contract) section.
+Once a space has been created, users can create new proposals by calling the `propose` method (provided the caller has at least `proposal_threshold` voting power). Users don't directly interact with the `space` contract, but use one of the `authenticator` as a proxy. Once a proposal has been created, and the `voting_delay` has elapsed, users can then vote for the proposal (once again, using an `authenticator` as a proxy). Once the `voting_duration` has passed, votes are closed, and anyone can call `finalize_proposal` (this time directly on the space contract as no authentication is required): this will finalize the proposal, count the votes for/against/abstain, and call the `executor`. 
 
 Note that each DAO will have at least one space, however a DAO might choose to have multiple spaces if they want to create different 'categories' of proposal each with different settings.
 
 #### Voting Strategies
 
-Voting strategy contracts are the contracts used to determine the voting power of a user. Voting strategies can be created permissionlessly however to use one, one must whitelist the strategy contract in the relevant space contract for the DAO. The most common example is using the erc20 token balance of a user to determine his voting power. But we could imagine other voting strategies: owning a specific NFT, owning NFT of collection X and another NFT of collection Y, having participated in protocol xyz... the possibilities are endless! We provide the [single_slot_proof strategy](contracts/starknet/strategies/single_slot_proof.cairo) which allows classic ERC20 and ERC721 balances on L1 (thanks to [Fossil](#Fossil-Storage-Verifier)) to be used as voting power, but feel free to create your own strategies! We hope that the flexibility of the system will unlock a new era of programmable on-chain governance. The interface of a strategy can be found [here](contracts/starknet/strategies/interface.cairo). 
+Voting strategies are the contracts used to determine the voting power of a user. Voting strategies can be created permissionlessly however to use one, one must whitelist the strategy contract in the relevant space contract for the DAO. The most common example is using the ERC-20 token balance of a user to determine his voting power. But we could imagine other voting strategies: owning a specific NFT, owning NFT of collection X and another NFT of collection Y, having participated in protocol xyz... the possibilities are endless! We provide the [single_slot_proof strategy](contracts/starknet/strategies/single_slot_proof.cairo) which allows classic ERC20 and ERC721 balances on L1 (thanks to [Fossil](#Fossil-Storage-Verifier)) to be used as voting power, but feel free to create your own strategies! We hope that the flexibility of the system will unlock a new era of programmable on-chain governance. The interface of a strategy can be found [here](contracts/starknet/strategies/interface.cairo). 
 
 #### Fossil Storage Verifier
 
@@ -64,19 +65,19 @@ The backbone of the voting strategies is the Fossil module built by the awesome 
 
 #### Authenticators
 
-Authenticators are the contracts in charge of authenticating users. This repository provides two useful authenticators:
-- [ethereum_authenticator](contracts/starknet/authenticator/ethereum.cairo) which will authenticate a user based on a message signed by Ethereum private keys.
-- [starknet_authenticator](contracts/starknet/authenticator/starknet.cairo), which will authenticate a user based on a message signed by Starknet keys.
+Authenticators are the contracts in charge of authenticating users. This repository provides three useful authenticators:
+- [Ethereum_Signature Authenticator](contracts/starknet/authenticator/ethereum.cairo): Will authenticate a user based on a message signed by Ethereum private keys.
+- [StarkNet_Signature Authenticator](contracts/starknet/authenticator/starknet.cairo): Will authenticate a user based on a message signed by Starknet private keys.
+- [L1 Transaction Authenticator](contracts/starknet/authenticator/l1_tx.cairo): Will authenticate a user via getting them to submit a transaction on Ethereum and checking that the sender address is valid. The core usecase for this is to allow smart contract accounts such as multi-sigs to use Snapshot X as they have no way to generate a signature and therefore cannot authenticate via signature verification. 
 
-This modularity allows spaces to authenticate users using other authentication methods: if you wanted to use Solana keys to authenticate users, you would simply need to write the authenticator contract on Starknet, and you would be able to authenticate Solana users!
+This modularity allows spaces to authenticate users using other authentication methods: For example, if you wanted to use Solana keys to authenticate users, you would simply need to write the authenticator contract on Starknet, and you would be able to authenticate Solana users to vote on Snapshot X!
 
-#### Execution Contract
+#### Execution
 
 The execution contract is the contract that gets called when voting for a proposal is done. The interface can be found [here](contracts/starknet/execution/interface.cairo). The execution contract receives:
-- `has_passed`: whether the proposal has passed or not (majority of `FOR`).
-- `execution_hash`: hash of the transactions to be executed.
-- `execution_params_len`: the length of `execution_params`, in `felt`s.
-- `execution_params`: additional parameters that might be needed to properly execute these transactions.
+- `has_passed`: Whether the proposal has passed or not (majority of voting power allocated to `FOR` signifies that the proposal has passed).
+- `execution_hash`: Hash of the transactions to be executed.
+- `execution_params`: Array of additional parameters that are be needed to properly execute these transactions in the way specified by the proposal creator.
 
 This repo provides the [Zodiac Relayer](contracts/starknet/execution/zodiac_relayer.cairo`), which will forward the execution to the l1 Zodiac module address specified in `executions_params[0]`. To better understand this flow, you can look at the [corresponding test](test/crosschain/zodiac.ts).
 
