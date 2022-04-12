@@ -14,7 +14,9 @@ func execute{syscall_ptr : felt*}(
     let (caller_address) = get_caller_address()
 
     # Get the l1 zodiac address
-    assert execution_params_len = 1
+    with_attr error_message("Invalid execution parameter"):
+        assert execution_params_len = 1
+    end
     let l1_zodiac_address = execution_params[0]
 
     # Create the payload

@@ -87,7 +87,9 @@ func assert_valid_authenticator{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*
     let (is_valid) = authenticators.read(caller_address)
 
     # Ensure it has been initialized
-    assert_not_zero(is_valid)
+    with_attr error_message("Invalid authenticator"):
+        assert_not_zero(is_valid)
+    end
 
     return ()
 end
@@ -150,10 +152,12 @@ func constructor{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_p
         _executor : felt, _voting_strategies_len : felt, _voting_strategies : felt*,
         _authenticators_len : felt, _authenticators : felt*):
     # Sanity checks
-    assert_nn(_voting_delay)
-    assert_nn(_voting_period)
-    assert_not_zero(_voting_strategies_len)
-    assert_not_zero(_authenticators_len)
+    with_attr error_message("Invalid constructor parameterse"):
+        assert_nn(_voting_delay)
+        assert_nn(_voting_period)
+        assert_not_zero(_voting_strategies_len)
+        assert_not_zero(_authenticators_len)
+    end
     # TODO: maybe use uint256_signed_nn to check proposal_threshold?
     # TODO: maybe check that _executor is not 0?
 
@@ -185,16 +189,28 @@ func vote{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr : fe
     let (current_timestamp) = get_block_timestamp()
 
     # Make sure proposal is not closed
-    assert_lt(current_timestamp, proposal.end_timestamp)
+    with_attr error_message("Voting period has ended"):
+        assert_lt(current_timestamp, proposal.end_timestamp)
+    end
 
     # Make sure proposal has started
-    assert_le(proposal.start_timestamp, current_timestamp)
+    with_attr error_message("Voting has not started yet"):
+        assert_le(proposal.start_timestamp, current_timestamp)
+    end
 
     # Make sure voter has not already voted
     let (prev_vote) = vote_registry.read(proposal_id, voter_address)
     if prev_vote.choice != 0:
         # Voter has already voted!
-        assert 1 = 0
+        with_attr error_message("User already voted"):
+            assert 1 = 0
+        end
+    end
+
+    # Make sure `choice` is a valid choice
+    with_attr error_message("Invalid choice"):
+        assert_le(Choice.FOR, choice)
+        assert_le(choice, Choice.ABSTAIN)
     end
 
     let (user_voting_power) = IVotingStrategy.get_voting_power(
@@ -204,16 +220,14 @@ func vote{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr : fe
         params_len=voting_params_len,
         params=voting_params)
 
-    # Make sure `choice` is a valid choice
-    assert_le(Choice.FOR, choice)
-    assert_le(choice, Choice.ABSTAIN)
-
     let (previous_voting_power) = vote_power.read(proposal_id, choice)
     let (new_voting_power, carry) = uint256_add(user_voting_power, previous_voting_power)
 
     if carry != 0:
         # Overflow happened, throw error
-        assert 1 = 0
+        with_attr error_message("Overflow"):
+            assert 1 = 0
+        end
     end
 
     vote_power.write(proposal_id, choice, new_voting_power)
@@ -237,7 +251,9 @@ func propose{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr :
 
     # We cannot have `0` as the `ethereum_block_number` because we rely on checking
     # if it's different than 0 in `finalize_proposal`.
-    assert_not_zero(ethereum_block_number)
+    with_attr error_message("Invalid block number"):
+        assert_not_zero(ethereum_block_number)
+    end
 
     # Verify that the caller is the authenticator contract.
     assert_valid_authenticator()
@@ -264,7 +280,9 @@ func propose{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr :
     let (is_lower) = uint256_lt(voting_power, threshold)
     if is_lower == 1:
         # Not enough voting power to create a proposal
-        assert 1 = 0
+        with_attr error_message("Not enough voting power"):
+            assert 1 = 0
+        end
     end
 
     # Hash the execution params
@@ -304,25 +322,33 @@ func finalize_proposal{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_c
     let (has_been_executed) = executed_proposals.read(proposal_id)
 
     # Make sure proposal has not already been executed
-    assert has_been_executed = 0
+    with_attr error_message("Proposal already executed"):
+        assert has_been_executed = 0
+    end
 
-    # Checks that the proposal id exists. If it doesn't exist, then the whole `Proposal` struct will
-    # be set to 0, hence `ethereum_block_number` will be set to 0 too.
     let (proposal) = proposal_registry.read(proposal_id)
-    assert_not_zero(proposal.ethereum_block_number)
+    with_attr error_message("Invalid proposal id"):
+        # Checks that the proposal id exists. If it doesn't exist, then the whole `Proposal` struct will
+        # be set to 0, hence `ethereum_block_number` will be set to 0 too.
+        assert_not_zero(proposal.ethereum_block_number)
+    end
 
     # Make sure proposal period has ended
     let (current_timestamp) = get_block_timestamp()
     # ------------------------------------------------
     #                  IMPORTANT
     # ------------------------------------------------
-    # This has been commented to allow for easier testeing.
+    # This has been commented to allow for easier testing.
     # Please uncomment before pushing to prod.
-    # assert_lt_felt(proposal.end_timestamp, current_timestamp)
+    # with_attr error_message("Voting period has not ended yet"):
+    #   assert_lt_felt(proposal.end_timestamp, current_timestamp)
+    # end
 
     # Make sure execution params match the stored hash
     let (recovered_hash) = hash_pedersen(execution_params_len, execution_params)
-    assert recovered_hash = proposal.execution_params_hash
+    with_attr error_message("Invalid execution parameters"):
+        assert recovered_hash = proposal.execution_params_hash
+    end
 
     # Count votes for
     let (for) = vote_power.read(proposal_id, Choice.FOR)
@@ -346,7 +372,7 @@ func finalize_proposal{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_c
     # This should not create re-entrency vulnerability because the message
     # executor is a whitelisted address. If we set this flag BEFORE the call
     # to the executor, we could have a malicious attacker sending some random
-    # invlalid execution_params and cancel out the vote.
+    # invalid execution_params and cancel out the vote.
     executed_proposals.write(proposal_id, 1)
 
     return ()
