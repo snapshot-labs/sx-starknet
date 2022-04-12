@@ -22,11 +22,11 @@
 
 ### Overview
 
-Governance mechanisms obey a trillemma between **decentralization**, **cost**, and **flexibility**. On the one end you have systems like [Snapshot](https://snapshot.org/#/) that provide a very cheap experience [1] will losts of flexibility. However it relies on one trusting the Snapshot off-chain protocol to deliver the verdict of a particular governance proposal and to not censor votes. Flexibility comes from the wide range of voting strategies than one can employ to calculate the voting power for each user. 
+Governance mechanisms obey a trilemma between **decentralisation**, **cost**, and **flexibility**. On the one end you have systems like [Snapshot](https://snapshot.org/#/) that provide a very cheap experience [1] with lots of flexibility. However it relies on one trusting the Snapshot off-chain protocol to deliver the verdict of a particular governance proposal and to not censor votes. Flexibility comes from the wide range of voting strategies than one can employ to calculate the voting power for each user. 
 
-On the other end you have governance systems that run fully on-chain on Ethereum mainnet. [Compound Governor](https://github.com/compound-finance/compound-protocol/blob/master/contracts/Governance/GovernorBravoDelegate.sol) is one example of such a sytem. All the voting logic is computed on-chain which provides an equivalent degree of decentralization to Ethereum itself. The compromise of such a system is a high cost of participation due to the high gas costs incurred when transacting on the blockchain. The flexibility of the system is also limited by cost as sophisticated voting strategies require increased on-chain logic and therfore will cost even more to utilize them.
+On the other end you have governance systems that run fully on-chain on Ethereum mainnet. [Compound Governor](https://github.com/compound-finance/compound-protocol/blob/master/contracts/Governance/GovernorBravoDelegate.sol) is one example of such a system. All the voting logic is computed on-chain which provides an equivalent degree of decentralisation to Ethereum itself. The compromise of such a system is a high cost of participation due to the high gas costs incurred when transacting on the blockchain. The flexibility of the system is also limited by cost as sophisticated voting strategies require increased on-chain logic and therefore it would cost even more and limit participation further to utilise them.
 
-Snapshot X aims to bridge this divide by providing a fully on-chain governance system that is 50-100x cheaper than current solutions that run on Ethereum mainnet. We hope that this will unlock massive increases in governance participation without having to make any comprimises on decentralization. This is achieved by running the voting logic on StarkNet, which provides cheap computation whilst inheriting all of the security guarrantees of Ethereum itself. Once voting on a proposal has ended, a L1-L2 message bridge is utilized to allow transactions inside the proposal to be permissionlessly executed on Ethereum mainnet. 
+Snapshot X aims to bridge this divide by providing a fully on-chain governance system that is 50-100x cheaper than current solutions that run on Ethereum mainnet. We hope that this will unlock massive increases in on-chain governance participation and flexibility of the governance mechanism without having to make any compromises on decentralisation. This is achieved by running the voting logic on StarkNet, which provides cheap computation whilst inheriting all of the security guarantees of Ethereum itself. Once voting on a proposal has ended, an L1-L2 message bridge can be utilised to allow transactions inside the proposal to be permissionless executed on Ethereum mainnet. 
 
 <p align="center">
 <img src="./docs/milestones/comparisons.png" width="800">
@@ -35,7 +35,7 @@ Snapshot X aims to bridge this divide by providing a fully on-chain governance s
 
 ### On Chain Architecture 
 
-Snapshot X is designed to be as modular as possible to provide maximum configurability. As displayed in the diagram below, certain contracts have new instances which are deployed for each DAO (or more specifically per [space](#Space-Contract) that utilizes Snapshot X. Whilst others are treated more like library contracts and have a single instance which is shared between all DAOs.
+Snapshot X is designed to be as modular as possible to provide maximum configurability. As displayed in the diagram below, certain contracts have new instances which are deployed for each DAO (or more specifically per [space](#Space-Contract) that utilises Snapshot X. Whilst others are treated more like library contracts and have a single instance which is shared between all DAOs.
 
 ![](./docs/milestones/architecture.png)
 
@@ -50,7 +50,7 @@ To deploy a new space, you will need to provide:
 - `authenticators`: A list of accepted authenticators. These are the ways in which a user can authenticate themselves in order to vote or propose. For more information, refer to the [Authenticators](#Authenticators) section.
 - `executor`: The execution strategy contract that will handle the execution of transactions inside proposals once voting is complete. More information about execution in the [Execution Contract](#Execution-Contract) section.
 
-Once a space has been created, users can create new proposals by calling the `propose` method (provided the caller has at least `proposal_threshold` voting power). Users don't directly interact with the `space` contract, but use one of the `authenticator` as a proxy. 
+Once a space has been created, users can create new proposals by calling the `propose` method (provided the caller has at least `proposal_threshold` voting power). Users don't directly interact with the `space` contract, but instead one of the `authenticator` contracts that act as proxies. 
 
 The proposal creator will need to provide the following parameters:
 - `proposer_address`: The Ethereum address of the proposal creator which will be used to check that their voting power exceeds the `proposal_threshold`.
@@ -74,11 +74,11 @@ Note that each DAO will have at least one space, however a DAO might choose to h
 
 #### Voting Strategies
 
-Voting strategies are the contracts used to determine the voting power of a user. Voting strategies can be created permissionlessly however to use one, one must whitelist the strategy contract in the relevant space contract for the DAO. The most common example is using the ERC-20 token balance of a user to determine his voting power. But we could imagine other voting strategies: owning a specific NFT, owning NFT of collection X and another NFT of collection Y, having participated in protocol xyz... the possibilities are endless! We provide the [single_slot_proof strategy](contracts/starknet/strategies/single_slot_proof.cairo) which allows classic ERC20 and ERC721 balances on L1 (thanks to [Fossil](#Fossil-Storage-Verifier)) to be used as voting power, but feel free to create your own strategies! We hope that the flexibility of the system will unlock a new era of programmable on-chain governance. The interface of a strategy can be found [here](contracts/starknet/strategies/interface.cairo). 
+Voting strategies are the contracts used to determine the voting power of a user. Voting strategies can be created in a permissionless way however to use one, one must whitelist the strategy contract in the relevant space contract for the DAO. The most common example is using the ERC-20 token balance of a user to determine his voting power. But we could imagine other voting strategies: owning a specific NFT, owning NFT of collection X and another NFT of collection Y, having participated in protocol xyz... the possibilities are endless! We provide the [single_slot_proof strategy](contracts/starknet/strategies/single_slot_proof.cairo) which allows classic ERC20 and ERC721 balances on L1 (thanks to [Fossil](#Fossil-Storage-Verifier)) to be used as voting power, but feel free to create your own strategies! We hope that the flexibility of the system will unlock a new era of programmable on-chain governance. The interface of a strategy can be found [here](contracts/starknet/strategies/interface.cairo). 
 
 #### Fossil Storage Verifier
 
-The backbone of the voting strategies is the Fossil module built by the awesome Oiler team. This module allows any part of the Ethereum mainnet state to be trustlessly verfied on StarkNet. Verification of Ethereum state information is achieved by submitting a proof of the state to StarkNet and then verifying that proof. Once this state information has been proved, we can then calculate voting power as an arbitrary function of the information. For more information on Fossil, refer to their [Github](https://github.com/OilerNetwork/fossil)
+The backbone of the voting strategies is the Fossil module built by the awesome Oiler team. This module allows any part of the Ethereum mainnet state to be trustlessly verified on StarkNet. Verification of Ethereum state information is achieved by submitting a proof of the state to StarkNet and then verifying that proof. Once this state information has been proved, we can then calculate voting power as an arbitrary function of the information. For more information on Fossil, refer to their [Github](https://github.com/OilerNetwork/fossil)
 
 #### Authenticators
 
@@ -89,10 +89,10 @@ Authenticators are the contracts in charge of authenticating users. All authenti
 
 Beyond this, each authenticator implements different logic depending on the type of authentication that is being done. This repository provides three useful authenticators:
 - [Ethereum_Signature Authenticator](contracts/starknet/authenticator/ethereum.cairo): Will authenticate a user based on a message signed by Ethereum private keys.
-- [StarkNet_Signature Authenticator](contracts/starknet/authenticator/starknet.cairo): Will authenticate a user based on a message signed by Starknet private keys.
-- [L1 Transaction Authenticator](contracts/starknet/authenticator/l1_tx.cairo): Will authenticate a user via getting them to submit a transaction on Ethereum and checking that the sender address is valid.  Specifically, the user will call the commit method of the [StarkNet Commit](contracts/ethereum/L1Interact/StarkNetCommit.sol) L1 contract with a hash of their desired `to`, `function_selector`, and `calldata`. This hash along with the users Ethereum address will then be sent to the L1 Transaction Authenticator by the StarkNet message bridge and will be stored there. The user then submits the hash pre-image to the `execute` method of the authenticator and the hash will be computed and checked against the one stored. If the hashes match and the sender address stored corresponds to the address in the `calldata`, then authentication was successful. The core usecase for this is to allow smart contract accounts such as multi-sigs to use Snapshot X as they have no way to generate a signature and therefore cannot authenticate via signature verification.
+- [StarkNet_Signature Authenticator](contracts/starknet/authenticator/starknet.cairo): Will authenticate a user based on a message signed by StarkNet private keys.
+- [L1 Transaction Authenticator](contracts/starknet/authenticator/l1_tx.cairo): Will authenticate a user via getting them to submit a transaction on Ethereum and checking that the sender address is valid.  Specifically, the user will call the commit method of the [StarkNet Commit](contracts/ethereum/L1Interact/StarkNetCommit.sol) L1 contract with a hash of their desired `to`, `function_selector`, and `calldata`. This hash along with the user's Ethereum address will then be sent to the L1 Transaction Authenticator by the StarkNet message bridge and will be stored there. The user then submits the hash preimage to the `execute` method of the authenticator and the hash will be computed and checked against the one stored. If the hashes match and the sender address stored corresponds to the address in the `calldata`, then authentication was successful. The core use case for this is to allow smart contract accounts such as multi-sigs to use Snapshot X as they have no way to generate a signature and therefore cannot authenticate via signature verification.
 
-Upon successful authentication of the user, the `execute` method will call the function specified by `function selector` in the space contract `to` with `calldata` as arguments. 
+Upon successful authentication of the user, the `execute` method will call the function specified by `function selector` in the space contract `to`, with `calldata` as arguments. 
 
 This modularity allows spaces to authenticate users using other authentication methods: For example, if you wanted to use Solana keys to authenticate users, you would simply need to write the authenticator contract on Starknet, and you would be able to authenticate Solana users to vote on Snapshot X!
 
@@ -104,7 +104,7 @@ Once voting has ended, calling `finalize_proposal` in the space contract will pa
 - `execution_hash`: Hash of the transactions to be executed.
 - `execution_params`: Array of additional parameters that are needed by the execution strategy. 
 
-Currently this repo provides the Zodiac Execution Strategy. This enables a DAO to permissionlessly execute L1 Gnosis Safe transactions upon the successful completion of a proposal. The [Zodiac Relayer](contracts/starknet/execution/zodiac_relayer.cairo`) contract is the `executor` for this strategy, which will forward the execution to the [L1 Zodiac module](contracts/ethereum/SnapshotXZodiacModule/SnapshotXL1Executor.sol) address specified in `executions_params[0]`. To use this strategy, DAOs will need a Gnosis Safe with the Snapshot X Zodiac module activated. 
+Currently this repo provides the Zodiac Execution Strategy. This enables a DAO perform permissionless execution of L1 Gnosis Safe transactions upon the successful completion of a proposal. The [Zodiac Relayer](contracts/starknet/execution/zodiac_relayer.cairo`) contract is the `executor` for this strategy, which will forward the execution to the [L1 Zodiac module](contracts/ethereum/SnapshotXZodiacModule/SnapshotXL1Executor.sol) address specified in `executions_params[0]`. To use this strategy, DAOs will need a Gnosis Safe with the Snapshot X Zodiac module activated. 
 
 We will also be adding a StarkNet transaction execution strategy in the near future. 
 
@@ -123,18 +123,18 @@ We will now briefly provide an overview of the off-chain aspects of Snapshot X a
 
 #### Snapshot X UI
 
-The [UI](https://github.com/snapshot-labs/sx-ui) provides a simple interface for users to interact with Snapshot X. This will guide users through deploying spaces, creating proposals, and voting. It will also access data from the API and act as a DAO governance dashboard. In future we plan to fully integrate the UI into the existing Snapshot UI to provide a seamless experience between the various governance options we offer. 
+The [UI](https://github.com/snapshot-labs/sx-ui) provides a simple interface for users to interact with Snapshot X. This will guide users through deploying spaces, creating proposals, and voting. It will also access data from the API and act as a DAO governance dashboard. In future we plan to fully integrate the UI into the existing Snapshot UI to provide a seamless experience between the various governance options offered by Snapshot Labs. 
 
 #### Snapshot X Relayer
 
-The [Relayer](https://github.com/snapshot-labs/sx-ui) will submit transactions recieved by the UI to StarkNet. We will have a mechanism that will allow DAOs to fund the transactions the relayer submits so that there is a zero cost user experience. However importantly, users can directly interact with Snapshot X and therefore do not rely on trusting the relayer to not censor votes. In future we also plan to decentralize the relayer, allowing anyone to run one, further reducing the trust assumptions of using one.  
+The [Relayer](https://github.com/snapshot-labs/sx-ui) will submit transactions received by the UI to StarkNet. We will have a mechanism that will allow DAOs to fund the transactions the relayer submits so that there is a zero cost user experience. However importantly, users can directly interact with Snapshot X and therefore do not rely on trusting the relayer to not censor votes. In future we also plan to decentralise the relayer, allowing anyone to run one, further reducing the trust assumptions of using it.  
 
 #### Snapshot X API 
 
 The [API](https://github.com/snapshot-labs/sx-api) indexes Snapshot X data. Specifically, it monitors events emitted by spaces and space factories so that votes, proposals, and the deployment of new spaces can be tracked.   
 
 
-[1] Despite being off-chain, there are some costs associated with running the infrastructure. These costs are sufficiently low that it is possible for them to be fully subsidized by Snapshot Labs, providing a zero cost user experience.
+[1] Despite being off-chain, there are some costs associated with running the infrastructure. These costs are sufficiently low that it is possible for them to be fully subsidised by Snapshot Labs, providing a zero cost user experience.
 
 ## Usage
 
@@ -167,13 +167,13 @@ yarn compile
 
 Tests are separated into three categories:
 
-- Ethereum tests in `tests/ethereum`: they are tests for our solidity contracts
-- Starknet tests in `tests/starknet`: they are tests for our cairo contracts
-- Crosschain tests in `tests/crosschain`: they are tests that will do a full flow of interaction between cairo <-> solidity code
+- Ethereum tests in `tests/ethereum`: Tests for our solidity contracts
+- Starknet tests in `tests/starknet`: Tests for our cairo contracts
+- Cross chain tests in `tests/crosschain`: Tests that will cover interaction between L1 and L2 contracts.
 
-To run those tests, you need to install and run `starknet-devent`, and run `
+To run these tests locally: 
 
-#### Install and run StarkNet Devnet (In a separate terminal):
+#### Install and run [StarkNet Devnet](https://github.com/Shard-Labs/starknet-devnet) (In a separate terminal):
 ```bash
 pip install starknet-devnet
 starknet-devnet -p 8000
@@ -188,9 +188,9 @@ npx hardhat node
 #### Run tests:
 ```bash
 yarn test
-# You can also use `yarn test:l1` to test our solidity contracts,
-# `yarn test:l2` to test ou cairo contracts,
-# and `yarn test:l1l2` to test ou crosschain flow
+# You can also use `yarn test:l1` to just test the solidity contracts,
+# `yarn test:l2` to just test the cairo contracts,
+# and `yarn test:l1l2` to test the cross chain flow
 ```
 
 ## DISCLAIMER: STILL IN DEVELOPMENT
@@ -199,5 +199,5 @@ This project is still under heavy development. Feel free to contact us on [Disco
 
 ## License
 
-Snapshot is open-sourced software licensed under the © [MIT license](LICENSE).
- 
+Snapshot is open-source software licensed under the © [MIT license](LICENSE).
+
