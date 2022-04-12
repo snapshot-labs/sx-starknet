@@ -33,13 +33,13 @@ Snapshot X aims to bridge this divide by providing a fully on-chain governance s
 </p>
 
 
-### Architecture 
+### On Chain Architecture 
 
-Snapshot X is designed to be as modular as possible to provide maximum configurability. As displayed in the diagram below, certain contracts have new instances which are deployed for each DAO (or more specifically per space) that utilizes Snapshot X. Whilst others are treated more like library contracts and have a single instance which is shared between all DAOs.
+Snapshot X is designed to be as modular as possible to provide maximum configurability. As displayed in the diagram below, certain contracts have new instances which are deployed for each DAO (or more specifically per [space](#Space-Contract) that utilizes Snapshot X. Whilst others are treated more like library contracts and have a single instance which is shared between all DAOs.
 
 ![](./docs/milestones/architecture.png)
 
-#### Space contract
+#### Space Contract
 
 The [space](contracts/starknet/space/space.cairo) is THE core contract: it's in charge of tracking proposals, votes, and other general settings.
 To deploy a new space, you will need to provide:
@@ -50,7 +50,25 @@ To deploy a new space, you will need to provide:
 - `authenticators`: A list of accepted authenticators. These are the ways in which a user can authenticate themselves in order to vote or propose. For more information, refer to the [Authenticators](#Authenticators) section.
 - `executor`: The execution strategy contract that will handle the execution of transactions inside proposals once voting is complete. More information about execution in the [Execution Contract](#Execution-Contract) section.
 
-Once a space has been created, users can create new proposals by calling the `propose` method (provided the caller has at least `proposal_threshold` voting power). Users don't directly interact with the `space` contract, but use one of the `authenticator` as a proxy. Once a proposal has been created, and the `voting_delay` has elapsed, users can then vote for the proposal (once again, using an `authenticator` as a proxy). Once the `voting_duration` has passed, votes are closed, and anyone can call `finalize_proposal` (this time directly on the space contract as no authentication is required): this will finalize the proposal, count the votes for/against/abstain, and call the `executor`. 
+Once a space has been created, users can create new proposals by calling the `propose` method (provided the caller has at least `proposal_threshold` voting power). Users don't directly interact with the `space` contract, but use one of the `authenticator` as a proxy. 
+
+The proposal creator will need to provide the following parameters:
+- `proposer_address`: The Ethereum address of the proposal creator which will be used to check that their voting power exceeds the `proposal_threshold`.
+- `metadata_uri`: Pointer to the location of the metadata for the proposal that the proposal creator should upload.
+- `execution_hash`: Hash of all of the transactions inside the proposal.
+- `execution_params`: Additional parameters required by the execution strategy.
+- `ethereum_block_number`: The Ethereum block number at which point the snapshot of voting power is taken.  
+- `voting_strategy_params`: The parameters required by the voting strategies used by the space. 
+
+Once a proposal has been created, and the `voting_delay` has elapsed, users can then vote for the proposal (once again, using an `authenticator` as a proxy). 
+
+Voters will need provide the following parameters:
+- `proposal_id`: The ID of the proposal in the space they want to vote in.
+- `voter_address`: The Ethereum address of the proposal creator which will be used to calculate their voting power.
+- `choice`: The votes choice; `FOR`, `AGAINST`, or `ABSTAIN`. 
+-  `voting_strategy_params`: The parameters required by the voting strategies used by the space. 
+
+Once the `voting_duration` has passed, votes are closed, and anyone can call `finalize_proposal` (this time directly on the space contract as no authentication is required): this will finalize the proposal, count the votes for/against/abstain, and call the `executor`. 
 
 Note that each DAO will have at least one space, however a DAO might choose to have multiple spaces if they want to create different 'categories' of proposal each with different settings.
 
@@ -61,7 +79,6 @@ Voting strategies are the contracts used to determine the voting power of a user
 #### Fossil Storage Verifier
 
 The backbone of the voting strategies is the Fossil module built by the awesome Oiler team. This module allows any part of the Ethereum mainnet state to be trustlessly verfied on StarkNet. Verification of Ethereum state information is achieved by submitting a proof of the state to StarkNet and then verifying that proof. Once this state information has been proved, we can then calculate voting power as an arbitrary function of the information. For more information on Fossil, refer to their [Github](https://github.com/OilerNetwork/fossil)
-
 
 #### Authenticators
 
@@ -83,6 +100,14 @@ This repo provides the [Zodiac Relayer](contracts/starknet/execution/zodiac_rela
 
 
 [1] Despite being off-chain, there are some costs associated with running the infrastructure. These costs are sufficiently low that it is possible for them to be fully subsidized by Snapshot Labs, providing a zero cost user experience.
+
+#### Space Factory 
+
+
+### Off Chain Architecture 
+
+
+
 
 ## Usage
 
