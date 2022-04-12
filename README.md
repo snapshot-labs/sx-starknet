@@ -1,7 +1,7 @@
 <div align="center">
     <img src="https://raw.githubusercontent.com/snapshot-labs/snapshot/develop/public/icon.svg" height="70" alt="Snapshot Logo">
     <h1>Snapshot X</h1>
-    <strong>Snapshot X is an on-chain multi-governance client deployed on <a href="https://starkware.co/starknet/">Starknet</a>.</strong>
+    <strong>Snapshot X is an on-chain multi-governance client deployed on <a href="https://starkware.co/starknet/">StarkNet</a>.</strong>
 </div>
 <br>
 <div align="center">
@@ -20,11 +20,11 @@
     </a>
 </div>
 
-### Motivation
+### Overview
 
-Governance mechanisms obey a trillemma between **decentralization**, **cost**, and **flexibility**. On the one end you have systems like Snapshot that provide a very cheap experience [1] will losts of flexibility. However it relies on one trusting the Snapshot off-chain protocol to deliver the verdict of a particular governance proposal and to not censor votes. Flexibility comes from the wide range of voting strategies than one can employ to calculate the voting power for each user. 
+Governance mechanisms obey a trillemma between **decentralization**, **cost**, and **flexibility**. On the one end you have systems like [Snapshot](https://snapshot.org/#/) that provide a very cheap experience [1] will losts of flexibility. However it relies on one trusting the Snapshot off-chain protocol to deliver the verdict of a particular governance proposal and to not censor votes. Flexibility comes from the wide range of voting strategies than one can employ to calculate the voting power for each user. 
 
-On the other end you have governance systems that run fully on-chain on Ethereum mainnet. Compound Governor is one example of such a sytem. All the voting logic is computed on-chain which provides an equivalent degree of decentralization to Ethereum itself. The compromise of such a system is a high cost of participation due to the high gas costs incurred when transacting on the blockchain. The flexibility of the system is also limited by cost as sophisticated voting strategies require increased on-chain logic and therfore will cost even more to utilize them.
+On the other end you have governance systems that run fully on-chain on Ethereum mainnet. [Compound Governor](https://github.com/compound-finance/compound-protocol/blob/master/contracts/Governance/GovernorBravoDelegate.sol) is one example of such a sytem. All the voting logic is computed on-chain which provides an equivalent degree of decentralization to Ethereum itself. The compromise of such a system is a high cost of participation due to the high gas costs incurred when transacting on the blockchain. The flexibility of the system is also limited by cost as sophisticated voting strategies require increased on-chain logic and therfore will cost even more to utilize them.
 
 Snapshot X aims to bridge this divide by providing a fully on-chain governance system that is 50-100x cheaper than current solutions that run on Ethereum mainnet. We hope that this will unlock massive increases in governance participation without having to make any comprimises on decentralization. This is achieved by running the voting logic on StarkNet, which provides cheap computation whilst inheriting all of the security guarrantees of Ethereum itself. Once voting on a proposal has ended, a L1-L2 message bridge is utilized to allow transactions inside the proposal to be permissionlessly executed on Ethereum mainnet. 
 
@@ -90,7 +90,7 @@ Authenticators are the contracts in charge of authenticating users. All authenti
 Beyond this, each authenticator implements different logic depending on the type of authentication that is being done. This repository provides three useful authenticators:
 - [Ethereum_Signature Authenticator](contracts/starknet/authenticator/ethereum.cairo): Will authenticate a user based on a message signed by Ethereum private keys.
 - [StarkNet_Signature Authenticator](contracts/starknet/authenticator/starknet.cairo): Will authenticate a user based on a message signed by Starknet private keys.
-- [L1 Transaction Authenticator](contracts/starknet/authenticator/l1_tx.cairo): Will authenticate a user via getting them to submit a transaction on Ethereum and checking that the sender address is valid.  Specifically, the user will call the commit method of the StarkNet Commit L1 contract with a hash of their desired `to`, `function_selector`, and `calldata`. This hash along with the users Ethereum address will then be sent to the L1 Transaction Authenticator by the StarkNet message bridge and will be stored there. The user then submits the hash pre-image to the `execute` method of the authenticator and the hash will be computed and checked against the one stored. If the hashes match and the sender address stored corresponds to the address in the `calldata`, then authentication was successful. The core usecase for this is to allow smart contract accounts such as multi-sigs to use Snapshot X as they have no way to generate a signature and therefore cannot authenticate via signature verification.
+- [L1 Transaction Authenticator](contracts/starknet/authenticator/l1_tx.cairo): Will authenticate a user via getting them to submit a transaction on Ethereum and checking that the sender address is valid.  Specifically, the user will call the commit method of the [StarkNet Commit](contracts/ethereum/L1Interact/StarkNetCommit.sol) L1 contract with a hash of their desired `to`, `function_selector`, and `calldata`. This hash along with the users Ethereum address will then be sent to the L1 Transaction Authenticator by the StarkNet message bridge and will be stored there. The user then submits the hash pre-image to the `execute` method of the authenticator and the hash will be computed and checked against the one stored. If the hashes match and the sender address stored corresponds to the address in the `calldata`, then authentication was successful. The core usecase for this is to allow smart contract accounts such as multi-sigs to use Snapshot X as they have no way to generate a signature and therefore cannot authenticate via signature verification.
 
 Upon successful authentication of the user, the `execute` method will call the function specified by `function selector` in the space contract `to` with `calldata` as arguments. 
 
@@ -110,15 +110,29 @@ We will also be adding a StarkNet transaction execution strategy in the near fut
 
 #### Space Factory 
 
+To enable an easy way to deploy and keep track of spaces, each DAO will have a space factory contract that will do this. The factory pattern has not yet been released on StarkNet therefore we are waiting to implement this feature.  
 
 
+### Off-Chain Architecture 
 
-
-### Off Chain Architecture 
+We will now briefly provide an overview of the off-chain aspects of Snapshot X and how they will interact with the on-chain code. 
 
 <p align="center">
-<img src="./docs/milestones/offchain_architecture.png" width="600">
+<img src="./docs/milestones/offchain_architecture.png" width="800">
 </p>
+
+#### Snapshot X UI
+
+The [UI](https://github.com/snapshot-labs/sx-ui) provides a simple interface for users to interact with Snapshot X. This will guide users through deploying spaces, creating proposals, and voting. It will also access data from the API and act as a DAO governance dashboard. In future we plan to fully integrate the UI into the existing Snapshot UI to provide a seamless experience between the various governance options we offer. 
+
+#### Snapshot X Relayer
+
+The [Relayer](https://github.com/snapshot-labs/sx-ui) will submit transactions recieved by the UI to StarkNet. We will have a mechanism that will allow DAOs to fund the transactions the relayer submits so that there is a zero cost user experience. However importantly, users can directly interact with Snapshot X and therefore do not rely on trusting the relayer to not censor votes. In future we also plan to decentralize the relayer, allowing anyone to run one, further reducing the trust assumptions of using one.  
+
+#### Snapshot X API 
+
+The [API](https://github.com/snapshot-labs/sx-api) indexes Snapshot X data. Specifically, it monitors events emitted by spaces and space factories so that votes, proposals, and the deployment of new spaces can be tracked.   
+
 
 [1] Despite being off-chain, there are some costs associated with running the infrastructure. These costs are sufficiently low that it is possible for them to be fully subsidized by Snapshot Labs, providing a zero cost user experience.
 
