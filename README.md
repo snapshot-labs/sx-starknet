@@ -35,7 +35,7 @@ Snapshot X aims to bridge this divide by providing a fully on-chain governance s
 
 ### On Chain Architecture 
 
-Snapshot X is designed to be as modular as possible to provide maximum configurability. As displayed in the diagram below, certain contracts have new instances which are deployed for each DAO (or more specifically per [space](#Space-Contract) that utilises Snapshot X. Whilst others are treated more like library contracts and have a single instance which is shared between all DAOs.
+Snapshot X is designed to be as modular as possible to provide maximum configurability. As displayed in the diagram below, certain contracts have new instances which are deployed for each DAO (or more specifically per [space](#Space-Contract)) that utilises Snapshot X. Whilst others are treated like library contracts and have a single instance which is shared between all DAOs.
 
 ![](./docs/milestones/architecture.png)
 
@@ -50,7 +50,7 @@ To deploy a new space, you will need to provide:
 - `authenticators`: A list of accepted authenticators. These are the ways in which a user can authenticate themselves in order to vote or propose. For more information, refer to the [Authenticators](#Authenticators) section.
 - `executor`: The execution strategy contract that will handle the execution of transactions inside proposals once voting is complete. More information about execution in the [Execution Contract](#Execution-Contract) section.
 
-Once a space has been created, users can create new proposals by calling the `propose` method (provided the caller has at least `proposal_threshold` voting power). Users don't directly interact with the `space` contract, but instead one of the `authenticator` contracts that act as proxies. 
+Once a space has been created, users can create new proposals by calling the `propose` method (provided the caller has at least `proposal_threshold` voting power). Users don't directly interact with the `space` contract, but instead via one of the `authenticator` contracts that act as proxies. 
 
 The proposal creator will need to provide the following parameters:
 - `proposer_address`: The Ethereum address of the proposal creator which will be used to check that their voting power exceeds the `proposal_threshold`.
@@ -74,7 +74,7 @@ Note that each DAO will have at least one space, however a DAO might choose to h
 
 #### Voting Strategies
 
-Voting strategies are the contracts used to determine the voting power of a user. Voting strategies can be created in a permissionless way however to use one, one must whitelist the strategy contract in the relevant space contract for the DAO. The most common example is using the ERC-20 token balance of a user to determine his voting power. But we could imagine other voting strategies: owning a specific NFT, owning NFT of collection X and another NFT of collection Y, having participated in protocol xyz... the possibilities are endless! We provide the [single_slot_proof strategy](contracts/starknet/strategies/single_slot_proof.cairo) which allows classic ERC20 and ERC721 balances on L1 (thanks to [Fossil](#Fossil-Storage-Verifier)) to be used as voting power, but feel free to create your own strategies! We hope that the flexibility of the system will unlock a new era of programmable on-chain governance. The interface of a strategy can be found [here](contracts/starknet/strategies/interface.cairo). 
+Voting strategies are the contracts used to determine the voting power of a user. Voting strategies can be created in a permissionless way however to use one, one must whitelist the strategy contract in the relevant space contract for the DAO. The most common example is using the ERC-20 token balance of a user to determine his voting power. But we could imagine other voting strategies: owning a specific NFT, owning NFT of collection X and another NFT of collection Y, having participated in protocol xyz... the possibilities are endless! [2] We provide the [single_slot_proof strategy](contracts/starknet/strategies/single_slot_proof.cairo) which allows classic ERC20 and ERC721 balances on L1 (thanks to [Fossil](#Fossil-Storage-Verifier)) to be used as voting power, but feel free to create your own strategies! We hope that the flexibility of the system will unlock a new era of programmable on-chain governance. The interface of a strategy can be found [here](contracts/starknet/strategies/interface.cairo). 
 
 #### Fossil Storage Verifier
 
@@ -136,6 +136,8 @@ The [API](https://github.com/snapshot-labs/sx-api) indexes Snapshot X data. Spec
 
 [1] Despite being off-chain, there are some costs associated with running the infrastructure. These costs are sufficiently low that it is possible for them to be fully subsidised by Snapshot Labs, providing a zero cost user experience.
 
+[2] We are big fans of the concept of 'turing-complete' governance and it is the standard we are striving for with Snapshot X. See [this](https://baby.mirror.xyz/O7a922A-9zT4C4UwssRExkftdHywJ-13sR2rxQ-t__k) article for more information. 
+
 ## Usage
 
 ### Clone repository:
@@ -169,7 +171,7 @@ Tests are separated into three categories:
 
 - Ethereum tests in `tests/ethereum`: Tests for our solidity contracts
 - Starknet tests in `tests/starknet`: Tests for our cairo contracts
-- Cross chain tests in `tests/crosschain`: Tests that will cover interaction between L1 and L2 contracts.
+- Cross chain tests in `tests/crosschain`: Tests that will cover interaction between solidity and cairo contracts.
 
 To run these tests locally: 
 
