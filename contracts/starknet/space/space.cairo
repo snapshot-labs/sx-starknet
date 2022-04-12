@@ -10,6 +10,7 @@ from contracts.starknet.lib.proposal import Proposal
 from contracts.starknet.lib.proposal_info import ProposalInfo
 from contracts.starknet.lib.vote import Vote
 from contracts.starknet.lib.choice import Choice
+from contracts.starknet.lib.proposal_outcome import ProposalOutcome
 from contracts.starknet.execution.interface import IExecutionStrategy
 from starkware.cairo.common.alloc import alloc
 from starkware.cairo.common.uint256 import Uint256, uint256_add, uint256_lt
@@ -33,6 +34,10 @@ end
 
 @storage_var
 func authenticators(authenticator_address : felt) -> (is_valid : felt):
+end
+
+@storage_var
+func controller() -> (_controller : felt):
 end
 
 @storage_var
@@ -70,6 +75,35 @@ end
 func vote_created(proposal_id : felt, voter_address : EthAddress, vote : Vote):
 end
 
+@event
+func controller_edited(previous : felt, new_controller : felt):
+end
+
+func only_controller{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr : felt}():
+    let (caller_address) = get_caller_address()
+
+    let (_controller) = controller.read()
+
+    with_attr error_message("You are not the controller"):
+        assert caller_address = _controller
+    end
+
+    return ()
+end
+
+func update_controller{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr : felt}(
+        new_controller : felt):
+    only_controller()
+
+    let (previous_controller) = controller.read()
+
+    controller.write(new_controller)
+
+    controller_edited.emit(previous_controller, new_controller)
+
+    return ()
+end
+
 # Internal utility function to hash data
 func hash_pedersen{pedersen_ptr : HashBuiltin*}(calldata_len : felt, calldata : felt*) -> (
         hash : felt):
@@ -81,7 +115,7 @@ func hash_pedersen{pedersen_ptr : HashBuiltin*}(calldata_len : felt, calldata : 
 end
 
 func register_voting_strategies{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr}(
-        index: felt, _voting_strategies_len : felt, _voting_strategies : felt*):
+        index : felt, _voting_strategies_len : felt, _voting_strategies : felt*):
     if _voting_strategies_len == 0:
         # List is empty
         return ()
@@ -94,7 +128,8 @@ func register_voting_strategies{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*
             return ()
         else:
             # Recurse
-            register_voting_strategies(index + 1,_voting_strategies_len - 1, &_voting_strategies[1])
+            register_voting_strategies(
+                index + 1, _voting_strategies_len - 1, &_voting_strategies[1])
             return ()
         end
     end
@@ -135,7 +170,9 @@ func assert_valid_authenticator{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*
 end
 
 # Computes the cumulated voting power of a user by iterating (recursively) over all the voting strategies and summing the voting power on each iteration.
-func get_cumulated_voting_power{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_ptr}(index: felt, current_timestamp: felt, voter_address: EthAddress, voting_params_len: felt, voting_params: felt*) -> (voting_power: Uint256):
+func get_cumulated_voting_power{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr}(
+        index : felt, current_timestamp : felt, voter_address : EthAddress,
+        voting_params_len : felt, voting_params : felt*) -> (voting_power : Uint256):
     alloc_locals
     # Get voting strategy contract
     let (voting_strategy_contract) = voting_strategies.read(index)
@@ -151,12 +188,13 @@ func get_cumulated_voting_power{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, 
         address=voter_address,
         params_len=voting_params_len,
         params=voting_params)
-    let (additional_voting_power) = get_cumulated_voting_power(index + 1, current_timestamp, voter_address, voting_params_len, voting_params)
+    let (additional_voting_power) = get_cumulated_voting_power(
+        index + 1, current_timestamp, voter_address, voting_params_len, voting_params)
 
     let (voting_power, overflow) = uint256_add(user_voting_power, additional_voting_power)
     with_attr error_message("Overflow while computing voting power"):
         if overflow != 0:
-        # Overflow happened, revert transaction
+            # Overflow happened, revert transaction
             assert 1 = 0
         end
     end
@@ -167,12 +205,14 @@ end
 @constructor
 func constructor{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr : felt}(
         _voting_delay : felt, _voting_period : felt, _proposal_threshold : Uint256,
-        _executor : felt, _voting_strategies_len : felt, _voting_strategies : felt*,
-        _authenticators_len : felt, _authenticators : felt*):
+        _executor : felt, _controller : felt, _voting_strategies_len : felt,
+        _voting_strategies : felt*, _authenticators_len : felt, _authenticators : felt*):
     # Sanity checks
-    with_attr error_message("Invalid constructor parameterse"):
+    with_attr error_message("Invalid constructor parameters"):
         assert_nn(_voting_delay)
         assert_nn(_voting_period)
+        assert_not_zero(_executor)
+        assert_not_zero(_controller)
         assert_not_zero(_voting_strategies_len)
         assert_not_zero(_authenticators_len)
     end
@@ -184,6 +224,7 @@ func constructor{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_p
     voting_period.write(_voting_period)
     proposal_threshold.write(_proposal_threshold)
     executor.write(_executor)
+    controller.write(_controller)
 
     register_voting_strategies(0, _voting_strategies_len, _voting_strategies)
     register_authenticators(_authenticators_len, _authenticators)
@@ -230,8 +271,8 @@ func vote{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr : fe
         assert_le(choice, Choice.ABSTAIN)
     end
 
-    let (user_voting_power) = get_cumulated_voting_power(0, current_timestamp, voter_address, voting_params_len, voting_params)
-
+    let (user_voting_power) = get_cumulated_voting_power(
+        0, current_timestamp, voter_address, voting_params_len, voting_params)
 
     let (previous_voting_power) = vote_power.read(proposal_id, choice)
     let (new_voting_power, overflow) = uint256_add(user_voting_power, previous_voting_power)
@@ -368,14 +409,63 @@ func finalize_proposal{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_c
     # Count votes against
     let (against) = vote_power.read(proposal_id, Choice.AGAINST)
 
-    # If AGAINST < FOR set has_passed to 0 else set to 1
+    # Set proposal outcome accordingly
     let (has_passed) = uint256_lt(against, for)
+
+    if has_passed == 1:
+        tempvar proposal_outcome = ProposalOutcome.ACCEPTED
+    else:
+        tempvar proposal_outcome = ProposalOutcome.REJECTED
+    end
 
     let (executor_address) = executor.read()
 
     IExecutionStrategy.execute(
         contract_address=executor_address,
-        has_passed=has_passed,
+        proposal_outcome=proposal_outcome,
+        execution_hash=proposal.execution_hash,
+        execution_params_len=execution_params_len,
+        execution_params=execution_params)
+
+    # Flag this proposal as executed
+    # This should not create re-entrency vulnerability because the message
+    # executor is a whitelisted address. If we set this flag BEFORE the call
+    # to the executor, we could have a malicious attacker sending some random
+    # invalid execution_params and cancel out the vote.
+    executed_proposals.write(proposal_id, 1)
+
+    return ()
+end
+
+# Cancels the proposal. Only callable by the controller.
+@external
+func cancel_proposal{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr : felt}(
+        proposal_id : felt, execution_params_len : felt, execution_params : felt*):
+    alloc_locals
+
+    only_controller()
+
+    let (has_been_executed) = executed_proposals.read(proposal_id)
+
+    # Make sure proposal has not already been executed
+    with_attr error_message("Proposal already executed"):
+        assert has_been_executed = 0
+    end
+
+    let (proposal) = proposal_registry.read(proposal_id)
+    with_attr error_message("Invalid proposal id"):
+        # Checks that the proposal id exists. If it doesn't exist, then the whole `Proposal` struct will
+        # be set to 0, hence `ethereum_block_number` will be set to 0 too.
+        assert_not_zero(proposal.ethereum_block_number)
+    end
+
+    let (executor_address) = executor.read()
+
+    let proposal_outcome = ProposalOutcome.CANCELLED
+
+    IExecutionStrategy.execute(
+        contract_address=executor_address,
+        proposal_outcome=proposal_outcome,
         execution_hash=proposal.execution_hash,
         execution_params_len=execution_params_len,
         execution_params=execution_params)

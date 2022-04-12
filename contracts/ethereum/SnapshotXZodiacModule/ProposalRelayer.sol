@@ -48,17 +48,17 @@ contract SnapshotXProposalRelayer is Guardable {
    * @dev Receives L2 -> L1 message containing proposal execution details
    * @param executionHashLow Lowest 128 bits of the hash of all the transactions in the proposal
    * @param executionHashHigh Highest 128 bits of the hash of all the transactions in the proposal
-   * @param hasPassed Whether the proposal passed
+   * @param proposalOutcome Whether the proposal has been accepted / rejected / cancelled
    */
   function _receiveFinalizedProposal(
     uint256 callerAddress,
-    uint256 hasPassed,
+    uint256 proposalOutcome,
     uint256 executionHashLow,
     uint256 executionHashHigh
   ) internal {
     uint256[] memory payload = new uint256[](4);
     payload[0] = callerAddress;
-    payload[1] = hasPassed;
+    payload[1] = proposalOutcome;
     payload[2] = executionHashLow;
     payload[3] = executionHashHigh;
 
@@ -69,17 +69,17 @@ contract SnapshotXProposalRelayer is Guardable {
   /**
    * @dev Checks whether proposal has been received on L1 yet
    * @param executionHash Hash of all the transactions in the proposal
-   * @param hasPassed Whether the proposal passed
+   * @param proposalOutcome Whether the proposal has been accepted / rejected / cancelled
    * @return isReceived Has the proposal been received
    */
-  function isFinalizedProposalReceived(uint256 executionHash, uint256 hasPassed)
+  function isFinalizedProposalReceived(uint256 executionHash, uint256 proposalOutcome)
     external
     view
     returns (bool isReceived)
   {
     uint256[] memory payload = new uint256[](2);
     payload[0] = executionHash;
-    payload[1] = hasPassed;
+    payload[1] = proposalOutcome;
     bytes32 msgHash = keccak256(
       abi.encodePacked(l2ExecutionRelayer, uint256(uint160(msg.sender)), payload.length, payload)
     );

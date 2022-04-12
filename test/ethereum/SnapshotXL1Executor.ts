@@ -181,8 +181,8 @@ async function receiveProposalTest(SnapshotXModule: any) {
   // vitalik.eth
   const callerAddress = '0xd8da6bf26964af9d7eed9e03e53415d37aa96045';
 
-  const has_passed = 1;
-  await SnapshotXModule.receiveProposalTest(callerAddress, executionHash, has_passed, [
+  const proposal_outcome = 1;
+  await SnapshotXModule.receiveProposalTest(callerAddress, executionHash, proposal_outcome, [
     txHash1,
     txHash2,
   ]);

@@ -11,7 +11,8 @@ export const GET_VOTE_INFO = 'get_vote_info';
 export const VOTING_DELAY = BigInt(0);
 export const VOTING_PERIOD = BigInt(20);
 export const VITALIK_ADDRESS = BigInt(0xd8da6bf26964af9d7eed9e03e53415d37aa96045);
-export const VITALIK_STRING_ADDRESS = '0xd8da6bf26964af9d7eed9e03e53415d37aa96045';
+export const VITALIK_STRING_ADDRESS = VITALIK_ADDRESS.toString(16);
+export const CONTROLLER = BigInt(1337);
 
 export function assert(condition: boolean, message = 'Assertion Failed'): boolean {
   if (!condition) {
@@ -72,6 +73,7 @@ export async function setup() {
     _voting_period: VOTING_PERIOD,
     _proposal_threshold: PROPOSAL_THRESHOLD,
     _executor: zodiac_relayer,
+    _controller: CONTROLLER,
     _voting_strategies: [voting_strategy],
     _authenticators: [authenticator],
   })) as StarknetContract;

@@ -7,7 +7,7 @@ from starkware.starknet.common.messages import send_message_to_l1
 
 @external
 func execute{syscall_ptr : felt*}(
-        has_passed : felt, execution_hash : Uint256, execution_params_len : felt,
+        proposal_outcome : felt, execution_hash : Uint256, execution_params_len : felt,
         execution_params : felt*):
     alloc_locals
 
@@ -22,7 +22,7 @@ func execute{syscall_ptr : felt*}(
     # Create the payload
     let (message_payload : felt*) = alloc()
     assert message_payload[0] = caller_address
-    assert message_payload[1] = has_passed
+    assert message_payload[1] = proposal_outcome
     assert message_payload[2] = execution_hash.low
     assert message_payload[3] = execution_hash.high
 

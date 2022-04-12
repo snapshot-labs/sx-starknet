@@ -211,7 +211,7 @@ describe('Create proposal, cast vote, and send execution to l1', function () {
 
     // Check that l1 can receive the proposal correctly
     {
-      const hasPassed = BigInt(1);
+      const proposalOutcome = BigInt(1);
 
       const fakeTxHashes = txHashes.slice(0, -1);
       const callerAddress = BigInt(spaceContract.address);
@@ -220,18 +220,18 @@ describe('Create proposal, cast vote, and send execution to l1', function () {
       await expect(
         l1Executor.receiveProposal(
           callerAddress,
-          hasPassed,
+          proposalOutcome,
           executionHash.low,
           executionHash.high,
           fakeTxHashes
         )
       ).to.be.reverted;
 
-      // Check that if `hasPassed` parameter is incorrect, transaction reverts.
+      // Check that if `proposalOutcome` parameter is incorrect, transaction reverts.
       await expect(
         l1Executor.receiveProposal(
           callerAddress,
-          !hasPassed,
+          !proposalOutcome,
           executionHash.low,
           executionHash.high,
           txHashes
@@ -242,7 +242,7 @@ describe('Create proposal, cast vote, and send execution to l1', function () {
       await expect(
         l1Executor.receiveProposal(
           fakeCallerAddress,
-          hasPassed,
+          proposalOutcome,
           executionHash.low,
           executionHash.high,
           txHashes
@@ -252,7 +252,7 @@ describe('Create proposal, cast vote, and send execution to l1', function () {
       // Check that it works when provided correct parameters.
       await l1Executor.receiveProposal(
         callerAddress,
-        hasPassed,
+        proposalOutcome,
         executionHash.low,
         executionHash.high,
         txHashes
