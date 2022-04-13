@@ -29,7 +29,7 @@ On the other end you have governance systems that run fully on-chain on Ethereum
 Snapshot X aims to bridge this divide by providing a fully on-chain governance system that is 50-100x cheaper than current solutions that run on Ethereum mainnet. We hope that this will unlock massive increases in on-chain governance participation and flexibility of the governance mechanism without having to make any compromises on decentralisation. This is achieved by running the voting logic on StarkNet, which provides cheap computation whilst inheriting all of the security guarantees of Ethereum itself. Once voting on a proposal has ended, an L1-L2 message bridge can be utilised to allow transactions inside the proposal to be permissionless executed on Ethereum mainnet. 
 
 <p align="center">
-<img src="./docs/milestones/comparisons.png" width="800">
+<img src="./docs/images/governance_trilemma.png" width="800">
 </p>
 
 
@@ -37,7 +37,7 @@ Snapshot X aims to bridge this divide by providing a fully on-chain governance s
 
 Snapshot X is designed to be as modular as possible to provide maximum configurability. As displayed in the diagram below, certain contracts have new instances which are deployed for each DAO (or more specifically per [space](#Space-Contract)) that utilises Snapshot X. Whilst others are treated like library contracts and have a single instance which is shared between all DAOs.
 
-![](./docs/milestones/architecture.png)
+![](./docs/images/onchain_architecture.png)
 
 ### Space Contract
 
@@ -118,7 +118,7 @@ To enable an easy way to deploy and keep track of spaces, each DAO will have a s
 We will now briefly provide an overview of the off-chain aspects of Snapshot X and how they will interact with the on-chain code. 
 
 <p align="center">
-<img src="./docs/milestones/offchain_architecture.png" width="800">
+<img src="./docs/images/offchain_architecture.png" width="800">
 </p>
 
 ### Snapshot X UI
