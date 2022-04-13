@@ -20,7 +20,7 @@
     </a>
 </div>
 
-### Overview
+## Overview
 
 Governance mechanisms obey a trilemma between **decentralisation**, **cost**, and **flexibility**. On the one end you have systems like [Snapshot](https://snapshot.org/#/) that provide a very cheap experience [1] with lots of flexibility. However it relies on one trusting the Snapshot off-chain protocol to deliver the verdict of a particular governance proposal and to not censor votes. Flexibility comes from the wide range of voting strategies than one can employ to calculate the voting power for each user. 
 
@@ -33,13 +33,13 @@ Snapshot X aims to bridge this divide by providing a fully on-chain governance s
 </p>
 
 
-### On Chain Architecture 
+## On Chain Architecture 
 
 Snapshot X is designed to be as modular as possible to provide maximum configurability. As displayed in the diagram below, certain contracts have new instances which are deployed for each DAO (or more specifically per [space](#Space-Contract)) that utilises Snapshot X. Whilst others are treated like library contracts and have a single instance which is shared between all DAOs.
 
 ![](./docs/milestones/architecture.png)
 
-#### Space Contract
+### Space Contract
 
 The [space](contracts/starknet/space/space.cairo) is THE core contract: it's in charge of tracking proposals, votes, and other general settings.
 To deploy a new space, you will need to provide:
@@ -72,15 +72,15 @@ Once the `voting_duration` has passed, votes are closed, and anyone can call `fi
 
 Note that each DAO will have at least one space, however a DAO might choose to have multiple spaces if they want to create different 'categories' of proposal each with different settings.
 
-#### Voting Strategies
+### Voting Strategies
 
 Voting strategies are the contracts used to determine the voting power of a user. Voting strategies can be created in a permissionless way however to use one, one must whitelist the strategy contract in the relevant space contract for the DAO. The most common example is using the ERC-20 token balance of a user to determine his voting power. But we could imagine other voting strategies: owning a specific NFT, owning NFT of collection X and another NFT of collection Y, having participated in protocol xyz... the possibilities are endless! [2] We provide the [single_slot_proof strategy](contracts/starknet/strategies/single_slot_proof.cairo) which allows classic ERC20 and ERC721 balances on L1 (thanks to [Fossil](#Fossil-Storage-Verifier)) to be used as voting power, but feel free to create your own strategies! We hope that the flexibility of the system will unlock a new era of programmable on-chain governance. The interface of a strategy can be found [here](contracts/starknet/strategies/interface.cairo). 
 
-#### Fossil Storage Verifier
+### Fossil Storage Verifier
 
 The backbone of the voting strategies is the Fossil module built by the awesome Oiler team. This module allows any part of the Ethereum mainnet state to be trustlessly verified on StarkNet. Verification of Ethereum state information is achieved by submitting a proof of the state to StarkNet and then verifying that proof. Once this state information has been proved, we can then calculate voting power as an arbitrary function of the information. For more information on Fossil, refer to their [Github](https://github.com/OilerNetwork/fossil)
 
-#### Authenticators
+### Authenticators
 
 Authenticators are the contracts in charge of authenticating users. All authenticators have a function titled `execute` that takes the following arguments: 
 - `to`: The address of the space contract the user wants to interact with. 
@@ -96,7 +96,7 @@ Upon successful authentication of the user, the `execute` method will call the f
 
 This modularity allows spaces to authenticate users using other authentication methods: For example if you wanted to use Solana keys to authenticate users, you would simply need to write the authenticator contract on Starknet, whitelist it in your space, and Solana users would be able to vote in your DAO!
 
-#### Execution
+### Execution
 
 The `executor` contract implements the execution strategy that gets called when voting for a proposal is done. The interface can be found [here](contracts/starknet/execution/interface.cairo). 
 Once voting has ended, calling `finalize_proposal` in the space contract will pass the following parameters to the `execute` method of the `executor`:
@@ -108,12 +108,12 @@ Currently this repo provides the Zodiac Execution Strategy. This enables a DAO p
 
 We will also be adding a StarkNet transaction execution strategy in the near future. 
 
-#### Space Factory 
+### Space Factory 
 
 To enable an easy way to deploy and keep track of spaces, each DAO will have a space factory contract that will do this. The factory pattern has not yet been released on StarkNet therefore we are waiting to implement this feature.  
 
 
-### Off Chain Architecture 
+## Off Chain Architecture 
 
 We will now briefly provide an overview of the off-chain aspects of Snapshot X and how they will interact with the on-chain code. 
 
@@ -121,15 +121,15 @@ We will now briefly provide an overview of the off-chain aspects of Snapshot X a
 <img src="./docs/milestones/offchain_architecture.png" width="800">
 </p>
 
-#### Snapshot X UI
+### Snapshot X UI
 
 The [UI](https://github.com/snapshot-labs/sx-ui) provides a simple interface for users to interact with Snapshot X. This will guide users through deploying spaces, creating proposals, and voting. It will also access data from the API and act as a DAO governance dashboard. In future we plan to fully integrate the UI into the existing Snapshot UI to provide a seamless experience between the various governance options offered by Snapshot Labs. 
 
-#### Snapshot X Relayer
+### Snapshot X Relayer
 
 The [Relayer](https://github.com/snapshot-labs/sx-ui) will submit transactions received by the UI to StarkNet. We will have a mechanism that will allow DAOs to fund the transactions the relayer submits so that there is a zero cost user experience. However importantly, users can directly interact with Snapshot X and therefore do not rely on trusting the relayer to not censor votes. In future we also plan to decentralise the relayer, allowing anyone to run one, further reducing the trust assumptions of using it.  
 
-#### Snapshot X API 
+### Snapshot X API 
 
 The [API](https://github.com/snapshot-labs/sx-api) indexes Snapshot X data. Specifically, it monitors events emitted by spaces and space factories so that votes, proposals, and the deployment of new spaces can be tracked.   
 
