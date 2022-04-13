@@ -94,7 +94,7 @@ Beyond this, each authenticator implements different logic depending on the type
 
 Upon successful authentication of the user, the `execute` method will call the function specified by `function selector` in the space contract `to`, with `calldata` as arguments. 
 
-This modularity allows spaces to authenticate users using other authentication methods: For example, if you wanted to use Solana keys to authenticate users, you would simply need to write the authenticator contract on Starknet, and you would be able to authenticate Solana users to vote on Snapshot X!
+This modularity allows spaces to authenticate users using other authentication methods: For example if you wanted to use Solana keys to authenticate users, you would simply need to write the authenticator contract on Starknet, whitelist it in your space, and Solana users would be able to vote in your DAO!
 
 #### Execution
 
