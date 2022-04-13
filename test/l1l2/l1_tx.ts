@@ -127,7 +127,7 @@ describe('L1 interaction with Snapshot X', function () {
     starknetCommit = _starknetCommit;
   });
 
-  it('should create a proposal and cast a vote from an l1 tx', async () => {
+  it('should create a proposal from an l1 tx', async () => {
     const { address: deployedTo, l1_provider: L1Provider } =
       await starknet.devnet.loadL1MessagingContract(networkUrl, mockStarknetMessaging.address);
     const target = BigInt(space.address);
@@ -147,16 +147,16 @@ describe('L1 interaction with Snapshot X', function () {
       calldata: propose_calldata,
     });
 
-    const vote_commit = getCommit(target, vote_selector, vote_calldata);
-    await starknetCommit.commit(vote_commit);
-    await starknet.devnet.flush();
+    // const vote_commit = getCommit(target, vote_selector, vote_calldata);
+    // await starknetCommit.commit(vote_commit);
+    // await starknet.devnet.flush();
 
-    // Casting vote
-    await l1TxAuthenticator.invoke('execute', {
-      target: target,
-      function_selector: vote_selector,
-      calldata: vote_calldata,
-    });
+    // // Casting vote
+    // await l1TxAuthenticator.invoke('execute', {
+    //   target: target,
+    //   function_selector: vote_selector,
+    //   calldata: vote_calldata,
+    // });
   });
 
   it('The same commit should not be able to be executed multiple times', async () => {
