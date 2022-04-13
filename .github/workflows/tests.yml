@@ -53,6 +53,7 @@ jobs:
       - name: Run unit tests
         run: |
           starknet-devnet -p 8000 &
+          npx hardhat node &
           sleep 10 &&
           curl http://localhost:8000 &&
           yarn test 
