@@ -25,7 +25,7 @@ async function setup() {
     './contracts/starknet/strategies/vanilla.cairo'
   );
   const vanillaAuthenticatorFactory = await starknet.getContractFactory(
-    './contracts/starknet/authenticator/authenticator.cairo'
+    './contracts/starknet/authenticator/vanilla.cairo'
   );
   console.log('Deploying auth...');
   const vanillaAuthenticator = (await vanillaAuthenticatorFactory.deploy()) as StarknetContract;
