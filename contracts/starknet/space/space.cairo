@@ -320,13 +320,8 @@ func propose{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr :
     let start_timestamp = current_timestamp + delay
     let end_timestamp = start_timestamp + duration
 
-    # Get the voting power of the proposer
-    let (voting_power) = IVotingStrategy.get_voting_power(
-        contract_address=voting_strategy_contract,
-        timestamp=start_timestamp,
-        address=proposer_address,
-        params_len=voting_params_len,
-        params=voting_params)
+    let (voting_power) = get_cumulated_voting_power(
+        0, start_timestamp, proposer_address, voting_params_len, voting_params)
 
     # Verify that the proposer has enough voting power to trigger a proposal
     let (threshold) = proposal_threshold.read()
