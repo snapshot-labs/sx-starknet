@@ -104,7 +104,10 @@ func update_controller{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_c
     return ()
 end
 
-# Internal utility function to hash data
+# Internal utility function to hash data.
+# Dev note: starkware.py and starknet.js methods for hashing an array append the length of the array to the end before hashing.
+# So if you wish to compare `hash_pedersen` to the off-chain hashing methods, make sure you append the length of the array before
+# feeding it to `hash_pedersen`!
 func hash_pedersen{pedersen_ptr : HashBuiltin*}(calldata_len : felt, calldata : felt*) -> (
         hash : felt):
     let (hash_state_ptr) = hash_init()
@@ -333,6 +336,7 @@ func propose{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr :
     end
 
     # Hash the execution params
+    # Note: the hash in `execution_params` should have the length appended to it (see `hash_pedersen`'s comments)
     let (hash) = hash_pedersen(execution_params_len, execution_params)
 
     # Create the proposal and its proposal id
