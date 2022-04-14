@@ -236,8 +236,8 @@ end
 
 @external
 func vote{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr : felt}(
-        voting_strategy_contract : felt, voter_address : EthAddress, proposal_id : felt,
-        choice : felt, voting_params_len : felt, voting_params : felt*) -> ():
+        voter_address : EthAddress, proposal_id : felt, choice : felt, voting_params_len : felt,
+        voting_params : felt*) -> ():
     alloc_locals
 
     # Verify that the caller is the authenticator contract.
@@ -297,10 +297,9 @@ end
 
 @external
 func propose{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr : felt}(
-        voting_strategy_contract : felt, proposer_address : EthAddress, execution_hash : Uint256,
-        metadata_uri_len : felt, metadata_uri : felt*, ethereum_block_number : felt,
-        voting_params_len : felt, voting_params : felt*, execution_params_len : felt,
-        execution_params : felt*) -> ():
+        proposer_address : EthAddress, execution_hash : Uint256, metadata_uri_len : felt,
+        metadata_uri : felt*, ethereum_block_number : felt, voting_params_len : felt,
+        voting_params : felt*, execution_params_len : felt, execution_params : felt*) -> ():
     alloc_locals
 
     # We cannot have `0` as the `ethereum_block_number` because we rely on checking

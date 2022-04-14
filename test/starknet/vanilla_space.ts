@@ -40,7 +40,6 @@ describe('Space testing', () => {
     spaceContract = BigInt(vanillaSpace.address);
 
     calldata = [
-      BigInt(vanillaVotingStrategy.address),
       proposerAddress.value,
       executionHash.low,
       executionHash.high,
@@ -94,7 +93,6 @@ describe('Space testing', () => {
         to: spaceContract,
         function_selector: BigInt(getSelectorFromName(VOTE_METHOD)),
         calldata: [
-          BigInt(vanillaVotingStrategy.address),
           voter_address,
           proposalId,
           FOR,
