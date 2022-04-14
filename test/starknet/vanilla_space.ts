@@ -92,12 +92,7 @@ describe('Space testing', () => {
       await vanillaAuthenticator.invoke(EXECUTE_METHOD, {
         to: spaceContract,
         function_selector: BigInt(getSelectorFromName(VOTE_METHOD)),
-        calldata: [
-          voter_address,
-          proposalId,
-          FOR,
-          BigInt(votingParams.length),
-        ],
+        calldata: [voter_address, proposalId, FOR, BigInt(votingParams.length)],
       });
 
       console.log('Getting proposal info...');
