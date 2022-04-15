@@ -17,7 +17,7 @@ func voting_delay() -> (delay : felt):
 end
 
 @storage_var
-func voting_period() -> (period : felt):
+func voting_duration() -> (period : felt):
 end
 
 @storage_var
@@ -74,18 +74,18 @@ end
 
 @constructor
 func constructor{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr : felt}(
-        _voting_delay : felt, _voting_period : felt, _proposal_threshold : Uint256,
+        _voting_delay : felt, _voting_duration : felt, _proposal_threshold : Uint256,
         _voting_strategy : felt, _authenticator : felt):
     # Sanity checks
     assert_nn(_voting_delay)
-    assert_nn(_voting_period)
+    assert_nn(_voting_duration)
     assert_not_zero(_voting_strategy)
     assert_not_zero(_authenticator)
     # TODO: maybe use uint256_signed_nn to check proposal_threshold?
 
     # Initialize the storage variables
     voting_delay.write(_voting_delay)
-    voting_period.write(_voting_period)
+    voting_duration.write(_voting_duration)
     proposal_threshold.write(_proposal_threshold)
     voting_strategy.write(_voting_strategy)
     authenticator.write(_authenticator)
@@ -164,7 +164,7 @@ func propose{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr :
 
     let (current_timestamp) = get_block_timestamp()
     let (delay) = voting_delay.read()
-    let (duration) = voting_period.read()
+    let (duration) = voting_duration.read()
 
     # Define start_timestamp and end_timestamp based on current timestamp, delay and duration variables.
     let start_timestamp = current_timestamp + delay

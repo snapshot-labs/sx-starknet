@@ -22,3 +22,5 @@ typechain
 
 # Local deployments
 deployed_contracts/local.json
+
+*.DS_Store
