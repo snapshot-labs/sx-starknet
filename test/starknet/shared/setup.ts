@@ -49,7 +49,7 @@ export async function vanillaSetup() {
   console.log('Deploying space contract...');
   const vanillaSpace = (await vanillaSpaceFactory.deploy({
     _voting_delay: VOTING_DELAY,
-    _voting_period: VOTING_PERIOD,
+    _voting_duration: VOTING_DURATION,
     _proposal_threshold: PROPOSAL_THRESHOLD,
     _executor: zodiac_relayer,
     _controller: CONTROLLER,
