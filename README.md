@@ -26,7 +26,7 @@ Governance mechanisms obey a trilemma between **decentralisation**, **cost**, an
 
 On the other hand, you have governance systems that run fully on-chain on Ethereum mainnet. [Compound Governor](https://github.com/compound-finance/compound-protocol/blob/master/contracts/Governance/GovernorBravoDelegate.sol) is one example of such a system. All the voting logic is computed on-chain which provides an equivalent degree of decentralisation to Ethereum itself. The compromise of such a system is a high cost of participation due to the high gas costs incurred when transacting on the blockchain. The flexibility of the system is also limited by cost as sophisticated voting strategies require increased on-chain logic and therefore it would cost even more and limit participation further to utilise them.
 
-Snapshot X aims to bridge this divide by providing a fully on-chain governance system that is 50-100x cheaper than current solutions that run on Ethereum mainnet. We hope that this will unlock massive increases in on-chain governance participation and flexibility of the governance mechanism without having to make any compromises on decentralisation. This is achieved by running the voting logic on StarkNet, which provides cheap computation whilst inheriting all of the security guarantees of Ethereum itself. Once voting on a proposal has ended, an L1-L2 message bridge can be utilised to allow transactions inside the proposal to be permissionless executed on Ethereum mainnet. 
+Snapshot X aims to bridge this divide by providing a fully on-chain governance system that is 50-100x cheaper than current solutions that run on Ethereum mainnet. We hope that this will unlock massive increases in on-chain governance participation and flexibility of the governance mechanism without having to make any compromises on decentralisation. This is achieved by running the voting logic on StarkNet, which provides cheap computation whilst inheriting all of the security guarantees of Ethereum itself. Once voting on a proposal has ended, an StarkNet -> Ethereum message bridge can be utilised to allow transactions inside the proposal to be permissionless executed on Ethereum mainnet. 
 
 <p align="center">
 <img src="./docs/images/governance_trilemma.png" width="800">
@@ -127,7 +127,7 @@ The [UI](https://github.com/snapshot-labs/sx-ui) provides a simple interface for
 
 ### Snapshot X Relayer
 
-The [Relayer](https://github.com/snapshot-labs/sx-ui) will submit transactions received by the UI to StarkNet. We will have a mechanism that will allow DAOs to fund the transactions the relayer submits so that there is a zero cost user experience. However importantly, users can directly interact with Snapshot X and therefore do not rely on trusting the relayer to not censor votes. In future we also plan to decentralise the relayer, allowing anyone to run one, further reducing the trust assumptions of using it.  
+The [Relayer](https://github.com/snapshot-labs/sx-ui) will submit transactions received by the UI to StarkNet. We will have a mechanism that will allow DAOs to fund the transactions the relayer submits so that there is a zero cost user experience. However importantly, users can directly interact with Snapshot X and therefore do not rely on trusting the relayer to not censor votes. In the future we also plan to decentralise the relayer, allowing anyone to run one, further reducing the trust assumptions of using it.  
 
 ### Snapshot X API 
 
