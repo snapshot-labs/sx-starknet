@@ -21,7 +21,7 @@ func voting_delay() -> (delay : felt):
 end
 
 @storage_var
-func voting_period() -> (period : felt):
+func voting_duration() -> (period : felt):
 end
 
 @storage_var
@@ -224,7 +224,7 @@ func constructor{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_p
 
     # Initialize the storage variables
     voting_delay.write(_voting_delay)
-    voting_period.write(_voting_period)
+    voting_duration.write(_voting_duration)
     proposal_threshold.write(_proposal_threshold)
     executor.write(_executor)
     controller.write(_controller)
@@ -316,7 +316,7 @@ func propose{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr :
 
     let (current_timestamp) = get_block_timestamp()
     let (delay) = voting_delay.read()
-    let (duration) = voting_period.read()
+    let (duration) = voting_duration.read()
 
     # Define start_timestamp and end_timestamp based on current timestamp, delay and duration variables.
     let start_timestamp = current_timestamp + delay

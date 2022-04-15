@@ -75,7 +75,7 @@ describe('Space testing', () => {
       expect(_executionHash).to.deep.equal(executionHash);
       expect(
         proposal_info.proposal.end_timestamp - proposal_info.proposal.start_timestamp
-      ).to.deep.equal(VOTING_PERIOD);
+      ).to.deep.equal(VOTING_DURATION);
 
       const _for = SplitUint256.fromObj(proposal_info.power_for).toUint();
       expect(_for).to.deep.equal(BigInt(0));
