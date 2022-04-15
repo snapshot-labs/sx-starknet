@@ -8,7 +8,7 @@ import {
   EXECUTE_METHOD,
   PROPOSAL_METHOD,
   VOTE_METHOD,
-  VOTING_PERIOD,
+  VOTING_DURATION,
 } from './shared/setup';
 import { StarknetContract } from 'hardhat/types';
 
