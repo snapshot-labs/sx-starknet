@@ -2,10 +2,9 @@
 
 # Snapshot X
 
-Voting protocol on StarkNet.
+Programmable governance on StarkNet.
 
-**[Documentation](https://docs.snapshotx.xyz)**
-
+#### [Documentation](https://docs.snapshotx.xyz)
 
 
 ## Usage
