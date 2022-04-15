@@ -207,13 +207,13 @@ end
 
 @constructor
 func constructor{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr : felt}(
-        _voting_delay : felt, _voting_period : felt, _proposal_threshold : Uint256,
+        _voting_delay : felt, _voting_duration : felt, _proposal_threshold : Uint256,
         _executor : felt, _controller : felt, _voting_strategies_len : felt,
         _voting_strategies : felt*, _authenticators_len : felt, _authenticators : felt*):
     # Sanity checks
     with_attr error_message("Invalid constructor parameters"):
         assert_nn(_voting_delay)
-        assert_nn(_voting_period)
+        assert_nn(_voting_duration)
         assert_not_zero(_executor)
         assert_not_zero(_controller)
         assert_not_zero(_voting_strategies_len)
