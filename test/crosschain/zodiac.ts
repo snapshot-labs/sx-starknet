@@ -11,12 +11,12 @@ import { EIP712_TYPES } from '../ethereum/shared/utils';
 import {
   VITALIK_ADDRESS,
   VITALIK_STRING_ADDRESS,
-  setup,
+  vanillaSetup,
   EXECUTE_METHOD,
   PROPOSAL_METHOD,
   VOTE_METHOD,
-  expectAddressEquality,
-} from '../starknet/shared/helpers';
+} from '../starknet/shared/setup';
+import { expectAddressEquality } from '../starknet/shared/helpers';
 
 const { getSelectorFromName } = stark;
 
@@ -90,7 +90,7 @@ describe('Create proposal, cast vote, and send execution to l1', function () {
       vanillaAuthenticator: authContract,
       vanillaVotingStrategy: votingContract,
       zodiacRelayer,
-    } = await setup());
+    } = await vanillaSetup());
 
     const signers = await ethers.getSigners();
     signer = signers[0];

@@ -3,13 +3,13 @@ import { SplitUint256, FOR } from './shared/types';
 import { strToShortStringArr } from '@snapshot-labs/sx';
 import { expect } from 'chai';
 import {
-  setup,
+  vanillaSetup,
   VITALIK_ADDRESS,
   EXECUTE_METHOD,
   PROPOSAL_METHOD,
   VOTE_METHOD,
   VOTING_PERIOD,
-} from './shared/helpers';
+} from './shared/setup';
 import { StarknetContract } from 'hardhat/types';
 
 const { getSelectorFromName } = stark;
@@ -35,7 +35,8 @@ describe('Space testing', () => {
   before(async function () {
     this.timeout(800000);
 
-    ({ vanillaSpace, vanillaAuthenticator, vanillaVotingStrategy, zodiacRelayer } = await setup());
+    ({ vanillaSpace, vanillaAuthenticator, vanillaVotingStrategy, zodiacRelayer } =
+      await vanillaSetup());
     executionParams = [BigInt(l1_zodiac_module)];
     spaceContract = BigInt(vanillaSpace.address);
 
