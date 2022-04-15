@@ -143,7 +143,6 @@ describe('Create proposal, cast vote, and send execution to l1', function () {
     const eth_block_number = BigInt(1337);
     const execution_params: Array<bigint> = [BigInt(l1Executor.address)];
     const calldata = [
-      BigInt(votingContract.address),
       proposer_address,
       executionHash.low,
       executionHash.high,
@@ -171,7 +170,6 @@ describe('Create proposal, cast vote, and send execution to l1', function () {
         to: BigInt(spaceContract.address),
         function_selector: BigInt(getSelectorFromName(VOTE_METHOD)),
         calldata: [
-          BigInt(votingContract.address),
           voter_address,
           proposal_id,
           FOR,
