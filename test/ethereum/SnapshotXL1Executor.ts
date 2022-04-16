@@ -62,12 +62,20 @@ async function baseSetup() {
     '0x0000000000000000000000000000000000000001',
     '0x0000000000000000000000000000000000000001',
     '0x0000000000000000000000000000000000000001',
-    1
+    1,
+    []
   );
 
   const encodedInitParams = ethers.utils.defaultAbiCoder.encode(
-    ['address', 'address', 'address', 'address', 'uint256'],
-    [safe.address, safe.address, safe.address, '0xB0aC056995C4904a9cc04A6Cc3a864A9E9A7d3a9', 1234]
+    ['address', 'address', 'address', 'address', 'uint256', 'uint256[]'],
+    [
+      safe.address,
+      safe.address,
+      safe.address,
+      '0xB0aC056995C4904a9cc04A6Cc3a864A9E9A7d3a9',
+      1234,
+      [],
+    ]
   );
 
   const initData = masterSnapshotXModule.interface.encodeFunctionData('setUp', [encodedInitParams]);
@@ -162,19 +170,26 @@ async function receiveProposalTest(SnapshotXModule: any) {
   };
 
   //2 transactions in proposal
-  const tx_hash1 = _TypedDataEncoder.hash(domain, EIP712_TYPES, tx1);
-  const tx_hash2 = _TypedDataEncoder.hash(domain, EIP712_TYPES, tx2);
+  const txHash1 = _TypedDataEncoder.hash(domain, EIP712_TYPES, tx1);
+  const txHash2 = _TypedDataEncoder.hash(domain, EIP712_TYPES, tx2);
 
   const abiCoder = new ethers.utils.AbiCoder();
-  const execution_details = ethers.utils.keccak256(
-    abiCoder.encode(['bytes32[]'], [[tx_hash1, tx_hash2]])
+  const executionHash = ethers.utils.keccak256(
+    abiCoder.encode(['bytes32[]'], [[txHash1, txHash2]])
   );
-  const has_passed = 1;
-  await SnapshotXModule.receiveProposalTest(execution_details, has_passed, [tx_hash1, tx_hash2]);
+
+  // vitalik.eth
+  const callerAddress = '0xd8da6bf26964af9d7eed9e03e53415d37aa96045';
+
+  const proposal_outcome = 1;
+  await SnapshotXModule.receiveProposalTest(callerAddress, executionHash, proposal_outcome, [
+    txHash1,
+    txHash2,
+  ]);
 
   return {
-    tx_hash1: tx_hash1 as any,
-    tx_hash2: tx_hash2 as any,
+    tx_hash1: txHash1 as any,
+    tx_hash2: txHash2 as any,
   };
 }
 
@@ -188,7 +203,7 @@ describe('Snapshot X L1 Proposal Executor:', () => {
       expect(await SnapshotXModule.owner()).to.equal(safe.address);
       expect(await SnapshotXModule.target()).to.equal(safe.address);
       expect(await SnapshotXModule.proposalIndex()).to.equal(0);
-      expect(await SnapshotXModule.decisionExecutorL2()).to.equal(1234);
+      expect(await SnapshotXModule.l2ExecutionRelayer()).to.equal(1234);
       expect(await SnapshotXModule.starknetCore()).to.equal(
         '0xB0aC056995C4904a9cc04A6Cc3a864A9E9A7d3a9'
       );
@@ -207,12 +222,12 @@ describe('Snapshot X L1 Proposal Executor:', () => {
         executeContractCallWithSigners(
           safe,
           SnapshotXModule,
-          'changeDecisionExecutorL2',
+          'changeL2ExecutionRelayer',
           [4567],
           [wallet_0]
         )
       )
-        .to.emit(SnapshotXModule, 'ChangedDecisionExecutorL2')
+        .to.emit(SnapshotXModule, 'ChangedL2ExecutionRelayer')
         .withArgs(4567);
     });
     it('Other accounts cannot change the address of the L2 decision executor contract', async () => {
@@ -221,7 +236,7 @@ describe('Snapshot X L1 Proposal Executor:', () => {
         executeContractCallWithSigners(
           safe,
           SnapshotXModule,
-          'changeDecisionExecutorL2',
+          'changeL2ExecutionRelayer',
           [4567],
           [wallet_1]
         )

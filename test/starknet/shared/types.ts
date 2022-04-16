@@ -16,7 +16,7 @@ export class IntsSequence {
 
   toSplitUint256(): SplitUint256 {
     const rem = this.bytesLength % 8;
-    let uint = this.values[this.values.length - 1];
+    let uint: bigint = this.values[this.values.length - 1];
     let shift = BigInt(0);
     if (rem == 0) {
       shift += BigInt(64);

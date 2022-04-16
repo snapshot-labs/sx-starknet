@@ -23,6 +23,9 @@ contract SnapshotXL1Executor is Module, SnapshotXProposalRelayer {
   /// Counter that is incremented each time a proposal is received.
   uint256 public proposalIndex;
 
+  /// Mapping of whitelisted contracts (addresses should be L2 space contracts)
+  mapping(uint256 => bool) public whitelistedSpaces;
+
   /// The state of a proposal index exists in one of the 5 categories. This can be queried using the getProposalState view function
   enum ProposalState {
     NotReceived,
@@ -53,7 +56,7 @@ contract SnapshotXL1Executor is Module, SnapshotXProposalRelayer {
    * @param _owner Address of the owner of this contract
    * @param _avatar Address that will ultimately execute function calls
    * @param _target Address that this contract will pass transactions to
-   * @param _decisionExecutorL2 Address of the StarkNet contract that will send execution details to this contract in a L2 -> L1 message
+   * @param _l2ExecutionRelayer Address of the StarkNet contract that will send execution details to this contract in a L2 -> L1 message
    * @param _starknetCore Address of the StarkNet Core contract
    */
   event SnapshotXL1ExecutorSetUpComplete(
@@ -61,7 +64,7 @@ contract SnapshotXL1Executor is Module, SnapshotXProposalRelayer {
     address indexed _owner,
     address indexed _avatar,
     address _target,
-    uint256 _decisionExecutorL2,
+    uint256 _l2ExecutionRelayer,
     address _starknetCore
   );
 
@@ -99,21 +102,24 @@ contract SnapshotXL1Executor is Module, SnapshotXProposalRelayer {
    * @param _avatar Address that will ultimately execute function calls
    * @param _target Address that this contract will pass transactions to
    * @param _starknetCore Address of the StarkNet Core contract
-   * @param _decisionExecutorL2 Address of the StarkNet contract that will send execution details to this contract in a L2 -> L1 message
+   * @param _l2ExecutionRelayer Address of the StarkNet contract that will send execution details to this contract in a L2 -> L1 message
+   * @param _l2SpacesToWhitelist Array of spaces deployed on L2 that are allowed to interact with this contract
    */
   constructor(
     address _owner,
     address _avatar,
     address _target,
     address _starknetCore,
-    uint256 _decisionExecutorL2
+    uint256 _l2ExecutionRelayer,
+    uint256[] memory _l2SpacesToWhitelist
   ) {
     bytes memory initParams = abi.encode(
       _owner,
       _avatar,
       _target,
       _starknetCore,
-      _decisionExecutorL2
+      _l2ExecutionRelayer,
+      _l2SpacesToWhitelist
     );
     setUp(initParams);
   }
@@ -128,19 +134,25 @@ contract SnapshotXL1Executor is Module, SnapshotXProposalRelayer {
       address _avatar,
       address _target,
       address _starknetCore,
-      uint256 _decisionExecutorL2
-    ) = abi.decode(initParams, (address, address, address, address, uint256));
+      uint256 _l2ExecutionRelayer,
+      uint256[] memory _l2SpacesToWhitelist
+    ) = abi.decode(initParams, (address, address, address, address, uint256, uint256[]));
     __Ownable_init();
     transferOwnership(_owner);
     avatar = _avatar;
     target = _target;
-    setUpSnapshotXProposalRelayer(_starknetCore, _decisionExecutorL2);
+    setUpSnapshotXProposalRelayer(_starknetCore, _l2ExecutionRelayer);
+
+    for (uint256 i = 0; i < _l2SpacesToWhitelist.length; i++) {
+      whitelistedSpaces[_l2SpacesToWhitelist[i]] = true;
+    }
+
     emit SnapshotXL1ExecutorSetUpComplete(
       msg.sender,
       _owner,
       _avatar,
       _target,
-      _decisionExecutorL2,
+      _l2ExecutionRelayer,
       _starknetCore
     );
   }
@@ -148,21 +160,46 @@ contract SnapshotXL1Executor is Module, SnapshotXProposalRelayer {
   /* External */
 
   /**
+   * @dev Updates the list of accepted spaces on l2. Only callable by the `owner`.
+   * @param toAdd List of addresses to add to the whitelist.
+   * @param toRemove List of addressess to remove from the whitelist.
+   */
+  function editWhitelist(uint256[] memory toAdd, uint256[] calldata toRemove) external onlyOwner {
+    // Add the requested entries
+    for (uint256 i = 0; i < toAdd.length; i++) {
+      whitelistedSpaces[toAdd[i]] = true;
+    }
+
+    // Remove the requested entries
+    for (uint256 i = 0; i < toRemove.length; i++) {
+      whitelistedSpaces[toRemove[i]] = false;
+    }
+  }
+
+  /**
    * @dev Initializes a new proposal execution struct on the receival of a completed proposal from StarkNet
-   * @param executionDetails Hash of all the transactions in the proposal
-   * @param hasPassed Whether proposal passed or not
+   * @param executionHashLow Lowest 128 bits of the hash of all the transactions in the proposal
+   * @param executionHashHigh Highest 128 bits of the hash of all the transactions in the proposal
+   * @param proposalOutcome Whether the proposal was accepted / rejected / cancelled
    * @param _txHashes Array of transaction hashes in proposal
    */
   function receiveProposal(
-    uint256 executionDetails,
-    uint256 hasPassed,
+    uint256 callerAddress,
+    uint256 proposalOutcome,
+    uint256 executionHashLow,
+    uint256 executionHashHigh,
     bytes32[] memory _txHashes
   ) external {
-    //External call will fail if finalized proposal message was not recieved on L1.
-    _recieveFinalizedProposal(executionDetails, hasPassed);
-    require(hasPassed != 0, 'Proposal did not pass');
+    //External call will fail if finalized proposal message was not received on L1.
+    _receiveFinalizedProposal(callerAddress, proposalOutcome, executionHashLow, executionHashHigh);
+    require(whitelistedSpaces[callerAddress] == true, 'Invalid caller');
+    require(proposalOutcome != 0, 'Proposal did not pass');
     require(_txHashes.length > 0, 'proposal must contain transactions');
-    require(bytes32(executionDetails) == keccak256(abi.encode(_txHashes)), 'Invalid execution');
+
+    // Re-assemble the lowest and highest bytes to get the full execution hash
+    uint256 executionHash = (executionHashHigh << 128) + executionHashLow;
+    require(bytes32(executionHash) == keccak256(abi.encode(_txHashes)), 'Invalid execution');
+
     proposalIndexToProposalExecution[proposalIndex].txHashes = _txHashes;
     proposalIndex++;
     emit ProposalReceived(proposalIndex);
@@ -170,18 +207,20 @@ contract SnapshotXL1Executor is Module, SnapshotXProposalRelayer {
 
   /**
    * @dev Initializes a new proposal execution struct (To test execution without actually receiving message)
-   * @param executionDetails Hash of all the transactions in the proposal
-   * @param hasPassed Whether proposal passed or not
+   * @param executionHash Hash of all the transactions in the proposal
+   * @param proposalOutcome Whether proposal was accepted / rejected / cancelled
    * @param _txHashes Array of transaction hashes in proposal
    */
   function receiveProposalTest(
-    uint256 executionDetails,
-    uint256 hasPassed,
+    uint256 callerAddress,
+    uint256 executionHash,
+    uint256 proposalOutcome,
     bytes32[] memory _txHashes
   ) external {
-    require(hasPassed == 1, 'Proposal did not pass');
+    require(callerAddress != 0);
+    require(proposalOutcome == 1, 'Proposal did not pass');
     require(_txHashes.length > 0, 'proposal must contain transactions');
-    require(bytes32(executionDetails) == keccak256(abi.encode(_txHashes)), 'Invalid execution');
+    require(bytes32(executionHash) == keccak256(abi.encode(_txHashes)), 'Invalid execution');
     proposalIndexToProposalExecution[proposalIndex].txHashes = _txHashes;
     proposalIndex++;
     emit ProposalReceived(proposalIndex);
@@ -195,7 +234,7 @@ contract SnapshotXL1Executor is Module, SnapshotXProposalRelayer {
     for (uint256 i = 0; i < _proposalIndexes.length; i++) {
       require(
         getProposalState(_proposalIndexes[i]) != ProposalState.NotReceived,
-        'Proposal not recieved, nothing to cancel'
+        'Proposal not received, nothing to cancel'
       );
       require(
         getProposalState(_proposalIndexes[i]) != ProposalState.Executed,

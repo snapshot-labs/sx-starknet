@@ -15,65 +15,54 @@ contract SnapshotXProposalRelayer is Guardable {
   IStarknetCore public starknetCore;
 
   /// Address of the StarkNet contract that will send execution details to this contract in a L2 -> L1 message
-  uint256 public decisionExecutorL2;
+  uint256 public l2ExecutionRelayer;
 
   /**
-   * @dev Emitted when a the StarkNet decision executor contract is changed
-   * @param _decisionExecutorL2 The new decision executor contract
+   * @dev Emitted when the StarkNet execution relayer contract is changed
+   * @param _l2ExecutionRelayer The new execution relayer contract
    */
-  event ChangedDecisionExecutorL2(uint256 _decisionExecutorL2);
+  event ChangedL2ExecutionRelayer(uint256 _l2ExecutionRelayer);
 
   /**
    * @dev Initialization of the functionality. Called internally by the setUp function
    * @param _starknetCore Address of the StarkNet Core contract
-   * @param _decisionExecutorL2 Address of the new decision executor contract
+   * @param _l2ExecutionRelayer Address of the new execution relayer contract
    */
-  function setUpSnapshotXProposalRelayer(address _starknetCore, uint256 _decisionExecutorL2)
+  function setUpSnapshotXProposalRelayer(address _starknetCore, uint256 _l2ExecutionRelayer)
     internal
   {
     starknetCore = IStarknetCore(_starknetCore);
-    decisionExecutorL2 = _decisionExecutorL2;
+    l2ExecutionRelayer = _l2ExecutionRelayer;
   }
 
   /**
-   * @dev Changes the StarkNet decision executor contract
-   * @param _decisionExecutorL2 Address of the new decision executor contract
+   * @dev Changes the StarkNet execution relayer contract
+   * @param _l2ExecutionRelayer Address of the new execution relayer contract
    */
-  function changeDecisionExecutorL2(uint256 _decisionExecutorL2) public onlyOwner {
-    decisionExecutorL2 = _decisionExecutorL2;
-    emit ChangedDecisionExecutorL2(_decisionExecutorL2);
+  function changeL2ExecutionRelayer(uint256 _l2ExecutionRelayer) public onlyOwner {
+    l2ExecutionRelayer = _l2ExecutionRelayer;
+    emit ChangedL2ExecutionRelayer(_l2ExecutionRelayer);
   }
 
   /**
    * @dev Receives L2 -> L1 message containing proposal execution details
-   * @param executionDetails Hash of all the transactions in the proposal
-   * @param hasPassed Whether the proposal passed
+   * @param executionHashLow Lowest 128 bits of the hash of all the transactions in the proposal
+   * @param executionHashHigh Highest 128 bits of the hash of all the transactions in the proposal
+   * @param proposalOutcome Whether the proposal has been accepted / rejected / cancelled
    */
-  function _recieveFinalizedProposal(uint256 executionDetails, uint256 hasPassed) internal {
-    uint256[] memory payload = new uint256[](2);
-    payload[0] = executionDetails;
-    payload[1] = hasPassed;
-    /// Returns the message Hash. If proposal execution message did not exist/not received yet, then this will fail
-    starknetCore.consumeMessageFromL2(decisionExecutorL2, payload);
-  }
+  function _receiveFinalizedProposal(
+    uint256 callerAddress,
+    uint256 proposalOutcome,
+    uint256 executionHashLow,
+    uint256 executionHashHigh
+  ) internal {
+    uint256[] memory payload = new uint256[](4);
+    payload[0] = callerAddress;
+    payload[1] = proposalOutcome;
+    payload[2] = executionHashLow;
+    payload[3] = executionHashHigh;
 
-  /**
-   * @dev Checks whether proposal has been received on L1 yet
-   * @param executionDetails Hash of all the transactions in the proposal
-   * @param hasPassed Whether the proposal passed
-   * @return isReceived Has the proposal been received
-   */
-  function isFinalizedProposalRecieved(uint256 executionDetails, uint256 hasPassed)
-    external
-    view
-    returns (bool isReceived)
-  {
-    uint256[] memory payload = new uint256[](2);
-    payload[0] = executionDetails;
-    payload[1] = hasPassed;
-    bytes32 msgHash = keccak256(
-      abi.encodePacked(decisionExecutorL2, uint256(uint160(msg.sender)), payload.length, payload)
-    );
-    return starknetCore.l2ToL1Messages(msgHash) > 0;
+    /// Returns the message Hash. If proposal execution message did not exist/not received yet, then this will fail
+    starknetCore.consumeMessageFromL2(l2ExecutionRelayer, payload);
   }
 }
