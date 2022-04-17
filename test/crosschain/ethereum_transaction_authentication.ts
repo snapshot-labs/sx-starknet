@@ -1,19 +1,16 @@
 import { SignerWithAddress } from '@nomiclabs/hardhat-ethers/signers';
 import { expect } from 'chai';
-import { Contract, ContractFactory } from 'ethers';
+import { Contract } from 'ethers';
 import { starknet, network, ethers } from 'hardhat';
-import { FOR, SplitUint256 } from '../starknet/shared/types';
-import { StarknetContractFactory, StarknetContract, HttpNetworkConfig } from 'hardhat/types';
+import { StarknetContract, HttpNetworkConfig } from 'hardhat/types';
 import { strToShortStringArr } from '@snapshot-labs/sx';
 import { getCommit } from '../starknet/shared/helpers';
-import { ethTxAuthSetup, VITALIK_STRING_ADDRESS} from '../starknet/shared/setup';
+import { ethTxAuthSetup, VITALIK_STRING_ADDRESS } from '../starknet/shared/setup';
 import { createExecutionHash } from '../starknet/shared/helpers';
 const propose_selector = BigInt(
   '0x1BFD596AE442867EF71CA523061610682AF8B00FC2738329422F4AD8D220B81'
 );
 const vote_selector = BigInt('0x132BDF85FC8AA10AC3C22F02317F8F53D4B4F52235ED1EABB3A4CBBE08B5C41');
-const VOTING_DELAY = BigInt(0);
-const VOTING_DURATION = BigInt(20);
 const RANDOM_ADDRESS = BigInt('0xAD4Eb63b9a2F1A4D241c92e2bBa78eEFc56ab990');
 
 // Dummy tx
@@ -37,7 +34,6 @@ const tx2 = {
 describe('L1 interaction with Snapshot X', function () {
   this.timeout(5000000);
 
-  const user = 1;
   const networkUrl: string = (network.config as HttpNetworkConfig).url;
   let mockStarknetMessaging: Contract;
   let signer: SignerWithAddress;
@@ -64,8 +60,8 @@ describe('L1 interaction with Snapshot X', function () {
     const execution_params: Array<bigint> = [BigInt(0)];
     propose_calldata = [
       BigInt(signer.address),
-      BigInt(1),
-      BigInt(1),
+      executionHash.low,
+      executionHash.high,
       BigInt(metadata_uri.length),
       ...metadata_uri,
       eth_block_number,

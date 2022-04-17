@@ -1,6 +1,5 @@
-import { starknet, ethers } from 'hardhat';
+import { ethers } from 'hardhat';
 import { SplitUint256 } from './types';
-import { StarknetContract } from 'hardhat/types';
 import { expect } from 'chai';
 import { computeHashOnElements } from 'starknet/dist/utils/hash';
 import { toBN } from 'starknet/dist/utils/number';

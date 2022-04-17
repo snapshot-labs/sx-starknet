@@ -1,7 +1,6 @@
 import { StarknetContract } from 'hardhat/types/runtime';
 import { expect } from 'chai';
 import { starknet } from 'hardhat';
-import { SplitUint256 } from './shared/types';
 import { wordsToUint } from './shared/helpers';
 
 async function setup() {
