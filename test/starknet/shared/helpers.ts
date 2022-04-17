@@ -1,9 +1,11 @@
-import { starknet } from 'hardhat';
+import { starknet, ethers } from 'hardhat';
 import { SplitUint256 } from './types';
 import { StarknetContract } from 'hardhat/types';
 import { expect } from 'chai';
 import { computeHashOnElements } from 'starknet/dist/utils/hash';
 import { toBN } from 'starknet/dist/utils/number';
+import { EIP712_TYPES } from '../../ethereum/shared/utils';
+import { _TypedDataEncoder } from '@ethersproject/hash';
 
 export function assert(condition: boolean, message = 'Assertion Failed'): boolean {
   if (!condition) {
@@ -74,4 +76,38 @@ export function getCommit(target: bigint, function_selector: bigint, calldata: b
   const function_selectorBigNum = toBN('0x' + function_selector.toString(16));
   const calldataBigNum = calldata.map((x) => toBN('0x' + x.toString(16)));
   return BigInt(computeHashOnElements([targetBigNum, function_selectorBigNum, ...calldataBigNum]));
+}
+
+/**
+ * Utility function that returns an example executionHash and `txHashes`, given a verifying contract.
+ * @param _verifyingContract The verifying l1 contract
+ * @param tx1 Transaction object
+ * @param tx2 Transaction object
+ * @returns
+ */
+export function createExecutionHash(
+  _verifyingContract: string,
+  tx1: any,
+  tx2: any
+): {
+  executionHash: SplitUint256;
+  txHashes: Array<string>;
+} {
+  const domain = {
+    chainId: ethers.BigNumber.from(1), //TODO: should be network.config.chainId but it's not working
+    verifyingContract: _verifyingContract,
+  };
+
+  // 2 transactions in proposal
+  const txHash1 = _TypedDataEncoder.hash(domain, EIP712_TYPES, tx1);
+  const txHash2 = _TypedDataEncoder.hash(domain, EIP712_TYPES, tx2);
+
+  const abiCoder = new ethers.utils.AbiCoder();
+  const hash = BigInt(ethers.utils.keccak256(abiCoder.encode(['bytes32[]'], [[txHash1, txHash2]])));
+
+  const executionHash = SplitUint256.fromUint(hash);
+  return {
+    executionHash,
+    txHashes: [txHash1, txHash2],
+  };
 }

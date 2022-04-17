@@ -6,8 +6,6 @@ import { FOR, SplitUint256 } from '../starknet/shared/types';
 import { StarknetContractFactory, StarknetContract, HttpNetworkConfig } from 'hardhat/types';
 import { stark } from 'starknet';
 import { strToShortStringArr } from '@snapshot-labs/sx';
-import { _TypedDataEncoder } from '@ethersproject/hash';
-import { EIP712_TYPES } from '../ethereum/shared/utils';
 import {
   VITALIK_ADDRESS,
   VITALIK_STRING_ADDRESS,
@@ -16,7 +14,7 @@ import {
   PROPOSAL_METHOD,
   VOTE_METHOD,
 } from '../starknet/shared/setup';
-import { expectAddressEquality } from '../starknet/shared/helpers';
+import { expectAddressEquality, createExecutionHash } from '../starknet/shared/helpers';
 
 const { getSelectorFromName } = stark;
 
@@ -37,34 +35,6 @@ const tx2 = {
   operation: 0,
   nonce: 0,
 };
-
-/**
- * Utility function that returns an example executionHash and `txHashes`, given a verifying contract.
- * @param _verifyingContract The verifying l1 contract
- * @returns
- */
-function createExecutionHash(_verifyingContract: string): {
-  executionHash: SplitUint256;
-  txHashes: Array<string>;
-} {
-  const domain = {
-    chainId: ethers.BigNumber.from(1), //TODO: should be network.config.chainId but it's not working
-    verifyingContract: _verifyingContract,
-  };
-
-  // 2 transactions in proposal
-  const txHash1 = _TypedDataEncoder.hash(domain, EIP712_TYPES, tx1);
-  const txHash2 = _TypedDataEncoder.hash(domain, EIP712_TYPES, tx2);
-
-  const abiCoder = new ethers.utils.AbiCoder();
-  const hash = BigInt(ethers.utils.keccak256(abiCoder.encode(['bytes32[]'], [[txHash1, txHash2]])));
-
-  const executionHash = SplitUint256.fromUint(hash);
-  return {
-    executionHash,
-    txHashes: [txHash1, txHash2],
-  };
-}
 
 describe('Create proposal, cast vote, and send execution to l1', function () {
   this.timeout(12000000);
@@ -133,7 +103,7 @@ describe('Create proposal, cast vote, and send execution to l1', function () {
 
   it('should correctly receive and accept a finalized proposal on l1', async () => {
     this.timeout(1200000);
-    const { executionHash, txHashes } = createExecutionHash(l1Executor.address);
+    const { executionHash, txHashes } = createExecutionHash(l1Executor.address, tx1, tx2);
     const metadata_uri = strToShortStringArr(
       'Hello and welcome to Snapshot X. This is the future of governance.'
     );
