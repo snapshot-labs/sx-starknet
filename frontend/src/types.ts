@@ -1,16 +1,16 @@
-// todo change to felt
-type Address = BigInt
+// change to evm address type?
+type Address = string
 
-type Account = {
+export type Account = {
   address: Address
 }
 
-type Proposal = {
+export type Proposal = {
   id: number,
   signers: Account[]
 }
 
-type Space = {
+export type Space = {
   address: string,
   whitelist: Account[],
   proposals: Proposal[]
