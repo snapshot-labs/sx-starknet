@@ -1,5 +1,6 @@
 import React from "react"
 import { Formik, Form, Field, FieldArray } from "formik"
+import { Link } from "react-router-dom"
 
 export const AddressList = () => (
   <div>
@@ -10,15 +11,16 @@ export const AddressList = () => (
           alert(JSON.stringify(values, null, 2))
         }, 500)
       }}
-      render={({ values }) => (
+    >
+      {({ values }) => (
         <Form>
           <FieldArray
             name="addresses"
             render={(arrayHelpers) => (
               <div>
-                {values.addresses.map((friend, index) => (
+                {values.addresses.map((_, index) => (
                   <div key={index}>
-                    <Field name={`address.${index}`} />
+                    <Field name={`addresses.${index}`} />
                     <button
                       type="button"
                       onClick={() => arrayHelpers.remove(index)} // remove a friend from the list
@@ -38,12 +40,19 @@ export const AddressList = () => (
           />
         </Form>
       )}
-    />
+    </Formik>
   </div>
 )
 
 const WhitelistFactory: React.FC = () => {
-  return <AddressList />
+  return (
+    <div>
+      <Link to={"/"}> Go back home</Link>
+      <h1>Create a whitelist</h1>
+      <p>Input the signers, they are ethereum wallets</p>
+      <AddressList />
+    </div>
+  )
 }
 
 export default WhitelistFactory

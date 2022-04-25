@@ -1,5 +1,13 @@
+import { Link, useParams } from "react-router-dom"
+
 const Space: React.FC = () => {
-  return null
+  const { spaceAddress } = useParams()
+  return (
+    <div>
+      <Link to="/">Back home</Link>
+      <p>welcome to space {spaceAddress}</p>
+    </div>
+  )
 }
 
 export default Space
