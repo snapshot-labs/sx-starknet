@@ -5,7 +5,6 @@ pragma solidity 0.8.9;
 import './Interfaces/IStarknetCore.sol';
 
 contract SafeX {
-
   /// The StarkNet Core contract
   IStarknetCore public starknetCore;
 
@@ -88,8 +87,6 @@ contract SafeX {
       // solhint-disable-next-line no-inline-assembly
       assembly {
         success := call(txGas, to, value, add(data, 0x20), mload(data), 0, 0)
-
-
       }
     }
   }
@@ -133,5 +130,4 @@ contract SafeX {
   ) public view returns (bytes32 txHash) {
     return keccak256(generateTransactionHashData(to, value, data, operation, 0));
   }
-
 }
