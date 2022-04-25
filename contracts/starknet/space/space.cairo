@@ -64,7 +64,7 @@ func vote_power(proposal_id : felt) -> (power : felt):
 end
 
 @storage_var
-func quorum() -> (num: felt):
+func quorum() -> (num : felt):
 end
 
 @event
@@ -135,8 +135,9 @@ end
 
 @constructor
 func constructor{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr : felt}(
-        _voting_delay : felt, _voting_duration : felt, _proposal_threshold : Uint256, _quorum: felt,
-        _executor : felt, _controller : felt, _voting_strategy : felt, _authenticator : felt):
+        _voting_delay : felt, _voting_duration : felt, _proposal_threshold : Uint256,
+        _quorum : felt, _executor : felt, _controller : felt, _voting_strategy : felt,
+        _authenticator : felt):
     # Sanity checks
     with_attr error_message("Invalid constructor parameters"):
         assert_nn(_voting_delay)
@@ -326,7 +327,7 @@ func finalize_proposal{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_c
 
     # Count votes for
     let (for) = vote_power.read(proposal_id)
-    
+
     let (_quorum) = quorum.read()
     with_attr error_message("Quorum has not been reached"):
         assert_le(_quorum, for)
@@ -406,6 +407,5 @@ func get_proposal_info{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_c
     let (proposal) = proposal_registry.read(proposal_id)
 
     let (_power_for) = vote_power.read(proposal_id)
-    return (
-        ProposalInfo(proposal=proposal, power_for=_power_for))
+    return (ProposalInfo(proposal=proposal, power_for=_power_for))
 end

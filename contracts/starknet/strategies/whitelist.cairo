@@ -5,14 +5,15 @@ from contracts.starknet.lib.eth_address import EthAddress
 from starkware.cairo.common.cairo_builtins import HashBuiltin
 
 @storage_var
-func whitelist(address: EthAddress) -> (is_valid : felt):
+func whitelist(address : EthAddress) -> (is_valid : felt):
 end
 
 @event
-func whitelisted(address: felt):
+func whitelisted(address : felt):
 end
 
-func register_whitelist{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr : felt}(_whitelist_len: felt, _whitelist: felt*):
+func register_whitelist{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr : felt}(
+        _whitelist_len : felt, _whitelist : felt*):
     if _whitelist_len == 0:
         return ()
     else:
@@ -32,7 +33,8 @@ func register_whitelist{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_
 end
 
 @constructor
-func constructor{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr : felt}(_whitelist_len: felt, _whitelist: felt*):
+func constructor{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr : felt}(
+        _whitelist_len : felt, _whitelist : felt*):
     register_whitelist(_whitelist_len, _whitelist)
     return ()
 end
