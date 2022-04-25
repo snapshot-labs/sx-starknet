@@ -204,7 +204,9 @@ func vote{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr : fe
         params_len=voting_params_len,
         params=voting_params)
 
-    vote_power.write(proposal_id, user_voting_power.low)
+    let (prev_voting_power) = vote_power.read(proposal_id)
+    # Safe from overflow because whitelist will never hold 2^251 addresses...
+    vote_power.write(proposal_id, prev_voting_power + user_voting_power.low)
 
     let vote = Vote(voting_power=user_voting_power.low)
     vote_registry.write(proposal_id, voter_address, vote)

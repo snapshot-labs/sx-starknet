@@ -15,6 +15,8 @@ import {
   EXECUTE_METHOD,
   PROPOSAL_METHOD,
   VOTE_METHOD,
+  VITALIK_ADDRESS2,
+  VITALIK_ADDRESS3,
 } from '../starknet/shared/setup';
 import { expectAddressEquality } from '../starknet/shared/helpers';
 
@@ -161,20 +163,41 @@ describe('Create proposal, cast vote, and send execution to l1', function () {
       function_selector: BigInt(getSelectorFromName(PROPOSAL_METHOD)),
       calldata,
     });
+    console.log("Proposal created");
 
-    // -- Casts a vote FOR --
+    // -- Casts a vote FOR 1/3 --
     {
       const voter_address = proposer_address;
       const votingParams: Array<BigInt> = [];
       await authContract.invoke(EXECUTE_METHOD, {
         to: BigInt(spaceContract.address),
         function_selector: BigInt(getSelectorFromName(VOTE_METHOD)),
-        calldata: [voter_address, proposal_id, FOR, BigInt(votingParams.length), ...votingParams],
+        calldata: [voter_address, proposal_id, BigInt(votingParams.length), ...votingParams],
       });
+      console.log("1/3");
+    }
 
-      const { proposal_info } = await spaceContract.call('get_proposal_info', {
-        proposal_id: proposal_id,
+    // -- Casts a vote FOR 2/3--
+    {
+      const votingParams: Array<BigInt> = [];
+      await authContract.invoke(EXECUTE_METHOD, {
+        to: BigInt(spaceContract.address),
+        function_selector: BigInt(getSelectorFromName(VOTE_METHOD)),
+        calldata: [VITALIK_ADDRESS2, proposal_id, BigInt(votingParams.length), ...votingParams],
       });
+      console.log("2/3");
+    }
+
+    // -- Casts a vote FOR 3/3--
+    {
+      const voter_address = proposer_address;
+      const votingParams: Array<BigInt> = [];
+      await authContract.invoke(EXECUTE_METHOD, {
+        to: BigInt(spaceContract.address),
+        function_selector: BigInt(getSelectorFromName(VOTE_METHOD)),
+        calldata: [VITALIK_ADDRESS3, proposal_id, BigInt(votingParams.length), ...votingParams],
+      });
+      console.log("3/3");
     }
 
     // -- Load messaging contract
