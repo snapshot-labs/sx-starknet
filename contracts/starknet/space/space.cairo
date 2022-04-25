@@ -168,7 +168,7 @@ end
 
 @external
 func vote{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr : felt}(
-        voter_address : EthAddress, proposal_id : felt, choice : felt, voting_params_len : felt,
+        voter_address : EthAddress, proposal_id : felt, voting_params_len : felt,
         voting_params : felt*) -> ():
     alloc_locals
 
@@ -190,11 +190,9 @@ func vote{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr : fe
 
     # Make sure voter has not already voted
     let (prev_vote) = vote_registry.read(proposal_id, voter_address)
-    if prev_vote.choice != 0:
-        # Voter has already voted!
-        with_attr error_message("User already voted"):
-            assert 1 = 0
-        end
+    # Voter has already voted!
+    with_attr error_message("User already voted"):
+        assert prev_vote.voting_power = 0
     end
 
     let (voting_strategy_contract) = voting_strategy.read()
@@ -208,7 +206,7 @@ func vote{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr : fe
 
     vote_power.write(proposal_id, user_voting_power.low)
 
-    let vote = Vote(choice=choice, voting_power=user_voting_power)
+    let vote = Vote(voting_power=user_voting_power.low)
     vote_registry.write(proposal_id, voter_address, vote)
 
     # Emit event
