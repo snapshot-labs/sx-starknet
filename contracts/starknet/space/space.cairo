@@ -60,7 +60,11 @@ func vote_registry(proposal_id : felt, voter_address : EthAddress) -> (vote : Vo
 end
 
 @storage_var
-func vote_power(proposal_id : felt) -> (power : Uint256):
+func vote_power(proposal_id : felt) -> (power : felt):
+end
+
+@storage_var
+func quorum() -> (num: felt):
 end
 
 @event
@@ -131,7 +135,7 @@ end
 
 @constructor
 func constructor{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr : felt}(
-        _voting_delay : felt, _voting_duration : felt, _proposal_threshold : Uint256,
+        _voting_delay : felt, _voting_duration : felt, _proposal_threshold : Uint256, _quorum: felt,
         _executor : felt, _controller : felt, _voting_strategy : felt, _authenticator : felt):
     # Sanity checks
     with_attr error_message("Invalid constructor parameters"):
@@ -151,6 +155,7 @@ func constructor{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_p
     proposal_threshold.write(_proposal_threshold)
     executor.write(_executor)
     controller.write(_controller)
+    quorum.write(_quorum)
 
     voting_strategy.write(_voting_strategy)
     authenticator.write(_authenticator)
@@ -200,7 +205,7 @@ func vote{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr : fe
         params_len=voting_params_len,
         params=voting_params)
 
-    vote_power.write(proposal_id, user_voting_power)
+    vote_power.write(proposal_id, user_voting_power.low)
 
     let vote = Vote(choice=choice, voting_power=user_voting_power)
     vote_registry.write(proposal_id, voter_address, vote)
@@ -322,20 +327,16 @@ func finalize_proposal{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_c
     # Count votes for
     let (for) = vote_power.read(proposal_id)
     
-    # TODO: change this
-    let has_passed = 1
-
-    if has_passed == 1:
-        tempvar proposal_outcome = ProposalOutcome.ACCEPTED
-    else:
-        tempvar proposal_outcome = ProposalOutcome.REJECTED
+    let (_quorum) = quorum.read()
+    with_attr error_message("Quorum has not been reached"):
+        assert_le(_quorum, for)
     end
 
     let (executor_address) = executor.read()
 
     IExecutionStrategy.execute(
         contract_address=executor_address,
-        proposal_outcome=proposal_outcome,
+        proposal_outcome=ProposalOutcome.ACCEPTED,
         execution_hash=proposal.execution_hash,
         execution_params_len=execution_params_len,
         execution_params=execution_params)
