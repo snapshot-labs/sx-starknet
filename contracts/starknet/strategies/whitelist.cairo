@@ -13,7 +13,8 @@ func whitelisted(address : felt):
 end
 
 func register_whitelist{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr : felt}(
-        _whitelist_len : felt, _whitelist : felt*):
+    _whitelist_len : felt, _whitelist : felt*
+):
     if _whitelist_len == 0:
         return ()
     else:
@@ -34,7 +35,8 @@ end
 
 @constructor
 func constructor{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr : felt}(
-        _whitelist_len : felt, _whitelist : felt*):
+    _whitelist_len : felt, _whitelist : felt*
+):
     register_whitelist(_whitelist_len, _whitelist)
     return ()
 end
@@ -42,8 +44,8 @@ end
 # Returns a voting power of 1 if the user is in the whitelist
 @view
 func get_voting_power{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr : felt}(
-        timestamp : felt, address : EthAddress, params_len : felt, params : felt*) -> (
-        voting_power : Uint256):
+    timestamp : felt, address : EthAddress, params_len : felt, params : felt*
+) -> (voting_power : Uint256):
     let (is_valid) = whitelist.read(address)
 
     with_attr error_message("Voter not whitelisted"):

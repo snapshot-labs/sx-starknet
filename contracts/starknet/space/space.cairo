@@ -3,7 +3,12 @@
 from starkware.starknet.common.syscalls import get_caller_address, get_block_timestamp
 from starkware.cairo.common.cairo_builtins import HashBuiltin
 from starkware.cairo.common.math import (
-    assert_lt, assert_le, assert_nn, assert_not_zero, assert_lt_felt)
+    assert_lt,
+    assert_le,
+    assert_nn,
+    assert_not_zero,
+    assert_lt_felt,
+)
 from contracts.starknet.strategies.interface import IVotingStrategy
 from contracts.starknet.lib.eth_address import EthAddress
 from contracts.starknet.lib.proposal import Proposal
@@ -69,9 +74,14 @@ end
 
 @event
 func proposal_created(
-        proposal_id : felt, proposer_address : EthAddress, proposal : Proposal,
-        metadata_uri_len : felt, metadata_uri : felt*, execution_params_len : felt,
-        execution_params : felt*):
+    proposal_id : felt,
+    proposer_address : EthAddress,
+    proposal : Proposal,
+    metadata_uri_len : felt,
+    metadata_uri : felt*,
+    execution_params_len : felt,
+    execution_params : felt*,
+):
 end
 
 @event
@@ -95,7 +105,8 @@ func only_controller{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_che
 end
 
 func update_controller{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr : felt}(
-        new_controller : felt):
+    new_controller : felt
+):
     only_controller()
 
     let (previous_controller) = controller.read()
@@ -112,16 +123,18 @@ end
 # So if you wish to compare `hash_pedersen` to the off-chain hashing methods, make sure you append the length of the array before
 # feeding it to `hash_pedersen`!
 func hash_pedersen{pedersen_ptr : HashBuiltin*}(calldata_len : felt, calldata : felt*) -> (
-        hash : felt):
+    hash : felt
+):
     let (hash_state_ptr) = hash_init()
     let (hash_state_ptr) = hash_update{hash_ptr=pedersen_ptr}(
-        hash_state_ptr, calldata, calldata_len)
+        hash_state_ptr, calldata, calldata_len
+    )
 
     return (hash_state_ptr.current_hash)
 end
 
 func assert_valid_authenticator{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr}(
-        ):
+    ):
     let (caller_address) = get_caller_address()
 
     let (auth_address) = authenticator.read()
@@ -135,9 +148,15 @@ end
 
 @constructor
 func constructor{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr : felt}(
-        _voting_delay : felt, _voting_duration : felt, _proposal_threshold : Uint256,
-        _quorum : felt, _executor : felt, _controller : felt, _voting_strategy : felt,
-        _authenticator : felt):
+    _voting_delay : felt,
+    _voting_duration : felt,
+    _proposal_threshold : Uint256,
+    _quorum : felt,
+    _executor : felt,
+    _controller : felt,
+    _voting_strategy : felt,
+    _authenticator : felt,
+):
     # Sanity checks
     with_attr error_message("Invalid constructor parameters"):
         assert_nn(_voting_delay)
@@ -168,8 +187,8 @@ end
 
 @external
 func vote{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr : felt}(
-        voter_address : EthAddress, proposal_id : felt, voting_params_len : felt,
-        voting_params : felt*) -> ():
+    voter_address : EthAddress, proposal_id : felt, voting_params_len : felt, voting_params : felt*
+) -> ():
     alloc_locals
 
     # Verify that the caller is the authenticator contract.
@@ -202,7 +221,8 @@ func vote{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr : fe
         timestamp=proposal.start_timestamp,
         address=voter_address,
         params_len=voting_params_len,
-        params=voting_params)
+        params=voting_params,
+    )
 
     let (prev_voting_power) = vote_power.read(proposal_id)
     # Safe from overflow because whitelist will never hold 2^251 addresses...
@@ -219,9 +239,16 @@ end
 
 @external
 func propose{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr : felt}(
-        proposer_address : EthAddress, execution_hash : Uint256, metadata_uri_len : felt,
-        metadata_uri : felt*, ethereum_block_number : felt, voting_params_len : felt,
-        voting_params : felt*, execution_params_len : felt, execution_params : felt*) -> ():
+    proposer_address : EthAddress,
+    execution_hash : Uint256,
+    metadata_uri_len : felt,
+    metadata_uri : felt*,
+    ethereum_block_number : felt,
+    voting_params_len : felt,
+    voting_params : felt*,
+    execution_params_len : felt,
+    execution_params : felt*,
+) -> ():
     alloc_locals
 
     # We cannot have `0` as the `ethereum_block_number` because we rely on checking
@@ -247,7 +274,8 @@ func propose{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr :
         timestamp=start_timestamp,
         address=proposer_address,
         params_len=voting_params_len,
-        params=voting_params)
+        params=voting_params,
+    )
 
     # Verify that the proposer has enough voting power to trigger a proposal
     let (threshold) = proposal_threshold.read()
@@ -265,7 +293,8 @@ func propose{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr :
 
     # Create the proposal and its proposal id
     let proposal = Proposal(
-        execution_hash, start_timestamp, end_timestamp, ethereum_block_number, hash)
+        execution_hash, start_timestamp, end_timestamp, ethereum_block_number, hash
+    )
 
     let (proposal_id) = next_proposal_nonce.read()
 
@@ -280,7 +309,8 @@ func propose{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr :
         metadata_uri_len,
         metadata_uri,
         execution_params_len,
-        execution_params)
+        execution_params,
+    )
 
     # Increase the proposal nonce
     next_proposal_nonce.write(proposal_id + 1)
@@ -291,7 +321,8 @@ end
 # Finalizes the proposal, counts the voting power, and send the corresponding result to the L1 executor contract
 @external
 func finalize_proposal{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr : felt}(
-        proposal_id : felt, execution_params_len : felt, execution_params : felt*):
+    proposal_id : felt, execution_params_len : felt, execution_params : felt*
+):
     alloc_locals
 
     let (has_been_executed) = executed_proposals.read(proposal_id)
@@ -340,7 +371,8 @@ func finalize_proposal{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_c
         proposal_outcome=ProposalOutcome.ACCEPTED,
         execution_hash=proposal.execution_hash,
         execution_params_len=execution_params_len,
-        execution_params=execution_params)
+        execution_params=execution_params,
+    )
 
     # Flag this proposal as executed
     # This should not create re-entrency vulnerability because the message
@@ -355,7 +387,8 @@ end
 # Cancels the proposal. Only callable by the controller.
 @external
 func cancel_proposal{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr : felt}(
-        proposal_id : felt, execution_params_len : felt, execution_params : felt*):
+    proposal_id : felt, execution_params_len : felt, execution_params : felt*
+):
     alloc_locals
 
     only_controller()
@@ -383,7 +416,8 @@ func cancel_proposal{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_che
         proposal_outcome=proposal_outcome,
         execution_hash=proposal.execution_hash,
         execution_params_len=execution_params_len,
-        execution_params=execution_params)
+        execution_params=execution_params,
+    )
 
     # Flag this proposal as executed
     # This should not create re-entrency vulnerability because the message
@@ -397,13 +431,15 @@ end
 
 @view
 func get_vote_info{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr : felt}(
-        voter_address : EthAddress, proposal_id : felt) -> (vote : Vote):
+    voter_address : EthAddress, proposal_id : felt
+) -> (vote : Vote):
     return vote_registry.read(proposal_id, voter_address)
 end
 
 @view
 func get_proposal_info{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr : felt}(
-        proposal_id : felt) -> (proposal_info : ProposalInfo):
+    proposal_id : felt
+) -> (proposal_info : ProposalInfo):
     let (proposal) = proposal_registry.read(proposal_id)
 
     let (_power_for) = vote_power.read(proposal_id)

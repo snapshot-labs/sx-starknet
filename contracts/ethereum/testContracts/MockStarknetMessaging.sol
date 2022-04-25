@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: Apache-2.0.
 pragma solidity ^0.8.6;
 
-import './StarknetMessaging.sol';
+import "./StarknetMessaging.sol";
 
 contract MockStarknetMessaging is StarknetMessaging {
   /**
@@ -29,10 +29,17 @@ contract MockStarknetMessaging is StarknetMessaging {
     uint256 nonce
   ) external {
     bytes32 msgHash = keccak256(
-      abi.encodePacked(from_address, to_address, nonce, selector, payload.length, payload)
+      abi.encodePacked(
+        from_address,
+        to_address,
+        nonce,
+        selector,
+        payload.length,
+        payload
+      )
     );
 
-    require(l1ToL2Messages()[msgHash] > 0, 'INVALID_MESSAGE_TO_CONSUME');
+    require(l1ToL2Messages()[msgHash] > 0, "INVALID_MESSAGE_TO_CONSUME");
     l1ToL2Messages()[msgHash] -= 1;
   }
 }

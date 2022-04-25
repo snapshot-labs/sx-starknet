@@ -8,7 +8,7 @@ const [wallet_0, wallet_1, wallet_2, wallet_3, wallet_4] = waffle.provider.getWa
 
 const tx1 = {
   to: wallet_1.address,
-  value: 0,
+  value: 1,
   data: '0x11',
   operation: 0,
   nonce: 0,
@@ -16,7 +16,7 @@ const tx1 = {
 
 const tx2 = {
   to: wallet_2.address,
-  value: 0,
+  value: 2,
   data: '0x22',
   operation: 0,
   nonce: 0,
@@ -24,7 +24,7 @@ const tx2 = {
 
 const tx3 = {
   to: wallet_3.address,
-  value: 0,
+  value: 4,
   data: '0x33',
   operation: 0,
   nonce: 0,
@@ -54,7 +54,7 @@ async function baseSetup() {
   const moduleFactoryContract = await ethers.getContractFactory('ModuleProxyFactory');
   const moduleFactory = await moduleFactoryContract.deploy();
 
-  const SnapshotXContract = await ethers.getContractFactory('SnapshotXL1Executor');
+  const SnapshotXContract = await ethers.getContractFactory('SafeX');
 
   //deploying singleton master contract
   const masterSnapshotXModule = await SnapshotXContract.deploy(

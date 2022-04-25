@@ -2,7 +2,11 @@
 pragma solidity ^0.8.6;
 
 interface IStarknetMessaging {
-  event LogMessageToL1(uint256 indexed from_address, address indexed to_address, uint256[] payload);
+  event LogMessageToL1(
+    uint256 indexed from_address,
+    address indexed to_address,
+    uint256[] payload
+  );
 
   // An event that is raised when a message is sent from L1 to L2.
   event LogMessageToL2(

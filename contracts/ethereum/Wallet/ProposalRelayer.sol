@@ -2,8 +2,8 @@
 
 pragma solidity 0.8.9;
 
-import '@gnosis.pm/zodiac/contracts/guard/Guardable.sol';
-import './Interfaces/IStarknetCore.sol';
+import "@gnosis.pm/zodiac/contracts/guard/Guardable.sol";
+import "./Interfaces/IStarknetCore.sol";
 
 /**
  * @title Snapshot X L1 Proposal Relayer
@@ -28,9 +28,10 @@ contract SnapshotXProposalRelayer is Guardable {
    * @param _starknetCore Address of the StarkNet Core contract
    * @param _l2ExecutionRelayer Address of the new execution relayer contract
    */
-  function setUpSnapshotXProposalRelayer(address _starknetCore, uint256 _l2ExecutionRelayer)
-    internal
-  {
+  function setUpSnapshotXProposalRelayer(
+    address _starknetCore,
+    uint256 _l2ExecutionRelayer
+  ) internal {
     starknetCore = IStarknetCore(_starknetCore);
     l2ExecutionRelayer = _l2ExecutionRelayer;
   }
@@ -39,7 +40,10 @@ contract SnapshotXProposalRelayer is Guardable {
    * @dev Changes the StarkNet execution relayer contract
    * @param _l2ExecutionRelayer Address of the new execution relayer contract
    */
-  function changeL2ExecutionRelayer(uint256 _l2ExecutionRelayer) public onlyOwner {
+  function changeL2ExecutionRelayer(uint256 _l2ExecutionRelayer)
+    public
+    onlyOwner
+  {
     l2ExecutionRelayer = _l2ExecutionRelayer;
     emit ChangedL2ExecutionRelayer(_l2ExecutionRelayer);
   }

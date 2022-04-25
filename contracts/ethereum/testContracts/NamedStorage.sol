@@ -39,7 +39,11 @@ library NamedStorage {
     }
   }
 
-  function getUintValue(string memory tag_) internal view returns (uint256 retVal) {
+  function getUintValue(string memory tag_)
+    internal
+    view
+    returns (uint256 retVal)
+  {
     bytes32 slot = keccak256(abi.encodePacked(tag_));
     assembly {
       retVal := sload(slot)
@@ -54,11 +58,15 @@ library NamedStorage {
   }
 
   function setUintValueOnce(string memory tag_, uint256 value) internal {
-    require(getUintValue(tag_) == 0, 'ALREADY_SET');
+    require(getUintValue(tag_) == 0, "ALREADY_SET");
     setUintValue(tag_, value);
   }
 
-  function getAddressValue(string memory tag_) internal view returns (address retVal) {
+  function getAddressValue(string memory tag_)
+    internal
+    view
+    returns (address retVal)
+  {
     bytes32 slot = keccak256(abi.encodePacked(tag_));
     assembly {
       retVal := sload(slot)
@@ -73,11 +81,15 @@ library NamedStorage {
   }
 
   function setAddressValueOnce(string memory tag_, address value) internal {
-    require(getAddressValue(tag_) == address(0x0), 'ALREADY_SET');
+    require(getAddressValue(tag_) == address(0x0), "ALREADY_SET");
     setAddressValue(tag_, value);
   }
 
-  function getBoolValue(string memory tag_) internal view returns (bool retVal) {
+  function getBoolValue(string memory tag_)
+    internal
+    view
+    returns (bool retVal)
+  {
     bytes32 slot = keccak256(abi.encodePacked(tag_));
     assembly {
       retVal := sload(slot)
