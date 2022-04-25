@@ -21,7 +21,7 @@ const SpaceForm: React.FC = () => {
 
 const SpaceFactory: React.FC = () => {
   return (
-    <div>
+    <div className="spaceFactory">
       <Link to={"/"}> Go back home</Link>
       <h1>Create a space</h1>
       First go to the <Link to={"/whitelist-factory"}>whitelist factory</Link>,

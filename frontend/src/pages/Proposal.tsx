@@ -7,9 +7,9 @@ import { Proposal, State } from "../types"
 const ProposalContainer: React.FC<{ proposal: Proposal | undefined }> = ({
   proposal,
 }) => {
-  if (proposal === undefined) return null
+  if (proposal === undefined) return <div>loading</div>
   return (
-    <div>
+    <div className="proposal">
       <h1>Proposal #{proposal.id}</h1>
       <ul>
         {proposal.signers.map((signer) => {

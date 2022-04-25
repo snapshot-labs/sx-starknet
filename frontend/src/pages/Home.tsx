@@ -4,7 +4,7 @@ const Home: React.FC = () => {
   return (
     <div>
       <h1>Welcome to safe-x</h1>
-      <Link to={"space-factory"}>Create a space</Link>
+      <Link className="createSpaceLink" to={"space-factory"}>Create a space</Link>
     </div>
   )
 }

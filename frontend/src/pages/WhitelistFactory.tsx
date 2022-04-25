@@ -13,14 +13,14 @@ export const AddressList = () => (
       }}
     >
       {({ values }) => (
-        <Form>
+        <Form className="whitelistFactoryForm">
           <FieldArray
             name="addresses"
             render={(arrayHelpers) => (
               <div>
                 {values.addresses.map((_, index) => (
                   <div key={index}>
-                    <Field name={`addresses.${index}`} />
+                    <Field className="addressForm" name={`addresses.${index}`} />
                     <button
                       type="button"
                       onClick={() => arrayHelpers.remove(index)} // remove a friend from the list
@@ -46,7 +46,7 @@ export const AddressList = () => (
 
 const WhitelistFactory: React.FC = () => {
   return (
-    <div>
+    <div className="whitelistFactory">
       <Link to={"/"}> Go back home</Link>
       <h1>Create a whitelist</h1>
       <p>Input the signers, they are ethereum wallets</p>

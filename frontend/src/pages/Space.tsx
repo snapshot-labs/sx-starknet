@@ -12,7 +12,7 @@ const Proposals: React.FC<{ spaceAddress: string; proposals: Proposal[] }> = ({
     <div>
       {proposals.map((proposal) => {
         return (
-          <div key={proposal.id}>
+          <div key={proposal.id} className="proposalLink">
             <Link to={`/space/${spaceAddress}/${proposal.id}`}></Link>
           </div>
         )
@@ -23,9 +23,9 @@ const Proposals: React.FC<{ spaceAddress: string; proposals: Proposal[] }> = ({
 
 const Whitelist: React.FC<{ whitelist: Account[] }> = ({ whitelist }) => {
   return (
-    <div>
+    <div className="whitelist">
       {whitelist.map((account) => {
-        return <div key={account.address}>{account.address}</div>
+        return <div className="whitelistElement" key={account.address}>{account.address}</div>
       })}
     </div>
   )
@@ -35,7 +35,7 @@ const SpaceContainer: React.FC<{ space: Space | undefined }> = ({ space }) => {
   if (space === undefined) return <div>loading</div>
 
   return (
-    <div>
+    <div className="space">
       <p>this is the space address {space.address}</p>
       <h1>Whitelist</h1>
       <Whitelist whitelist={space.whitelist} />
