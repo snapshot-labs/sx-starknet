@@ -9,7 +9,6 @@ from contracts.starknet.lib.eth_address import EthAddress
 from contracts.starknet.lib.proposal import Proposal
 from contracts.starknet.lib.proposal_info import ProposalInfo
 from contracts.starknet.lib.vote import Vote
-from contracts.starknet.lib.choice import Choice
 from contracts.starknet.lib.proposal_outcome import ProposalOutcome
 from contracts.starknet.execution.interface import IExecutionStrategy
 from starkware.cairo.common.alloc import alloc
@@ -29,11 +28,11 @@ func proposal_threshold() -> (threshold : Uint256):
 end
 
 @storage_var
-func voting_strategies(index : felt) -> (voting_strategy_contract : felt):
+func voting_strategy() -> (voting_strategy_contract : felt):
 end
 
 @storage_var
-func authenticators(authenticator_address : felt) -> (is_valid : felt):
+func authenticator() -> (auth_address : felt):
 end
 
 @storage_var
@@ -61,7 +60,11 @@ func vote_registry(proposal_id : felt, voter_address : EthAddress) -> (vote : Vo
 end
 
 @storage_var
-func vote_power(proposal_id : felt, choice : felt) -> (power : Uint256):
+func vote_power(proposal_id : felt) -> (power : felt):
+end
+
+@storage_var
+func quorum() -> (num : felt):
 end
 
 @event
@@ -117,107 +120,32 @@ func hash_pedersen{pedersen_ptr : HashBuiltin*}(calldata_len : felt, calldata : 
     return (hash_state_ptr.current_hash)
 end
 
-func register_voting_strategies{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr}(
-        index : felt, _voting_strategies_len : felt, _voting_strategies : felt*):
-    if _voting_strategies_len == 0:
-        # List is empty
-        return ()
-    else:
-        # Add voting strategy
-        voting_strategies.write(index, _voting_strategies[0])
-
-        if _voting_strategies_len == 1:
-            # Nothing left to add, end recursion
-            return ()
-        else:
-            # Recurse
-            register_voting_strategies(
-                index + 1, _voting_strategies_len - 1, &_voting_strategies[1])
-            return ()
-        end
-    end
-end
-
-func register_authenticators{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr}(
-        _authenticators_len : felt, _authenticators : felt*):
-    if _authenticators_len == 0:
-        # List is empty
-        return ()
-    else:
-        # Add voting strategy
-        authenticators.write(_authenticators[0], 1)
-
-        if _authenticators_len == 1:
-            # Nothing left to add, end recursion
-            return ()
-        else:
-            # Recurse
-            register_authenticators(_authenticators_len - 1, &_authenticators[1])
-            return ()
-        end
-    end
-end
-
-# Throws if the caller address is not a member of the set of whitelisted authenticators (stored in the `authenticators` mapping)
 func assert_valid_authenticator{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr}(
         ):
     let (caller_address) = get_caller_address()
-    let (is_valid) = authenticators.read(caller_address)
 
-    # Ensure it has been initialized
+    let (auth_address) = authenticator.read()
+
     with_attr error_message("Invalid authenticator"):
-        assert_not_zero(is_valid)
+        assert caller_address = auth_address
     end
 
     return ()
 end
 
-# Computes the cumulated voting power of a user by iterating (recursively) over all the voting strategies and summing the voting power on each iteration.
-func get_cumulated_voting_power{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr}(
-        index : felt, current_timestamp : felt, voter_address : EthAddress,
-        voting_params_len : felt, voting_params : felt*) -> (voting_power : Uint256):
-    alloc_locals
-    # Get voting strategy contract
-    let (voting_strategy_contract) = voting_strategies.read(index)
-
-    if voting_strategy_contract == 0:
-        # Reached the end, stop iteration
-        return (Uint256(0, 0))
-    end
-
-    let (user_voting_power) = IVotingStrategy.get_voting_power(
-        contract_address=voting_strategy_contract,
-        timestamp=current_timestamp,
-        address=voter_address,
-        params_len=voting_params_len,
-        params=voting_params)
-    let (additional_voting_power) = get_cumulated_voting_power(
-        index + 1, current_timestamp, voter_address, voting_params_len, voting_params)
-
-    let (voting_power, overflow) = uint256_add(user_voting_power, additional_voting_power)
-    with_attr error_message("Overflow while computing voting power"):
-        if overflow != 0:
-            # Overflow happened, revert transaction
-            assert 1 = 0
-        end
-    end
-
-    return (voting_power)
-end
-
 @constructor
 func constructor{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr : felt}(
         _voting_delay : felt, _voting_duration : felt, _proposal_threshold : Uint256,
-        _executor : felt, _controller : felt, _voting_strategies_len : felt,
-        _voting_strategies : felt*, _authenticators_len : felt, _authenticators : felt*):
+        _quorum : felt, _executor : felt, _controller : felt, _voting_strategy : felt,
+        _authenticator : felt):
     # Sanity checks
     with_attr error_message("Invalid constructor parameters"):
         assert_nn(_voting_delay)
         assert_nn(_voting_duration)
         assert_not_zero(_executor)
         assert_not_zero(_controller)
-        assert_not_zero(_voting_strategies_len)
-        assert_not_zero(_authenticators_len)
+        assert_not_zero(_voting_strategy)
+        assert_not_zero(_authenticator)
     end
     # TODO: maybe use uint256_signed_nn to check proposal_threshold?
     # TODO: maybe check that _executor is not 0?
@@ -228,9 +156,10 @@ func constructor{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_p
     proposal_threshold.write(_proposal_threshold)
     executor.write(_executor)
     controller.write(_controller)
+    quorum.write(_quorum)
 
-    register_voting_strategies(0, _voting_strategies_len, _voting_strategies)
-    register_authenticators(_authenticators_len, _authenticators)
+    voting_strategy.write(_voting_strategy)
+    authenticator.write(_authenticator)
 
     next_proposal_nonce.write(1)
 
@@ -239,7 +168,7 @@ end
 
 @external
 func vote{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr : felt}(
-        voter_address : EthAddress, proposal_id : felt, choice : felt, voting_params_len : felt,
+        voter_address : EthAddress, proposal_id : felt, voting_params_len : felt,
         voting_params : felt*) -> ():
     alloc_locals
 
@@ -261,35 +190,23 @@ func vote{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr : fe
 
     # Make sure voter has not already voted
     let (prev_vote) = vote_registry.read(proposal_id, voter_address)
-    if prev_vote.choice != 0:
-        # Voter has already voted!
-        with_attr error_message("User already voted"):
-            assert 1 = 0
-        end
+    # Voter has already voted!
+    with_attr error_message("User already voted"):
+        assert prev_vote.voting_power = 0
     end
 
-    # Make sure `choice` is a valid choice
-    with_attr error_message("Invalid choice"):
-        assert_le(Choice.FOR, choice)
-        assert_le(choice, Choice.ABSTAIN)
-    end
+    let (voting_strategy_contract) = voting_strategy.read()
 
-    let (user_voting_power) = get_cumulated_voting_power(
-        0, current_timestamp, voter_address, voting_params_len, voting_params)
+    let (user_voting_power) = IVotingStrategy.get_voting_power(
+        contract_address=voting_strategy_contract,
+        timestamp=proposal.start_timestamp,
+        address=voter_address,
+        params_len=voting_params_len,
+        params=voting_params)
 
-    let (previous_voting_power) = vote_power.read(proposal_id, choice)
-    let (new_voting_power, overflow) = uint256_add(user_voting_power, previous_voting_power)
+    vote_power.write(proposal_id, user_voting_power.low)
 
-    if overflow != 0:
-        # Overflow happened, throw error
-        with_attr error_message("Overflow"):
-            assert 1 = 0
-        end
-    end
-
-    vote_power.write(proposal_id, choice, new_voting_power)
-
-    let vote = Vote(choice=choice, voting_power=user_voting_power)
+    let vote = Vote(voting_power=user_voting_power.low)
     vote_registry.write(proposal_id, voter_address, vote)
 
     # Emit event
@@ -322,12 +239,17 @@ func propose{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr :
     let start_timestamp = current_timestamp + delay
     let end_timestamp = start_timestamp + duration
 
-    let (voting_power) = get_cumulated_voting_power(
-        0, start_timestamp, proposer_address, voting_params_len, voting_params)
+    let (voting_strategy_contract) = voting_strategy.read()
+    let (user_voting_power) = IVotingStrategy.get_voting_power(
+        contract_address=voting_strategy_contract,
+        timestamp=start_timestamp,
+        address=proposer_address,
+        params_len=voting_params_len,
+        params=voting_params)
 
     # Verify that the proposer has enough voting power to trigger a proposal
     let (threshold) = proposal_threshold.read()
-    let (is_lower) = uint256_lt(voting_power, threshold)
+    let (is_lower) = uint256_lt(user_voting_power, threshold)
     if is_lower == 1:
         # Not enough voting power to create a proposal
         with_attr error_message("Not enough voting power"):
@@ -402,25 +324,18 @@ func finalize_proposal{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_c
     end
 
     # Count votes for
-    let (for) = vote_power.read(proposal_id, Choice.FOR)
+    let (for) = vote_power.read(proposal_id)
 
-    # Count votes against
-    let (against) = vote_power.read(proposal_id, Choice.AGAINST)
-
-    # Set proposal outcome accordingly
-    let (has_passed) = uint256_lt(against, for)
-
-    if has_passed == 1:
-        tempvar proposal_outcome = ProposalOutcome.ACCEPTED
-    else:
-        tempvar proposal_outcome = ProposalOutcome.REJECTED
+    let (_quorum) = quorum.read()
+    with_attr error_message("Quorum has not been reached"):
+        assert_le(_quorum, for)
     end
 
     let (executor_address) = executor.read()
 
     IExecutionStrategy.execute(
         contract_address=executor_address,
-        proposal_outcome=proposal_outcome,
+        proposal_outcome=ProposalOutcome.ACCEPTED,
         execution_hash=proposal.execution_hash,
         execution_params_len=execution_params_len,
         execution_params=execution_params)
@@ -489,9 +404,6 @@ func get_proposal_info{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_c
         proposal_id : felt) -> (proposal_info : ProposalInfo):
     let (proposal) = proposal_registry.read(proposal_id)
 
-    let (_power_against) = vote_power.read(proposal_id, Choice.AGAINST)
-    let (_power_for) = vote_power.read(proposal_id, Choice.FOR)
-    let (_power_abstain) = vote_power.read(proposal_id, Choice.ABSTAIN)
-    return (
-        ProposalInfo(proposal=proposal, power_for=_power_for, power_against=_power_against, power_abstain=_power_abstain))
+    let (_power_for) = vote_power.read(proposal_id)
+    return (ProposalInfo(proposal=proposal, power_for=_power_for))
 end
