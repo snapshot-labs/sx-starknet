@@ -20,7 +20,8 @@ end
 
 @constructor
 func constructor{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr}(
-        starknet_commit_address : felt):
+    starknet_commit_address : felt
+):
     starknet_commit_address_store.write(value=starknet_commit_address)
     return ()
 end
@@ -28,7 +29,8 @@ end
 # Receives hash from StarkNet commit contract and stores it in state.
 @l1_handler
 func commit{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr : felt}(
-        from_address : felt, sender : EthAddress, hash : felt):
+    from_address : felt, sender : EthAddress, hash : felt
+):
     # Check L1 message origin is equal to the StarkNet commit address.
     let (origin) = starknet_commit_address_store.read()
     with_attr error_message("Invalid message origin address"):
@@ -41,7 +43,8 @@ end
 
 @external
 func execute{syscall_ptr : felt*, range_check_ptr, pedersen_ptr : HashBuiltin*}(
-        target : felt, function_selector : felt, calldata_len : felt, calldata : felt*):
+    target : felt, function_selector : felt, calldata_len : felt, calldata : felt*
+):
     alloc_locals
     let (input_array : felt*) = alloc()
     assert input_array[0] = target
@@ -51,7 +54,8 @@ func execute{syscall_ptr : felt*, range_check_ptr, pedersen_ptr : HashBuiltin*}(
     assert input_array[calldata_len + 2] = calldata_len + 2
     let (hash_state_ptr) = hash_init()
     let (hash_state_ptr) = hash_update{hash_ptr=pedersen_ptr}(
-        hash_state_ptr, input_array, calldata_len + 3)
+        hash_state_ptr, input_array, calldata_len + 3
+    )
     # Check that the hash has been received by the contract
     let (address) = commit_store.read(hash_state_ptr.current_hash)
     with_attr error_message("Hash not yet committed or already executed"):
@@ -68,6 +72,7 @@ func execute{syscall_ptr : felt*, range_check_ptr, pedersen_ptr : HashBuiltin*}(
         contract_address=target,
         function_selector=function_selector,
         calldata_size=calldata_len,
-        calldata=calldata)
+        calldata=calldata,
+    )
     return ()
 end

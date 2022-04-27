@@ -7,8 +7,11 @@ from starkware.starknet.common.messages import send_message_to_l1
 
 @external
 func execute{syscall_ptr : felt*}(
-        proposal_outcome : felt, execution_hash : Uint256, execution_params_len : felt,
-        execution_params : felt*):
+    proposal_outcome : felt,
+    execution_hash : Uint256,
+    execution_params_len : felt,
+    execution_params : felt*,
+):
     alloc_locals
 
     let (caller_address) = get_caller_address()
@@ -30,6 +33,7 @@ func execute{syscall_ptr : felt*}(
 
     # Send message to L1 Contract
     send_message_to_l1(
-        to_address=l1_zodiac_address, payload_size=payload_size, payload=message_payload)
+        to_address=l1_zodiac_address, payload_size=payload_size, payload=message_payload
+    )
     return ()
 end
