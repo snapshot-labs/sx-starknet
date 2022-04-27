@@ -184,11 +184,9 @@ func get_cumulated_voting_power{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*
         index + 1, current_timestamp, voter_address, voting_params_len, voting_params)
 
     let (voting_power, overflow) = uint256_add(user_voting_power, additional_voting_power)
+
     with_attr error_message("Overflow while computing voting power"):
-        if overflow != 0:
-            # Overflow happened, revert transaction
-            assert 1 = 0
-        end
+        assert overflow = 0
     end
 
     return (voting_power)
@@ -269,11 +267,8 @@ func vote{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr : fe
     let (previous_voting_power) = vote_power.read(proposal_id, choice)
     let (new_voting_power, overflow) = uint256_add(user_voting_power, previous_voting_power)
 
-    if overflow != 0:
-        # Overflow happened, throw error
-        with_attr error_message("Overflow"):
-            assert 1 = 0
-        end
+    with_attr error_message("Overflow"):
+        assert overflow = 0
     end
 
     vote_power.write(proposal_id, choice, new_voting_power)
@@ -317,11 +312,9 @@ func propose{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr :
     # Verify that the proposer has enough voting power to trigger a proposal
     let (threshold) = proposal_threshold.read()
     let (is_lower) = uint256_lt(voting_power, threshold)
-    if is_lower == 1:
-        # Not enough voting power to create a proposal
-        with_attr error_message("Not enough voting power"):
-            assert 1 = 0
-        end
+
+    with_attr error_message("Not enough voting power"):
+        assert is_lower = 0
     end
 
     # Hash the execution params
