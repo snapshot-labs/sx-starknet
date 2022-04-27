@@ -115,15 +115,9 @@ func register_voting_strategies{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*
         # Add voting strategy
         voting_strategies.write(index, _voting_strategies[0])
 
-        if _voting_strategies_len == 1:
-            # Nothing left to add, end recursion
-            return ()
-        else:
-            # Recurse
-            register_voting_strategies(
-                index + 1, _voting_strategies_len - 1, &_voting_strategies[1])
-            return ()
-        end
+        # Recurse
+        register_voting_strategies(index + 1, _voting_strategies_len - 1, &_voting_strategies[1])
+        return ()
     end
 end
 
@@ -136,14 +130,9 @@ func register_authenticators{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, r
         # Add voting strategy
         authenticators.write(_authenticators[0], 1)
 
-        if _authenticators_len == 1:
-            # Nothing left to add, end recursion
-            return ()
-        else:
-            # Recurse
-            register_authenticators(_authenticators_len - 1, &_authenticators[1])
-            return ()
-        end
+        # Recurse
+        register_authenticators(_authenticators_len - 1, &_authenticators[1])
+        return ()
     end
 end
 
