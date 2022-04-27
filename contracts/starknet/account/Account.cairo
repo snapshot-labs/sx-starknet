@@ -6,16 +6,10 @@ from starkware.cairo.common.signature import verify_ecdsa_signature
 from starkware.cairo.common.cairo_builtins import HashBuiltin, SignatureBuiltin
 from starkware.starknet.common.syscalls import call_contract, get_caller_address, get_tx_signature
 from starkware.cairo.common.hash_state import (
-    hash_init,
-    hash_finalize,
-    hash_update,
-    hash_update_single,
-)
+    hash_init, hash_finalize, hash_update, hash_update_single)
 
 from contracts.starknet.account.ERC165_base import (
-    ERC165_supports_interface,
-    ERC165_register_interface,
-)
+    ERC165_supports_interface, ERC165_register_interface)
 
 #
 # Structs
@@ -60,8 +54,7 @@ end
 
 @view
 func get_public_key{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr}() -> (
-    res : felt
-):
+        res : felt):
     let (res) = public_key.read()
     return (res=res)
 end
@@ -74,8 +67,7 @@ end
 
 @view
 func supportsInterface{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr}(
-    interfaceId : felt
-) -> (success : felt):
+        interfaceId : felt) -> (success : felt):
     let (success) = ERC165_supports_interface(interfaceId)
     return (success)
 end
@@ -86,8 +78,7 @@ end
 
 @external
 func set_public_key{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr}(
-    new_public_key : felt
-):
+        new_public_key : felt):
     assert_only_self()
     public_key.write(new_public_key)
     return ()
@@ -99,8 +90,7 @@ end
 
 @constructor
 func constructor{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr}(
-    _public_key : felt
-):
+        _public_key : felt):
     public_key.write(_public_key)
     # Account magic value derived from ERC165 calculation of IAccount
     ERC165_register_interface(0x50b70dcb)
@@ -113,8 +103,8 @@ end
 
 @view
 func is_valid_signature{
-    syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr, ecdsa_ptr : SignatureBuiltin*
-}(hash : felt, signature_len : felt, signature : felt*) -> ():
+        syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr,
+        ecdsa_ptr : SignatureBuiltin*}(hash : felt, signature_len : felt, signature : felt*) -> ():
     let (_public_key) = public_key.read()
 
     # This interface expects a signature pointer and length to make
@@ -124,18 +114,17 @@ func is_valid_signature{
     let sig_s = signature[1]
 
     verify_ecdsa_signature(
-        message=hash, public_key=_public_key, signature_r=sig_r, signature_s=sig_s
-    )
+        message=hash, public_key=_public_key, signature_r=sig_r, signature_s=sig_s)
 
     return ()
 end
 
 @external
 func execute{
-    syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr, ecdsa_ptr : SignatureBuiltin*
-}(to : felt, selector : felt, calldata_len : felt, calldata : felt*, nonce : felt) -> (
-    response_len : felt, response : felt*
-):
+        syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr,
+        ecdsa_ptr : SignatureBuiltin*}(
+        to : felt, selector : felt, calldata_len : felt, calldata : felt*, nonce : felt) -> (
+        response_len : felt, response : felt*):
     alloc_locals
 
     let (__fp__, _) = get_fp_and_pc()
@@ -167,8 +156,7 @@ func execute{
         contract_address=message.to,
         function_selector=message.selector,
         calldata_size=message.calldata_size,
-        calldata=message.calldata,
-    )
+        calldata=message.calldata)
 
     return (response_len=response.retdata_size, response=response.retdata)
 end
@@ -190,8 +178,7 @@ func hash_message{pedersen_ptr : HashBuiltin*}(message : Message*) -> (res : fel
 end
 
 func hash_calldata{pedersen_ptr : HashBuiltin*}(calldata : felt*, calldata_size : felt) -> (
-    res : felt
-):
+        res : felt):
     let hash_ptr = pedersen_ptr
     with hash_ptr:
         let (hash_state_ptr) = hash_init()
