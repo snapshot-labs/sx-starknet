@@ -3,8 +3,7 @@ from starkware.cairo.common.hash_state import hash_init, hash_update
 
 # Internal utility function to hash felt arrays.
 # Dev note: starkware.py and starknet.js methods for hashing an array append the length of the array to the end before hashing.
-# So if you wish to compare `hash_pedersen` to the off-chain hashing methods, make sure you append the length of the array before
-# feeding it to `hash_pedersen`!
+# This is why we replicate that here.
 func hash_array{pedersen_ptr : HashBuiltin*}(array_len : felt, array : felt*) -> (hash : felt):
     # Appending the length of the array to itself as the offchain version of the hash works this way
     assert array[array_len] = array_len
