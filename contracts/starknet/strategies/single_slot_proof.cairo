@@ -9,9 +9,16 @@ from contracts.starknet.fossil.contracts.starknet.types import StorageSlot
 @contract_interface
 namespace IFactsRegistry:
     func get_storage_uint(
-            block : felt, account_160 : felt, slot : StorageSlot, proof_sizes_bytes_len : felt,
-            proof_sizes_bytes : felt*, proof_sizes_words_len : felt, proof_sizes_words : felt*,
-            proofs_concat_len : felt, proofs_concat : felt*) -> (res : Uint256):
+        block : felt,
+        account_160 : felt,
+        slot : StorageSlot,
+        proof_sizes_bytes_len : felt,
+        proof_sizes_bytes : felt*,
+        proof_sizes_words_len : felt,
+        proof_sizes_words : felt*,
+        proofs_concat_len : felt,
+        proofs_concat : felt*,
+    ) -> (res : Uint256):
     end
 end
 
@@ -22,17 +29,16 @@ end
 
 @constructor
 func constructor{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr}(
-        fact_registry : felt):
+    fact_registry : felt
+):
     fact_registry_store.write(value=fact_registry)
     return ()
 end
 
 @view
 func get_voting_power{
-        syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr,
-        bitwise_ptr : BitwiseBuiltin*}(
-        block : felt, account_160 : felt, params_len : felt, params : felt*) -> (
-        voting_power : Uint256):
+    syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr, bitwise_ptr : BitwiseBuiltin*
+}(block : felt, account_160 : felt, params_len : felt, params : felt*) -> (voting_power : Uint256):
     alloc_locals
     let (local fact_registry_addr) = fact_registry_store.read()
 
@@ -51,19 +57,26 @@ func get_voting_power{
         proof_sizes_words_len,
         proof_sizes_words,
         proofs_concat_len,
-        proofs_concat)
+        proofs_concat,
+    )
 
     return (voting_power)
 end
 
 @view
 func decode_param_array{range_check_ptr}(param_array_len : felt, param_array : felt*) -> (
-        slot : StorageSlot, proof_sizes_bytes_len : felt, proof_sizes_bytes : felt*,
-        proof_sizes_words_len : felt, proof_sizes_words : felt*, proofs_concat_len : felt,
-        proofs_concat : felt*):
-    assert_nn_le(4, param_array_len)
+    slot : StorageSlot,
+    proof_sizes_bytes_len : felt,
+    proof_sizes_bytes : felt*,
+    proof_sizes_words_len : felt,
+    proof_sizes_words : felt*,
+    proofs_concat_len : felt,
+    proofs_concat : felt*,
+):
+    assert_nn_le(5, param_array_len)
     let slot : StorageSlot = StorageSlot(
-        param_array[0], param_array[1], param_array[2], param_array[3])
+        param_array[0], param_array[1], param_array[2], param_array[3]
+    )
     let num_nodes = param_array[4]
     let proof_sizes_bytes_len = num_nodes
     let proof_sizes_bytes = param_array + 5
@@ -80,5 +93,6 @@ func decode_param_array{range_check_ptr}(param_array_len : felt, param_array : f
         proof_sizes_words_len,
         proof_sizes_words,
         proofs_concat_len,
-        proofs_concat)
+        proofs_concat,
+    )
 end

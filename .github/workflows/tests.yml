@@ -46,14 +46,16 @@ jobs:
           python -m pip install --upgrade pip
           pip install starknet-devnet==0.1.19
           pip install werkzeug==2.0.3
+          pip install marshmallow-dataclass==8.5.3 --force
   
       - name: Compile Contracts
         run: yarn compile
 
-      - name: Run unit tests
-        run: |
-          starknet-devnet -p 8000 &
-          npx hardhat node &
-          sleep 10 &&
-          curl http://localhost:8000 &&
-          yarn test 
+      - name: Run Cross Chain Tests
+        run: yarn test:crosschain:ci
+          
+      - name: Run L1 tests
+        run: yarn test:l1 
+        
+      - name: Run L2 tests 
+        run: yarn test:l2:ci

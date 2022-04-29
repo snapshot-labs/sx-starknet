@@ -3,7 +3,12 @@
 from starkware.starknet.common.syscalls import get_caller_address, get_block_timestamp
 from starkware.cairo.common.cairo_builtins import HashBuiltin
 from starkware.cairo.common.math import (
-    assert_lt, assert_le, assert_nn, assert_not_zero, assert_lt_felt)
+    assert_lt,
+    assert_le,
+    assert_nn,
+    assert_not_zero,
+    assert_lt_felt,
+)
 from contracts.starknet.strategies.interface import IVotingStrategy
 from contracts.starknet.lib.eth_address import EthAddress
 from contracts.starknet.lib.proposal import Proposal
@@ -11,6 +16,7 @@ from contracts.starknet.lib.proposal_info import ProposalInfo
 from contracts.starknet.lib.vote import Vote
 from contracts.starknet.lib.choice import Choice
 from contracts.starknet.lib.proposal_outcome import ProposalOutcome
+from contracts.starknet.lib.hash_array import hash_array
 from contracts.starknet.execution.interface import IExecutionStrategy
 from starkware.cairo.common.alloc import alloc
 from starkware.cairo.common.uint256 import Uint256, uint256_add, uint256_lt
@@ -66,9 +72,14 @@ end
 
 @event
 func proposal_created(
-        proposal_id : felt, proposer_address : EthAddress, proposal : Proposal,
-        metadata_uri_len : felt, metadata_uri : felt*, execution_params_len : felt,
-        execution_params : felt*):
+    proposal_id : felt,
+    proposer_address : EthAddress,
+    proposal : Proposal,
+    metadata_uri_len : felt,
+    metadata_uri : felt*,
+    execution_params_len : felt,
+    execution_params : felt*,
+):
 end
 
 @event
@@ -92,7 +103,8 @@ func only_controller{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_che
 end
 
 func update_controller{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr : felt}(
-        new_controller : felt):
+    new_controller : felt
+):
     only_controller()
 
     let (previous_controller) = controller.read()
@@ -104,21 +116,9 @@ func update_controller{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_c
     return ()
 end
 
-# Internal utility function to hash data.
-# Dev note: starkware.py and starknet.js methods for hashing an array append the length of the array to the end before hashing.
-# So if you wish to compare `hash_pedersen` to the off-chain hashing methods, make sure you append the length of the array before
-# feeding it to `hash_pedersen`!
-func hash_pedersen{pedersen_ptr : HashBuiltin*}(calldata_len : felt, calldata : felt*) -> (
-        hash : felt):
-    let (hash_state_ptr) = hash_init()
-    let (hash_state_ptr) = hash_update{hash_ptr=pedersen_ptr}(
-        hash_state_ptr, calldata, calldata_len)
-
-    return (hash_state_ptr.current_hash)
-end
-
 func register_voting_strategies{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr}(
-        index : felt, _voting_strategies_len : felt, _voting_strategies : felt*):
+    index : felt, _voting_strategies_len : felt, _voting_strategies : felt*
+):
     if _voting_strategies_len == 0:
         # List is empty
         return ()
@@ -132,14 +132,16 @@ func register_voting_strategies{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*
         else:
             # Recurse
             register_voting_strategies(
-                index + 1, _voting_strategies_len - 1, &_voting_strategies[1])
+                index + 1, _voting_strategies_len - 1, &_voting_strategies[1]
+            )
             return ()
         end
     end
 end
 
 func register_authenticators{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr}(
-        _authenticators_len : felt, _authenticators : felt*):
+    _authenticators_len : felt, _authenticators : felt*
+):
     if _authenticators_len == 0:
         # List is empty
         return ()
@@ -160,7 +162,7 @@ end
 
 # Throws if the caller address is not a member of the set of whitelisted authenticators (stored in the `authenticators` mapping)
 func assert_valid_authenticator{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr}(
-        ):
+    ):
     let (caller_address) = get_caller_address()
     let (is_valid) = authenticators.read(caller_address)
 
@@ -174,8 +176,12 @@ end
 
 # Computes the cumulated voting power of a user by iterating (recursively) over all the voting strategies and summing the voting power on each iteration.
 func get_cumulated_voting_power{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr}(
-        index : felt, current_timestamp : felt, voter_address : EthAddress,
-        voting_params_len : felt, voting_params : felt*) -> (voting_power : Uint256):
+    index : felt,
+    current_timestamp : felt,
+    voter_address : EthAddress,
+    voting_params_len : felt,
+    voting_params : felt*,
+) -> (voting_power : Uint256):
     alloc_locals
     # Get voting strategy contract
     let (voting_strategy_contract) = voting_strategies.read(index)
@@ -190,9 +196,11 @@ func get_cumulated_voting_power{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*
         timestamp=current_timestamp,
         address=voter_address,
         params_len=voting_params_len,
-        params=voting_params)
+        params=voting_params,
+    )
     let (additional_voting_power) = get_cumulated_voting_power(
-        index + 1, current_timestamp, voter_address, voting_params_len, voting_params)
+        index + 1, current_timestamp, voter_address, voting_params_len, voting_params
+    )
 
     let (voting_power, overflow) = uint256_add(user_voting_power, additional_voting_power)
     with_attr error_message("Overflow while computing voting power"):
@@ -207,9 +215,16 @@ end
 
 @constructor
 func constructor{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr : felt}(
-        _voting_delay : felt, _voting_duration : felt, _proposal_threshold : Uint256,
-        _executor : felt, _controller : felt, _voting_strategies_len : felt,
-        _voting_strategies : felt*, _authenticators_len : felt, _authenticators : felt*):
+    _voting_delay : felt,
+    _voting_duration : felt,
+    _proposal_threshold : Uint256,
+    _executor : felt,
+    _controller : felt,
+    _voting_strategies_len : felt,
+    _voting_strategies : felt*,
+    _authenticators_len : felt,
+    _authenticators : felt*,
+):
     # Sanity checks
     with_attr error_message("Invalid constructor parameters"):
         assert_nn(_voting_delay)
@@ -239,8 +254,12 @@ end
 
 @external
 func vote{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr : felt}(
-        voter_address : EthAddress, proposal_id : felt, choice : felt, voting_params_len : felt,
-        voting_params : felt*) -> ():
+    voter_address : EthAddress,
+    proposal_id : felt,
+    choice : felt,
+    voting_params_len : felt,
+    voting_params : felt*,
+) -> ():
     alloc_locals
 
     # Verify that the caller is the authenticator contract.
@@ -275,7 +294,8 @@ func vote{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr : fe
     end
 
     let (user_voting_power) = get_cumulated_voting_power(
-        0, current_timestamp, voter_address, voting_params_len, voting_params)
+        0, current_timestamp, voter_address, voting_params_len, voting_params
+    )
 
     let (previous_voting_power) = vote_power.read(proposal_id, choice)
     let (new_voting_power, overflow) = uint256_add(user_voting_power, previous_voting_power)
@@ -300,9 +320,16 @@ end
 
 @external
 func propose{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr : felt}(
-        proposer_address : EthAddress, execution_hash : Uint256, metadata_uri_len : felt,
-        metadata_uri : felt*, ethereum_block_number : felt, voting_params_len : felt,
-        voting_params : felt*, execution_params_len : felt, execution_params : felt*) -> ():
+    proposer_address : EthAddress,
+    execution_hash : Uint256,
+    metadata_uri_len : felt,
+    metadata_uri : felt*,
+    ethereum_block_number : felt,
+    voting_params_len : felt,
+    voting_params : felt*,
+    execution_params_len : felt,
+    execution_params : felt*,
+) -> ():
     alloc_locals
 
     # We cannot have `0` as the `ethereum_block_number` because we rely on checking
@@ -323,7 +350,8 @@ func propose{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr :
     let end_timestamp = start_timestamp + duration
 
     let (voting_power) = get_cumulated_voting_power(
-        0, start_timestamp, proposer_address, voting_params_len, voting_params)
+        0, start_timestamp, proposer_address, voting_params_len, voting_params
+    )
 
     # Verify that the proposer has enough voting power to trigger a proposal
     let (threshold) = proposal_threshold.read()
@@ -336,12 +364,12 @@ func propose{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr :
     end
 
     # Hash the execution params
-    # Note: the hash in `execution_params` should have the length appended to it (see `hash_pedersen`'s comments)
-    let (hash) = hash_pedersen(execution_params_len, execution_params)
+    let (hash) = hash_array(execution_params_len, execution_params)
 
     # Create the proposal and its proposal id
     let proposal = Proposal(
-        execution_hash, start_timestamp, end_timestamp, ethereum_block_number, hash)
+        execution_hash, start_timestamp, end_timestamp, ethereum_block_number, hash
+    )
 
     let (proposal_id) = next_proposal_nonce.read()
 
@@ -356,7 +384,8 @@ func propose{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr :
         metadata_uri_len,
         metadata_uri,
         execution_params_len,
-        execution_params)
+        execution_params,
+    )
 
     # Increase the proposal nonce
     next_proposal_nonce.write(proposal_id + 1)
@@ -367,7 +396,8 @@ end
 # Finalizes the proposal, counts the voting power, and send the corresponding result to the L1 executor contract
 @external
 func finalize_proposal{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr : felt}(
-        proposal_id : felt, execution_params_len : felt, execution_params : felt*):
+    proposal_id : felt, execution_params_len : felt, execution_params : felt*
+):
     alloc_locals
 
     let (has_been_executed) = executed_proposals.read(proposal_id)
@@ -396,7 +426,7 @@ func finalize_proposal{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_c
     # end
 
     # Make sure execution params match the stored hash
-    let (recovered_hash) = hash_pedersen(execution_params_len, execution_params)
+    let (recovered_hash) = hash_array(execution_params_len, execution_params)
     with_attr error_message("Invalid execution parameters"):
         assert recovered_hash = proposal.execution_params_hash
     end
@@ -423,7 +453,8 @@ func finalize_proposal{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_c
         proposal_outcome=proposal_outcome,
         execution_hash=proposal.execution_hash,
         execution_params_len=execution_params_len,
-        execution_params=execution_params)
+        execution_params=execution_params,
+    )
 
     # Flag this proposal as executed
     # This should not create re-entrency vulnerability because the message
@@ -438,7 +469,8 @@ end
 # Cancels the proposal. Only callable by the controller.
 @external
 func cancel_proposal{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr : felt}(
-        proposal_id : felt, execution_params_len : felt, execution_params : felt*):
+    proposal_id : felt, execution_params_len : felt, execution_params : felt*
+):
     alloc_locals
 
     only_controller()
@@ -466,7 +498,8 @@ func cancel_proposal{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_che
         proposal_outcome=proposal_outcome,
         execution_hash=proposal.execution_hash,
         execution_params_len=execution_params_len,
-        execution_params=execution_params)
+        execution_params=execution_params,
+    )
 
     # Flag this proposal as executed
     # This should not create re-entrency vulnerability because the message
@@ -480,18 +513,21 @@ end
 
 @view
 func get_vote_info{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr : felt}(
-        voter_address : EthAddress, proposal_id : felt) -> (vote : Vote):
+    voter_address : EthAddress, proposal_id : felt
+) -> (vote : Vote):
     return vote_registry.read(proposal_id, voter_address)
 end
 
 @view
 func get_proposal_info{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr : felt}(
-        proposal_id : felt) -> (proposal_info : ProposalInfo):
+    proposal_id : felt
+) -> (proposal_info : ProposalInfo):
     let (proposal) = proposal_registry.read(proposal_id)
 
     let (_power_against) = vote_power.read(proposal_id, Choice.AGAINST)
     let (_power_for) = vote_power.read(proposal_id, Choice.FOR)
     let (_power_abstain) = vote_power.read(proposal_id, Choice.ABSTAIN)
     return (
-        ProposalInfo(proposal=proposal, power_for=_power_for, power_against=_power_against, power_abstain=_power_abstain))
+        ProposalInfo(proposal=proposal, power_for=_power_for, power_against=_power_against, power_abstain=_power_abstain),
+    )
 end
