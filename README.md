@@ -46,22 +46,20 @@ To run these tests locally:
 
 #### Install and run [StarkNet Devnet](https://github.com/Shard-Labs/starknet-devnet) (In a separate terminal):
 ```bash
-pip install starknet-devnet
-starknet-devnet -p 8000
+yarn chain:l2
 ```
 
 #### Run an ethereum hardhat node (In a separate terminal)
 
 ```bash
-npx hardhat node
+yarn chain:l1
 ```
 
 #### Run tests:
 ```bash
-yarn test
-# You can also use `yarn test:l1` to just test the solidity contracts,
-# `yarn test:l2` to just test the cairo contracts,
-# and `yarn test:l1l2` to test the cross chain flow
+yarn test:l1
+yarn test:l2 
+yarn test:crosschain
 ```
 
 ## DISCLAIMER: STILL IN DEVELOPMENT
@@ -70,5 +68,5 @@ This project is still under heavy development. Feel free to contact us on [Disco
 
 ## License
 
-Snapshot is open-source software licensed under the © [MIT license](LICENSE).
+Snapshot X contracts are open-source software licensed under the © [MIT license](LICENSE).
 
