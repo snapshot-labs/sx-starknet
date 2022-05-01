@@ -3,7 +3,7 @@ import { SignerWithAddress } from '@nomiclabs/hardhat-ethers/signers';
 import { StarknetContract, Account } from 'hardhat/types';
 import { Contract, ContractFactory } from 'ethers';
 import { SplitUint256, IntsSequence } from './types';
-import { hexToBytes} from './helpers';
+import { hexToBytes } from './helpers';
 import { block } from '../data/blocks';
 import { ProcessBlockInputs, ProofInputs } from './parseRPCData';
 export const EXECUTE_METHOD = 'execute';
@@ -18,9 +18,7 @@ export const VITALIK_STRING_ADDRESS = VITALIK_ADDRESS.toString(16);
 export const CONTROLLER = BigInt(1337);
 
 export async function vanillaSetup() {
-  const vanillaSpaceFactory = await starknet.getContractFactory(
-    './contracts/starknet/space.cairo'
-  );
+  const vanillaSpaceFactory = await starknet.getContractFactory('./contracts/starknet/space.cairo');
   const vanillaVotingStategyFactory = await starknet.getContractFactory(
     './contracts/starknet/voting_strategies/vanilla.cairo'
   );

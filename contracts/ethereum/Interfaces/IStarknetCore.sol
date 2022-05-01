@@ -3,7 +3,6 @@
 pragma solidity ^0.8.6;
 
 interface IStarknetCore {
-
   function sendMessageToL2(
     uint256 to_address,
     uint256 selector,
@@ -15,6 +14,4 @@ interface IStarknetCore {
     returns (bytes32);
 
   function l2ToL1Messages(bytes32 msgHash) external view returns (uint256);
-
-
 }

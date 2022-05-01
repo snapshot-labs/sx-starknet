@@ -4,10 +4,10 @@ import { starknet } from 'hardhat';
 import { block } from './data/blocks';
 import { proofs } from './data/proofs';
 import { SplitUint256, IntsSequence } from './shared/types';
-import { hexToBytes} from './shared/helpers';
+import { hexToBytes } from './shared/helpers';
 import { ProcessBlockInputs, ProofInputs } from './shared/parseRPCData';
 import { encodeParams } from './shared/singleSlotProofStrategyEncoding';
-import {singleSlotProofSetup} from '../starknet/shared/setup';
+import { singleSlotProofSetup } from '../starknet/shared/setup';
 
 describe('Snapshot X Single Slot Strategy:', () => {
   it('The strategy should return the voting power', async () => {
@@ -34,7 +34,7 @@ describe('Snapshot X Single Slot Strategy:', () => {
     // Obtain voting power for the account by verifying the storage proof.
     const { voting_power: vp } = await singleSlotProofStrategy.call('get_voting_power', {
       block: proofInputs.blockNumber,
-      address: proofInputs.ethAddressFelt,
+      address: { value: proofInputs.ethAddressFelt },
       params: proofInputs.votingPowerParams,
     });
 
