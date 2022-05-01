@@ -5,7 +5,7 @@ import { SplitUint256 } from './shared/types';
 
 async function setup() {
   const vanillaVotingStrategyFactory = await starknet.getContractFactory(
-    './contracts/starknet/strategies/vanilla.cairo'
+    './contracts/starknet/voting_strategies/vanilla.cairo'
   );
   const vanillaVotingStrategy = await vanillaVotingStrategyFactory.deploy();
   return {

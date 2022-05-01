@@ -10,7 +10,7 @@ const SPACE_CONTRACT = BigInt(1337);
 
 async function setup() {
   const vanillaAuthenticatorFactory = await starknet.getContractFactory(
-    './contracts/starknet/authenticator/vanilla.cairo'
+    './contracts/starknet/authenticators/vanilla.cairo'
   );
   const vanillaAuthenticator = await vanillaAuthenticatorFactory.deploy();
   return {

@@ -2,6 +2,9 @@
 
 from starkware.starknet.common.syscalls import get_caller_address, get_block_timestamp
 from starkware.cairo.common.cairo_builtins import HashBuiltin
+from starkware.cairo.common.alloc import alloc
+from starkware.cairo.common.uint256 import Uint256, uint256_add, uint256_lt
+from starkware.cairo.common.hash_state import hash_init, hash_update
 from starkware.cairo.common.math import (
     assert_lt,
     assert_le,
@@ -9,7 +12,9 @@ from starkware.cairo.common.math import (
     assert_not_zero,
     assert_lt_felt,
 )
-from contracts.starknet.strategies.interface import IVotingStrategy
+
+from contracts.starknet.interfaces.i_voting_strategy import i_voting_strategy
+from contracts.starknet.interfaces.i_execution_strategy import i_execution_strategy
 from contracts.starknet.lib.eth_address import EthAddress
 from contracts.starknet.lib.proposal import Proposal
 from contracts.starknet.lib.proposal_info import ProposalInfo
@@ -17,10 +22,6 @@ from contracts.starknet.lib.vote import Vote
 from contracts.starknet.lib.choice import Choice
 from contracts.starknet.lib.proposal_outcome import ProposalOutcome
 from contracts.starknet.lib.hash_array import hash_array
-from contracts.starknet.execution.interface import IExecutionStrategy
-from starkware.cairo.common.alloc import alloc
-from starkware.cairo.common.uint256 import Uint256, uint256_add, uint256_lt
-from starkware.cairo.common.hash_state import hash_init, hash_update
 
 @storage_var
 func voting_delay() -> (delay : felt):
@@ -191,7 +192,7 @@ func get_cumulated_voting_power{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*
         return (Uint256(0, 0))
     end
 
-    let (user_voting_power) = IVotingStrategy.get_voting_power(
+    let (user_voting_power) = i_voting_strategy.get_voting_power(
         contract_address=voting_strategy_contract,
         timestamp=current_timestamp,
         address=voter_address,
@@ -448,7 +449,7 @@ func finalize_proposal{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_c
 
     let (executor_address) = executor.read()
 
-    IExecutionStrategy.execute(
+    i_execution_strategy.execute(
         contract_address=executor_address,
         proposal_outcome=proposal_outcome,
         execution_hash=proposal.execution_hash,
@@ -493,7 +494,7 @@ func cancel_proposal{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_che
 
     let proposal_outcome = ProposalOutcome.CANCELLED
 
-    IExecutionStrategy.execute(
+    i_execution_strategy.execute(
         contract_address=executor_address,
         proposal_outcome=proposal_outcome,
         execution_hash=proposal.execution_hash,

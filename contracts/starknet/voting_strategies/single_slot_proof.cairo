@@ -4,6 +4,8 @@ from starkware.cairo.common.cairo_builtins import HashBuiltin, BitwiseBuiltin
 from starkware.cairo.common.uint256 import Uint256, uint256_add
 from starkware.cairo.common.math import unsigned_div_rem, assert_nn_le
 from contracts.starknet.fossil.contracts.starknet.types import StorageSlot
+from contracts.starknet.lib.eth_address import EthAddress
+
 
 # FactRegistry simplified interface
 @contract_interface
@@ -38,7 +40,7 @@ end
 @view
 func get_voting_power{
     syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr, bitwise_ptr : BitwiseBuiltin*
-}(block : felt, account_160 : felt, params_len : felt, params : felt*) -> (voting_power : Uint256):
+}(block : felt, address : EthAddress, params_len : felt, params : felt*) -> (voting_power : Uint256):
     alloc_locals
     let (local fact_registry_addr) = fact_registry_store.read()
 
@@ -50,7 +52,7 @@ func get_voting_power{
     let (voting_power) = IFactsRegistry.get_storage_uint(
         fact_registry_addr,
         block,
-        account_160,
+        address.value,
         slot,
         proof_sizes_bytes_len,
         proof_sizes_bytes,

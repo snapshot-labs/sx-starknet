@@ -3,9 +3,9 @@
 pragma solidity 0.8.9;
 
 import '@openzeppelin/contracts/proxy/utils/Initializable.sol';
-// import './Interfaces/IStarknetCore.sol';
+// import '../Interfaces/IStarknetCore.sol';
 // For testing purposes, we use a mock StarkNet messaging contract.
-import 'contracts/ethereum/testContracts/MockStarknetMessaging.sol';
+import 'contracts/ethereum/TestContracts/MockStarknetMessaging.sol';
 
 /**
  * @title StarkNet Commit Contract

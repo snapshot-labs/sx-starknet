@@ -39,7 +39,6 @@ const tx2 = {
 describe('Create proposal, cast vote, and send execution to l1', function () {
   this.timeout(12000000);
   const networkUrl: string = (network.config as HttpNetworkConfig).url;
-  let L2contractFactory: StarknetContractFactory;
   let l1ExecutorFactory: ContractFactory;
   let MockStarknetMessaging: ContractFactory;
   let mockStarknetMessaging: Contract;
@@ -52,8 +51,6 @@ describe('Create proposal, cast vote, and send execution to l1', function () {
 
   before(async function () {
     this.timeout(800000);
-
-    L2contractFactory = await starknet.getContractFactory('./contracts/starknet/space/space.cairo');
 
     ({
       vanillaSpace: spaceContract,
@@ -87,7 +84,6 @@ describe('Create proposal, cast vote, and send execution to l1', function () {
   it('should deploy the messaging contract', async () => {
     const { address: deployedTo, l1_provider: L1Provider } =
       await starknet.devnet.loadL1MessagingContract(networkUrl);
-
     expect(deployedTo).not.to.be.undefined;
     expect(L1Provider).to.equal(networkUrl);
   });
@@ -127,7 +123,7 @@ describe('Create proposal, cast vote, and send execution to l1', function () {
 
     // -- Creates a proposal --
     await authContract.invoke(EXECUTE_METHOD, {
-      to: BigInt(spaceContract.address),
+      target: BigInt(spaceContract.address),
       function_selector: BigInt(getSelectorFromName(PROPOSAL_METHOD)),
       calldata,
     });
@@ -137,7 +133,7 @@ describe('Create proposal, cast vote, and send execution to l1', function () {
       const voter_address = proposer_address;
       const votingParams: Array<BigInt> = [];
       await authContract.invoke(EXECUTE_METHOD, {
-        to: BigInt(spaceContract.address),
+        target: BigInt(spaceContract.address),
         function_selector: BigInt(getSelectorFromName(VOTE_METHOD)),
         calldata: [voter_address, proposal_id, FOR, BigInt(votingParams.length), ...votingParams],
       });
