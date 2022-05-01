@@ -5,7 +5,7 @@ import { Contract, ContractFactory } from 'ethers';
 import { SplitUint256, IntsSequence } from './types';
 import { hexToBytes } from './helpers';
 import { block } from '../data/blocks';
-import { ProcessBlockInputs, ProofInputs } from './parseRPCData';
+import { ProcessBlockInputs } from './parseRPCData';
 export const EXECUTE_METHOD = 'execute';
 export const PROPOSAL_METHOD = 'propose';
 export const VOTE_METHOD = 'vote';

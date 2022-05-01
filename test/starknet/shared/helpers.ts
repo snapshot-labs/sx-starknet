@@ -6,14 +6,6 @@ import { toBN } from 'starknet/dist/utils/number';
 import { EIP712_TYPES } from '../../ethereum/shared/utils';
 import { _TypedDataEncoder } from '@ethersproject/hash';
 
-function sleep(milliseconds: number) {
-  const date = Date.now();
-  let currentDate = null;
-  do {
-    currentDate = Date.now();
-  } while (currentDate - date < milliseconds);
-}
-
 export function assert(condition: boolean, message = 'Assertion Failed'): boolean {
   if (!condition) {
     throw message;

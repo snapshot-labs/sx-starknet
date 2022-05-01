@@ -49,7 +49,7 @@ describe('L1 interaction with Snapshot X', function () {
     signer = signers[0];
 
     // Dummy execution
-    const { executionHash, txHashes } = createExecutionHash(VITALIK_STRING_ADDRESS, tx1, tx2);
+    const { executionHash } = createExecutionHash(VITALIK_STRING_ADDRESS, tx1, tx2);
     const metadata_uri = strToShortStringArr(
       'Hello and welcome to Snapshot X. This is the future of governance.'
     );
@@ -85,8 +85,7 @@ describe('L1 interaction with Snapshot X', function () {
   });
 
   it('should create a proposal from an l1 tx', async () => {
-    const { address: deployedTo, l1_provider: L1Provider } =
-      await starknet.devnet.loadL1MessagingContract(networkUrl, mockStarknetMessaging.address);
+    await starknet.devnet.loadL1MessagingContract(networkUrl, mockStarknetMessaging.address);
     const target = BigInt(space.address);
     // Finding the pedersen hash of the payload
     const propose_commit = getCommit(target, propose_selector, propose_calldata);
@@ -103,8 +102,7 @@ describe('L1 interaction with Snapshot X', function () {
   });
 
   it('The same commit should not be able to be executed multiple times', async () => {
-    const { address: deployedTo, l1_provider: L1Provider } =
-      await starknet.devnet.loadL1MessagingContract(networkUrl, mockStarknetMessaging.address);
+    await starknet.devnet.loadL1MessagingContract(networkUrl, mockStarknetMessaging.address);
     const target = BigInt(space.address);
 
     const propose_commit = getCommit(target, propose_selector, propose_calldata);
@@ -129,8 +127,7 @@ describe('L1 interaction with Snapshot X', function () {
   });
 
   it('Authentication should fail if the correct hash of the payload is not committed on l1 before execution is called', async () => {
-    const { address: deployedTo, l1_provider: L1Provider } =
-      await starknet.devnet.loadL1MessagingContract(networkUrl, mockStarknetMessaging.address);
+    await starknet.devnet.loadL1MessagingContract(networkUrl, mockStarknetMessaging.address);
     const target = BigInt(space.address);
 
     // random commit
@@ -149,8 +146,7 @@ describe('L1 interaction with Snapshot X', function () {
   });
 
   it('Authentication should fail if the commit sender address is not equal to the address in the payload', async () => {
-    const { address: deployedTo, l1_provider: L1Provider } =
-      await starknet.devnet.loadL1MessagingContract(networkUrl, mockStarknetMessaging.address);
+    await starknet.devnet.loadL1MessagingContract(networkUrl, mockStarknetMessaging.address);
     const target = BigInt(space.address);
 
     // Random l1 address in the calldata

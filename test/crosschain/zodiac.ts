@@ -2,8 +2,8 @@ import { SignerWithAddress } from '@nomiclabs/hardhat-ethers/signers';
 import { expect } from 'chai';
 import { Contract, ContractFactory } from 'ethers';
 import { starknet, network, ethers } from 'hardhat';
-import { FOR, SplitUint256 } from '../starknet/shared/types';
-import { StarknetContractFactory, StarknetContract, HttpNetworkConfig } from 'hardhat/types';
+import { FOR } from '../starknet/shared/types';
+import { StarknetContract, HttpNetworkConfig } from 'hardhat/types';
 import { stark } from 'starknet';
 import { strToShortStringArr } from '@snapshot-labs/sx';
 import {

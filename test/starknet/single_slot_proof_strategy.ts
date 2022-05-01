@@ -1,11 +1,8 @@
-import { StarknetContract, Account } from 'hardhat/types/runtime';
 import { expect } from 'chai';
-import { starknet } from 'hardhat';
 import { block } from './data/blocks';
 import { proofs } from './data/proofs';
-import { SplitUint256, IntsSequence } from './shared/types';
-import { hexToBytes } from './shared/helpers';
-import { ProcessBlockInputs, ProofInputs } from './shared/parseRPCData';
+import { SplitUint256 } from './shared/types';
+import { ProofInputs } from './shared/parseRPCData';
 import { encodeParams } from './shared/singleSlotProofStrategyEncoding';
 import { singleSlotProofSetup } from '../starknet/shared/setup';
 

@@ -1,7 +1,6 @@
 import { StarknetContract } from 'hardhat/types/runtime';
 import { starknet } from 'hardhat';
 import { stark } from 'starknet';
-const { getSelectorFromName } = stark;
 
 const EXECUTE_METHOD = 'execute';
 const PROPOSAL_METHOD = 'propose';
