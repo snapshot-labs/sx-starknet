@@ -148,7 +148,6 @@ describe('L1 interaction with Snapshot X', function () {
   it('Authentication should fail if the commit sender address is not equal to the address in the payload', async () => {
     await starknet.devnet.loadL1MessagingContract(networkUrl, mockStarknetMessaging.address);
     const target = BigInt(space.address);
-
     // Random l1 address in the calldata
     propose_calldata[0] = RANDOM_ADDRESS;
     const propose_commit = getCommit(target, propose_selector, propose_calldata);

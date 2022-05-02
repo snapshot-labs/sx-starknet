@@ -9,10 +9,10 @@ if [ $? -eq 0 ]
 then
   kill -9 $(lsof -t -i:8545)
   kill -9 $(lsof -t -i:8000)
-  echo "Error"
   exit 0
 else
   kill -9 $(lsof -t -i:8545)
   kill -9 $(lsof -t -i:8000)
+  echo "Tests failed"
   exit 1
 fi
