@@ -19,12 +19,12 @@ func register_whitelist{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_
     else:
         let address = EthAddress(_whitelist[0])
         # Add it to the whitelist
-        whitelist.write(address, 1)
+        whitelist.write(address, _whitelist[1])
 
         # Emit event
         whitelisted.emit(address)
 
-        register_whitelist(_whitelist_len - 1, &_whitelist[1])
+        register_whitelist(_whitelist_len - 2, &_whitelist[2])
         return ()
     end
 end

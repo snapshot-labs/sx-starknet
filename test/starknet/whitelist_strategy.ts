@@ -18,16 +18,42 @@ describe('Whitelist testing', () => {
   const ADDRR_3 = BigInt('33333');
   const ADDRR_4 = BigInt('44444');
 
+  const VITALIK_POWER = BigInt('1000');
+  const ADDRR_1_POWER = BigInt('1');
+  const ADDRR_2_POWER = BigInt('2');
+  const ADDRR_3_POWER = BigInt('3');
+  const ADDRR_4_POWER = BigInt('4');
+
   before(async function () {
     const whitelistFactory = await starknet.getContractFactory(
       './contracts/starknet/strategies/whitelist.cairo'
     );
-    whitelistStrat = await whitelistFactory.deploy({ _whitelist: [VITALIK_ADDRESS] });
+    whitelistStrat = await whitelistFactory.deploy({
+      _whitelist: [VITALIK_ADDRESS, VITALIK_POWER],
+    });
     emptyStrat = await whitelistFactory.deploy({ _whitelist: [] });
     repeatStrat = await whitelistFactory.deploy({
-      _whitelist: [VITALIK_ADDRESS, VITALIK_ADDRESS, ADDRR_1],
+      _whitelist: [
+        VITALIK_ADDRESS,
+        VITALIK_POWER,
+        VITALIK_ADDRESS,
+        VITALIK_POWER,
+        ADDRR_1,
+        ADDRR_1_POWER,
+      ],
     });
-    bigStrat = await whitelistFactory.deploy({ _whitelist: [ADDRR_1, ADDRR_2, ADDRR_3, ADDRR_4] });
+    bigStrat = await whitelistFactory.deploy({
+      _whitelist: [
+        ADDRR_1,
+        ADDRR_1_POWER,
+        ADDRR_2,
+        ADDRR_2_POWER,
+        ADDRR_3,
+        ADDRR_3_POWER,
+        ADDRR_4,
+        ADDRR_4_POWER,
+      ],
+    });
   });
 
   it('returns 0 for non-whitelisted addresses', async () => {
@@ -43,7 +69,7 @@ describe('Whitelist testing', () => {
     expect(vp).to.deep.equal(expected);
   });
 
-  it('returns 1 for whitelisted addresses', async () => {
+  it('returns voting power for whitelisted addresses', async () => {
     const random_address = BigInt(0x12345);
     const { voting_power } = await whitelistStrat.call('get_voting_power', {
       timestamp: BigInt(0),
@@ -52,7 +78,7 @@ describe('Whitelist testing', () => {
     });
 
     const vp = SplitUint256.fromObj(voting_power);
-    const expected = SplitUint256.fromUint(BigInt(1));
+    const expected = SplitUint256.fromUint(VITALIK_POWER);
     expect(vp).to.deep.equal(expected);
   });
 
@@ -76,7 +102,7 @@ describe('Whitelist testing', () => {
     });
 
     const vp = SplitUint256.fromObj(voting_power);
-    const expected = SplitUint256.fromUint(BigInt(1));
+    const expected = SplitUint256.fromUint(VITALIK_POWER);
     expect(vp).to.deep.equal(expected);
   });
 
@@ -88,7 +114,7 @@ describe('Whitelist testing', () => {
     });
 
     const vp = SplitUint256.fromObj(voting_power);
-    const expected = SplitUint256.fromUint(BigInt(1));
+    const expected = SplitUint256.fromUint(ADDRR_1_POWER);
     expect(vp).to.deep.equal(expected);
   });
 
@@ -115,11 +141,12 @@ describe('Whitelist testing', () => {
     });
 
     const results = [voting_power1, voting_power2, voting_power3, voting_power4];
-    const expected = SplitUint256.fromUint(BigInt(1));
-    for (const { voting_power } of results) {
+    const expected_power = [ADDRR_1_POWER, ADDRR_2_POWER, ADDRR_3_POWER, ADDRR_4_POWER];
+    results.forEach(function ({ voting_power }, index) {
       const vp = SplitUint256.fromObj(voting_power);
+      const expected = SplitUint256.fromUint(expected_power[index]);
       expect(vp).to.deep.equal(expected);
-    }
+    });
   });
 
   it('returns 0 if address is NOT in the big list', async () => {
