@@ -46,4 +46,4 @@ jobs:
       
       - name: Run Linters
         run: |
-          yarn check-format
+          yarn format
