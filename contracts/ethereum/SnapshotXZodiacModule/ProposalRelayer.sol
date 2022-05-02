@@ -3,7 +3,7 @@
 pragma solidity 0.8.9;
 
 import '@gnosis.pm/zodiac/contracts/guard/Guardable.sol';
-import './Interfaces/IStarknetCore.sol';
+import '../Interfaces/IStarknetCore.sol';
 
 /**
  * @title Snapshot X L1 Proposal Relayer

@@ -10,7 +10,7 @@
     "deploy": "sh deploy.sh",
     "test:l1": "yarn hardhat test test/ethereum/*.ts",
     "test:l2": "yarn hardhat test test/starknet/*.ts --starknet-network 'starknetLocal'",
-    "test:l2:ci": "yarn chain:l2 & yarn test:l2",
+    "test:l2:ci": "concurrently './scripts/chain-l2.sh' './scripts/test-l2.sh'",
     "test:crosschain": "'./scripts/test-crosschain.sh'",
     "test:crosschain:ci": "concurrently './scripts/chain.sh' './scripts/test-crosschain.sh'",
     "chain:l1": "hardhat node",

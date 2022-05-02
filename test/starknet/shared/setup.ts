@@ -1,8 +1,11 @@
 import { starknet, ethers } from 'hardhat';
 import { SignerWithAddress } from '@nomiclabs/hardhat-ethers/signers';
-import { SplitUint256 } from './types';
-import { StarknetContract } from 'hardhat/types';
+import { StarknetContract, Account } from 'hardhat/types';
 import { Contract, ContractFactory } from 'ethers';
+import { SplitUint256, IntsSequence } from './types';
+import { hexToBytes } from './helpers';
+import { block } from '../data/blocks';
+import { ProcessBlockInputs } from './parseRPCData';
 export const EXECUTE_METHOD = 'execute';
 export const PROPOSAL_METHOD = 'propose';
 export const VOTE_METHOD = 'vote';
@@ -15,17 +18,15 @@ export const VITALIK_STRING_ADDRESS = VITALIK_ADDRESS.toString(16);
 export const CONTROLLER = BigInt(1337);
 
 export async function vanillaSetup() {
-  const vanillaSpaceFactory = await starknet.getContractFactory(
-    './contracts/starknet/space/space.cairo'
-  );
+  const vanillaSpaceFactory = await starknet.getContractFactory('./contracts/starknet/space.cairo');
   const vanillaVotingStategyFactory = await starknet.getContractFactory(
-    './contracts/starknet/strategies/vanilla.cairo'
+    './contracts/starknet/voting_strategies/vanilla.cairo'
   );
   const vanillaAuthenticatorFactory = await starknet.getContractFactory(
-    './contracts/starknet/authenticator/vanilla.cairo'
+    './contracts/starknet/authenticators/vanilla.cairo'
   );
   const zodiacRelayerFactory = await starknet.getContractFactory(
-    './contracts/starknet/execution/zodiac_relayer.cairo'
+    './contracts/starknet/execution_strategies/zodiac_relayer.cairo'
   );
 
   const deployments = [
@@ -68,12 +69,12 @@ export async function vanillaSetup() {
 }
 
 export async function ethTxAuthSetup(signer: SignerWithAddress) {
-  const SpaceFactory = await starknet.getContractFactory('./contracts/starknet/space/space.cairo');
+  const SpaceFactory = await starknet.getContractFactory('./contracts/starknet/space.cairo');
   const vanillaVotingStategyFactory = await starknet.getContractFactory(
-    './contracts/starknet/strategies/vanilla.cairo'
+    './contracts/starknet/voting_strategies/vanilla.cairo'
   );
   const EthTxAuthenticatorFactory = await starknet.getContractFactory(
-    './contracts/starknet/authenticator/eth_tx.cairo'
+    './contracts/starknet/authenticators/eth_tx.cairo'
   );
 
   const MockStarknetMessagingFactory = (await ethers.getContractFactory(
@@ -126,4 +127,68 @@ export async function ethTxAuthSetup(signer: SignerWithAddress) {
     mockStarknetMessaging,
     starknetCommit,
   };
+}
+
+export async function singleSlotProofSetup() {
+  const account = await starknet.deployAccount('OpenZeppelin');
+  const fossil = await fossilSetup(account);
+  const singleSlotProofStrategyFactory = await starknet.getContractFactory(
+    'contracts/starknet/voting_strategies/single_slot_proof.cairo'
+  );
+  const singleSlotProofStrategy = await singleSlotProofStrategyFactory.deploy({
+    fact_registry: BigInt(fossil.factsRegistry.address),
+  });
+  // Submit blockhash to L1 Headers Store (via dummy function rather than L1 -> L2 bridge)
+  await fossil.l1RelayerAccount.invoke(fossil.l1HeadersStore, 'receive_from_l1', {
+    parent_hash: IntsSequence.fromBytes(hexToBytes(block.hash)).values,
+    block_number: block.number + 1,
+  });
+  // Encode block header and then submit to L1 Headers Store
+  const processBlockInputs = ProcessBlockInputs.fromBlockRPCData(block);
+  await fossil.l1RelayerAccount.invoke(fossil.l1HeadersStore, 'process_block', {
+    options_set: processBlockInputs.blockOptions,
+    block_number: processBlockInputs.blockNumber,
+    block_header_rlp_bytes_len: processBlockInputs.headerInts.bytesLength,
+    block_header_rlp: processBlockInputs.headerInts.values,
+  });
+  return {
+    account: account as Account,
+    singleSlotProofStrategy: singleSlotProofStrategy as StarknetContract,
+    fossil: fossil as Fossil,
+  };
+}
+
+class Fossil {
+  factsRegistry: StarknetContract;
+  l1HeadersStore: StarknetContract;
+  l1RelayerAccount: Account;
+
+  constructor(
+    factsRegistry: StarknetContract,
+    l1HeadersStore: StarknetContract,
+    l1RelayerAccount: Account
+  ) {
+    this.factsRegistry = factsRegistry;
+    this.l1HeadersStore = l1HeadersStore;
+    this.l1RelayerAccount = l1RelayerAccount;
+  }
+}
+
+async function fossilSetup(account: Account) {
+  const factsRegistryFactory = await starknet.getContractFactory(
+    'fossil/contracts/starknet/FactsRegistry.cairo'
+  );
+  const l1HeadersStoreFactory = await starknet.getContractFactory(
+    'fossil/contracts/starknet/L1HeadersStore.cairo'
+  );
+  const factsRegistry = await factsRegistryFactory.deploy();
+  const l1HeadersStore = await l1HeadersStoreFactory.deploy();
+  const l1RelayerAccount = await starknet.deployAccount('OpenZeppelin');
+  await account.invoke(factsRegistry, 'initialize', {
+    l1_headers_store_addr: BigInt(l1HeadersStore.address),
+  });
+  await account.invoke(l1HeadersStore, 'initialize', {
+    l1_messages_origin: BigInt(l1RelayerAccount.starknetContract.address),
+  });
+  return new Fossil(factsRegistry, l1HeadersStore, l1RelayerAccount);
 }
