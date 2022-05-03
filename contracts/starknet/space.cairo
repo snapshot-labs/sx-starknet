@@ -399,19 +399,15 @@ func finalize_proposal{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_c
 
     let (executor_address) = executor.read()
 
+    # Flag this proposal as executed
+    executed_proposals.write(proposal_id, 1)
+
     i_execution_strategy.execute(
         contract_address=executor_address,
         proposal_outcome=proposal_outcome,
         execution_hash=proposal.execution_hash,
         execution_params_len=execution_params_len,
         execution_params=execution_params)
-
-    # Flag this proposal as executed
-    # This should not create re-entrency vulnerability because the message
-    # executor is a whitelisted address. If we set this flag BEFORE the call
-    # to the executor, we could have a malicious attacker sending some random
-    # invalid execution_params and cancel out the vote.
-    executed_proposals.write(proposal_id, 1)
 
     return ()
 end
