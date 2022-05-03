@@ -160,4 +160,4 @@ describe('Whitelist testing', () => {
     const expected = SplitUint256.fromUint(BigInt(0));
     expect(vp).to.deep.equal(expected);
   });
-});
+}).timeout(600000);
