@@ -26,7 +26,7 @@ describe('Whitelist testing', () => {
 
   before(async function () {
     const whitelistFactory = await starknet.getContractFactory(
-      './contracts/starknet/strategies/whitelist.cairo'
+      './contracts/starknet/voting_strategies/whitelist.cairo'
     );
     whitelistStrat = await whitelistFactory.deploy({
       _whitelist: [VITALIK_ADDRESS, VITALIK_POWER],
