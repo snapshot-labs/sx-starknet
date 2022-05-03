@@ -476,8 +476,8 @@ func finalize_proposal{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_c
         tempvar proposal_outcome = ProposalOutcome.REJECTED
     end
 
-    let (executor_address) = executors.read(proposal.executor)
-    if executor_address == 0:
+    let (is_valid) = executors.read(proposal.executor)
+    if is_valid == 0:
         # Executor has been removed from the whitelist. Cancel this execution.
         tempvar proposal_outcome = ProposalOutcome.CANCELLED
     else:
@@ -486,7 +486,7 @@ func finalize_proposal{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_c
     end
 
     i_execution_strategy.execute(
-        contract_address=executor_address,
+        contract_address=proposal.executor,
         proposal_outcome=proposal_outcome,
         execution_hash=proposal.execution_hash,
         execution_params_len=execution_params_len,
@@ -524,12 +524,10 @@ func cancel_proposal{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_che
         assert_not_zero(proposal.ethereum_block_number)
     end
 
-    let (executor_address) = executors.read(proposal.executor)
-
     let proposal_outcome = ProposalOutcome.CANCELLED
 
     i_execution_strategy.execute(
-        contract_address=executor_address,
+        contract_address=proposal.executor,
         proposal_outcome=proposal_outcome,
         execution_hash=proposal.execution_hash,
         execution_params_len=execution_params_len,
