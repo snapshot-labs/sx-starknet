@@ -18,11 +18,11 @@ describe('Whitelist testing', () => {
   const ADDRR_3 = BigInt('33333');
   const ADDRR_4 = BigInt('44444');
 
-  const VITALIK_POWER = BigInt('1000');
-  const ADDRR_1_POWER = BigInt('1');
-  const ADDRR_2_POWER = BigInt('2');
-  const ADDRR_3_POWER = BigInt('3');
-  const ADDRR_4_POWER = BigInt('4');
+  const VITALIK_POWER = SplitUint256.fromUint(BigInt('1000'));
+  const ADDRR_1_POWER = SplitUint256.fromUint(BigInt('1'));
+  const ADDRR_2_POWER = SplitUint256.fromUint(BigInt('2'));
+  const ADDRR_3_POWER = SplitUint256.fromUint(BigInt('3'));
+  const ADDRR_4_POWER = SplitUint256.fromUint(BigInt('4'));
 
   before(async function () {
     this.timeout(800000);
@@ -31,29 +31,36 @@ describe('Whitelist testing', () => {
       './contracts/starknet/voting_strategies/whitelist.cairo'
     );
     whitelistStrat = await whitelistFactory.deploy({
-      _whitelist: [VITALIK_ADDRESS, VITALIK_POWER],
+      _whitelist: [VITALIK_ADDRESS, VITALIK_POWER.low, VITALIK_POWER.high],
     });
     emptyStrat = await whitelistFactory.deploy({ _whitelist: [] });
     repeatStrat = await whitelistFactory.deploy({
       _whitelist: [
         VITALIK_ADDRESS,
-        VITALIK_POWER,
+        VITALIK_POWER.low,
+        VITALIK_POWER.high,
         VITALIK_ADDRESS,
-        VITALIK_POWER,
+        VITALIK_POWER.low,
+        VITALIK_POWER.high,
         ADDRR_1,
-        ADDRR_1_POWER,
+        ADDRR_1_POWER.low,
+        ADDRR_1_POWER.high,
       ],
     });
     bigStrat = await whitelistFactory.deploy({
       _whitelist: [
         ADDRR_1,
-        ADDRR_1_POWER,
+        ADDRR_1_POWER.low,
+        ADDRR_1_POWER.high,
         ADDRR_2,
-        ADDRR_2_POWER,
+        ADDRR_2_POWER.low,
+        ADDRR_2_POWER.high,
         ADDRR_3,
-        ADDRR_3_POWER,
+        ADDRR_3_POWER.low,
+        ADDRR_3_POWER.high,
         ADDRR_4,
-        ADDRR_4_POWER,
+        ADDRR_4_POWER.low,
+        ADDRR_4_POWER.high,
       ],
     });
   });
@@ -80,7 +87,7 @@ describe('Whitelist testing', () => {
     });
 
     const vp = SplitUint256.fromObj(voting_power);
-    const expected = SplitUint256.fromUint(VITALIK_POWER);
+    const expected = VITALIK_POWER;
     expect(vp).to.deep.equal(expected);
   });
 
@@ -104,7 +111,7 @@ describe('Whitelist testing', () => {
     });
 
     const vp = SplitUint256.fromObj(voting_power);
-    const expected = SplitUint256.fromUint(VITALIK_POWER);
+    const expected = VITALIK_POWER;
     expect(vp).to.deep.equal(expected);
   });
 
@@ -116,7 +123,7 @@ describe('Whitelist testing', () => {
     });
 
     const vp = SplitUint256.fromObj(voting_power);
-    const expected = SplitUint256.fromUint(ADDRR_1_POWER);
+    const expected = ADDRR_1_POWER;
     expect(vp).to.deep.equal(expected);
   });
 
@@ -146,7 +153,7 @@ describe('Whitelist testing', () => {
     const expected_power = [ADDRR_1_POWER, ADDRR_2_POWER, ADDRR_3_POWER, ADDRR_4_POWER];
     results.forEach(function ({ voting_power }, index) {
       const vp = SplitUint256.fromObj(voting_power);
-      const expected = SplitUint256.fromUint(expected_power[index]);
+      const expected = expected_power[index];
       expect(vp).to.deep.equal(expected);
     });
   });
