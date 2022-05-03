@@ -43,7 +43,7 @@ func controller() -> (_controller : felt):
 end
 
 @storage_var
-func executor() -> (executor_address : felt):
+func executors(executor_address: felt) -> (is_valid : felt):
 end
 
 @storage_var
@@ -147,6 +147,27 @@ func register_authenticators{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, r
     end
 end
 
+func register_executors{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr}(
+    _executors_len : felt, _executors : felt*
+):
+    if _executors_len == 0:
+        # List is empty
+        return ()
+    else:
+        # Add voting strategy
+        executors.write(_executors[0], 1)
+
+        if _executors_len == 1:
+            # Nothing left to add, end recursion
+            return ()
+        else:
+            # Recurse
+            register_executors(_executors_len - 1, &_executors[1])
+            return ()
+        end
+    end
+end
+
 # Throws if the caller address is not a member of the set of whitelisted authenticators (stored in the `authenticators` mapping)
 func assert_valid_authenticator{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr}(
         ):
@@ -196,30 +217,37 @@ end
 
 @constructor
 func constructor{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr : felt}(
-        _voting_delay : felt, _voting_duration : felt, _proposal_threshold : Uint256,
-        _executor : felt, _controller : felt, _voting_strategies_len : felt,
-        _voting_strategies : felt*, _authenticators_len : felt, _authenticators : felt*):
+    _voting_delay : felt,
+    _voting_duration : felt,
+    _proposal_threshold : Uint256,
+    _controller : felt,
+    _voting_strategies_len : felt,
+    _voting_strategies : felt*,
+    _authenticators_len : felt,
+    _authenticators : felt*,
+    _executors_len: felt,
+    _executors: felt*
+):
     # Sanity checks
     with_attr error_message("Invalid constructor parameters"):
         assert_nn(_voting_delay)
         assert_nn(_voting_duration)
-        assert_not_zero(_executor)
         assert_not_zero(_controller)
         assert_not_zero(_voting_strategies_len)
         assert_not_zero(_authenticators_len)
+        assert_not_zero(_executors_len)
     end
     # TODO: maybe use uint256_signed_nn to check proposal_threshold?
-    # TODO: maybe check that _executor is not 0?
 
     # Initialize the storage variables
     voting_delay.write(_voting_delay)
     voting_duration.write(_voting_duration)
     proposal_threshold.write(_proposal_threshold)
-    executor.write(_executor)
     controller.write(_controller)
 
     register_voting_strategies(0, _voting_strategies_len, _voting_strategies)
     register_authenticators(_authenticators_len, _authenticators)
+    register_executors(_executors_len, _executors)
 
     next_proposal_nonce.write(1)
 
@@ -289,9 +317,17 @@ end
 
 @external
 func propose{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr : felt}(
-        proposer_address : EthAddress, execution_hash : Uint256, metadata_uri_len : felt,
-        metadata_uri : felt*, ethereum_block_number : felt, voting_params_len : felt,
-        voting_params : felt*, execution_params_len : felt, execution_params : felt*) -> ():
+    proposer_address : EthAddress,
+    execution_hash : Uint256,
+    metadata_uri_len : felt,
+    metadata_uri : felt*,
+    ethereum_block_number : felt,
+    executor: felt,
+    voting_params_len : felt,
+    voting_params : felt*,
+    execution_params_len : felt,
+    execution_params : felt*,
+) -> ():
     alloc_locals
 
     # We cannot have `0` as the `ethereum_block_number` because we rely on checking
@@ -302,6 +338,12 @@ func propose{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr :
 
     # Verify that the caller is the authenticator contract.
     assert_valid_authenticator()
+
+    # Verify that the executor address is one of the whitelisted addresses
+    with_attr error_message("Invalid executor"):
+        let (is_valid) = executors.read(executor)
+        assert is_valid = 1
+    end
 
     let (current_timestamp) = get_block_timestamp()
     let (delay) = voting_delay.read()
@@ -329,7 +371,8 @@ func propose{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr :
 
     # Create the proposal and its proposal id
     let proposal = Proposal(
-        execution_hash, start_timestamp, end_timestamp, ethereum_block_number, hash)
+        execution_hash, start_timestamp, end_timestamp, ethereum_block_number, hash, executor
+    )
 
     let (proposal_id) = next_proposal_nonce.read()
 
@@ -404,7 +447,14 @@ func finalize_proposal{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_c
         tempvar proposal_outcome = ProposalOutcome.REJECTED
     end
 
-    let (executor_address) = executor.read()
+    let (executor_address) = executors.read(proposal.executor)
+    if executor_address == 0:
+        # Executor has been removed from the whitelist. Cancel this execution.
+        tempvar proposal_outcome = ProposalOutcome.CANCELLED
+    else:
+        # Classic cairo reference hackz
+        tempvar proposal_outcome = proposal_outcome
+    end
 
     i_execution_strategy.execute(
         contract_address=executor_address,
@@ -445,7 +495,7 @@ func cancel_proposal{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_che
         assert_not_zero(proposal.ethereum_block_number)
     end
 
-    let (executor_address) = executor.read()
+    let (executor_address) = executors.read(proposal.executor)
 
     let proposal_outcome = ProposalOutcome.CANCELLED
 

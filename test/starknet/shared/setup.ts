@@ -53,10 +53,10 @@ export async function vanillaSetup() {
     _voting_delay: VOTING_DELAY,
     _voting_duration: VOTING_DURATION,
     _proposal_threshold: PROPOSAL_THRESHOLD,
-    _executor: zodiac_relayer,
     _controller: CONTROLLER,
     _voting_strategies: [voting_strategy],
     _authenticators: [authenticator],
+    _executors: [zodiac_relayer],
   })) as StarknetContract;
   console.log('deployed!');
 
@@ -112,10 +112,10 @@ export async function ethTxAuthSetup(signer: SignerWithAddress) {
     _voting_delay: VOTING_DELAY,
     _voting_duration: VOTING_DURATION,
     _proposal_threshold: PROPOSAL_THRESHOLD,
-    _executor: 1,
     _controller: 1,
     _voting_strategies: [voting_strategy],
     _authenticators: [authenticator],
+    _executors: [1],
   })) as StarknetContract;
   // Setting the L1 tx authenticator address in the StarkNet commit contract
   await starknetCommit.setAuth(authenticator);
