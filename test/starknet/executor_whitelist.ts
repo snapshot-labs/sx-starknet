@@ -76,7 +76,7 @@ describe('Whitelist testing', () => {
   it('Should create a proposal for a whitelisted executor', async () => {
     {
       await vanillaAuthenticator.invoke(EXECUTE_METHOD, {
-        to: spaceContract,
+        target: spaceContract,
         function_selector: BigInt(getSelectorFromName(PROPOSAL_METHOD)),
         calldata,
       });
@@ -103,7 +103,7 @@ describe('Whitelist testing', () => {
     });
 
     await vanillaAuthenticator.invoke(EXECUTE_METHOD, {
-      to: spaceContract,
+      target: spaceContract,
       function_selector: BigInt(getSelectorFromName(PROPOSAL_METHOD)),
       calldata: calldata2,
     });
