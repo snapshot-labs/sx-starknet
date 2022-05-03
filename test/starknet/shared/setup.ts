@@ -20,7 +20,7 @@ export async function vanillaSetup() {
   const account = await starknet.deployAccount('OpenZeppelin');
 
   const vanillaSpaceFactory = await starknet.getContractFactory(
-    './contracts/starknet/space/space.cairo'
+    './contracts/starknet/space.cairo'
   );
   const vanillaVotingStategyFactory = await starknet.getContractFactory(
     './contracts/starknet/voting_strategies/vanilla.cairo'
