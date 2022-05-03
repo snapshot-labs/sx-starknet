@@ -13,12 +13,15 @@ export const GET_PROPOSAL_INFO = 'get_proposal_info';
 export const GET_VOTE_INFO = 'get_vote_info';
 export const VOTING_DELAY = BigInt(0);
 export const VOTING_DURATION = BigInt(20);
-export const VITALIK_ADDRESS = BigInt(0xd8da6bf26964af9d7eed9e03e53415d37aa96045);
+export const VITALIK_ADDRESS = BigInt("0xd8da6bf26964af9d7eed9e03e53415d37aa96045");
 export const VITALIK_STRING_ADDRESS = VITALIK_ADDRESS.toString(16);
-export const CONTROLLER = BigInt(1337);
 
 export async function vanillaSetup() {
-  const vanillaSpaceFactory = await starknet.getContractFactory('./contracts/starknet/space.cairo');
+  const account = await starknet.deployAccount("OpenZeppelin");
+
+  const vanillaSpaceFactory = await starknet.getContractFactory(
+    './contracts/starknet/space/space.cairo'
+  );
   const vanillaVotingStategyFactory = await starknet.getContractFactory(
     './contracts/starknet/voting_strategies/vanilla.cairo'
   );
@@ -47,13 +50,14 @@ export async function vanillaSetup() {
   // This should be declared along with the other const but doing so will make the compiler unhappy as `SplitUin256`
   // will be undefined for some reason?
   const PROPOSAL_THRESHOLD = SplitUint256.fromUint(BigInt(1));
+  
 
   console.log('Deploying space contract...');
   const vanillaSpace = (await vanillaSpaceFactory.deploy({
     _voting_delay: VOTING_DELAY,
     _voting_duration: VOTING_DURATION,
     _proposal_threshold: PROPOSAL_THRESHOLD,
-    _controller: CONTROLLER,
+    _controller: account.publicKey,
     _voting_strategies: [voting_strategy],
     _authenticators: [authenticator],
     _executors: [zodiac_relayer],
@@ -65,6 +69,7 @@ export async function vanillaSetup() {
     vanillaAuthenticator,
     vanillaVotingStrategy,
     zodiacRelayer,
+    account,
   };
 }
 
