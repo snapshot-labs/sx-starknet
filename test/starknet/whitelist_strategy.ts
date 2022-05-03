@@ -25,6 +25,8 @@ describe('Whitelist testing', () => {
   const ADDRR_4_POWER = BigInt('4');
 
   before(async function () {
+    this.timeout(800000);
+
     const whitelistFactory = await starknet.getContractFactory(
       './contracts/starknet/voting_strategies/whitelist.cairo'
     );
