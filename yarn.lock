@@ -692,17 +692,17 @@
   version "2.0.5"
   resolved "https://registry.yarnpkg.com/@nomiclabs/hardhat-ethers/-/hardhat-ethers-2.0.5.tgz#131b0da1b71680d5a01569f916ae878229d326d3"
 
-"@nomiclabs/hardhat-etherscan@^2.1.8":
-  version "2.1.8"
-  resolved "https://registry.yarnpkg.com/@nomiclabs/hardhat-etherscan/-/hardhat-etherscan-2.1.8.tgz#e206275e96962cd15e5ba9148b44388bc922d8c2"
+"@nomiclabs/hardhat-etherscan@^3.0.3":
+  version "3.0.3"
+  resolved "https://registry.yarnpkg.com/@nomiclabs/hardhat-etherscan/-/hardhat-etherscan-3.0.3.tgz#ca54a03351f3de41f9f5240e37bea9d64fa24e64"
   dependencies:
     "@ethersproject/abi" "^5.1.2"
     "@ethersproject/address" "^5.0.2"
     cbor "^5.0.2"
     debug "^4.1.1"
     fs-extra "^7.0.1"
-    node-fetch "^2.6.0"
     semver "^6.3.0"
+    undici "^4.14.1"
 
 "@nomiclabs/hardhat-solhint@^2.0.0":
   version "2.0.0"
