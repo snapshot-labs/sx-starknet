@@ -45,7 +45,7 @@ func get_voting_power{
     let (voting_power) = IFactsRegistry.get_storage_uint(
         fact_registry_addr,
         block,
-        address.value,
+        address.address,
         slot,
         proof_sizes_bytes_len,
         proof_sizes_bytes,

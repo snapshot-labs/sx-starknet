@@ -53,14 +53,14 @@ func execute{syscall_ptr : felt*, range_check_ptr, pedersen_ptr : HashBuiltin*}(
     # Check that the hash has been received by the contract from the StarkNet Commit contract
     let (address) = commit_store.read(hash)
     with_attr error_message("Hash not yet committed or already executed"):
-        assert_not_equal(address.value, 0)
+        assert_not_equal(address.address, 0)
     end
     # The sender of the commit on L1 must be the same as the voter/proposer L1 address in the calldata.
     with_attr error_message("Commit made by invalid L1 address"):
-        assert calldata[0] = address.value
+        assert calldata[0] = address.address
     end
     # Clear the hash from the contract by writing the zero address to the mapping.
-    commit_store.write(hash, EthAddress(0))
+    commit_store.write(hash, (address=0))
     # Execute the function call with calldata supplied.
     call_contract(
         contract_address=target,
