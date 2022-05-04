@@ -31,7 +31,7 @@ describe('Snapshot X Single Slot Strategy:', () => {
     // Obtain voting power for the account by verifying the storage proof.
     const { voting_power: vp } = await singleSlotProofStrategy.call('get_voting_power', {
       block: proofInputs.blockNumber,
-      address: { value: proofInputs.ethAddressFelt },
+      address: proofInputs.ethAddressFelt,
       params: proofInputs.votingPowerParams,
     });
 
