@@ -1,6 +1,6 @@
 %lang starknet
 
-from starkware.cairo.common.uint256 import Uint256
+from starkware.cairo.common.uint256 import Uint256, uint256_check
 from starkware.cairo.common.cairo_builtins import HashBuiltin
 from contracts.starknet.lib.eth_address import EthAddress
 
@@ -9,7 +9,7 @@ func whitelist(address : EthAddress) -> (voting_power : Uint256):
 end
 
 @event
-func whitelisted(address : EthAddress):
+func whitelisted(address : EthAddress, voting_power : Uint256):
 end
 
 func register_whitelist{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr : felt}(
@@ -19,11 +19,16 @@ func register_whitelist{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_
     else:
         let address = EthAddress(_whitelist[0])
         # Add it to the whitelist
-        let vp = Uint256(_whitelist[1], _whitelist[2])
-        whitelist.write(address, vp)
+        let voting_power = Uint256(_whitelist[1], _whitelist[2])
+
+        with_attr error_message("Invalid uin256"):
+            uint256_check(voting_power)
+        end
+
+        whitelist.write(address, voting_power)
 
         # Emit event
-        whitelisted.emit(address)
+        whitelisted.emit(address, voting_power)
 
         register_whitelist(_whitelist_len - 3, &_whitelist[3])
         return ()
