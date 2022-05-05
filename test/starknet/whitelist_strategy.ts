@@ -69,7 +69,7 @@ describe('Whitelist testing', () => {
     const random_address = BigInt(0x12345);
     const { voting_power } = await whitelistStrat.call('get_voting_power', {
       timestamp: BigInt(0),
-      address: { value: random_address },
+      address: random_address,
       params: [],
     });
 
@@ -82,7 +82,7 @@ describe('Whitelist testing', () => {
     const random_address = BigInt(0x12345);
     const { voting_power } = await whitelistStrat.call('get_voting_power', {
       timestamp: BigInt(0),
-      address: { value: VITALIK_ADDRESS },
+      address: VITALIK_ADDRESS,
       params: [],
     });
 
@@ -94,7 +94,7 @@ describe('Whitelist testing', () => {
   it('returns 0 for an empty whitelist', async () => {
     const { voting_power } = await emptyStrat.call('get_voting_power', {
       timestamp: BigInt(0),
-      address: { value: VITALIK_ADDRESS },
+      address: VITALIK_ADDRESS,
       params: [],
     });
 
@@ -106,7 +106,7 @@ describe('Whitelist testing', () => {
   it('returns 1 even if address is repeated', async () => {
     const { voting_power } = await repeatStrat.call('get_voting_power', {
       timestamp: BigInt(0),
-      address: { value: VITALIK_ADDRESS },
+      address: VITALIK_ADDRESS,
       params: [],
     });
 
@@ -118,7 +118,7 @@ describe('Whitelist testing', () => {
   it('returns 1 if address is NOT repeated', async () => {
     const { voting_power } = await bigStrat.call('get_voting_power', {
       timestamp: BigInt(0),
-      address: { value: ADDRR_1 },
+      address: ADDRR_1,
       params: [],
     });
 
@@ -130,22 +130,22 @@ describe('Whitelist testing', () => {
   it('returns 1 even for everyone in the list', async () => {
     const voting_power1 = await bigStrat.call('get_voting_power', {
       timestamp: BigInt(0),
-      address: { value: ADDRR_1 },
+      address: ADDRR_1,
       params: [],
     });
     const voting_power2 = await bigStrat.call('get_voting_power', {
       timestamp: BigInt(0),
-      address: { value: ADDRR_2 },
+      address: ADDRR_2,
       params: [],
     });
     const voting_power3 = await bigStrat.call('get_voting_power', {
       timestamp: BigInt(0),
-      address: { value: ADDRR_3 },
+      address: ADDRR_3,
       params: [],
     });
     const voting_power4 = await bigStrat.call('get_voting_power', {
       timestamp: BigInt(0),
-      address: { value: ADDRR_4 },
+      address: ADDRR_4,
       params: [],
     });
 
@@ -161,7 +161,7 @@ describe('Whitelist testing', () => {
   it('returns 0 if address is NOT in the big list', async () => {
     const { voting_power } = await bigStrat.call('get_voting_power', {
       timestamp: BigInt(0),
-      address: { value: VITALIK_ADDRESS },
+      address: VITALIK_ADDRESS,
       params: [],
     });
 
