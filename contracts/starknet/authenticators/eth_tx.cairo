@@ -20,7 +20,8 @@ end
 
 @constructor
 func constructor{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr}(
-        starknet_commit_address : felt):
+    starknet_commit_address : felt
+):
     starknet_commit_address_store.write(value=starknet_commit_address)
     return ()
 end
@@ -28,7 +29,8 @@ end
 # Receives hash from StarkNet commit contract and stores it in state.
 @l1_handler
 func commit{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr : felt}(
-        from_address : felt, sender : EthAddress, hash : felt):
+    from_address : felt, sender : EthAddress, hash : felt
+):
     # Check L1 message origin is equal to the StarkNet commit address.
     let (origin) = starknet_commit_address_store.read()
     with_attr error_message("Invalid message origin address"):
@@ -41,7 +43,8 @@ end
 
 @external
 func execute{syscall_ptr : felt*, range_check_ptr, pedersen_ptr : HashBuiltin*}(
-        target : felt, function_selector : felt, calldata_len : felt, calldata : felt*):
+    target : felt, function_selector : felt, calldata_len : felt, calldata : felt*
+):
     alloc_locals
     # Cast arguments to single array
     let (input_array : felt*) = alloc()
@@ -66,6 +69,7 @@ func execute{syscall_ptr : felt*, range_check_ptr, pedersen_ptr : HashBuiltin*}(
         contract_address=target,
         function_selector=function_selector,
         calldata_size=calldata_len,
-        calldata=calldata)
+        calldata=calldata,
+    )
     return ()
 end
