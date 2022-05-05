@@ -69,7 +69,7 @@ describe('Whitelist testing', () => {
     const random_address = BigInt(0x12345);
     const { voting_power } = await whitelistStrat.call('get_voting_power', {
       timestamp: BigInt(0),
-      address: random_address,
+      address: [{address: random_address}],
       params: [],
     });
 

@@ -48,6 +48,6 @@ func get_voting_power{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_ch
         voting_power : Uint256):
     let (power) = whitelist.read(address)
 
-    # `power` will be set to 0 if other is not whitelisted
+    # `power` will be set to 0 if the address has not been whitelisted
     return (power)
 end
