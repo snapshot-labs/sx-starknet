@@ -117,7 +117,7 @@ export async function ethTxAuthSetup(signer: SignerWithAddress) {
     _controller: 1,
     _voting_strategies: [voting_strategy],
     _authenticators: [authenticator],
-    _executors: [1],
+    _executors: [VITALIK_ADDRESS],
   })) as StarknetContract;
   // Setting the L1 tx authenticator address in the StarkNet commit contract
   await starknetCommit.setAuth(authenticator);

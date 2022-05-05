@@ -5,7 +5,7 @@ import { starknet, network, ethers } from 'hardhat';
 import { StarknetContract, HttpNetworkConfig } from 'hardhat/types';
 import { strToShortStringArr } from '@snapshot-labs/sx';
 import { getCommit } from '../starknet/shared/helpers';
-import { ethTxAuthSetup, VITALIK_STRING_ADDRESS } from '../starknet/shared/setup';
+import { ethTxAuthSetup, VITALIK_ADDRESS, VITALIK_STRING_ADDRESS } from '../starknet/shared/setup';
 import { createExecutionHash } from '../starknet/shared/helpers';
 const propose_selector = BigInt(
   '0x1BFD596AE442867EF71CA523061610682AF8B00FC2738329422F4AD8D220B81'
@@ -65,6 +65,7 @@ describe('L1 interaction with Snapshot X', function () {
       BigInt(metadata_uri.length),
       ...metadata_uri,
       eth_block_number,
+      VITALIK_ADDRESS,
       BigInt(voting_params.length),
       ...voting_params,
       BigInt(execution_params.length),
