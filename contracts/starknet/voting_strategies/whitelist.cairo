@@ -17,7 +17,7 @@ func register_whitelist{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_
     if _whitelist_len == 0:
         return ()
     else:
-        let address = EthAddress(_whitelist[0])
+        let address = (address=_whitelist[0])
         # Add it to the whitelist
         let voting_power = Uint256(_whitelist[1], _whitelist[2])
 
