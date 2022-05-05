@@ -19,6 +19,10 @@ from contracts.starknet.lib.choice import Choice
 from contracts.starknet.lib.proposal_outcome import ProposalOutcome
 from contracts.starknet.lib.hash_array import hash_array
 
+from openzeppelin.access.ownable import (
+    Ownable_only_owner, Ownable_transfer_ownership, Ownable_get_owner
+)
+
 @storage_var
 func voting_delay() -> (delay : felt):
 end
@@ -84,31 +88,20 @@ func vote_created(proposal_id : felt, voter_address : EthAddress, vote : Vote):
 end
 
 @event
-func controller_edited(previous : felt, new_controller : felt):
+func controller_updated(new_controller : felt, previous_controller : felt):
 end
 
-func only_controller{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr : felt}():
-    let (caller_address) = get_caller_address()
-
-    let (_controller) = controller.read()
-
-    with_attr error_message("You are not the controller"):
-        assert caller_address = _controller
-    end
-
-    return ()
-end
-
+@external
 func update_controller{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr : felt}(
     new_controller : felt
 ):
-    only_controller()
+    Ownable_only_owner()
 
-    let (previous_controller) = controller.read()
+    let (previous_controller) = Ownable_get_owner()
 
-    controller.write(new_controller)
+    Ownable_transfer_ownership(new_controller)
 
-    controller_edited.emit(previous_controller, new_controller)
+    controller_updated.emit(new_controller, previous_controller)
 
     return ()
 end
@@ -533,7 +526,7 @@ func cancel_proposal{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_che
 ):
     alloc_locals
 
-    only_controller()
+    Ownable_only_owner()
 
     let (has_been_executed) = executed_proposals.read(proposal_id)
 
