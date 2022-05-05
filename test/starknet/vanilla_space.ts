@@ -23,7 +23,7 @@ describe('Space testing', () => {
   const metadataUri = strToShortStringArr(
     'Hello and welcome to Snapshot X. This is the future of governance.'
   );
-  const proposerAddress = { value: VITALIK_ADDRESS };
+  const proposerAddress = VITALIK_ADDRESS;
   const proposalId = 1;
   const votingParams: Array<bigint> = [];
   let executionParams: Array<bigint>;
