@@ -83,23 +83,26 @@ describe('Whitelist testing', () => {
     }
   });
 
-  // Need to find a way to have it fail without stopping the test
-  // it('Should correctly remove two executors', async () => {
-  //     const randomAddr = 0x45;
-  //     const hash = await account.invoke(vanillaSpace, "remove_executors", {to_remove: [BigInt(zodiacRelayer.address), randomAddr]});
+  it('Should correctly remove two executors', async () => {
+    const randomAddr = 0x45;
+    const hash = await account.invoke(vanillaSpace, 'remove_executors', {
+      to_remove: [BigInt(zodiacRelayer.address), randomAddr],
+    });
 
-  //     // Try to create a proposal, should fail because it just got removed
-  //     // from the whitelist
-  //     await vanillaAuthenticator.invoke(EXECUTE_METHOD, {
-  //       to: spaceContract,
-  //       function_selector: BigInt(getSelectorFromName(PROPOSAL_METHOD)),
-  //       calldata,
-  //     });
-  //   });
+    try {
+      // Try to create a proposal, should fail because it just got removed
+      // from the whitelist
+      await vanillaAuthenticator.invoke(EXECUTE_METHOD, {
+        target: spaceContract,
+        function_selector: BigInt(getSelectorFromName(PROPOSAL_METHOD)),
+        calldata,
+      });
+    } catch (err: any) {
+      expect(err.message).to.contain('Invalid executor');
+    }
+  });
 
   it('Should correctly add two executors', async () => {
-    console.log(account.publicKey);
-    console.log('space: ', vanillaSpace.address);
     const hash = await account.invoke(vanillaSpace, 'add_executors', {
       to_add: [BigInt(zodiacRelayer.address), VITALIK_ADDRESS],
     });
