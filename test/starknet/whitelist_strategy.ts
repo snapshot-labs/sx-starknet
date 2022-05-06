@@ -76,7 +76,7 @@ describe('Whitelist testing', () => {
     const vp = SplitUint256.fromObj(voting_power);
     const expected = SplitUint256.fromUint(BigInt(0));
     expect(vp).to.deep.equal(expected);
-  });
+  }).timeout(80000);
 
   it('returns voting power for whitelisted addresses', async () => {
     const random_address = BigInt(0x12345);
@@ -89,7 +89,7 @@ describe('Whitelist testing', () => {
     const vp = SplitUint256.fromObj(voting_power);
     const expected = VITALIK_POWER;
     expect(vp).to.deep.equal(expected);
-  });
+  }).timeout(80000);
 
   it('returns 0 for an empty whitelist', async () => {
     const { voting_power } = await emptyStrat.call('get_voting_power', {
@@ -101,9 +101,9 @@ describe('Whitelist testing', () => {
     const vp = SplitUint256.fromObj(voting_power);
     const expected = SplitUint256.fromUint(BigInt(0));
     expect(vp).to.deep.equal(expected);
-  });
+  }).timeout(80000);
 
-  it('returns 1 even if address is repeated', async () => {
+  it('returns the voting power even if address is repeated', async () => {
     const { voting_power } = await repeatStrat.call('get_voting_power', {
       timestamp: BigInt(0),
       address: { value: VITALIK_ADDRESS },
@@ -113,9 +113,9 @@ describe('Whitelist testing', () => {
     const vp = SplitUint256.fromObj(voting_power);
     const expected = VITALIK_POWER;
     expect(vp).to.deep.equal(expected);
-  });
+  }).timeout(80000);
 
-  it('returns 1 if address is NOT repeated', async () => {
+  it('returns the voting power if address is NOT repeated', async () => {
     const { voting_power } = await bigStrat.call('get_voting_power', {
       timestamp: BigInt(0),
       address: { value: ADDRR_1 },
@@ -125,9 +125,9 @@ describe('Whitelist testing', () => {
     const vp = SplitUint256.fromObj(voting_power);
     const expected = ADDRR_1_POWER;
     expect(vp).to.deep.equal(expected);
-  });
+  }).timeout(80000);
 
-  it('returns 1 even for everyone in the list', async () => {
+  it('returns the voting power for everyone in the list', async () => {
     const voting_power1 = await bigStrat.call('get_voting_power', {
       timestamp: BigInt(0),
       address: { value: ADDRR_1 },
@@ -156,7 +156,7 @@ describe('Whitelist testing', () => {
       const expected = expected_power[index];
       expect(vp).to.deep.equal(expected);
     });
-  });
+  }).timeout(80000);
 
   it('returns 0 if address is NOT in the big list', async () => {
     const { voting_power } = await bigStrat.call('get_voting_power', {
@@ -168,5 +168,5 @@ describe('Whitelist testing', () => {
     const vp = SplitUint256.fromObj(voting_power);
     const expected = SplitUint256.fromUint(BigInt(0));
     expect(vp).to.deep.equal(expected);
-  });
+  }).timeout(80000);
 }).timeout(600000);
