@@ -199,14 +199,9 @@ func register_executors{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_
         # Add voting strategy
         executors.write(_executors[0], 1)
 
-        if _executors_len == 1:
-            # Nothing left to add, end recursion
-            return ()
-        else:
-            # Recurse
-            register_executors(_executors_len - 1, &_executors[1])
-            return ()
-        end
+        # Recurse
+        register_executors(_executors_len - 1, &_executors[1])
+        return ()
     end
 end
 
