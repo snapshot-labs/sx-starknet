@@ -92,9 +92,9 @@ func only_controller{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_che
 
     let (_controller) = controller.read()
 
-    # with_attr error_message("You are not the controller"):
-    #     assert caller_address = _controller
-    # end
+    with_attr error_message("You are not the controller"):
+        assert caller_address = _controller
+    end
 
     return ()
 end

@@ -54,7 +54,7 @@ export async function vanillaSetup() {
     _voting_delay: VOTING_DELAY,
     _voting_duration: VOTING_DURATION,
     _proposal_threshold: PROPOSAL_THRESHOLD,
-    _controller: BigInt(account.publicKey),
+    _controller: BigInt(account.starknetContract.address),
     _voting_strategies: [voting_strategy],
     _authenticators: [authenticator],
     _executors: [zodiac_relayer],
