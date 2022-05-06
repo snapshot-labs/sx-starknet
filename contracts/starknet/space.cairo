@@ -20,7 +20,7 @@ from contracts.starknet.lib.proposal_outcome import ProposalOutcome
 from contracts.starknet.lib.hash_array import hash_array
 
 from openzeppelin.access.ownable import (
-    Ownable_only_owner, Ownable_transfer_ownership, Ownable_get_owner
+    Ownable_only_owner, Ownable_transfer_ownership, Ownable_get_owner, Ownable_initializer
 )
 
 @storage_var
@@ -41,10 +41,6 @@ end
 
 @storage_var
 func authenticators(authenticator_address : felt) -> (is_valid : felt):
-end
-
-@storage_var
-func controller() -> (_controller : felt):
 end
 
 @storage_var
@@ -110,7 +106,7 @@ end
 func add_executors{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr : felt}(
     to_add_len : felt, to_add : felt*
 ):
-    only_controller()
+    Ownable_only_owner()
 
     register_executors(to_add_len, to_add)
     return ()
@@ -120,7 +116,7 @@ end
 func remove_executors{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr : felt}(
     to_remove_len : felt, to_remove : felt*
 ):
-    only_controller()
+    Ownable_only_owner()
 
     if to_remove_len == 0:
         return ()
@@ -283,7 +279,7 @@ func constructor{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_p
     voting_delay.write(_voting_delay)
     voting_duration.write(_voting_duration)
     proposal_threshold.write(_proposal_threshold)
-    controller.write(_controller)
+    Ownable_initializer(_controller)
 
     register_voting_strategies(0, _voting_strategies_len, _voting_strategies)
     register_authenticators(_authenticators_len, _authenticators)
