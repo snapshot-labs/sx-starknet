@@ -203,6 +203,19 @@ func assert_valid_authenticator{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*
     return ()
 end
 
+# Throws if `executor` is not a member of the set of whitelisted executors (stored in the `executors` mapping)
+func assert_valid_executor{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr}(
+    executor : felt
+):
+    let (is_valid) = executors.read(executor)
+
+    with_attr error_message("Invalid executor"):
+        assert is_valid = 1
+    end
+
+    return ()
+end
+
 # Computes the cumulated voting power of a user by iterating (recursively) over all the voting strategies and summing the voting power on each iteration.
 func get_cumulated_voting_power{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr}(
     index : felt,
@@ -372,10 +385,7 @@ func propose{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr :
     assert_valid_authenticator()
 
     # Verify that the executor address is one of the whitelisted addresses
-    with_attr error_message("Invalid executor"):
-        let (is_valid) = executors.read(executor)
-        assert is_valid = 1
-    end
+    assert_valid_executor(executor)
 
     let (current_timestamp) = get_block_timestamp()
     let (delay) = voting_delay.read()
