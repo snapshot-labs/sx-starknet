@@ -189,22 +189,6 @@ func register_authenticators{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, r
     end
 end
 
-func register_executors{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr}(
-    _executors_len : felt, _executors : felt*
-):
-    if _executors_len == 0:
-        # List is empty
-        return ()
-    else:
-        # Add voting strategy
-        executors.write(_executors[0], 1)
-
-        # Recurse
-        register_executors(_executors_len - 1, &_executors[1])
-        return ()
-    end
-end
-
 # Throws if the caller address is not a member of the set of whitelisted authenticators (stored in the `authenticators` mapping)
 func assert_valid_authenticator{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr}(
     ):
@@ -290,7 +274,7 @@ func constructor{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_p
 
     register_voting_strategies(0, _voting_strategies_len, _voting_strategies)
     register_authenticators(_authenticators_len, _authenticators)
-    register_executors(_executors_len, _executors)
+    add_executors(_executors_len, _executors)
 
     next_proposal_nonce.write(1)
 
