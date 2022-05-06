@@ -119,13 +119,7 @@ func add_executors{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check
 ):
     only_controller()
 
-    if to_add_len == 0:
-        return ()
-    else:
-        executors.write(to_add[0], 1)
-
-        add_executors(to_add_len - 1, &to_add[1])
-    end
+    register_executors(to_add_len, to_add)
     return ()
 end
 
@@ -141,6 +135,19 @@ func remove_executors{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_ch
         executors.write(to_remove[0], 0)
 
         remove_executors(to_remove_len - 1, &to_remove[1])
+    end
+    return ()
+end
+
+func register_executors{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr}(
+    to_register_len : felt, to_register : felt*
+):
+    if to_register_len == 0:
+        return ()
+    else:
+        executors.write(to_register[0], 1)
+
+        register_executors(to_register_len - 1, &to_register[1])
     end
     return ()
 end
@@ -287,7 +294,7 @@ func constructor{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_p
 
     register_voting_strategies(0, _voting_strategies_len, _voting_strategies)
     register_authenticators(_authenticators_len, _authenticators)
-    add_executors(_executors_len, _executors)
+    register_executors(_executors_len, _executors)
 
     next_proposal_nonce.write(1)
 
