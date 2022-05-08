@@ -569,9 +569,7 @@ func vote{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr : fe
 
     # Make sure proposal is still open for voting
     with_attr error_message("Voting period has ended"):
-        let (max_duration) = max_voting_duration.read()
-        let end_timestamp = proposal.start_timestamp + max_duration
-        assert_lt(current_timestamp, end_timestamp)
+        assert_lt(current_timestamp, proposal.max_end_timestamp)
     end
 
     # Make sure proposal has started
@@ -656,8 +654,13 @@ func propose{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr :
     let (current_timestamp) = get_block_timestamp()
     let (delay) = voting_delay.read()
 
-    # Define start_timestamp and end_timestamp based on current timestamp, delay and duration variables.
+    let (_min_voting_duration) = min_voting_duration.read()
+    let (_max_voting_duration) = max_voting_duration.read()
+
+    # Define start_timestamp, min_end and max_end
     let start_timestamp = current_timestamp + delay
+    let min_end_timestamp = start_timestamp + _min_voting_duration
+    let max_end_timestamp = start_timestamp + _max_voting_duration
 
     let (voting_power) = get_cumulative_voting_power(
         start_timestamp,
@@ -682,7 +685,15 @@ func propose{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr :
     let (hash) = hash_array(execution_params_len, execution_params)
 
     # Create the proposal and its proposal id
-    let proposal = Proposal(execution_hash, start_timestamp, ethereum_block_number, hash, executor)
+    let proposal = Proposal(
+        execution_hash,
+        start_timestamp,
+        min_end_timestamp,
+        max_end_timestamp,
+        ethereum_block_number,
+        hash,
+        executor,
+    )
 
     let (proposal_id) = next_proposal_nonce.read()
 
@@ -731,9 +742,7 @@ func finalize_proposal{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_c
     # NOTE: commented out the `with_attr` block because it needs 0.8.1 to work
     # with_attr error_message("Min voting period has not elapsed"):
     let (current_timestamp) = get_block_timestamp()
-    let (min_duration) = min_voting_duration.read()
-    let min_end_timestamp = proposal.start_timestamp + min_duration
-    assert_le(min_end_timestamp, current_timestamp)
+    assert_le(proposal.min_end_timestamp, current_timestamp)
     # end
 
     # Make sure execution params match the stored hash
