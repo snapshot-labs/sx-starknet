@@ -76,7 +76,7 @@ describe('Space testing', () => {
       });
 
       // We can't directly compare the `info` object because we don't know for sure the value of `start_block` (and hence `end_block`),
-      // so we compare it element by element (except start_block and end_block for which we simply compare their difference to `VOTING_PERIOD`).
+      // so we compare it element by element.
       const _executionHash = SplitUint256.fromObj(proposal_info.proposal.execution_hash);
       expect(_executionHash).to.deep.equal(executionHash);
 
