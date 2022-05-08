@@ -12,7 +12,8 @@ export const VOTE_METHOD = 'vote';
 export const GET_PROPOSAL_INFO = 'get_proposal_info';
 export const GET_VOTE_INFO = 'get_vote_info';
 export const VOTING_DELAY = BigInt(0);
-export const VOTING_DURATION = BigInt(20);
+export const MIN_VOTING_DURATION = BigInt(0);
+export const MAX_VOTING_DURATION = BigInt(2000);
 export const VITALIK_ADDRESS = BigInt('0xd8da6bf26964af9d7eed9e03e53415d37aa96045');
 export const VITALIK_STRING_ADDRESS = VITALIK_ADDRESS.toString(16);
 
@@ -52,7 +53,8 @@ export async function vanillaSetup() {
   console.log('Deploying space contract...');
   const vanillaSpace = (await vanillaSpaceFactory.deploy({
     _voting_delay: VOTING_DELAY,
-    _voting_duration: VOTING_DURATION,
+    _min_voting_duration: MIN_VOTING_DURATION,
+    _max_voting_duration: MAX_VOTING_DURATION,
     _proposal_threshold: PROPOSAL_THRESHOLD,
     _controller: BigInt(account.starknetContract.address),
     _voting_strategies: [voting_strategy],
@@ -112,7 +114,8 @@ export async function ethTxAuthSetup(signer: SignerWithAddress) {
 
   const space = (await SpaceFactory.deploy({
     _voting_delay: VOTING_DELAY,
-    _voting_duration: VOTING_DURATION,
+    _min_voting_duration: MIN_VOTING_DURATION,
+    _max_voting_duration: MAX_VOTING_DURATION,
     _proposal_threshold: PROPOSAL_THRESHOLD,
     _controller: 1,
     _voting_strategies: [voting_strategy],
