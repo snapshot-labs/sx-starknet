@@ -44,7 +44,7 @@ func controller() -> (_controller : felt):
 end
 
 @storage_var
-func executor() -> (executor_address : felt):
+func executors(executor_address : felt) -> (is_valid : felt):
 end
 
 @storage_var
@@ -113,6 +113,45 @@ func update_controller{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_c
     return ()
 end
 
+@external
+func add_executors{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr : felt}(
+    to_add_len : felt, to_add : felt*
+):
+    only_controller()
+
+    register_executors(to_add_len, to_add)
+    return ()
+end
+
+@external
+func remove_executors{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr : felt}(
+    to_remove_len : felt, to_remove : felt*
+):
+    only_controller()
+
+    if to_remove_len == 0:
+        return ()
+    else:
+        executors.write(to_remove[0], 0)
+
+        remove_executors(to_remove_len - 1, &to_remove[1])
+    end
+    return ()
+end
+
+func register_executors{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr}(
+    to_register_len : felt, to_register : felt*
+):
+    if to_register_len == 0:
+        return ()
+    else:
+        executors.write(to_register[0], 1)
+
+        register_executors(to_register_len - 1, &to_register[1])
+    end
+    return ()
+end
+
 func register_voting_strategies{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr}(
     index : felt, _voting_strategies_len : felt, _voting_strategies : felt*
 ):
@@ -171,6 +210,19 @@ func assert_valid_authenticator{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*
     return ()
 end
 
+# Throws if `executor` is not a member of the set of whitelisted executors (stored in the `executors` mapping)
+func assert_valid_executor{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr}(
+    executor : felt
+):
+    let (is_valid) = executors.read(executor)
+
+    with_attr error_message("Invalid executor"):
+        assert is_valid = 1
+    end
+
+    return ()
+end
+
 # Computes the cumulated voting power of a user by iterating (recursively) over all the voting strategies and summing the voting power on each iteration.
 func get_cumulated_voting_power{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr}(
     index : felt,
@@ -215,34 +267,34 @@ func constructor{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_p
     _voting_delay : felt,
     _voting_duration : felt,
     _proposal_threshold : Uint256,
-    _executor : felt,
     _controller : felt,
     _voting_strategies_len : felt,
     _voting_strategies : felt*,
     _authenticators_len : felt,
     _authenticators : felt*,
+    _executors_len : felt,
+    _executors : felt*,
 ):
     # Sanity checks
     with_attr error_message("Invalid constructor parameters"):
         assert_nn(_voting_delay)
         assert_nn(_voting_duration)
-        assert_not_zero(_executor)
         assert_not_zero(_controller)
         assert_not_zero(_voting_strategies_len)
         assert_not_zero(_authenticators_len)
+        assert_not_zero(_executors_len)
     end
     # TODO: maybe use uint256_signed_nn to check proposal_threshold?
-    # TODO: maybe check that _executor is not 0?
 
     # Initialize the storage variables
     voting_delay.write(_voting_delay)
     voting_duration.write(_voting_duration)
     proposal_threshold.write(_proposal_threshold)
-    executor.write(_executor)
     controller.write(_controller)
 
     register_voting_strategies(0, _voting_strategies_len, _voting_strategies)
     register_authenticators(_authenticators_len, _authenticators)
+    register_executors(_executors_len, _executors)
 
     next_proposal_nonce.write(1)
 
@@ -322,6 +374,7 @@ func propose{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr :
     metadata_uri_len : felt,
     metadata_uri : felt*,
     ethereum_block_number : felt,
+    executor : felt,
     voting_params_len : felt,
     voting_params : felt*,
     execution_params_len : felt,
@@ -337,6 +390,9 @@ func propose{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr :
 
     # Verify that the caller is the authenticator contract.
     assert_valid_authenticator()
+
+    # Verify that the executor address is one of the whitelisted addresses
+    assert_valid_executor(executor)
 
     let (current_timestamp) = get_block_timestamp()
     let (delay) = voting_delay.read()
@@ -365,7 +421,7 @@ func propose{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr :
 
     # Create the proposal and its proposal id
     let proposal = Proposal(
-        execution_hash, start_timestamp, end_timestamp, ethereum_block_number, hash
+        execution_hash, start_timestamp, end_timestamp, ethereum_block_number, hash, executor
     )
 
     let (proposal_id) = next_proposal_nonce.read()
@@ -443,10 +499,17 @@ func finalize_proposal{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_c
         tempvar proposal_outcome = ProposalOutcome.REJECTED
     end
 
-    let (executor_address) = executor.read()
+    let (is_valid) = executors.read(proposal.executor)
+    if is_valid == 0:
+        # Executor has been removed from the whitelist. Cancel this execution.
+        tempvar proposal_outcome = ProposalOutcome.CANCELLED
+    else:
+        # Classic cairo reference hackz
+        tempvar proposal_outcome = proposal_outcome
+    end
 
     i_execution_strategy.execute(
-        contract_address=executor_address,
+        contract_address=proposal.executor,
         proposal_outcome=proposal_outcome,
         execution_hash=proposal.execution_hash,
         execution_params_len=execution_params_len,
@@ -486,12 +549,10 @@ func cancel_proposal{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_che
         assert_not_zero(proposal.ethereum_block_number)
     end
 
-    let (executor_address) = executor.read()
-
     let proposal_outcome = ProposalOutcome.CANCELLED
 
     i_execution_strategy.execute(
-        contract_address=executor_address,
+        contract_address=proposal.executor,
         proposal_outcome=proposal_outcome,
         execution_hash=proposal.execution_hash,
         execution_params_len=execution_params_len,

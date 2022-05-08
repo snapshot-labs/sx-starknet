@@ -115,6 +115,7 @@ describe('Create proposal, cast vote, and send execution to l1', function () {
       BigInt(metadata_uri.length),
       ...metadata_uri,
       eth_block_number,
+      BigInt(zodiacRelayer.address),
       BigInt(voting_params.length),
       ...voting_params,
       BigInt(execution_params.length),

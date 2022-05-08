@@ -47,6 +47,7 @@ describe('Space testing', () => {
       BigInt(metadataUri.length),
       ...metadataUri,
       ethBlockNumber,
+      BigInt(zodiacRelayer.address),
       BigInt(votingParams.length),
       ...votingParams,
       BigInt(executionParams.length),

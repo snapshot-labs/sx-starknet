@@ -30,7 +30,7 @@ echo "Deploying strategy contract"
 STRATEGY=$(hardhat starknet-deploy ${NETWORK_OPTION} starknet-artifacts/contracts/starknet/voting_strategies/vanilla_voting_strategy.cairo/vanilla_voting_strategy.json | grep 'Contract address' | tail -c 67)
 echo "✅ Strategy: ${STRATEGY}"
 echo "Deploying space contract"
-SPACE=$(hardhat starknet-deploy ${NETWORK_OPTION} --inputs "${VOTING_DELAY} ${VOTING_DURATION} ${THRESHOLD} 0 ${STRATEGY} ${AUTH}" starknet-artifacts/contracts/starknet/space/space.cairo/space.json | grep 'Contract address' | tail -c 67)
+SPACE=$(hardhat starknet-deploy ${NETWORK_OPTION} --inputs "${VOTING_DELAY} ${VOTING_DURATION} ${THRESHOLD} 0 ${STRATEGY} ${AUTH}" starknet-artifacts/contracts/starknet/space.cairo/space.json | grep 'Contract address' | tail -c 67)
 echo "✅ Space: ${SPACE}"
 
 JSON="{\n

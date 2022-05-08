@@ -13,11 +13,12 @@ export const GET_PROPOSAL_INFO = 'get_proposal_info';
 export const GET_VOTE_INFO = 'get_vote_info';
 export const VOTING_DELAY = BigInt(0);
 export const VOTING_DURATION = BigInt(20);
-export const VITALIK_ADDRESS = BigInt(0xd8da6bf26964af9d7eed9e03e53415d37aa96045);
+export const VITALIK_ADDRESS = BigInt('0xd8da6bf26964af9d7eed9e03e53415d37aa96045');
 export const VITALIK_STRING_ADDRESS = VITALIK_ADDRESS.toString(16);
-export const CONTROLLER = BigInt(1337);
 
 export async function vanillaSetup() {
+  const account = await starknet.deployAccount('OpenZeppelin');
+
   const vanillaSpaceFactory = await starknet.getContractFactory('./contracts/starknet/space.cairo');
   const vanillaVotingStategyFactory = await starknet.getContractFactory(
     './contracts/starknet/voting_strategies/vanilla.cairo'
@@ -53,10 +54,10 @@ export async function vanillaSetup() {
     _voting_delay: VOTING_DELAY,
     _voting_duration: VOTING_DURATION,
     _proposal_threshold: PROPOSAL_THRESHOLD,
-    _executor: zodiac_relayer,
-    _controller: CONTROLLER,
+    _controller: BigInt(account.starknetContract.address),
     _voting_strategies: [voting_strategy],
     _authenticators: [authenticator],
+    _executors: [zodiac_relayer],
   })) as StarknetContract;
   console.log('deployed!');
 
@@ -65,6 +66,7 @@ export async function vanillaSetup() {
     vanillaAuthenticator,
     vanillaVotingStrategy,
     zodiacRelayer,
+    account,
   };
 }
 
@@ -112,10 +114,10 @@ export async function ethTxAuthSetup(signer: SignerWithAddress) {
     _voting_delay: VOTING_DELAY,
     _voting_duration: VOTING_DURATION,
     _proposal_threshold: PROPOSAL_THRESHOLD,
-    _executor: 1,
     _controller: 1,
     _voting_strategies: [voting_strategy],
     _authenticators: [authenticator],
+    _executors: [VITALIK_ADDRESS],
   })) as StarknetContract;
   // Setting the L1 tx authenticator address in the StarkNet commit contract
   await starknetCommit.setAuth(authenticator);
