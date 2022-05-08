@@ -733,7 +733,7 @@ func finalize_proposal{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_c
     let (current_timestamp) = get_block_timestamp()
     let (min_duration) = min_voting_duration.read()
     let min_end_timestamp = proposal.start_timestamp + min_duration
-    assert_lt(min_end_timestamp, current_timestamp)
+    assert_le(min_end_timestamp, current_timestamp)
     # end
 
     # Make sure execution params match the stored hash
