@@ -543,9 +543,9 @@
   version "1.3.0"
   resolved "https://registry.yarnpkg.com/@gnosis.pm/safe-contracts/-/safe-contracts-1.3.0.tgz#316741a7690d8751a1f701538cfc9ec80866eedc"
 
-"@gnosis.pm/zodiac@^1.0.3":
-  version "1.0.7"
-  resolved "https://registry.yarnpkg.com/@gnosis.pm/zodiac/-/zodiac-1.0.7.tgz#d73e01c786da09533038dd9272bae2d1dc5a7f59"
+"@gnosis.pm/zodiac@^1.0.8":
+  version "1.0.8"
+  resolved "https://registry.yarnpkg.com/@gnosis.pm/zodiac/-/zodiac-1.0.8.tgz#b84d5dfcd4146d4fb941f0529a81c0aeedd7c0cf"
   dependencies:
     "@gnosis.pm/mock-contract" "^4.0.0"
     "@gnosis.pm/safe-contracts" "1.3.0"
