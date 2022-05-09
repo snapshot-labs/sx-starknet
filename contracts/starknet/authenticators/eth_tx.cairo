@@ -43,7 +43,14 @@ end
 
 @external
 func execute{syscall_ptr : felt*, range_check_ptr, pedersen_ptr : HashBuiltin*}(
-    target : felt, function_selector : felt, calldata_len : felt, calldata : felt*
+    target : felt,
+    function_selector : felt,
+    calldata_len : felt,
+    calldata : felt*,
+    signer_len : felt,
+    signer : felt*,
+    signature_len : felt,
+    signature : felt*,
 ):
     alloc_locals
     # Cast arguments to single array

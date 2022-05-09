@@ -4,7 +4,14 @@ from starkware.starknet.common.syscalls import call_contract
 # Forwards `data` to `target` without verifying anything.
 @external
 func execute{syscall_ptr : felt*, range_check_ptr}(
-    target : felt, function_selector : felt, calldata_len : felt, calldata : felt*
+    target : felt,
+    function_selector : felt,
+    calldata_len : felt,
+    calldata : felt*,
+    signer_len : felt,
+    signer : felt*,
+    signature_len : felt,
+    signature : felt*,
 ) -> ():
     # TODO: Actually verify the signature
 
