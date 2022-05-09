@@ -79,6 +79,8 @@ describe('Whitelist testing', () => {
         target: spaceContract,
         function_selector: BigInt(getSelectorFromName(PROPOSAL_METHOD)),
         calldata,
+        signer: [],
+        signature: [],
       });
     }
   });
@@ -96,6 +98,8 @@ describe('Whitelist testing', () => {
         target: spaceContract,
         function_selector: BigInt(getSelectorFromName(PROPOSAL_METHOD)),
         calldata,
+        signer: [],
+        signature: [],
       });
     } catch (err: any) {
       expect(err.message).to.contain('Invalid executor');
@@ -111,6 +115,8 @@ describe('Whitelist testing', () => {
       target: spaceContract,
       function_selector: BigInt(getSelectorFromName(PROPOSAL_METHOD)),
       calldata: calldata2,
+      signer: [],
+      signature: [],
     });
   });
 });

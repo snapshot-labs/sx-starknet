@@ -127,6 +127,8 @@ describe('Create proposal, cast vote, and send execution to l1', function () {
       target: BigInt(spaceContract.address),
       function_selector: BigInt(getSelectorFromName(PROPOSAL_METHOD)),
       calldata,
+      signer: [],
+      signature: [],
     });
 
     // -- Casts a vote FOR --
@@ -137,6 +139,8 @@ describe('Create proposal, cast vote, and send execution to l1', function () {
         target: BigInt(spaceContract.address),
         function_selector: BigInt(getSelectorFromName(VOTE_METHOD)),
         calldata: [voter_address, proposal_id, FOR, BigInt(votingParams.length), ...votingParams],
+        signer: [],
+        signature: [],
       });
 
       const { proposal_info } = await spaceContract.call('get_proposal_info', {

@@ -99,6 +99,8 @@ describe('L1 interaction with Snapshot X', function () {
       target: target,
       function_selector: propose_selector,
       calldata: propose_calldata,
+      signer: [],
+      signature: [],
     });
   });
 
@@ -114,6 +116,8 @@ describe('L1 interaction with Snapshot X', function () {
       target: target,
       function_selector: propose_selector,
       calldata: propose_calldata,
+      signer: [],
+      signature: [],
     });
     // Second execute should fail
     try {
@@ -121,6 +125,8 @@ describe('L1 interaction with Snapshot X', function () {
         target: target,
         function_selector: propose_selector,
         calldata: propose_calldata,
+        signer: [],
+        signature: [],
       });
     } catch (err: any) {
       expect(err.message).to.contain('Hash not yet committed or already executed');
@@ -140,6 +146,8 @@ describe('L1 interaction with Snapshot X', function () {
         target: target,
         function_selector: propose_selector,
         calldata: propose_calldata,
+        signer: [],
+        signature: [],
       });
     } catch (err: any) {
       expect(err.message).to.contain('Hash not yet committed or already executed');
@@ -159,6 +167,8 @@ describe('L1 interaction with Snapshot X', function () {
         target: target,
         function_selector: propose_selector,
         calldata: propose_calldata,
+        signer: [],
+        signature: [],
       });
     } catch (err: any) {
       expect(err.message).to.contain('Commit made by invalid L1 address');

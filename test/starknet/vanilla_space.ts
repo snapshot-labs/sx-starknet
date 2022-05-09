@@ -63,6 +63,8 @@ describe('Space testing', () => {
         target: spaceContract,
         function_selector: BigInt(getSelectorFromName(PROPOSAL_METHOD)),
         calldata,
+        signer: [],
+        signature: [],
       });
 
       console.log('Getting proposal info...');
@@ -95,6 +97,8 @@ describe('Space testing', () => {
         target: spaceContract,
         function_selector: BigInt(getSelectorFromName(VOTE_METHOD)),
         calldata: [voter_address, proposalId, FOR, BigInt(votingParams.length)],
+        signer: [],
+        signature: [],
       });
 
       console.log('Getting proposal info...');
