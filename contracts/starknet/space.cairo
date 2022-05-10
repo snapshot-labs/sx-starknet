@@ -87,6 +87,21 @@ end
 func controller_updated(new_controller : felt, previous_controller : felt):
 end
 
+@event
+func space_created(
+    _voting_delay : felt,
+    _voting_duration : felt,
+    _proposal_threshold : Uint256,
+    _controller : felt,
+    _voting_strategies_len : felt,
+    _voting_strategies : felt*,
+    _authenticators_len : felt,
+    _authenticators : felt*,
+    _executors_len : felt,
+    _executors : felt*,
+):
+end
+
 @external
 func update_controller{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr : felt}(
     new_controller : felt
@@ -264,6 +279,8 @@ func constructor{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_p
     _executors_len : felt,
     _executors : felt*,
 ):
+    alloc_locals
+
     # Sanity checks
     with_attr error_message("Invalid constructor parameters"):
         assert_nn(_voting_delay)
@@ -286,6 +303,19 @@ func constructor{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_p
     register_executors(_executors_len, _executors)
 
     next_proposal_nonce.write(1)
+
+    space_created.emit(
+        _voting_delay,
+        _voting_duration,
+        _proposal_threshold,
+        _controller,
+        _voting_strategies_len,
+        _voting_strategies,
+        _authenticators_len,
+        _authenticators,
+        _executors_len,
+        _executors,
+    )
 
     return ()
 end
