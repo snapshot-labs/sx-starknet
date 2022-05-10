@@ -23,6 +23,10 @@ from openzeppelin.access.ownable import (
     Ownable_only_owner, Ownable_transfer_ownership, Ownable_get_owner, Ownable_initializer
 )
 
+##
+# # Storage vars
+##
+
 @storage_var
 func voting_delay() -> (delay : felt):
 end
@@ -36,7 +40,7 @@ func proposal_threshold() -> (threshold : Uint256):
 end
 
 @storage_var
-func voting_strategies(index : felt) -> (voting_strategy_contract : felt):
+func controller() -> (_controller : felt):
 end
 
 @storage_var
@@ -45,6 +49,10 @@ end
 
 @storage_var
 func executors(executor_address : felt) -> (is_valid : felt):
+end
+
+@storage_var
+func voting_strategies(strategy_address : felt) -> (is_valid : felt):
 end
 
 @storage_var
@@ -67,6 +75,10 @@ end
 func vote_power(proposal_id : felt, choice : felt) -> (power : Uint256):
 end
 
+##
+# # Events
+##
+
 @event
 func proposal_created(
     proposal_id : felt,
@@ -84,10 +96,6 @@ func vote_created(proposal_id : felt, voter_address : EthAddress, vote : Vote):
 end
 
 @event
-func controller_updated(new_controller : felt, previous_controller : felt):
-end
-
-@event
 func space_created(
     _voting_delay : felt,
     _voting_duration : felt,
@@ -102,169 +110,49 @@ func space_created(
 ):
 end
 
-@external
-func update_controller{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr : felt}(
-    new_controller : felt
-):
-    Ownable_only_owner()
-
-    let (previous_controller) = Ownable_get_owner()
-
-    Ownable_transfer_ownership(new_controller)
-
-    controller_updated.emit(new_controller, previous_controller)
-
-    return ()
+@event
+func controller_updated(previous : felt, new_controller : felt):
 end
 
-@external
-func add_executors{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr : felt}(
-    to_add_len : felt, to_add : felt*
-):
-    Ownable_only_owner()
-
-    register_executors(to_add_len, to_add)
-    return ()
+@event
+func voting_delay_updated(previous : felt, new_voting_delay : felt):
 end
 
-@external
-func remove_executors{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr : felt}(
-    to_remove_len : felt, to_remove : felt*
-):
-    Ownable_only_owner()
-
-    if to_remove_len == 0:
-        return ()
-    else:
-        executors.write(to_remove[0], 0)
-
-        remove_executors(to_remove_len - 1, &to_remove[1])
-    end
-    return ()
+@event
+func voting_duration_updated(previous : felt, new_voting_duration : felt):
 end
 
-func register_executors{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr}(
-    to_register_len : felt, to_register : felt*
-):
-    if to_register_len == 0:
-        return ()
-    else:
-        executors.write(to_register[0], 1)
-
-        register_executors(to_register_len - 1, &to_register[1])
-    end
-    return ()
+@event
+func proposal_threshold_updated(previous : Uint256, new_proposal_threshold : Uint256):
 end
 
-func register_voting_strategies{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr}(
-    index : felt, _voting_strategies_len : felt, _voting_strategies : felt*
-):
-    if _voting_strategies_len == 0:
-        # List is empty
-        return ()
-    else:
-        # Add voting strategy
-        voting_strategies.write(index, _voting_strategies[0])
-
-        if _voting_strategies_len == 1:
-            # Nothing left to add, end recursion
-            return ()
-        else:
-            # Recurse
-            register_voting_strategies(
-                index + 1, _voting_strategies_len - 1, &_voting_strategies[1]
-            )
-            return ()
-        end
-    end
+@event
+func authenticators_added(added_len : felt, added : felt*):
 end
 
-func register_authenticators{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr}(
-    _authenticators_len : felt, _authenticators : felt*
-):
-    if _authenticators_len == 0:
-        # List is empty
-        return ()
-    else:
-        # Add voting strategy
-        authenticators.write(_authenticators[0], 1)
-
-        if _authenticators_len == 1:
-            # Nothing left to add, end recursion
-            return ()
-        else:
-            # Recurse
-            register_authenticators(_authenticators_len - 1, &_authenticators[1])
-            return ()
-        end
-    end
+@event
+func authenticators_removed(removed_len : felt, removed : felt*):
 end
 
-# Throws if the caller address is not a member of the set of whitelisted authenticators (stored in the `authenticators` mapping)
-func assert_valid_authenticator{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr}(
-    ):
-    let (caller_address) = get_caller_address()
-    let (is_valid) = authenticators.read(caller_address)
-
-    # Ensure it has been initialized
-    with_attr error_message("Invalid authenticator"):
-        assert_not_zero(is_valid)
-    end
-
-    return ()
+@event
+func executors_added(added_len : felt, added : felt*):
 end
 
-# Throws if `executor` is not a member of the set of whitelisted executors (stored in the `executors` mapping)
-func assert_valid_executor{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr}(
-    executor : felt
-):
-    let (is_valid) = executors.read(executor)
-
-    with_attr error_message("Invalid executor"):
-        assert is_valid = 1
-    end
-
-    return ()
+@event
+func executors_removed(removed_len : felt, removed : felt*):
 end
 
-# Computes the cumulated voting power of a user by iterating (recursively) over all the voting strategies and summing the voting power on each iteration.
-func get_cumulated_voting_power{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr}(
-    index : felt,
-    current_timestamp : felt,
-    voter_address : EthAddress,
-    voting_params_len : felt,
-    voting_params : felt*,
-) -> (voting_power : Uint256):
-    alloc_locals
-    # Get voting strategy contract
-    let (voting_strategy_contract) = voting_strategies.read(index)
-
-    if voting_strategy_contract == 0:
-        # Reached the end, stop iteration
-        return (Uint256(0, 0))
-    end
-
-    let (user_voting_power) = i_voting_strategy.get_voting_power(
-        contract_address=voting_strategy_contract,
-        timestamp=current_timestamp,
-        address=voter_address,
-        params_len=voting_params_len,
-        params=voting_params,
-    )
-    let (additional_voting_power) = get_cumulated_voting_power(
-        index + 1, current_timestamp, voter_address, voting_params_len, voting_params
-    )
-
-    let (voting_power, overflow) = uint256_add(user_voting_power, additional_voting_power)
-    with_attr error_message("Overflow while computing voting power"):
-        if overflow != 0:
-            # Overflow happened, revert transaction
-            assert 1 = 0
-        end
-    end
-
-    return (voting_power)
+@event
+func voting_strategies_added(added_len : felt, added : felt*):
 end
+
+@event
+func voting_strategies_removed(removed_len : felt, removed : felt*):
+end
+
+##
+# # Constructor
+##
 
 @constructor
 func constructor{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr : felt}(
@@ -298,9 +186,9 @@ func constructor{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_p
     proposal_threshold.write(_proposal_threshold)
     Ownable_initializer(_controller)
 
-    register_voting_strategies(0, _voting_strategies_len, _voting_strategies)
-    register_authenticators(_authenticators_len, _authenticators)
-    register_executors(_executors_len, _executors)
+    unchecked_add_voting_strategies(_voting_strategies_len, _voting_strategies)
+    unchecked_add_authenticators(_authenticators_len, _authenticators)
+    unchecked_add_executors(_executors_len, _executors)
 
     next_proposal_nonce.write(1)
 
@@ -320,11 +208,317 @@ func constructor{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_p
     return ()
 end
 
+##
+# # Internal Functions
+##
+
+func unchecked_add_executors{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr}(
+    to_add_len : felt, to_add : felt*
+):
+    if to_add == 0:
+        return ()
+    else:
+        executors.write(to_add[0], 1)
+
+        unchecked_add_executors(to_add_len - 1, &to_add[1])
+        return ()
+    end
+end
+
+func unchecked_remove_executors{
+    syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr : felt
+}(to_remove_len : felt, to_remove : felt*):
+    if to_remove_len == 0:
+        return ()
+    else:
+        executors.write(to_remove[0], 0)
+
+        unchecked_remove_executors(to_remove_len - 1, &to_remove[1])
+        return ()
+    end
+end
+
+func unchecked_add_voting_strategies{
+    syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr
+}(to_add_len : felt, to_add : felt*):
+    if to_add_len == 0:
+        return ()
+    else:
+        voting_strategies.write(to_add[0], 1)
+
+        unchecked_add_voting_strategies(to_add_len - 1, &to_add[1])
+        return ()
+    end
+end
+
+func unchecked_remove_voting_strategies{
+    syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr : felt
+}(to_remove_len : felt, to_remove : felt*):
+    if to_remove_len == 0:
+        return ()
+    else:
+        voting_strategies.write(to_remove[0], 0)
+
+        unchecked_remove_voting_strategies(to_remove_len - 1, &to_remove[1])
+        return ()
+    end
+end
+
+func unchecked_add_authenticators{
+    syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr
+}(to_add_len : felt, to_add : felt*):
+    if to_add_len == 0:
+        return ()
+    else:
+        authenticators.write(to_add[0], 1)
+
+        unchecked_add_authenticators(to_add_len - 1, &to_add[1])
+        return ()
+    end
+end
+
+func unchecked_remove_authenticators{
+    syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr : felt
+}(to_remove_len : felt, to_remove : felt*):
+    if to_remove_len == 0:
+        return ()
+    else:
+        authenticators.write(to_remove[0], 0)
+
+        unchecked_remove_authenticators(to_remove_len - 1, &to_remove[1])
+    end
+    return ()
+end
+
+# Throws if the caller address is not a member of the set of whitelisted authenticators (stored in the `authenticators` mapping)
+func assert_valid_authenticator{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr}(
+    ):
+    let (caller_address) = get_caller_address()
+    let (is_valid) = authenticators.read(caller_address)
+
+    # Ensure it has been initialized
+    with_attr error_message("Invalid authenticator"):
+        assert_not_zero(is_valid)
+    end
+
+    return ()
+end
+
+# Throws if `executor` is not a member of the set of whitelisted executors (stored in the `executors` mapping)
+func assert_valid_executor{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr}(
+    executor : felt
+):
+    let (is_valid) = executors.read(executor)
+
+    with_attr error_message("Invalid executor"):
+        assert is_valid = 1
+    end
+
+    return ()
+end
+
+# Computes the cumulated voting power of a user by iterating (recursively) over all the voting strategies and summing the voting power on each iteration.
+# TODO: In the future we will need to transition to an array of `voter_address` because they might be different for different voting strategies.
+func get_cumulative_voting_power{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr}(
+    current_timestamp : felt,
+    voter_address : EthAddress,
+    used_voting_strategies_len : felt,
+    used_voting_strategies : felt*,
+    voting_params_len : felt,
+    voting_params : felt*,
+) -> (voting_power : Uint256):
+    alloc_locals
+
+    if used_voting_strategies_len == 0:
+        # Reached the end, stop iteration
+        return (Uint256(0, 0))
+    end
+
+    let (is_valid) = voting_strategies.read(used_voting_strategies[0])
+
+    with_attr error_message("Invalid voting strategy"):
+        assert is_valid = 1
+    end
+
+    let (user_voting_power) = i_voting_strategy.get_voting_power(
+        contract_address=used_voting_strategies[0],
+        timestamp=current_timestamp,
+        address=voter_address,
+        params_len=voting_params_len,
+        params=voting_params,
+    )
+
+    let (additional_voting_power) = get_cumulative_voting_power(
+        current_timestamp,
+        voter_address,
+        used_voting_strategies_len - 1,
+        &used_voting_strategies[1],
+        voting_params_len,
+        voting_params,
+    )
+
+    let (voting_power, overflow) = uint256_add(user_voting_power, additional_voting_power)
+
+    with_attr error_message("Overflow while computing voting power"):
+        assert overflow = 0
+    end
+
+    return (voting_power)
+end
+
+##
+# # External Functions
+##
+
+@external
+func update_controller{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr : felt}(
+    new_controller : felt
+):
+    Ownable_only_owner()
+
+    let (previous_controller) = Ownable_get_owner()
+
+    Ownable_transfer_ownership(new_controller)
+
+    controller_updated.emit(previous_controller, new_controller)
+    return ()
+end
+
+@external
+func update_voting_delay{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr : felt}(
+    new_delay : felt
+):
+    Ownable_only_owner()
+
+    let (previous_delay) = voting_delay.read()
+
+    voting_delay.write(new_delay)
+
+    voting_delay_updated.emit(previous_delay, new_delay)
+
+    return ()
+end
+
+@external
+func update_voting_duration{
+    syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr : felt
+}(new_duration : felt):
+    Ownable_only_owner()
+
+    let (previous_duration) = voting_duration.read()
+
+    voting_duration.write(new_duration)
+
+    voting_duration_updated.emit(previous_duration, new_duration)
+
+    return ()
+end
+
+@external
+func update_proposal_threshold{
+    syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr : felt
+}(new_threshold : Uint256):
+    Ownable_only_owner()
+
+    let (previous_threshold) = proposal_threshold.read()
+
+    proposal_threshold.write(new_threshold)
+
+    proposal_threshold_updated.emit(previous_threshold, new_threshold)
+
+    return ()
+end
+
+@external
+func add_executors{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr : felt}(
+    to_add_len : felt, to_add : felt*
+):
+    alloc_locals
+
+    Ownable_only_owner()
+
+    unchecked_add_executors(to_add_len, to_add)
+
+    executors_added.emit(to_add_len, to_add)
+    return ()
+end
+
+@external
+func remove_executors{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr : felt}(
+    to_remove_len : felt, to_remove : felt*
+):
+    alloc_locals
+
+    Ownable_only_owner()
+
+    unchecked_remove_executors(to_remove_len, to_remove)
+
+    executors_removed.emit(to_remove_len, to_remove)
+    return ()
+end
+
+@external
+func add_voting_strategies{
+    syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr : felt
+}(to_add_len : felt, to_add : felt*):
+    alloc_locals
+
+    Ownable_only_owner()
+
+    unchecked_add_voting_strategies(to_add_len, to_add)
+
+    voting_strategies_added.emit(to_add_len, to_add)
+    return ()
+end
+
+@external
+func remove_voting_strategies{
+    syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr : felt
+}(to_remove_len : felt, to_remove : felt*):
+    alloc_locals
+
+    Ownable_only_owner()
+
+    unchecked_remove_voting_strategies(to_remove_len, to_remove)
+    voting_strategies_removed.emit(to_remove_len, to_remove)
+    return ()
+end
+
+@external
+func add_authenticators{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr : felt}(
+    to_add_len : felt, to_add : felt*
+):
+    alloc_locals
+
+    Ownable_only_owner()
+
+    unchecked_add_authenticators(to_add_len, to_add)
+
+    authenticators_added.emit(to_add_len, to_add)
+    return ()
+end
+
+@external
+func remove_authenticators{
+    syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr : felt
+}(to_remove_len : felt, to_remove : felt*):
+    alloc_locals
+
+    Ownable_only_owner()
+
+    unchecked_remove_authenticators(to_remove_len, to_remove)
+
+    authenticators_removed.emit(to_remove_len, to_remove)
+    return ()
+end
+
 @external
 func vote{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr : felt}(
     voter_address : EthAddress,
     proposal_id : felt,
     choice : felt,
+    used_voting_strategies_len : felt,
+    used_voting_strategies : felt*,
     voting_params_len : felt,
     voting_params : felt*,
 ) -> ():
@@ -361,8 +555,13 @@ func vote{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr : fe
         assert_le(choice, Choice.ABSTAIN)
     end
 
-    let (user_voting_power) = get_cumulated_voting_power(
-        0, current_timestamp, voter_address, voting_params_len, voting_params
+    let (user_voting_power) = get_cumulative_voting_power(
+        current_timestamp,
+        voter_address,
+        used_voting_strategies_len,
+        used_voting_strategies,
+        voting_params_len,
+        voting_params,
     )
 
     let (previous_voting_power) = vote_power.read(proposal_id, choice)
@@ -394,6 +593,8 @@ func propose{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr :
     metadata_uri : felt*,
     ethereum_block_number : felt,
     executor : felt,
+    used_voting_strategies_len : felt,
+    used_voting_strategies : felt*,
     voting_params_len : felt,
     voting_params : felt*,
     execution_params_len : felt,
@@ -421,8 +622,13 @@ func propose{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr :
     let start_timestamp = current_timestamp + delay
     let end_timestamp = start_timestamp + duration
 
-    let (voting_power) = get_cumulated_voting_power(
-        0, start_timestamp, proposer_address, voting_params_len, voting_params
+    let (voting_power) = get_cumulative_voting_power(
+        start_timestamp,
+        proposer_address,
+        used_voting_strategies_len,
+        used_voting_strategies,
+        voting_params_len,
+        voting_params,
     )
 
     # Verify that the proposer has enough voting power to trigger a proposal
@@ -587,6 +793,10 @@ func cancel_proposal{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_che
 
     return ()
 end
+
+##
+# # View functions
+##
 
 @view
 func get_vote_info{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr : felt}(
