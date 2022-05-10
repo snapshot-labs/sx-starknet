@@ -19,6 +19,10 @@ from contracts.starknet.lib.choice import Choice
 from contracts.starknet.lib.proposal_outcome import ProposalOutcome
 from contracts.starknet.lib.hash_array import hash_array
 
+from openzeppelin.access.ownable import (
+    Ownable_only_owner, Ownable_transfer_ownership, Ownable_get_owner, Ownable_initializer
+)
+
 @storage_var
 func voting_delay() -> (delay : felt):
 end
@@ -37,10 +41,6 @@ end
 
 @storage_var
 func authenticators(authenticator_address : felt) -> (is_valid : felt):
-end
-
-@storage_var
-func controller() -> (_controller : felt):
 end
 
 @storage_var
@@ -84,31 +84,20 @@ func vote_created(proposal_id : felt, voter_address : EthAddress, vote : Vote):
 end
 
 @event
-func controller_edited(previous : felt, new_controller : felt):
+func controller_updated(new_controller : felt, previous_controller : felt):
 end
 
-func only_controller{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr : felt}():
-    let (caller_address) = get_caller_address()
-
-    let (_controller) = controller.read()
-
-    with_attr error_message("You are not the controller"):
-        assert caller_address = _controller
-    end
-
-    return ()
-end
-
+@external
 func update_controller{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr : felt}(
     new_controller : felt
 ):
-    only_controller()
+    Ownable_only_owner()
 
-    let (previous_controller) = controller.read()
+    let (previous_controller) = Ownable_get_owner()
 
-    controller.write(new_controller)
+    Ownable_transfer_ownership(new_controller)
 
-    controller_edited.emit(previous_controller, new_controller)
+    controller_updated.emit(new_controller, previous_controller)
 
     return ()
 end
@@ -117,7 +106,7 @@ end
 func add_executors{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr : felt}(
     to_add_len : felt, to_add : felt*
 ):
-    only_controller()
+    Ownable_only_owner()
 
     register_executors(to_add_len, to_add)
     return ()
@@ -127,7 +116,7 @@ end
 func remove_executors{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr : felt}(
     to_remove_len : felt, to_remove : felt*
 ):
-    only_controller()
+    Ownable_only_owner()
 
     if to_remove_len == 0:
         return ()
@@ -290,7 +279,7 @@ func constructor{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_p
     voting_delay.write(_voting_delay)
     voting_duration.write(_voting_duration)
     proposal_threshold.write(_proposal_threshold)
-    controller.write(_controller)
+    Ownable_initializer(_controller)
 
     register_voting_strategies(0, _voting_strategies_len, _voting_strategies)
     register_authenticators(_authenticators_len, _authenticators)
@@ -533,7 +522,7 @@ func cancel_proposal{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_che
 ):
     alloc_locals
 
-    only_controller()
+    Ownable_only_owner()
 
     let (has_been_executed) = executed_proposals.read(proposal_id)
 
