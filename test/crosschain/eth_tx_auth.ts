@@ -58,19 +58,6 @@ describe('L1 interaction with Snapshot X', function () {
     const eth_block_number = BigInt(1337);
     // Empty execution data
     const execution_params: Array<bigint> = [BigInt(0)];
-    propose_calldata = [
-      BigInt(signer.address),
-      executionHash.low,
-      executionHash.high,
-      BigInt(metadata_uri.length),
-      ...metadata_uri,
-      eth_block_number,
-      VITALIK_ADDRESS,
-      BigInt(voting_params.length),
-      ...voting_params,
-      BigInt(execution_params.length),
-      ...execution_params,
-    ];
     const {
       space: _space,
       ethTxAuthenticator: _ethTxAuthenticator,
@@ -83,6 +70,23 @@ describe('L1 interaction with Snapshot X', function () {
     vanillaVotingStrategy = _vanillaVotingStrategy;
     mockStarknetMessaging = _mockStarknetMessaging;
     starknetCommit = _starknetCommit;
+    const used_voting_strategies = [BigInt(vanillaVotingStrategy.address)];
+
+    propose_calldata = [
+      BigInt(signer.address),
+      executionHash.low,
+      executionHash.high,
+      BigInt(metadata_uri.length),
+      ...metadata_uri,
+      eth_block_number,
+      VITALIK_ADDRESS,
+      BigInt(used_voting_strategies.length),
+      ...used_voting_strategies,
+      BigInt(voting_params.length),
+      ...voting_params,
+      BigInt(execution_params.length),
+      ...execution_params,
+    ];
   });
 
   it('should create a proposal from an l1 tx', async () => {

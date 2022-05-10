@@ -26,6 +26,7 @@ describe('Space testing', () => {
   const proposerAddress = { value: VITALIK_ADDRESS };
   const proposalId = 1;
   const votingParams: Array<bigint> = [];
+  let used_voting_strategies: Array<bigint>;
   let executionParams: Array<bigint>;
   const ethBlockNumber = BigInt(1337);
   const l1_zodiac_module = BigInt('0xaaaaaaaaaaaa');
@@ -39,6 +40,7 @@ describe('Space testing', () => {
       await vanillaSetup());
     executionParams = [BigInt(l1_zodiac_module)];
     spaceContract = BigInt(vanillaSpace.address);
+    used_voting_strategies = [BigInt(vanillaVotingStrategy.address)];
 
     calldata = [
       proposerAddress.value,
@@ -48,6 +50,8 @@ describe('Space testing', () => {
       ...metadataUri,
       ethBlockNumber,
       BigInt(zodiacRelayer.address),
+      BigInt(used_voting_strategies.length),
+      ...used_voting_strategies,
       BigInt(votingParams.length),
       ...votingParams,
       BigInt(executionParams.length),
@@ -91,10 +95,19 @@ describe('Space testing', () => {
       console.log('Casting a vote FOR...');
       const voter_address = proposerAddress.value;
       const votingparams: Array<BigInt> = [];
+      const used_voting_strategies = [BigInt(vanillaVotingStrategy.address)];
       await vanillaAuthenticator.invoke(EXECUTE_METHOD, {
         target: spaceContract,
         function_selector: BigInt(getSelectorFromName(VOTE_METHOD)),
-        calldata: [voter_address, proposalId, FOR, BigInt(votingParams.length)],
+        calldata: [
+          voter_address,
+          proposalId,
+          FOR,
+          BigInt(used_voting_strategies.length),
+          ...used_voting_strategies,
+          BigInt(votingParams.length),
+          ...votingParams,
+        ],
       });
 
       console.log('Getting proposal info...');

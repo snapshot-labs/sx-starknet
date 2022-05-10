@@ -108,6 +108,7 @@ describe('Create proposal, cast vote, and send execution to l1', function () {
     const voting_params: Array<bigint> = [];
     const eth_block_number = BigInt(1337);
     const execution_params: Array<bigint> = [BigInt(l1Executor.address)];
+    const used_voting_strategies = [BigInt(votingContract.address)];
     const calldata = [
       proposer_address,
       executionHash.low,
@@ -116,6 +117,8 @@ describe('Create proposal, cast vote, and send execution to l1', function () {
       ...metadata_uri,
       eth_block_number,
       BigInt(zodiacRelayer.address),
+      BigInt(used_voting_strategies.length),
+      ...used_voting_strategies,
       BigInt(voting_params.length),
       ...voting_params,
       BigInt(execution_params.length),
@@ -136,7 +139,15 @@ describe('Create proposal, cast vote, and send execution to l1', function () {
       await authContract.invoke(EXECUTE_METHOD, {
         target: BigInt(spaceContract.address),
         function_selector: BigInt(getSelectorFromName(VOTE_METHOD)),
-        calldata: [voter_address, proposal_id, FOR, BigInt(votingParams.length), ...votingParams],
+        calldata: [
+          voter_address,
+          proposal_id,
+          FOR,
+          BigInt(used_voting_strategies.length),
+          ...used_voting_strategies,
+          BigInt(votingParams.length),
+          ...votingParams,
+        ],
       });
 
       const { proposal_info } = await spaceContract.call('get_proposal_info', {
