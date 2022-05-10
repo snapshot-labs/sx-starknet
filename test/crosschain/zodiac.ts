@@ -139,7 +139,15 @@ describe('Create proposal, cast vote, and send execution to l1', function () {
       await authContract.invoke(EXECUTE_METHOD, {
         target: BigInt(spaceContract.address),
         function_selector: BigInt(getSelectorFromName(VOTE_METHOD)),
-        calldata: [voter_address, proposal_id, FOR, BigInt(used_voting_strategies.length), ...used_voting_strategies, BigInt(votingParams.length), ...votingParams],
+        calldata: [
+          voter_address,
+          proposal_id,
+          FOR,
+          BigInt(used_voting_strategies.length),
+          ...used_voting_strategies,
+          BigInt(votingParams.length),
+          ...votingParams,
+        ],
       });
 
       const { proposal_info } = await spaceContract.call('get_proposal_info', {
