@@ -7,5 +7,4 @@ struct Proposal:
     member end_timestamp : felt
     member ethereum_block_number : felt
     member execution_params_hash : felt
-    member executor : felt
 end

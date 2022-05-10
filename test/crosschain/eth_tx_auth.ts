@@ -4,8 +4,8 @@ import { Contract } from 'ethers';
 import { starknet, network, ethers } from 'hardhat';
 import { StarknetContract, HttpNetworkConfig } from 'hardhat/types';
 import { strToShortStringArr } from '@snapshot-labs/sx';
-import { getCommit } from '../starknet/shared/helpers';
-import { ethTxAuthSetup, VITALIK_ADDRESS, VITALIK_STRING_ADDRESS } from '../starknet/shared/setup';
+import { getCommit, flatten2DArray } from '../starknet/shared/helpers';
+import { ethTxAuthSetup, VITALIK_STRING_ADDRESS } from '../starknet/shared/setup';
 import { createExecutionHash } from '../starknet/shared/helpers';
 const propose_selector = BigInt(
   '0x1BFD596AE442867EF71CA523061610682AF8B00FC2738329422F4AD8D220B81'
@@ -54,10 +54,24 @@ describe('L1 interaction with Snapshot X', function () {
       'Hello and welcome to Snapshot X. This is the future of governance.'
     );
     const proposal_id = BigInt(1);
-    const voting_params: Array<bigint> = [];
+    const votingParamsAll: bigint[][] = [[]];
+    // Cairo cannot handle 2D arrays in calldata so we must flatten the data then reconstruct the individual arrays inside the contract
+    const votingParamsAllFlat = flatten2DArray(votingParamsAll);
     const eth_block_number = BigInt(1337);
     // Empty execution data
     const execution_params: Array<bigint> = [BigInt(0)];
+    propose_calldata = [
+      BigInt(signer.address),
+      executionHash.low,
+      executionHash.high,
+      BigInt(metadata_uri.length),
+      ...metadata_uri,
+      eth_block_number,
+      BigInt(votingParamsAllFlat.length),
+      ...votingParamsAllFlat,
+      BigInt(execution_params.length),
+      ...execution_params,
+    ];
     const {
       space: _space,
       ethTxAuthenticator: _ethTxAuthenticator,
@@ -70,23 +84,6 @@ describe('L1 interaction with Snapshot X', function () {
     vanillaVotingStrategy = _vanillaVotingStrategy;
     mockStarknetMessaging = _mockStarknetMessaging;
     starknetCommit = _starknetCommit;
-    const used_voting_strategies = [BigInt(vanillaVotingStrategy.address)];
-
-    propose_calldata = [
-      BigInt(signer.address),
-      executionHash.low,
-      executionHash.high,
-      BigInt(metadata_uri.length),
-      ...metadata_uri,
-      eth_block_number,
-      VITALIK_ADDRESS,
-      BigInt(used_voting_strategies.length),
-      ...used_voting_strategies,
-      BigInt(voting_params.length),
-      ...voting_params,
-      BigInt(execution_params.length),
-      ...execution_params,
-    ];
   });
 
   it('should create a proposal from an l1 tx', async () => {
