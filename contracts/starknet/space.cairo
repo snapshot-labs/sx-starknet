@@ -3,7 +3,8 @@
 from starkware.starknet.common.syscalls import get_caller_address, get_block_timestamp
 from starkware.cairo.common.cairo_builtins import HashBuiltin
 from starkware.cairo.common.alloc import alloc
-from starkware.cairo.common.uint256 import Uint256, uint256_add, uint256_lt
+from starkware.cairo.common.uint256 import Uint256, uint256_add, uint256_lt, uint256_le
+from starkware.cairo.common.bool import TRUE, FALSE
 from starkware.cairo.common.hash_state import hash_init, hash_update
 from starkware.cairo.common.math import (
     assert_lt, assert_le, assert_nn, assert_not_zero, assert_lt_felt
@@ -41,6 +42,10 @@ end
 
 @storage_var
 func proposal_threshold() -> (threshold : Uint256):
+end
+
+@storage_var
+func quorum() -> (value : Uint256):
 end
 
 @storage_var
@@ -166,6 +171,7 @@ func constructor{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_p
     _max_voting_duration : felt,
     _proposal_threshold : Uint256,
     _controller : felt,
+    _quorum: Uint256,
     _voting_strategies_len : felt,
     _voting_strategies : felt*,
     _authenticators_len : felt,
@@ -192,6 +198,7 @@ func constructor{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_p
     max_voting_duration.write(_max_voting_duration)
     proposal_threshold.write(_proposal_threshold)
     Ownable_initializer(_controller)
+    quorum.write(_quorum)
 
     unchecked_add_voting_strategies(_voting_strategies_len, _voting_strategies)
     unchecked_add_authenticators(_authenticators_len, _authenticators)
@@ -684,9 +691,12 @@ func propose{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr :
     # Hash the execution params
     let (hash) = hash_array(execution_params_len, execution_params)
 
+    let (_quorum) = quorum.read()
+
     # Create the proposal and its proposal id
     let proposal = Proposal(
         execution_hash,
+        _quorum,
         start_timestamp,
         min_end_timestamp,
         max_end_timestamp,
@@ -755,7 +765,25 @@ func finalize_proposal{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_c
     let (for) = vote_power.read(proposal_id, Choice.FOR)
 
     # Count votes against
+    let (abstain) = vote_power.read(proposal_id, Choice.ABSTAIN)
+
+    # Count votes against
     let (against) = vote_power.read(proposal_id, Choice.AGAINST)
+
+    let (partial_power, overflow1) = uint256_add(for, abstain)
+
+    let (total_power, overflow2) = uint256_add(partial_power, against)
+
+    let _quorum = proposal.quorum
+    let (is_lower_or_equal) = uint256_le(_quorum, total_power)
+
+    # If overflow1 or overflow2 happened, then quorum has necessarily been reached because `quorum` is by definition smaller or equal to Uint256::MAX.
+    # If `is_lower_or_equal` (meaning `_quorum` is smaller than `total_power`), then quorum has been reached (definition of quorum).
+    # So if `overflow1 || overflow2 || is_lower_or_equal`, we have reached quorum. If we sum them and find `0`, then they're all equal to 0, which means
+    # quorum has not been reached.
+    with_attr error_message("Quorum has not been reached"):
+        assert_not_zero(overflow1 + overflow2 + is_lower_or_equal)
+    end
 
     # Set proposal outcome accordingly
     let (has_passed) = uint256_lt(against, for)
