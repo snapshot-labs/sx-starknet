@@ -7,8 +7,6 @@ import {
   VITALIK_ADDRESS,
   EXECUTE_METHOD,
   PROPOSAL_METHOD,
-  VOTE_METHOD,
-  VOTING_DURATION,
 } from './shared/setup';
 import { StarknetContract } from 'hardhat/types';
 import { Account } from '@shardlabs/starknet-hardhat-plugin/dist/account';
@@ -31,6 +29,7 @@ describe('Whitelist testing', () => {
   let executionParams: Array<bigint>;
   const ethBlockNumber = BigInt(1337);
   const l1_zodiac_module = BigInt('0xaaaaaaaaaaaa');
+  let used_voting_strategies: Array<bigint>;
   let calldata: Array<bigint>;
   let calldata2: Array<bigint>;
   let spaceContract: bigint;
@@ -42,6 +41,7 @@ describe('Whitelist testing', () => {
       await vanillaSetup());
     executionParams = [BigInt(l1_zodiac_module)];
     spaceContract = BigInt(vanillaSpace.address);
+    used_voting_strategies = [BigInt(vanillaVotingStrategy.address)];
 
     calldata = [
       proposerAddress.value,
@@ -51,6 +51,8 @@ describe('Whitelist testing', () => {
       ...metadataUri,
       ethBlockNumber,
       BigInt(zodiacRelayer.address),
+      BigInt(used_voting_strategies.length),
+      ...used_voting_strategies,
       BigInt(votingParams.length),
       ...votingParams,
       BigInt(executionParams.length),
@@ -66,6 +68,8 @@ describe('Whitelist testing', () => {
       ...metadataUri,
       ethBlockNumber,
       VITALIK_ADDRESS,
+      BigInt(used_voting_strategies.length),
+      ...used_voting_strategies,
       BigInt(votingParams.length),
       ...votingParams,
       BigInt(executionParams.length),

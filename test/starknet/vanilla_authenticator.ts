@@ -2,11 +2,6 @@ import { StarknetContract } from 'hardhat/types/runtime';
 import { starknet } from 'hardhat';
 import { stark } from 'starknet';
 
-const EXECUTE_METHOD = 'execute';
-const PROPOSAL_METHOD = 'propose';
-const VOTE_METHOD = 'vote';
-const SPACE_CONTRACT = BigInt(1337);
-
 async function setup() {
   const vanillaAuthenticatorFactory = await starknet.getContractFactory(
     './contracts/starknet/authenticators/vanilla.cairo'

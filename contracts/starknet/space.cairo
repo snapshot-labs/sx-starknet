@@ -23,9 +23,9 @@ from openzeppelin.access.ownable import (
     Ownable_only_owner, Ownable_transfer_ownership, Ownable_get_owner, Ownable_initializer
 )
 
-##
-# # Storage vars
-##
+#
+# Storage vars
+#
 
 @storage_var
 func voting_delay() -> (delay : felt):
@@ -75,9 +75,9 @@ end
 func vote_power(proposal_id : felt, choice : felt) -> (power : Uint256):
 end
 
-##
-# # Events
-##
+#
+# Events
+#
 
 @event
 func proposal_created(
@@ -150,9 +150,9 @@ end
 func voting_strategies_removed(removed_len : felt, removed : felt*):
 end
 
-##
-# # Constructor
-##
+#
+# Constructor
+#
 
 @constructor
 func constructor{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr : felt}(
@@ -208,14 +208,14 @@ func constructor{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_p
     return ()
 end
 
-##
-# # Internal Functions
-##
+#
+#  Internal Functions
+#
 
 func unchecked_add_executors{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr}(
     to_add_len : felt, to_add : felt*
 ):
-    if to_add == 0:
+    if to_add_len == 0:
         return ()
     else:
         executors.write(to_add[0], 1)
@@ -366,9 +366,9 @@ func get_cumulative_voting_power{syscall_ptr : felt*, pedersen_ptr : HashBuiltin
     return (voting_power)
 end
 
-##
-# # External Functions
-##
+#
+# External Functions
+#
 
 @external
 func update_controller{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr : felt}(
@@ -794,9 +794,9 @@ func cancel_proposal{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_che
     return ()
 end
 
-##
-# # View functions
-##
+#
+# View functions
+#
 
 @view
 func get_vote_info{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr : felt}(
