@@ -313,7 +313,7 @@ func assert_valid_executor{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, ran
     return ()
 end
 
-# Computes the cumulated voting power of a user by iterating (recursively) over all the voting strategies and summing the voting power on each iteration.
+# Computes the cumulated voting power of a user by iterating over the voting strategies of `used_voting_strategies`.
 # TODO: In the future we will need to transition to an array of `voter_address` because they might be different for different voting strategies.
 func get_cumulative_voting_power{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr}(
     current_timestamp : felt,
