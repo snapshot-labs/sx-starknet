@@ -7,7 +7,6 @@ import { strToShortStringArr } from '@snapshot-labs/sx';
 import { getCommit } from '../starknet/shared/helpers';
 import { ethTxAuthSetup, VITALIK_ADDRESS, VITALIK_STRING_ADDRESS } from '../starknet/shared/setup';
 import { createExecutionHash } from '../starknet/shared/helpers';
-import { Address } from 'ethereumjs-util';
 const propose_selector = BigInt(
   '0x1BFD596AE442867EF71CA523061610682AF8B00FC2738329422F4AD8D220B81'
 );
