@@ -40,10 +40,6 @@ func proposal_threshold() -> (threshold : Uint256):
 end
 
 @storage_var
-func controller() -> (_controller : felt):
-end
-
-@storage_var
 func authenticators(authenticator_address : felt) -> (is_valid : felt):
 end
 
