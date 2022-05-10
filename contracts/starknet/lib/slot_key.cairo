@@ -4,7 +4,6 @@ from starkware.cairo.common.keccak import unsafe_keccak
 from starkware.cairo.common.uint256 import Uint256
 from starknet.lib.felt_to_uint256 import felt_to_uint256
 
-
 # Returns the EVM slot key for mappings (key can be any value type)
 # UNSAFE: This is not safe to use in production code due to unsafe keccak - waiting for safe version
 func get_slot_key{bitwise_ptr : BitwiseBuiltin*, range_check_ptr}(

@@ -55,7 +55,6 @@ func get_voting_power{
     let (slot, proof_sizes_bytes_len, proof_sizes_bytes, proof_sizes_words_len, proof_sizes_words,
         proofs_concat_len, proofs_concat) = decode_param_array(params_len, params)
 
-
     let slot_index = global_params[0]
     let (valid_slot) = get_slot_key(slot_index, address.value)
     let (slot_uint256) = words64_to_uint256(slot.word_1, slot.word_2, slot.word_3, slot.word_4)
