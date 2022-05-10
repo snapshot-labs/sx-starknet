@@ -4,7 +4,7 @@ from contracts.starknet.lib.hash_array import hash_array
 from starkware.cairo.common.signature import verify_ecdsa_signature
 from starkware.cairo.common.cairo_builtins import HashBuiltin, SignatureBuiltin
 
-# Starknet key authenticator
+# Starknet key authenticator.
 @external
 func execute{
     syscall_ptr : felt*, range_check_ptr, pedersen_ptr : HashBuiltin*, ecdsa_ptr : SignatureBuiltin*
