@@ -42,7 +42,7 @@ func get_voting_power{
     syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr, bitwise_ptr : BitwiseBuiltin*
 }(
     block : felt,
-    address : EthAddress,
+    voter_address : EthAddress,
     global_params_len : felt,
     global_params : felt*,
     params_len : felt,
@@ -55,8 +55,12 @@ func get_voting_power{
     let (slot, proof_sizes_bytes_len, proof_sizes_bytes, proof_sizes_words_len, proof_sizes_words,
         proofs_concat_len, proofs_concat) = decode_param_array(params_len, params)
 
-    let slot_index = global_params[0]
-    let (valid_slot) = get_slot_key(slot_index, address.value)
+    # Extracting global parameters for this strategy
+    let contract_address = global_params[0]
+    let slot_index = global_params[1]
+
+    # Checking slot proof is for the correct slot
+    let (valid_slot) = get_slot_key(slot_index, voter_address.value)
     let (slot_uint256) = words64_to_uint256(slot.word_1, slot.word_2, slot.word_3, slot.word_4)
     with_attr error_message("Invalid slot proof provided"):
         assert valid_slot = slot_uint256
@@ -66,7 +70,7 @@ func get_voting_power{
     let (voting_power) = IFactsRegistry.get_storage_uint(
         fact_registry_addr,
         block,
-        address.value,
+        contract_address,
         slot,
         proof_sizes_bytes_len,
         proof_sizes_bytes,

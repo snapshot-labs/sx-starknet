@@ -106,6 +106,8 @@ export async function ethTxAuthSetup(signer: SignerWithAddress) {
   console.log('Deploying strat...');
   const vanillaVotingStrategy = (await vanillaVotingStategyFactory.deploy()) as StarknetContract;
   const voting_strategy = BigInt(vanillaVotingStrategy.address);
+  const global_voting_strategy_params: bigint[][] = [[]];
+  const global_voting_strategy_params_flat = flatten2DArray(global_voting_strategy_params);
   const authenticator = BigInt(ethTxAuthenticator.address);
   console.log('Deploying space...');
 
@@ -118,6 +120,7 @@ export async function ethTxAuthSetup(signer: SignerWithAddress) {
     _voting_duration: VOTING_DURATION,
     _proposal_threshold: PROPOSAL_THRESHOLD,
     _controller: 1,
+    _global_voting_strategy_params_flat: global_voting_strategy_params_flat, 
     _voting_strategies: [voting_strategy],
     _authenticators: [authenticator],
     _executors: [VITALIK_ADDRESS],

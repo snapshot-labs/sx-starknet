@@ -7,7 +7,7 @@ from starkware.cairo.common.uint256 import Uint256
 namespace i_voting_strategy:
     func get_voting_power(
         timestamp : felt,
-        address : EthAddress,
+        voter_address : EthAddress,
         global_params_len : felt,
         global_params : felt*,
         params_len : felt,
