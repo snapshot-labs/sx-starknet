@@ -14,7 +14,11 @@ import {
   PROPOSAL_METHOD,
   VOTE_METHOD,
 } from '../starknet/shared/setup';
-import { expectAddressEquality, createExecutionHash, flatten2DArray } from '../starknet/shared/helpers';
+import {
+  expectAddressEquality,
+  createExecutionHash,
+  flatten2DArray,
+} from '../starknet/shared/helpers';
 
 const { getSelectorFromName } = stark;
 

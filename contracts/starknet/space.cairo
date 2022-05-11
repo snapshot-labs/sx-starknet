@@ -198,7 +198,9 @@ func constructor{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_p
         _global_voting_strategy_params_flat_len, _global_voting_strategy_params_flat
     )
 
-    unchecked_add_voting_strategies(_voting_strategies_len, _voting_strategies, global_voting_strategy_params_all, 0)
+    unchecked_add_voting_strategies(
+        _voting_strategies_len, _voting_strategies, global_voting_strategy_params_all, 0
+    )
     unchecked_add_authenticators(_authenticators_len, _authenticators)
     unchecked_add_executors(_executors_len, _executors)
 
@@ -252,12 +254,7 @@ end
 
 func unchecked_add_voting_strategies{
     syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr
-}(
-    to_add_len : felt,
-    to_add : felt*,
-    global_params_all : Immutable2DArray,
-    index : felt
-):
+}(to_add_len : felt, to_add : felt*, global_params_all : Immutable2DArray, index : felt):
     alloc_locals
     if to_add_len == 0:
         return ()
@@ -265,17 +262,10 @@ func unchecked_add_voting_strategies{
         voting_strategies.write(to_add[0], 1)
 
         # Extract global voting params for the voting strategy
-        let (global_params_len, global_params) = get_sub_array(
-            global_params_all, index
-        )
+        let (global_params_len, global_params) = get_sub_array(global_params_all, index)
 
         # Add global voting params
-        register_global_voting_strategy_params(
-            0,
-            to_add[0],
-            global_params_len,
-            global_params,
-        )
+        register_global_voting_strategy_params(0, to_add[0], global_params_len, global_params)
 
         unchecked_add_voting_strategies(to_add_len - 1, &to_add[1], global_params_all, index + 1)
         return ()
@@ -389,7 +379,7 @@ func get_cumulative_voting_power{syscall_ptr : felt*, pedersen_ptr : HashBuiltin
     used_voting_strategies_len : felt,
     used_voting_strategies : felt*,
     voting_strategy_params_all : Immutable2DArray,
-    index : felt 
+    index : felt,
 ) -> (voting_power : Uint256):
     alloc_locals
 
@@ -435,7 +425,7 @@ func get_cumulative_voting_power{syscall_ptr : felt*, pedersen_ptr : HashBuiltin
         used_voting_strategies_len - 1,
         &used_voting_strategies[1],
         voting_strategy_params_all,
-        index + 1
+        index + 1,
     )
 
     let (voting_power, overflow) = uint256_add(user_voting_power, additional_voting_power)
@@ -562,12 +552,7 @@ end
 @external
 func add_voting_strategies{
     syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr : felt
-}(
-    to_add_len : felt,
-    to_add : felt*,
-    global_params_flat_len : felt,
-    global_params_flat : felt*,
-):
+}(to_add_len : felt, to_add : felt*, global_params_flat_len : felt, global_params_flat : felt*):
     alloc_locals
 
     Ownable_only_owner()
@@ -677,7 +662,7 @@ func vote{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr : fe
         used_voting_strategies_len,
         used_voting_strategies,
         voting_strategy_params_all,
-        0
+        0,
     )
 
     let (previous_voting_power) = vote_power.read(proposal_id, choice)
@@ -749,7 +734,7 @@ func propose{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr :
         used_voting_strategies_len,
         used_voting_strategies,
         voting_strategy_params_all,
-        0
+        0,
     )
 
     # Verify that the proposer has enough voting power to trigger a proposal

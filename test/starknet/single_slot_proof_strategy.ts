@@ -10,9 +10,9 @@ import { singleSlotProofSetup } from '../starknet/shared/setup';
 describe('Snapshot X Single Slot Strategy:', () => {
   it('The strategy should return the voting power', async () => {
     // Encode proof data to produce the inputs for the account and storage proofs.
-    
-    const voterAddress = BigInt("0x5773D321394D20C36E4CA35386C97761A9BAe820")
-    
+
+    const voterAddress = BigInt('0x5773D321394D20C36E4CA35386C97761A9BAe820');
+
     const proofInputs = ProofInputs.fromProofRPCData(block.number, proofs, encodeParams);
 
     const globalParams: bigint[] = [proofInputs.ethAddressFelt, BigInt(0)];

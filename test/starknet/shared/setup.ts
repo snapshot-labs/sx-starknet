@@ -120,7 +120,7 @@ export async function ethTxAuthSetup(signer: SignerWithAddress) {
     _voting_duration: VOTING_DURATION,
     _proposal_threshold: PROPOSAL_THRESHOLD,
     _controller: 1,
-    _global_voting_strategy_params_flat: global_voting_strategy_params_flat, 
+    _global_voting_strategy_params_flat: global_voting_strategy_params_flat,
     _voting_strategies: [voting_strategy],
     _authenticators: [authenticator],
     _executors: [VITALIK_ADDRESS],
