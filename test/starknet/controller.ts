@@ -30,7 +30,7 @@ describe('Controller', () => {
     await new_controller.invoke(vanillaSpace, 'update_controller', {
       new_controller: account.starknetContract.address,
     });
-  }).timeout(60000);
+  }).timeout(600000);
 
   it('Should not be able to update controller if not properly called', async () => {
     const fake_controller = await starknet.deployAccount('OpenZeppelin');
@@ -42,5 +42,5 @@ describe('Controller', () => {
     } catch (error: any) {
       expect(error.message).to.contain('Ownable: caller is not the owner');
     }
-  }).timeout(60000);
+  }).timeout(600000);
 });

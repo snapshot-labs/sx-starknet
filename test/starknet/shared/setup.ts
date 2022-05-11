@@ -45,6 +45,7 @@ export async function vanillaSetup() {
   const voting_strategy = BigInt(vanillaVotingStrategy.address);
   const authenticator = BigInt(vanillaAuthenticator.address);
   const zodiac_relayer = BigInt(zodiacRelayer.address);
+  const quorum = SplitUint256.fromUint(BigInt(0));
 
   // This should be declared along with the other const but doing so will make the compiler unhappy as `SplitUin256`
   // will be undefined for some reason?
@@ -56,7 +57,7 @@ export async function vanillaSetup() {
     _min_voting_duration: MIN_VOTING_DURATION,
     _max_voting_duration: MAX_VOTING_DURATION,
     _proposal_threshold: PROPOSAL_THRESHOLD,
-    _quorum: 0,
+    _quorum: quorum,
     _controller: BigInt(account.starknetContract.address),
     _voting_strategies: [voting_strategy],
     _authenticators: [authenticator],
@@ -112,13 +113,14 @@ export async function ethTxAuthSetup(signer: SignerWithAddress) {
   // This should be declared along with the other const but doing so will make the compiler unhappy as `SplitUin256`
   // will be undefined for some reason?
   const PROPOSAL_THRESHOLD = SplitUint256.fromUint(BigInt(1));
+  const quorum = SplitUint256.fromUint(BigInt(0));
 
   const space = (await SpaceFactory.deploy({
     _voting_delay: VOTING_DELAY,
     _min_voting_duration: MIN_VOTING_DURATION,
     _max_voting_duration: MAX_VOTING_DURATION,
     _proposal_threshold: PROPOSAL_THRESHOLD,
-    _quorum: 0,
+    _quorum: quorum,
     _controller: 1,
     _voting_strategies: [voting_strategy],
     _authenticators: [authenticator],
