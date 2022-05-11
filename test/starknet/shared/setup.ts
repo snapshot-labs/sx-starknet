@@ -3,7 +3,7 @@ import { SignerWithAddress } from '@nomiclabs/hardhat-ethers/signers';
 import { StarknetContract, Account } from 'hardhat/types';
 import { Contract, ContractFactory } from 'ethers';
 import { SplitUint256, IntsSequence } from './types';
-import { hexToBytes } from './helpers';
+import { hexToBytes, flatten2DArray } from './helpers';
 import { block } from '../data/blocks';
 import { ProcessBlockInputs } from './parseRPCData';
 export const EXECUTE_METHOD = 'execute';
@@ -42,6 +42,8 @@ export async function vanillaSetup() {
   const zodiacRelayer = contracts[2] as StarknetContract;
 
   const voting_strategy = BigInt(vanillaVotingStrategy.address);
+  const global_voting_strategy_params: bigint[][] = [[]];
+  const global_voting_strategy_params_flat = flatten2DArray(global_voting_strategy_params);
   const authenticator = BigInt(vanillaAuthenticator.address);
   const zodiac_relayer = BigInt(zodiacRelayer.address);
 
@@ -55,6 +57,7 @@ export async function vanillaSetup() {
     _voting_duration: VOTING_DURATION,
     _proposal_threshold: PROPOSAL_THRESHOLD,
     _controller: BigInt(account.starknetContract.address),
+    _global_voting_strategy_params_flat: global_voting_strategy_params_flat,
     _voting_strategies: [voting_strategy],
     _authenticators: [authenticator],
     _executors: [zodiac_relayer],
