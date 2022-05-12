@@ -730,9 +730,9 @@
     semver "^6.3.0"
     undici "^4.14.1"
 
-"@nomiclabs/hardhat-solhint@^2.0.0":
-  version "2.0.0"
-  resolved "https://registry.yarnpkg.com/@nomiclabs/hardhat-solhint/-/hardhat-solhint-2.0.0.tgz#28f2c6b50709a91538ba69c1c8fe60985bf920f3"
+"@nomiclabs/hardhat-solhint@^2.0.1":
+  version "2.0.1"
+  resolved "https://registry.yarnpkg.com/@nomiclabs/hardhat-solhint/-/hardhat-solhint-2.0.1.tgz#62896569d10c95a17cefab0229701cfffd19246f"
   dependencies:
     solhint "^2.0.0"
 
@@ -3446,7 +3446,7 @@ dot-prop@^5.2.0:
   dependencies:
     is-obj "^2.0.0"
 
-dotenv@^16.0.0, dotenv@^16.0.1:
+dotenv@^16.0.1:
   version "16.0.1"
   resolved "https://registry.yarnpkg.com/dotenv/-/dotenv-16.0.1.tgz#8f8f9d94876c35dac989876a5d3a82a267fdce1d"
 
@@ -9434,8 +9434,8 @@ swarm-js@^0.1.40:
 
 sx-api@snapshot-labs/sx-api:
   version "0.1.0"
-  uid "46bbba0d506f2b34a2666a043217aea06d48d303"
-  resolved "https://codeload.github.com/snapshot-labs/sx-api/tar.gz/46bbba0d506f2b34a2666a043217aea06d48d303"
+  uid e252f1568e8a43d7370d1a680531d9885c63528b
+  resolved "https://codeload.github.com/snapshot-labs/sx-api/tar.gz/e252f1568e8a43d7370d1a680531d9885c63528b"
   dependencies:
     "@ethersproject/address" "^5.6.0"
     "@ethersproject/bignumber" "^5.6.0"
@@ -9444,7 +9444,7 @@ sx-api@snapshot-labs/sx-api:
     bluebird "^3.7.2"
     connection-string "^1.0.1"
     cors "^2.8.5"
-    dotenv "^16.0.0"
+    dotenv "^16.0.1"
     eslint "^8.15.0"
     express "^4.18.1"
     express-graphql "^0.12.0"
