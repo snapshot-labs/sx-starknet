@@ -3,7 +3,8 @@
 from starkware.starknet.common.syscalls import get_caller_address, get_block_timestamp
 from starkware.cairo.common.cairo_builtins import HashBuiltin
 from starkware.cairo.common.alloc import alloc
-from starkware.cairo.common.uint256 import Uint256, uint256_add, uint256_lt
+from starkware.cairo.common.uint256 import Uint256, uint256_add, uint256_lt, uint256_le
+from starkware.cairo.common.bool import TRUE, FALSE
 from starkware.cairo.common.hash_state import hash_init, hash_update
 from starkware.cairo.common.math import (
     assert_lt, assert_le, assert_nn, assert_not_zero, assert_lt_felt
@@ -32,11 +33,19 @@ func voting_delay() -> (delay : felt):
 end
 
 @storage_var
-func voting_duration() -> (period : felt):
+func min_voting_duration() -> (period : felt):
+end
+
+@storage_var
+func max_voting_duration() -> (period : felt):
 end
 
 @storage_var
 func proposal_threshold() -> (threshold : Uint256):
+end
+
+@storage_var
+func quorum() -> (value : Uint256):
 end
 
 @storage_var
@@ -94,9 +103,11 @@ end
 @event
 func space_created(
     _voting_delay : felt,
-    _voting_duration : felt,
+    _min_voting_duration : felt,
+    _max_voting_duration : felt,
     _proposal_threshold : Uint256,
     _controller : felt,
+    _quorum : Uint256,
     _voting_strategies_len : felt,
     _voting_strategies : felt*,
     _authenticators_len : felt,
@@ -111,11 +122,19 @@ func controller_updated(previous : felt, new_controller : felt):
 end
 
 @event
+func quorum_updated(previous : Uint256, new_quorum : Uint256):
+end
+
+@event
 func voting_delay_updated(previous : felt, new_voting_delay : felt):
 end
 
 @event
-func voting_duration_updated(previous : felt, new_voting_duration : felt):
+func min_voting_duration_updated(previous : felt, new_voting_duration : felt):
+end
+
+@event
+func max_voting_duration_updated(previous : felt, new_voting_duration : felt):
 end
 
 @event
@@ -153,9 +172,11 @@ end
 @constructor
 func constructor{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr : felt}(
     _voting_delay : felt,
-    _voting_duration : felt,
+    _min_voting_duration : felt,
+    _max_voting_duration : felt,
     _proposal_threshold : Uint256,
     _controller : felt,
+    _quorum : Uint256,
     _voting_strategies_len : felt,
     _voting_strategies : felt*,
     _authenticators_len : felt,
@@ -168,7 +189,7 @@ func constructor{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_p
     # Sanity checks
     with_attr error_message("Invalid constructor parameters"):
         assert_nn(_voting_delay)
-        assert_nn(_voting_duration)
+        assert_le(_min_voting_duration, _max_voting_duration)
         assert_not_zero(_controller)
         assert_not_zero(_voting_strategies_len)
         assert_not_zero(_authenticators_len)
@@ -178,9 +199,11 @@ func constructor{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_p
 
     # Initialize the storage variables
     voting_delay.write(_voting_delay)
-    voting_duration.write(_voting_duration)
+    min_voting_duration.write(_min_voting_duration)
+    max_voting_duration.write(_max_voting_duration)
     proposal_threshold.write(_proposal_threshold)
     Ownable_initializer(_controller)
+    quorum.write(_quorum)
 
     unchecked_add_voting_strategies(_voting_strategies_len, _voting_strategies)
     unchecked_add_authenticators(_authenticators_len, _authenticators)
@@ -190,9 +213,11 @@ func constructor{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_p
 
     space_created.emit(
         _voting_delay,
-        _voting_duration,
+        _min_voting_duration,
+        _max_voting_duration,
         _proposal_threshold,
         _controller,
+        _quorum,
         _voting_strategies_len,
         _voting_strategies,
         _authenticators_len,
@@ -381,6 +406,20 @@ func update_controller{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_c
 end
 
 @external
+func update_quorum{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr : felt}(
+    new_quorum : Uint256
+):
+    Ownable_only_owner()
+
+    let (previous_quorum) = quorum.read()
+
+    quorum.write(new_quorum)
+
+    quorum_updated.emit(previous_quorum, new_quorum)
+    return ()
+end
+
+@external
 func update_voting_delay{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr : felt}(
     new_delay : felt
 ):
@@ -396,16 +435,39 @@ func update_voting_delay{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range
 end
 
 @external
-func update_voting_duration{
+func update_min_voting_duration{
     syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr : felt
-}(new_duration : felt):
+}(new_min_duration : felt):
     Ownable_only_owner()
 
-    let (previous_duration) = voting_duration.read()
+    let (previous_duration) = min_voting_duration.read()
 
-    voting_duration.write(new_duration)
+    let (max_duration) = max_voting_duration.read()
 
-    voting_duration_updated.emit(previous_duration, new_duration)
+    assert_le(new_min_duration, max_duration)
+
+    min_voting_duration.write(new_min_duration)
+
+    min_voting_duration_updated.emit(previous_duration, new_min_duration)
+
+    return ()
+end
+
+@external
+func update_max_voting_duration{
+    syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr : felt
+}(new_max_duration : felt):
+    Ownable_only_owner()
+
+    let (previous_duration) = max_voting_duration.read()
+
+    let (min_duration) = min_voting_duration.read()
+
+    assert_le(min_duration, new_max_duration)
+
+    max_voting_duration.write(new_max_duration)
+
+    max_voting_duration_updated.emit(previous_duration, new_max_duration)
 
     return ()
 end
@@ -523,12 +585,18 @@ func vote{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr : fe
     # Verify that the caller is the authenticator contract.
     assert_valid_authenticator()
 
+    # Make sure proposal has not already been executed
+    with_attr error_message("Proposal already executed"):
+        let (has_been_executed) = executed_proposals.read(proposal_id)
+        assert has_been_executed = 0
+    end
+
     let (proposal) = proposal_registry.read(proposal_id)
     let (current_timestamp) = get_block_timestamp()
 
-    # Make sure proposal is not closed
+    # Make sure proposal is still open for voting
     with_attr error_message("Voting period has ended"):
-        assert_lt(current_timestamp, proposal.end_timestamp)
+        assert_lt(current_timestamp, proposal.max_end_timestamp)
     end
 
     # Make sure proposal has started
@@ -612,11 +680,14 @@ func propose{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr :
 
     let (current_timestamp) = get_block_timestamp()
     let (delay) = voting_delay.read()
-    let (duration) = voting_duration.read()
 
-    # Define start_timestamp and end_timestamp based on current timestamp, delay and duration variables.
+    let (_min_voting_duration) = min_voting_duration.read()
+    let (_max_voting_duration) = max_voting_duration.read()
+
+    # Define start_timestamp, min_end and max_end
     let start_timestamp = current_timestamp + delay
-    let end_timestamp = start_timestamp + duration
+    let min_end_timestamp = start_timestamp + _min_voting_duration
+    let max_end_timestamp = start_timestamp + _max_voting_duration
 
     let (voting_power) = get_cumulative_voting_power(
         start_timestamp,
@@ -640,9 +711,18 @@ func propose{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr :
     # Hash the execution params
     let (hash) = hash_array(execution_params_len, execution_params)
 
+    let (_quorum) = quorum.read()
+
     # Create the proposal and its proposal id
     let proposal = Proposal(
-        execution_hash, start_timestamp, end_timestamp, ethereum_block_number, hash, executor
+        execution_hash,
+        _quorum,
+        start_timestamp,
+        min_end_timestamp,
+        max_end_timestamp,
+        ethereum_block_number,
+        hash,
+        executor,
     )
 
     let (proposal_id) = next_proposal_nonce.read()
@@ -689,14 +769,10 @@ func finalize_proposal{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_c
     end
 
     # Make sure proposal period has ended
+    # NOTE: commented out the `with_attr` block because it needs 0.8.1 to work
+    # with_attr error_message("Min voting period has not elapsed"):
     let (current_timestamp) = get_block_timestamp()
-    # ------------------------------------------------
-    #                  IMPORTANT
-    # ------------------------------------------------
-    # This has been commented to allow for easier testing.
-    # Please uncomment before pushing to prod.
-    # with_attr error_message("Voting period has not ended yet"):
-    #   assert_lt_felt(proposal.end_timestamp, current_timestamp)
+    assert_le(proposal.min_end_timestamp, current_timestamp)
     # end
 
     # Make sure execution params match the stored hash
@@ -709,7 +785,25 @@ func finalize_proposal{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_c
     let (for) = vote_power.read(proposal_id, Choice.FOR)
 
     # Count votes against
+    let (abstain) = vote_power.read(proposal_id, Choice.ABSTAIN)
+
+    # Count votes against
     let (against) = vote_power.read(proposal_id, Choice.AGAINST)
+
+    let (partial_power, overflow1) = uint256_add(for, abstain)
+
+    let (total_power, overflow2) = uint256_add(partial_power, against)
+
+    let _quorum = proposal.quorum
+    let (is_lower_or_equal) = uint256_le(_quorum, total_power)
+
+    # If overflow1 or overflow2 happened, then quorum has necessarily been reached because `quorum` is by definition smaller or equal to Uint256::MAX.
+    # If `is_lower_or_equal` (meaning `_quorum` is smaller than `total_power`), then quorum has been reached (definition of quorum).
+    # So if `overflow1 || overflow2 || is_lower_or_equal`, we have reached quorum. If we sum them and find `0`, then they're all equal to 0, which means
+    # quorum has not been reached.
+    with_attr error_message("Quorum has not been reached"):
+        assert_not_zero(overflow1 + overflow2 + is_lower_or_equal)
+    end
 
     # Set proposal outcome accordingly
     let (has_passed) = uint256_lt(against, for)
