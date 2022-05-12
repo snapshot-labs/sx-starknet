@@ -107,7 +107,7 @@ func space_created(
     _max_voting_duration : felt,
     _proposal_threshold : Uint256,
     _controller : felt,
-    _quorum: Uint256,
+    _quorum : Uint256,
     _voting_strategies_len : felt,
     _voting_strategies : felt*,
     _authenticators_len : felt,
