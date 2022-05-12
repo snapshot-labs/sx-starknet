@@ -32,7 +32,7 @@
     "concurrently": "^7.1.0",
     "ethereumjs-util": "^7.1.4",
     "install": "^0.13.0",
-    "npm": "^8.9.0",
+    "npm": "^8.10.0",
     "starknet": "^2.5.1",
     "sx-api": "snapshot-labs/sx-api",
     "wait-on": "^6.0.1",
