@@ -17,8 +17,9 @@ describe('Snapshot X Vanilla Voting Strategy:', () => {
   it('The voting strategy should return a voting power of 1', async () => {
     const { vanillaVotingStrategy } = await setup();
     const { voting_power: vp } = await vanillaVotingStrategy.call('get_voting_power', {
-      timestamp: 1,
-      address: { value: BigInt('0xffffffffffffffffffff') },
+      block: 1,
+      voter_address: { value: BigInt('0xffffffffffffffffffff') },
+      global_params: [],
       params: [],
     });
     expect(new SplitUint256(vp.low, vp.high)).to.deep.equal(SplitUint256.fromUint(BigInt(1)));
