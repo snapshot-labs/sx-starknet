@@ -122,6 +122,10 @@ func controller_updated(previous : felt, new_controller : felt):
 end
 
 @event
+func quorum_updated(previous : Uint256, new_quorum : Uint256):
+end
+
+@event
 func voting_delay_updated(previous : felt, new_voting_delay : felt):
 end
 
@@ -398,6 +402,20 @@ func update_controller{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_c
     Ownable_transfer_ownership(new_controller)
 
     controller_updated.emit(previous_controller, new_controller)
+    return ()
+end
+
+@external
+func update_quorum{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr : felt}(
+    new_quorum : Uint256
+):
+    Ownable_only_owner()
+
+    let (previous_quorum) = quorum.read()
+
+    quorum.write(new_quorum)
+
+    quorum_updated.emit(previous_quorum, new_quorum)
     return ()
 end
 
