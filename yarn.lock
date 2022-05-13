@@ -5199,9 +5199,9 @@ hardhat-gas-reporter@^1.0.7:
     eth-gas-reporter "^0.2.24"
     sha1 "^1.1.1"
 
-hardhat@^2.9.4:
-  version "2.9.4"
-  resolved "https://registry.yarnpkg.com/hardhat/-/hardhat-2.9.4.tgz#ecb587f98ae9b14b66c9d401bf970669f4335013"
+hardhat@^2.9.5:
+  version "2.9.5"
+  resolved "https://registry.yarnpkg.com/hardhat/-/hardhat-2.9.5.tgz#6814a9f3afd5630ffe6bcb05a4367eb259c9222a"
   dependencies:
     "@ethereumjs/block" "^3.6.2"
     "@ethereumjs/blockchain" "^5.5.2"
