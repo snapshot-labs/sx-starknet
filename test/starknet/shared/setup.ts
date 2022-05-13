@@ -12,7 +12,8 @@ export const VOTE_METHOD = 'vote';
 export const GET_PROPOSAL_INFO = 'get_proposal_info';
 export const GET_VOTE_INFO = 'get_vote_info';
 export const VOTING_DELAY = BigInt(0);
-export const VOTING_DURATION = BigInt(20);
+export const MIN_VOTING_DURATION = BigInt(0);
+export const MAX_VOTING_DURATION = BigInt(2000);
 export const VITALIK_ADDRESS = BigInt('0xd8da6bf26964af9d7eed9e03e53415d37aa96045');
 export const VITALIK_STRING_ADDRESS = VITALIK_ADDRESS.toString(16);
 
@@ -46,6 +47,7 @@ export async function vanillaSetup() {
   const global_voting_strategy_params_flat = flatten2DArray(global_voting_strategy_params);
   const authenticator = BigInt(vanillaAuthenticator.address);
   const zodiac_relayer = BigInt(zodiacRelayer.address);
+  const quorum = SplitUint256.fromUint(BigInt(0));
 
   // This should be declared along with the other const but doing so will make the compiler unhappy as `SplitUin256`
   // will be undefined for some reason?
@@ -54,9 +56,11 @@ export async function vanillaSetup() {
   console.log('Deploying space contract...');
   const vanillaSpace = (await vanillaSpaceFactory.deploy({
     _voting_delay: VOTING_DELAY,
-    _voting_duration: VOTING_DURATION,
+    _min_voting_duration: MIN_VOTING_DURATION,
+    _max_voting_duration: MAX_VOTING_DURATION,
     _proposal_threshold: PROPOSAL_THRESHOLD,
     _controller: BigInt(account.starknetContract.address),
+    _quorum: quorum,
     _global_voting_strategy_params_flat: global_voting_strategy_params_flat,
     _voting_strategies: [voting_strategy],
     _authenticators: [authenticator],
@@ -114,12 +118,16 @@ export async function ethTxAuthSetup(signer: SignerWithAddress) {
   // This should be declared along with the other const but doing so will make the compiler unhappy as `SplitUin256`
   // will be undefined for some reason?
   const PROPOSAL_THRESHOLD = SplitUint256.fromUint(BigInt(1));
+  const quorum = SplitUint256.fromUint(BigInt(0));
+
 
   const space = (await SpaceFactory.deploy({
     _voting_delay: VOTING_DELAY,
-    _voting_duration: VOTING_DURATION,
+    _min_voting_duration: MIN_VOTING_DURATION,
+    _max_voting_duration: MAX_VOTING_DURATION,
     _proposal_threshold: PROPOSAL_THRESHOLD,
     _controller: 1,
+    _quorum: quorum,
     _global_voting_strategy_params_flat: global_voting_strategy_params_flat,
     _voting_strategies: [voting_strategy],
     _authenticators: [authenticator],

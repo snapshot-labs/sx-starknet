@@ -9,7 +9,8 @@ import {
   EXECUTE_METHOD,
   PROPOSAL_METHOD,
   VOTE_METHOD,
-  VOTING_DURATION,
+  MIN_VOTING_DURATION,
+  MAX_VOTING_DURATION,
 } from './shared/setup';
 import { StarknetContract } from 'hardhat/types';
 
@@ -79,12 +80,9 @@ describe('Space testing', () => {
       });
 
       // We can't directly compare the `info` object because we don't know for sure the value of `start_block` (and hence `end_block`),
-      // so we compare it element by element (except start_block and end_block for which we simply compare their difference to `VOTING_PERIOD`).
+      // so we compare it element by element.
       const _executionHash = SplitUint256.fromObj(proposal_info.proposal.execution_hash);
       expect(_executionHash).to.deep.equal(executionHash);
-      expect(
-        proposal_info.proposal.end_timestamp - proposal_info.proposal.start_timestamp
-      ).to.deep.equal(VOTING_DURATION);
 
       const _for = SplitUint256.fromObj(proposal_info.power_for).toUint();
       expect(_for).to.deep.equal(BigInt(0));
