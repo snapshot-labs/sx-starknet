@@ -120,7 +120,6 @@ export async function ethTxAuthSetup(signer: SignerWithAddress) {
   const PROPOSAL_THRESHOLD = SplitUint256.fromUint(BigInt(1));
   const quorum = SplitUint256.fromUint(BigInt(0));
 
-
   const space = (await SpaceFactory.deploy({
     _voting_delay: VOTING_DELAY,
     _min_voting_duration: MIN_VOTING_DURATION,
