@@ -36,7 +36,7 @@
     "starknet": "^2.5.1",
     "sx-api": "snapshot-labs/sx-api",
     "wait-on": "^6.0.1",
-    "yargs": "^17.5.0"
+    "yargs": "^17.5.1"
   },
   "devDependencies": {
     "@nomiclabs/hardhat-ethers": "^2.0.6",
