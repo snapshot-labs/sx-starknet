@@ -290,14 +290,14 @@ func unchecked_add_voting_strategies{
         let (global_params_len, global_params) = get_sub_array(global_params_all, index)
 
         # Add global voting params
-        register_global_voting_strategy_params(0, to_add[0], global_params_len, global_params)
+        unchecked_add_global_voting_strategy_params(0, to_add[0], global_params_len, global_params)
 
         unchecked_add_voting_strategies(to_add_len - 1, &to_add[1], global_params_all, index + 1)
         return ()
     end
 end
 
-func register_global_voting_strategy_params{
+func unchecked_add_global_voting_strategy_params{
     syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr
 }(
     index : felt,
@@ -313,20 +313,14 @@ func register_global_voting_strategy_params{
         global_voting_strategy_params.write(
             voting_strategy, index, _global_voting_strategy_params[0]
         )
-
-        if _global_voting_strategy_params_len == 1:
-            # Nothing left to add, end recursion
-            return ()
-        else:
-            # Recurse
-            register_global_voting_strategy_params(
-                index + 1,
-                voting_strategy,
-                _global_voting_strategy_params_len - 1,
-                &_global_voting_strategy_params[1],
-            )
-            return ()
-        end
+        # Recurse
+        unchecked_add_global_voting_strategy_params(
+            index + 1,
+            voting_strategy,
+            _global_voting_strategy_params_len - 1,
+            &_global_voting_strategy_params[1],
+        )
+        return ()
     end
 end
 
@@ -403,7 +397,7 @@ func get_cumulative_voting_power{syscall_ptr : felt*, pedersen_ptr : HashBuiltin
     voter_address : EthAddress,
     used_voting_strategies_len : felt,
     used_voting_strategies : felt*,
-    voting_strategy_params_all : Immutable2DArray,
+    used_voting_strategy_params_all : Immutable2DArray,
     index : felt,
 ) -> (voting_power : Uint256):
     alloc_locals
@@ -431,7 +425,7 @@ func get_cumulative_voting_power{syscall_ptr : felt*, pedersen_ptr : HashBuiltin
 
     # Extract voting params array for the voting strategy specified by the index
     let (voting_strategy_params_len, voting_strategy_params) = get_sub_array(
-        voting_strategy_params_all, index
+        used_voting_strategy_params_all, index
     )
 
     let (user_voting_power) = i_voting_strategy.get_voting_power(
@@ -449,7 +443,7 @@ func get_cumulative_voting_power{syscall_ptr : felt*, pedersen_ptr : HashBuiltin
         voter_address,
         used_voting_strategies_len - 1,
         &used_voting_strategies[1],
-        voting_strategy_params_all,
+        used_voting_strategy_params_all,
         index + 1,
     )
 
@@ -462,7 +456,7 @@ func get_cumulative_voting_power{syscall_ptr : felt*, pedersen_ptr : HashBuiltin
     return (voting_power)
 end
 
-# Function to reconstruct global voting param array for voting strategy
+# Function to reconstruct global voting param array for voting strategy specified
 func get_global_voting_strategy_params{
     syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr
 }(_voting_strategy_contract : felt, _global_voting_strategy_params : felt*, index : felt) -> (
