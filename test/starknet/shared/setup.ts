@@ -15,7 +15,7 @@ export const VOTING_DELAY = BigInt(0);
 export const MIN_VOTING_DURATION = BigInt(0);
 export const MAX_VOTING_DURATION = BigInt(2000);
 export const VITALIK_ADDRESS = BigInt('0xd8da6bf26964af9d7eed9e03e53415d37aa96045');
-export const VITALIK_STRING_ADDRESS = VITALIK_ADDRESS.toString(16);
+export const VITALIK_STRING_ADDRESS = '0x'+VITALIK_ADDRESS.toString(16);
 
 export async function vanillaSetup() {
   const account = await starknet.deployAccount('OpenZeppelin');
@@ -54,7 +54,7 @@ export async function vanillaSetup() {
   const PROPOSAL_THRESHOLD = SplitUint256.fromUint(BigInt(1));
 
   console.log('Deploying space contract...');
-  const vanillaSpace = (await vanillaSpaceFactory.deploy({
+  const space = (await vanillaSpaceFactory.deploy({
     _voting_delay: VOTING_DELAY,
     _min_voting_duration: MIN_VOTING_DURATION,
     _max_voting_duration: MAX_VOTING_DURATION,
@@ -69,7 +69,7 @@ export async function vanillaSetup() {
   console.log('deployed!');
 
   return {
-    vanillaSpace,
+    space,
     vanillaAuthenticator,
     vanillaVotingStrategy,
     zodiacRelayer,

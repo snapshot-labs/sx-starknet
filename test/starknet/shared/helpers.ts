@@ -132,3 +132,38 @@ export function flatten2DArray(array2D: bigint[][]): bigint[] {
   const elements = array2D.reduce((accumulator, value) => accumulator.concat(value), []);
   return flatArray.concat(elements);
 }
+
+export const getProposeCalldata = (
+  proposerEthAddress: string,
+  executionHash: string,
+  metadataUri: bigint[],
+  ethBlockNumber: bigint,
+  executorAddress: bigint,
+  usedVotingStrategies: bigint[],
+  votingStrategyParams: bigint[][],
+  executionParams: bigint[]): bigint[] => {
+
+    const executionHashUint256 = SplitUint256.fromHex(executionHash);
+    const votingStrategyParamsFlat = flatten2DArray(votingStrategyParams);
+
+    return [
+      BigInt(proposerEthAddress), 
+      executionHashUint256.low, 
+      executionHashUint256.high, 
+      BigInt(metadataUri.length), 
+      ...metadataUri, 
+      ethBlockNumber, 
+      executorAddress, 
+      BigInt(usedVotingStrategies.length), 
+      ...usedVotingStrategies, 
+      BigInt(votingStrategyParamsFlat.length), 
+      ...votingStrategyParamsFlat, 
+      BigInt(executionParams.length), 
+      ...executionParams
+    ];
+}
+
+// export const getVoteCalldata = (
+//   voterEthAddress: string,
+//   proposalID: bigint,
+//   choice: bigint,

@@ -71,6 +71,10 @@ export class SplitUint256 {
     return new SplitUint256(low, high);
   }
 
+  static fromHex(hex: string): SplitUint256 {
+    return SplitUint256.fromUint(BigInt(hex));
+  }
+
   toHex(): string {
     return '0x' + this.toUint().toString(16);
   }
