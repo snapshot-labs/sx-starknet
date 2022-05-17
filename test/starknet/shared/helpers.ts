@@ -1,5 +1,5 @@
 import { ethers } from 'hardhat';
-import { SplitUint256 } from './types';
+import { SplitUint256, Choice } from './types';
 import { expect } from 'chai';
 import { computeHashOnElements } from 'starknet/dist/utils/hash';
 import { toBN } from 'starknet/dist/utils/number';
@@ -133,37 +133,50 @@ export function flatten2DArray(array2D: bigint[][]): bigint[] {
   return flatArray.concat(elements);
 }
 
-export const getProposeCalldata = (
+export function getProposeCalldata(
   proposerEthAddress: string,
   executionHash: string,
   metadataUri: bigint[],
   ethBlockNumber: bigint,
   executorAddress: bigint,
   usedVotingStrategies: bigint[],
-  votingStrategyParams: bigint[][],
-  executionParams: bigint[]): bigint[] => {
-
-    const executionHashUint256 = SplitUint256.fromHex(executionHash);
-    const votingStrategyParamsFlat = flatten2DArray(votingStrategyParams);
-
-    return [
-      BigInt(proposerEthAddress), 
-      executionHashUint256.low, 
-      executionHashUint256.high, 
-      BigInt(metadataUri.length), 
-      ...metadataUri, 
-      ethBlockNumber, 
-      executorAddress, 
-      BigInt(usedVotingStrategies.length), 
-      ...usedVotingStrategies, 
-      BigInt(votingStrategyParamsFlat.length), 
-      ...votingStrategyParamsFlat, 
-      BigInt(executionParams.length), 
-      ...executionParams
-    ];
+  usedVotingStrategyParams: bigint[][],
+  executionParams: bigint[]
+): bigint[] {
+  const executionHashUint256 = SplitUint256.fromHex(executionHash);
+  const usedVotingStrategyParamsFlat = flatten2DArray(usedVotingStrategyParams);
+  return [
+    BigInt(proposerEthAddress),
+    executionHashUint256.low,
+    executionHashUint256.high,
+    BigInt(metadataUri.length),
+    ...metadataUri,
+    ethBlockNumber,
+    executorAddress,
+    BigInt(usedVotingStrategies.length),
+    ...usedVotingStrategies,
+    BigInt(usedVotingStrategyParamsFlat.length),
+    ...usedVotingStrategyParamsFlat,
+    BigInt(executionParams.length),
+    ...executionParams,
+  ];
 }
 
-// export const getVoteCalldata = (
-//   voterEthAddress: string,
-//   proposalID: bigint,
-//   choice: bigint,
+export function getVoteCalldata(
+  voterEthAddress: string,
+  proposalID: bigint,
+  choice: Choice,
+  usedVotingStrategies: bigint[],
+  usedVotingStrategyParams: bigint[][]
+): bigint[] {
+  const usedVotingStrategyParamsFlat = flatten2DArray(usedVotingStrategyParams);
+  return [
+    BigInt(voterEthAddress),
+    proposalID,
+    BigInt(choice),
+    BigInt(usedVotingStrategies.length),
+    ...usedVotingStrategies,
+    BigInt(usedVotingStrategyParamsFlat.length),
+    ...usedVotingStrategyParamsFlat,
+  ];
+}

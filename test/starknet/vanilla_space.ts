@@ -1,6 +1,6 @@
 import { stark } from 'starknet';
-import { SplitUint256, FOR } from './shared/types';
-import { flatten2DArray, getProposeCalldata } from './shared/helpers';
+import { SplitUint256, Choice } from './shared/types';
+import { flatten2DArray, getProposeCalldata, getVoteCalldata } from './shared/helpers';
 import { strToShortStringArr } from '@snapshot-labs/sx';
 import { expect } from 'chai';
 import {
@@ -18,48 +18,72 @@ import { StarknetContract } from 'hardhat/types';
 const { getSelectorFromName } = stark;
 
 describe('Space testing', () => {
+  // Contracts
   let space: StarknetContract;
-  let spaceAddress: bigint;
   let vanillaAuthenticator: StarknetContract;
   let vanillaVotingStrategy: StarknetContract;
   let zodiacRelayer: StarknetContract;
+
+  // Proposal creation parameters
+  let spaceAddress: bigint;
   let zodiacRelayerAddress: bigint;
-  let executionHash: string; 
-  let metadataUri: bigint[]; 
-  let proposerAddress: string; 
-  let proposalId: bigint; 
-  let usedVotingStrategies: bigint[];
-  let votingParamsAll: bigint[][]; 
-  let l1ZodiacModule: bigint; 
-  let executionParams: bigint[]; 
-  let ethBlockNumber: bigint; 
+  let executionHash: string;
+  let metadataUri: bigint[];
+  let proposerEthAddress: string;
+  let usedVotingStrategies1: bigint[];
+  let votingParamsAll1: bigint[][];
+  let l1ZodiacModule: bigint;
+  let executionParams: bigint[];
+  let ethBlockNumber: bigint;
   let proposeCalldata: bigint[];
-  
+
+  // Additional parameters for voting
+  let voterEthAddress: string;
+  let proposalId: bigint;
+  let choice: Choice;
+  let usedVotingStrategies2: bigint[];
+  let votingParamsAll2: bigint[][];
+  let voteCalldata: bigint[];
+
   before(async function () {
     this.timeout(800000);
 
     ({ space, vanillaAuthenticator, vanillaVotingStrategy, zodiacRelayer } = await vanillaSetup());
 
     executionHash = '0x912ea662aac9d054ef5173da69723b88a5582cae2349f891998b6040cf9c2653'; // Random 32 byte hash
-    metadataUri = strToShortStringArr('Hello and welcome to Snapshot X. This is the future of governance.');
-    proposerAddress = '0xd8da6bf26964af9d7eed9e03e53415d37aa96045';
-    proposalId = BigInt(1);
+    metadataUri = strToShortStringArr(
+      'Hello and welcome to Snapshot X. This is the future of governance.'
+    );
+    proposerEthAddress = '0xd8da6bf26964af9d7eed9e03e53415d37aa96045';
     ethBlockNumber = BigInt(1337);
     spaceAddress = BigInt(space.address);
     zodiacRelayerAddress = BigInt(zodiacRelayer.address);
-    usedVotingStrategies = [BigInt(vanillaVotingStrategy.address)];
-    votingParamsAll = [[]];
+    usedVotingStrategies1 = [BigInt(vanillaVotingStrategy.address)];
+    votingParamsAll1 = [[]];
     l1ZodiacModule = BigInt('0x1234');
-    executionParams = [BigInt(l1ZodiacModule)]
+    executionParams = [BigInt(l1ZodiacModule)];
     proposeCalldata = getProposeCalldata(
-      proposerAddress, 
-      executionHash, 
-      metadataUri, 
-      ethBlockNumber, 
-      zodiacRelayerAddress, 
-      usedVotingStrategies, 
-      votingParamsAll, 
+      proposerEthAddress,
+      executionHash,
+      metadataUri,
+      ethBlockNumber,
+      zodiacRelayerAddress,
+      usedVotingStrategies1,
+      votingParamsAll1,
       executionParams
+    );
+
+    voterEthAddress = '0xffffffffffffffffffffffffffffffffffffffff';
+    proposalId = BigInt(1);
+    choice = Choice.FOR;
+    usedVotingStrategies2 = [BigInt(vanillaVotingStrategy.address)];
+    votingParamsAll2 = [[]];
+    voteCalldata = getVoteCalldata(
+      voterEthAddress,
+      proposalId,
+      choice,
+      usedVotingStrategies2,
+      votingParamsAll2
     );
   });
 
@@ -67,10 +91,10 @@ describe('Space testing', () => {
     // -- Creates the proposal --
     {
       console.log('Creating proposal...');
-      await vanillaAuthenticator.invoke(EXECUTE_METHOD, {
+      await vanillaAuthenticator.invoke('execute', {
         target: spaceAddress,
         function_selector: BigInt(getSelectorFromName(PROPOSAL_METHOD)),
-        calldata: proposeCalldata
+        calldata: proposeCalldata,
       });
 
       console.log('Getting proposal info...');
@@ -91,39 +115,29 @@ describe('Space testing', () => {
       expect(abstain).to.deep.equal(BigInt(0));
     }
 
-    // // -- Casts a vote FOR --
-    // {
-    //   console.log('Casting a vote FOR...');
-    //   const voter_address = proposerAddress.value;
-    //   const votingParamsAll: bigint[][] = [[]];
-    //   // Cairo cannot handle 2D arrays in calldata so we must flatten the data then reconstruct the individual arrays inside the contract
-    //   const votingParamsAllFlat = flatten2DArray(votingParamsAll);
-    //   const used_voting_strategies = [BigInt(vanillaVotingStrategy.address)];
-    //   await vanillaAuthenticator.invoke(EXECUTE_METHOD, {
-    //     target: spaceAddress,
-    //     function_selector: BigInt(getSelectorFromName(VOTE_METHOD)),
-    //     calldata: [
-    //       voter_address,
-    //       proposalId,
-    //       FOR,
-    //       BigInt(used_voting_strategies.length),
-    //       ...used_voting_strategies,
-    //       BigInt(votingParamsAllFlat.length),
-    //       ...votingParamsAllFlat,
-    //     ],
-    //   });
+    // -- Casts a vote FOR --
+    {
+      console.log('Casting a vote FOR...');
+      // Cairo cannot handle 2D arrays in calldata so we must flatten the data then reconstruct the individual arrays inside the contract
+      // const votingParamsAllFlat = flatten2DArray(votingParamsAll);
+      // const used_voting_strategies = [BigInt(vanillaVotingStrategy.address)];
+      await vanillaAuthenticator.invoke('execute', {
+        target: spaceAddress,
+        function_selector: BigInt(getSelectorFromName(VOTE_METHOD)),
+        calldata: voteCalldata,
+      });
 
-    //   console.log('Getting proposal info...');
-    //   const { proposal_info } = await space.call('get_proposal_info', {
-    //     proposal_id: proposalId,
-    //   });
+      console.log('Getting proposal info...');
+      const { proposal_info } = await space.call('get_proposal_info', {
+        proposal_id: proposalId,
+      });
 
-    //   const _for = SplitUint256.fromObj(proposal_info.power_for).toUint();
-    //   expect(_for).to.deep.equal(BigInt(1));
-    //   const against = SplitUint256.fromObj(proposal_info.power_against).toUint();
-    //   expect(against).to.deep.equal(BigInt(0));
-    //   const abstain = SplitUint256.fromObj(proposal_info.power_abstain).toUint();
-    //   expect(abstain).to.deep.equal(BigInt(0));
-    // }
+      const _for = SplitUint256.fromObj(proposal_info.power_for).toUint();
+      expect(_for).to.deep.equal(BigInt(1));
+      const against = SplitUint256.fromObj(proposal_info.power_against).toUint();
+      expect(against).to.deep.equal(BigInt(0));
+      const abstain = SplitUint256.fromObj(proposal_info.power_abstain).toUint();
+      expect(abstain).to.deep.equal(BigInt(0));
+    }
   }).timeout(6000000);
 });
