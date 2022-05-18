@@ -14,11 +14,7 @@ import {
   PROPOSAL_METHOD,
   VOTE_METHOD,
 } from '../starknet/shared/setup';
-import {
-  expectAddressEquality,
-  createExecutionHash,
-  flatten2DArray,
-} from '../starknet/shared/helpers';
+import { expectAddressEquality, createExecutionHash, flatten2DArray } from '../shared/helpers';
 
 const { getSelectorFromName } = stark;
 
@@ -43,28 +39,44 @@ const tx2 = {
 describe('Create proposal, cast vote, and send execution to l1', function () {
   this.timeout(12000000);
   const networkUrl: string = (network.config as HttpNetworkConfig).url;
-  let l1ExecutorFactory: ContractFactory;
-  let MockStarknetMessaging: ContractFactory;
-  let mockStarknetMessaging: Contract;
-  let l1Executor: Contract;
   let signer: SignerWithAddress;
-  let spaceContract: StarknetContract;
-  let authContract: StarknetContract;
-  let votingContract: StarknetContract;
+
+  // Contracts
+  let mockStarknetMessaging: Contract;
+  let space: StarknetContract;
+  let controller: Account;
+  let vanillaAuthenticator: StarknetContract;
+  let vanillaVotingStrategy: StarknetContract;
   let zodiacRelayer: StarknetContract;
+  let starknetCommit: Contract;
+
+  // Proposal creation parameters
+  let spaceAddress: bigint;
+  let executionHash: string;
+  let metadataUri: bigint[];
+  let proposerEthAddress: string;
+  let usedVotingStrategies1: bigint[];
+  let votingParamsAll1: bigint[][];
+  let executionStrategy: bigint;
+  let executionParams: bigint[];
+  let ethBlockNumber: bigint;
+  let proposeCalldata: bigint[];
+
+  // Additional parameters for voting
+  let voterEthAddress: string;
+  let proposalId: bigint;
+  let choice: Choice;
+  let usedVotingStrategies2: bigint[];
+  let votingParamsAll2: bigint[][];
+  let voteCalldata: bigint[];
 
   before(async function () {
     this.timeout(800000);
-
-    ({
-      vanillaSpace: spaceContract,
-      vanillaAuthenticator: authContract,
-      vanillaVotingStrategy: votingContract,
-      zodiacRelayer,
-    } = await vanillaSetup());
-
     const signers = await ethers.getSigners();
     signer = signers[0];
+
+    ({ space, controller, vanillaAuthenticator, vanillaVotingStrategy, zodiacRelayer } =
+      await zodiacRelayerSetup());
 
     MockStarknetMessaging = (await ethers.getContractFactory(
       'MockStarknetMessaging',

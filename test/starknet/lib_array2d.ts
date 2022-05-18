@@ -1,7 +1,7 @@
 import { StarknetContract } from 'hardhat/types/runtime';
 import { expect } from 'chai';
 import { starknet } from 'hardhat';
-import { wordsToUint, flatten2DArray } from './shared/helpers';
+import { wordsToUint, flatten2DArray } from '../shared/helpers';
 
 async function setup() {
   const testArray2dFactory = await starknet.getContractFactory(

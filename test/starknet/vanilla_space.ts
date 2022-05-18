@@ -4,7 +4,7 @@ import { stark } from 'starknet';
 import { StarknetContract, Account } from 'hardhat/types';
 import { strToShortStringArr } from '@snapshot-labs/sx';
 import { SplitUint256, Choice } from './shared/types';
-import { flatten2DArray, getProposeCalldata, getVoteCalldata } from './shared/helpers';
+import { flatten2DArray, getProposeCalldata, getVoteCalldata } from '../shared/helpers';
 import { vanillaSetup } from './shared/setup';
 
 const { getSelectorFromName } = stark;
@@ -19,7 +19,6 @@ describe('Space Testing', () => {
 
   // Proposal creation parameters
   let spaceAddress: bigint;
-  let zodiacRelayerAddress: bigint;
   let executionHash: string;
   let metadataUri: bigint[];
   let proposerEthAddress: string;
@@ -41,7 +40,8 @@ describe('Space Testing', () => {
   before(async function () {
     this.timeout(800000);
 
-    ({ space, controller, vanillaAuthenticator, vanillaVotingStrategy, vanillaExecutionStrategy } = await vanillaSetup());
+    ({ space, controller, vanillaAuthenticator, vanillaVotingStrategy, vanillaExecutionStrategy } =
+      await vanillaSetup());
 
     executionHash = '0x912ea662aac9d054ef5173da69723b88a5582cae2349f891998b6040cf9c2653'; // Random 32 byte hash
     metadataUri = strToShortStringArr(
@@ -102,7 +102,7 @@ describe('Space Testing', () => {
       expect(against).to.deep.equal(BigInt(0));
       const abstain = SplitUint256.fromObj(proposal_info.power_abstain).toUint();
       expect(abstain).to.deep.equal(BigInt(0));
-    } 
+    }
     // -- Casts a vote FOR --
     {
       await vanillaAuthenticator.invoke('execute', {
@@ -123,15 +123,14 @@ describe('Space Testing', () => {
       expect(abstain).to.deep.equal(BigInt(0));
     }
 
-    // -- Executes the proposal -- 
+    // -- Executes the proposal --
     {
       await space.invoke('finalize_proposal', {
         proposal_id: proposalId,
-        execution_params: executionParams
+        execution_params: executionParams,
       });
-      
+
       // We should add more info to the get_proposal_info call to check that the proposal was executed
     }
-
   }).timeout(6000000);
 });

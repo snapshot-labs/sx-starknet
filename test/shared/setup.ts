@@ -6,19 +6,9 @@ import { SplitUint256, IntsSequence } from './types';
 import { hexToBytes, flatten2DArray } from './helpers';
 import { block } from '../data/blocks';
 import { ProcessBlockInputs } from './parseRPCData';
-export const EXECUTE_METHOD = 'execute';
-export const PROPOSAL_METHOD = 'propose';
-export const VOTE_METHOD = 'vote';
-export const GET_PROPOSAL_INFO = 'get_proposal_info';
-export const GET_VOTE_INFO = 'get_vote_info';
-export const VOTING_DELAY = BigInt(0);
-export const MIN_VOTING_DURATION = BigInt(0);
-export const MAX_VOTING_DURATION = BigInt(2000);
-export const VITALIK_ADDRESS = BigInt('0xd8da6bf26964af9d7eed9e03e53415d37aa96045');
-export const VITALIK_STRING_ADDRESS = '0x' + VITALIK_ADDRESS.toString(16);
 
 export async function vanillaSetup() {
-  const controller = await starknet.deployAccount('OpenZeppelin') as Account;
+  const controller = (await starknet.deployAccount('OpenZeppelin')) as Account;
   const spaceFactory = await starknet.getContractFactory('./contracts/starknet/space.cairo');
   const vanillaVotingStategyFactory = await starknet.getContractFactory(
     './contracts/starknet/voting_strategies/vanilla.cairo'
@@ -40,9 +30,9 @@ export async function vanillaSetup() {
   const vanillaVotingStrategy = contracts[1] as StarknetContract;
   const vanillaExecutionStrategy = contracts[2] as StarknetContract;
 
-  const votingDelay: bigint = BigInt(0);
-  const minVotingDuration: bigint = BigInt(0);
-  const maxVotingDuration:bigint = BigInt(2000);
+  const votingDelay = BigInt(0);
+  const minVotingDuration = BigInt(0);
+  const maxVotingDuration = BigInt(2000);
   const votingStrategies: bigint[] = [BigInt(vanillaVotingStrategy.address)];
   const globalVotingStrategyParams: bigint[][] = [[]]; // No global params for the vanilla voting strategy
   const globalVotingStrategyParamsFlat: bigint[] = flatten2DArray(globalVotingStrategyParams);
@@ -71,12 +61,94 @@ export async function vanillaSetup() {
     controller,
     vanillaAuthenticator,
     vanillaVotingStrategy,
-    vanillaExecutionStrategy
+    vanillaExecutionStrategy,
   };
 }
 
-export async function ethTxAuthSetup(signer: SignerWithAddress) {
-  const controller = await starknet.deployAccount('OpenZeppelin') as Account;
+export async function zodiacRelayerSetup() {
+  const controller = (await starknet.deployAccount('OpenZeppelin')) as Account;
+  const spaceFactory = await starknet.getContractFactory('./contracts/starknet/space.cairo');
+  const vanillaVotingStategyFactory = await starknet.getContractFactory(
+    './contracts/starknet/voting_strategies/vanilla.cairo'
+  );
+  const vanillaAuthenticatorFactory = await starknet.getContractFactory(
+    './contracts/starknet/authenticators/vanilla.cairo'
+  );
+  const vanillaExecutionStrategyFactory = await starknet.getContractFactory(
+    './contracts/starknet/execution_strategies/zodiac_relayer.cairo'
+  );
+
+  const deployments = [
+    vanillaAuthenticatorFactory.deploy(),
+    vanillaVotingStategyFactory.deploy(),
+    zodiacRelayerFactory.deploy(),
+  ];
+  const contracts = await Promise.all(deployments);
+  const vanillaAuthenticator = contracts[0] as StarknetContract;
+  const vanillaVotingStrategy = contracts[1] as StarknetContract;
+  const zodiacRelayer = contracts[2] as StarknetContract;
+
+  // Deploying StarkNet core instance required for L2 -> L1 message passing
+  MockStarknetMessaging = (await ethers.getContractFactory(
+    'MockStarknetMessaging',
+    signer
+  )) as ContractFactory;
+  mockStarknetMessaging = await MockStarknetMessaging.deploy();
+  await mockStarknetMessaging.deployed();
+
+  // Deploying L1 Zodiac Module
+  const owner = signer.address;
+  const avatar = signer.address; // Dummy
+  const target = signer.address; // Dummy
+  const starknetCore = mockStarknetMessaging.address;
+  const relayer = BigInt(zodiacRelayer.address);
+  l1ExecutorFactory = await ethers.getContractFactory('SnapshotXL1Executor', signer);
+  l1Executor = await l1ExecutorFactory.deploy(owner, avatar, target, starknetCore, relayer, [
+    BigInt(spaceContract.address),
+  ]);
+  await l1Executor.deployed();
+
+  const votingDelay = BigInt(0);
+  const minVotingDuration = BigInt(0);
+  const maxVotingDuration = BigInt(2000);
+  const votingStrategies: bigint[] = [BigInt(vanillaVotingStrategy.address)];
+  const globalVotingStrategyParams: bigint[][] = [[]]; // No global params for the vanilla voting strategy
+  const globalVotingStrategyParamsFlat: bigint[] = flatten2DArray(globalVotingStrategyParams);
+  const authenticators: bigint[] = [BigInt(vanillaAuthenticator.address)];
+  const executors: bigint[] = [BigInt(zodiacRelayer.address)];
+  const quorum: SplitUint256 = SplitUint256.fromUint(BigInt(1)); //  Quorum of one for the vanilla test
+  const proposalThreshold: SplitUint256 = SplitUint256.fromUint(BigInt(1)); // Proposal threshold of 1 for the vanilla test
+
+  console.log('Deploying space contract...');
+  const space = (await spaceFactory.deploy({
+    _voting_delay: votingDelay,
+    _min_voting_duration: minVotingDuration,
+    _max_voting_duration: maxVotingDuration,
+    _proposal_threshold: proposalThreshold,
+    _controller: BigInt(controller.starknetContract.address),
+    _quorum: quorum,
+    _global_voting_strategy_params_flat: globalVotingStrategyParamsFlat,
+    _voting_strategies: votingStrategies,
+    _authenticators: authenticators,
+    _executors: executors,
+  })) as StarknetContract;
+  console.log('deployed!');
+
+  return {
+    space,
+    controller,
+    vanillaAuthenticator,
+    vanillaVotingStrategy,
+    zodiacRelayer,
+  };
+}
+
+// export async function safeWithZodiacSetup() {
+
+// }
+
+export async function ethTxAuthSetup() {
+  const controller = (await starknet.deployAccount('OpenZeppelin')) as Account;
   const spaceFactory = await starknet.getContractFactory('./contracts/starknet/space.cairo');
   const vanillaVotingStategyFactory = await starknet.getContractFactory(
     './contracts/starknet/voting_strategies/vanilla.cairo'
@@ -88,12 +160,9 @@ export async function ethTxAuthSetup(signer: SignerWithAddress) {
     './contracts/starknet/execution_strategies/vanilla.cairo'
   );
 
-
-
   // Deploying StarkNet core instance required for L1 -> L2 message passing
   const mockStarknetMessagingFactory = (await ethers.getContractFactory(
-    'MockStarknetMessaging',
-    signer
+    'MockStarknetMessaging'
   )) as ContractFactory;
   const mockStarknetMessaging = (await mockStarknetMessagingFactory.deploy()) as Contract;
   await mockStarknetMessaging.deployed();
@@ -101,13 +170,12 @@ export async function ethTxAuthSetup(signer: SignerWithAddress) {
 
   // Deploy StarkNet Commit L1 contract
   const starknetCommitFactory = (await ethers.getContractFactory(
-    'StarkNetCommit',
-    signer
+    'StarkNetCommit'
   )) as ContractFactory;
   const starknetCommit = (await starknetCommitFactory.deploy(starknetCore)) as Contract;
-  
+
   const deployments = [
-    ethTxAuthenticatorFactory.deploy({starknet_commit_address: BigInt(starknetCommit.address)}),
+    ethTxAuthenticatorFactory.deploy({ starknet_commit_address: BigInt(starknetCommit.address) }),
     vanillaVotingStategyFactory.deploy(),
     vanillaExecutionStrategyFactory.deploy(),
   ];
@@ -116,11 +184,11 @@ export async function ethTxAuthSetup(signer: SignerWithAddress) {
   const vanillaVotingStrategy = contracts[1] as StarknetContract;
   const vanillaExecutionStrategy = contracts[2] as StarknetContract;
 
-  const votingDelay: bigint = BigInt(0);
-  const minVotingDuration: bigint = BigInt(0);
-  const maxVotingDuration:bigint = BigInt(2000);
-  const quorum: SplitUint256 = SplitUint256.fromUint(BigInt(1)); 
-  const proposalThreshold: SplitUint256 = SplitUint256.fromUint(BigInt(1)); 
+  const votingDelay = BigInt(0);
+  const minVotingDuration = BigInt(0);
+  const maxVotingDuration = BigInt(2000);
+  const quorum: SplitUint256 = SplitUint256.fromUint(BigInt(1));
+  const proposalThreshold: SplitUint256 = SplitUint256.fromUint(BigInt(1));
   const votingStrategies: bigint[] = [BigInt(vanillaVotingStrategy.address)];
   const globalVotingStrategyParams: bigint[][] = [[]];
   const globalVotingStrategyParamsFlat: bigint[] = flatten2DArray(globalVotingStrategyParams);

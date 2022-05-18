@@ -1,7 +1,7 @@
 import { starknet, ethers } from 'hardhat';
 import { expect } from 'chai';
-import { block } from './data/blocks';
-import { proofs } from './data/proofs';
+import { block } from '../data/blocks';
+import { proofs } from '../data/proofs';
 import { SplitUint256 } from './shared/types';
 import { ProofInputs } from './shared/parseRPCData';
 import { encodeParams } from './shared/singleSlotProofStrategyEncoding';

@@ -3,7 +3,7 @@ import { SplitUint256, FOR } from './shared/types';
 import { strToShortStringArr } from '@snapshot-labs/sx';
 import { expect } from 'chai';
 import { vanillaSetup, VITALIK_ADDRESS, EXECUTE_METHOD, PROPOSAL_METHOD } from './shared/setup';
-import { flatten2DArray } from './shared/helpers';
+import { flatten2DArray } from '../shared/helpers';
 import { StarknetContract } from 'hardhat/types';
 import { Account } from '@shardlabs/starknet-hardhat-plugin/dist/account';
 
