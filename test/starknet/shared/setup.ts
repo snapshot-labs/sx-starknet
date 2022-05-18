@@ -18,127 +18,138 @@ export const VITALIK_ADDRESS = BigInt('0xd8da6bf26964af9d7eed9e03e53415d37aa9604
 export const VITALIK_STRING_ADDRESS = '0x' + VITALIK_ADDRESS.toString(16);
 
 export async function vanillaSetup() {
-  const account = await starknet.deployAccount('OpenZeppelin');
-
-  const vanillaSpaceFactory = await starknet.getContractFactory('./contracts/starknet/space.cairo');
+  const controller = await starknet.deployAccount('OpenZeppelin') as Account;
+  const spaceFactory = await starknet.getContractFactory('./contracts/starknet/space.cairo');
   const vanillaVotingStategyFactory = await starknet.getContractFactory(
     './contracts/starknet/voting_strategies/vanilla.cairo'
   );
   const vanillaAuthenticatorFactory = await starknet.getContractFactory(
     './contracts/starknet/authenticators/vanilla.cairo'
   );
-  const zodiacRelayerFactory = await starknet.getContractFactory(
-    './contracts/starknet/execution_strategies/zodiac_relayer.cairo'
+  const vanillaExecutionStrategyFactory = await starknet.getContractFactory(
+    './contracts/starknet/execution_strategies/vanilla.cairo'
   );
 
   const deployments = [
     vanillaAuthenticatorFactory.deploy(),
     vanillaVotingStategyFactory.deploy(),
-    zodiacRelayerFactory.deploy(),
+    vanillaExecutionStrategyFactory.deploy(),
   ];
-  console.log('Deploying auth, voting and zodiac relayer contracts...');
   const contracts = await Promise.all(deployments);
   const vanillaAuthenticator = contracts[0] as StarknetContract;
   const vanillaVotingStrategy = contracts[1] as StarknetContract;
-  const zodiacRelayer = contracts[2] as StarknetContract;
+  const vanillaExecutionStrategy = contracts[2] as StarknetContract;
 
-  const voting_strategy = BigInt(vanillaVotingStrategy.address);
-  const global_voting_strategy_params: bigint[][] = [[]];
-  const global_voting_strategy_params_flat = flatten2DArray(global_voting_strategy_params);
-  const authenticator = BigInt(vanillaAuthenticator.address);
-  const zodiac_relayer = BigInt(zodiacRelayer.address);
-  const quorum = SplitUint256.fromUint(BigInt(0));
-
-  // This should be declared along with the other const but doing so will make the compiler unhappy as `SplitUin256`
-  // will be undefined for some reason?
-  const PROPOSAL_THRESHOLD = SplitUint256.fromUint(BigInt(1));
+  const votingDelay: bigint = BigInt(0);
+  const minVotingDuration: bigint = BigInt(0);
+  const maxVotingDuration:bigint = BigInt(2000);
+  const votingStrategies: bigint[] = [BigInt(vanillaVotingStrategy.address)];
+  const globalVotingStrategyParams: bigint[][] = [[]]; // No global params for the vanilla voting strategy
+  const globalVotingStrategyParamsFlat: bigint[] = flatten2DArray(globalVotingStrategyParams);
+  const authenticators: bigint[] = [BigInt(vanillaAuthenticator.address)];
+  const executors: bigint[] = [BigInt(vanillaExecutionStrategy.address)];
+  const quorum: SplitUint256 = SplitUint256.fromUint(BigInt(1)); //  Quorum of one for the vanilla test
+  const proposalThreshold: SplitUint256 = SplitUint256.fromUint(BigInt(1)); // Proposal threshold of 1 for the vanilla test
 
   console.log('Deploying space contract...');
-  const space = (await vanillaSpaceFactory.deploy({
-    _voting_delay: VOTING_DELAY,
-    _min_voting_duration: MIN_VOTING_DURATION,
-    _max_voting_duration: MAX_VOTING_DURATION,
-    _proposal_threshold: PROPOSAL_THRESHOLD,
-    _controller: BigInt(account.starknetContract.address),
+  const space = (await spaceFactory.deploy({
+    _voting_delay: votingDelay,
+    _min_voting_duration: minVotingDuration,
+    _max_voting_duration: maxVotingDuration,
+    _proposal_threshold: proposalThreshold,
+    _controller: BigInt(controller.starknetContract.address),
     _quorum: quorum,
-    _global_voting_strategy_params_flat: global_voting_strategy_params_flat,
-    _voting_strategies: [voting_strategy],
-    _authenticators: [authenticator],
-    _executors: [zodiac_relayer],
+    _global_voting_strategy_params_flat: globalVotingStrategyParamsFlat,
+    _voting_strategies: votingStrategies,
+    _authenticators: authenticators,
+    _executors: executors,
   })) as StarknetContract;
   console.log('deployed!');
 
   return {
     space,
+    controller,
     vanillaAuthenticator,
     vanillaVotingStrategy,
-    zodiacRelayer,
-    account,
+    vanillaExecutionStrategy
   };
 }
 
 export async function ethTxAuthSetup(signer: SignerWithAddress) {
-  const SpaceFactory = await starknet.getContractFactory('./contracts/starknet/space.cairo');
+  const controller = await starknet.deployAccount('OpenZeppelin') as Account;
+  const spaceFactory = await starknet.getContractFactory('./contracts/starknet/space.cairo');
   const vanillaVotingStategyFactory = await starknet.getContractFactory(
     './contracts/starknet/voting_strategies/vanilla.cairo'
   );
-  const EthTxAuthenticatorFactory = await starknet.getContractFactory(
+  const ethTxAuthenticatorFactory = await starknet.getContractFactory(
     './contracts/starknet/authenticators/eth_tx.cairo'
   );
+  const vanillaExecutionStrategyFactory = await starknet.getContractFactory(
+    './contracts/starknet/execution_strategies/vanilla.cairo'
+  );
 
-  const MockStarknetMessagingFactory = (await ethers.getContractFactory(
+
+
+  // Deploying StarkNet core instance required for L1 -> L2 message passing
+  const mockStarknetMessagingFactory = (await ethers.getContractFactory(
     'MockStarknetMessaging',
     signer
   )) as ContractFactory;
-  const mockStarknetMessaging = (await MockStarknetMessagingFactory.deploy()) as Contract;
+  const mockStarknetMessaging = (await mockStarknetMessagingFactory.deploy()) as Contract;
   await mockStarknetMessaging.deployed();
-
   const starknetCore = mockStarknetMessaging.address;
 
   // Deploy StarkNet Commit L1 contract
-  const StarknetCommitFactory = (await ethers.getContractFactory(
+  const starknetCommitFactory = (await ethers.getContractFactory(
     'StarkNetCommit',
     signer
   )) as ContractFactory;
-  const starknetCommit = (await StarknetCommitFactory.deploy(starknetCore)) as Contract;
-  const starknet_commit = BigInt(starknetCommit.address);
+  const starknetCommit = (await starknetCommitFactory.deploy(starknetCore)) as Contract;
+  
+  const deployments = [
+    ethTxAuthenticatorFactory.deploy({starknet_commit_address: BigInt(starknetCommit.address)}),
+    vanillaVotingStategyFactory.deploy(),
+    vanillaExecutionStrategyFactory.deploy(),
+  ];
+  const contracts = await Promise.all(deployments);
+  const ethTxAuthenticator = contracts[0] as StarknetContract;
+  const vanillaVotingStrategy = contracts[1] as StarknetContract;
+  const vanillaExecutionStrategy = contracts[2] as StarknetContract;
 
-  console.log('Deploying auth...');
-  const ethTxAuthenticator = (await EthTxAuthenticatorFactory.deploy({
-    starknet_commit_address: starknet_commit,
-  })) as StarknetContract;
-  console.log('Deploying strat...');
-  const vanillaVotingStrategy = (await vanillaVotingStategyFactory.deploy()) as StarknetContract;
-  const voting_strategy = BigInt(vanillaVotingStrategy.address);
-  const global_voting_strategy_params: bigint[][] = [[]];
-  const global_voting_strategy_params_flat = flatten2DArray(global_voting_strategy_params);
-  const authenticator = BigInt(ethTxAuthenticator.address);
-  console.log('Deploying space...');
+  const votingDelay: bigint = BigInt(0);
+  const minVotingDuration: bigint = BigInt(0);
+  const maxVotingDuration:bigint = BigInt(2000);
+  const quorum: SplitUint256 = SplitUint256.fromUint(BigInt(1)); 
+  const proposalThreshold: SplitUint256 = SplitUint256.fromUint(BigInt(1)); 
+  const votingStrategies: bigint[] = [BigInt(vanillaVotingStrategy.address)];
+  const globalVotingStrategyParams: bigint[][] = [[]];
+  const globalVotingStrategyParamsFlat: bigint[] = flatten2DArray(globalVotingStrategyParams);
+  const authenticators: bigint[] = [BigInt(ethTxAuthenticator.address)];
+  const executors: bigint[] = [BigInt(vanillaExecutionStrategy.address)];
 
-  // This should be declared along with the other const but doing so will make the compiler unhappy as `SplitUin256`
-  // will be undefined for some reason?
-  const PROPOSAL_THRESHOLD = SplitUint256.fromUint(BigInt(1));
-  const quorum = SplitUint256.fromUint(BigInt(0));
-
-  const space = (await SpaceFactory.deploy({
-    _voting_delay: VOTING_DELAY,
-    _min_voting_duration: MIN_VOTING_DURATION,
-    _max_voting_duration: MAX_VOTING_DURATION,
-    _proposal_threshold: PROPOSAL_THRESHOLD,
-    _controller: 1,
+  console.log('Deploying space contract...');
+  const space = (await spaceFactory.deploy({
+    _voting_delay: votingDelay,
+    _min_voting_duration: minVotingDuration,
+    _max_voting_duration: maxVotingDuration,
+    _proposal_threshold: proposalThreshold,
+    _controller: BigInt(controller.starknetContract.address),
     _quorum: quorum,
-    _global_voting_strategy_params_flat: global_voting_strategy_params_flat,
-    _voting_strategies: [voting_strategy],
-    _authenticators: [authenticator],
-    _executors: [VITALIK_ADDRESS],
+    _global_voting_strategy_params_flat: globalVotingStrategyParamsFlat,
+    _voting_strategies: votingStrategies,
+    _authenticators: authenticators,
+    _executors: executors,
   })) as StarknetContract;
+
   // Setting the L1 tx authenticator address in the StarkNet commit contract
-  await starknetCommit.setAuth(authenticator);
+  await starknetCommit.setAuth(BigInt(ethTxAuthenticator.address));
 
   return {
     space,
+    controller,
     ethTxAuthenticator,
     vanillaVotingStrategy,
+    vanillaExecutionStrategy,
     mockStarknetMessaging,
     starknetCommit,
   };

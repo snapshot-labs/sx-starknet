@@ -66,6 +66,7 @@ describe('L1 interaction with Snapshot X', function () {
       mockStarknetMessaging: _mockStarknetMessaging,
       starknetCommit: _starknetCommit,
     } = await ethTxAuthSetup(signer);
+    
     space = _space;
     ethTxAuthenticator = _ethTxAuthenticator;
     vanillaVotingStrategy = _vanillaVotingStrategy;
@@ -107,66 +108,66 @@ describe('L1 interaction with Snapshot X', function () {
     });
   });
 
-  it('The same commit should not be able to be executed multiple times', async () => {
-    await starknet.devnet.loadL1MessagingContract(networkUrl, mockStarknetMessaging.address);
-    const target = BigInt(space.address);
+  // it('The same commit should not be able to be executed multiple times', async () => {
+  //   await starknet.devnet.loadL1MessagingContract(networkUrl, mockStarknetMessaging.address);
+  //   const target = BigInt(space.address);
 
-    const propose_commit = getCommit(target, propose_selector, propose_calldata);
-    await starknetCommit.commit(propose_commit);
+  //   const propose_commit = getCommit(target, propose_selector, propose_calldata);
+  //   await starknetCommit.commit(propose_commit);
 
-    await starknet.devnet.flush();
-    await ethTxAuthenticator.invoke('execute', {
-      target: target,
-      function_selector: propose_selector,
-      calldata: propose_calldata,
-    });
-    // Second execute should fail
-    try {
-      await ethTxAuthenticator.invoke('execute', {
-        target: target,
-        function_selector: propose_selector,
-        calldata: propose_calldata,
-      });
-    } catch (err: any) {
-      expect(err.message).to.contain('Hash not yet committed or already executed');
-    }
-  });
+  //   await starknet.devnet.flush();
+  //   await ethTxAuthenticator.invoke('execute', {
+  //     target: target,
+  //     function_selector: propose_selector,
+  //     calldata: propose_calldata,
+  //   });
+  //   // Second execute should fail
+  //   try {
+  //     await ethTxAuthenticator.invoke('execute', {
+  //       target: target,
+  //       function_selector: propose_selector,
+  //       calldata: propose_calldata,
+  //     });
+  //   } catch (err: any) {
+  //     expect(err.message).to.contain('Hash not yet committed or already executed');
+  //   }
+  // });
 
-  it('Authentication should fail if the correct hash of the payload is not committed on l1 before execution is called', async () => {
-    await starknet.devnet.loadL1MessagingContract(networkUrl, mockStarknetMessaging.address);
-    const target = BigInt(space.address);
+  // it('Authentication should fail if the correct hash of the payload is not committed on l1 before execution is called', async () => {
+  //   await starknet.devnet.loadL1MessagingContract(networkUrl, mockStarknetMessaging.address);
+  //   const target = BigInt(space.address);
 
-    // random commit
-    const propose_commit = BigInt(134234123423);
-    await starknetCommit.commit(propose_commit);
-    await starknet.devnet.flush();
-    try {
-      await ethTxAuthenticator.invoke('execute', {
-        target: target,
-        function_selector: propose_selector,
-        calldata: propose_calldata,
-      });
-    } catch (err: any) {
-      expect(err.message).to.contain('Hash not yet committed or already executed');
-    }
-  });
+  //   // random commit
+  //   const propose_commit = BigInt(134234123423);
+  //   await starknetCommit.commit(propose_commit);
+  //   await starknet.devnet.flush();
+  //   try {
+  //     await ethTxAuthenticator.invoke('execute', {
+  //       target: target,
+  //       function_selector: propose_selector,
+  //       calldata: propose_calldata,
+  //     });
+  //   } catch (err: any) {
+  //     expect(err.message).to.contain('Hash not yet committed or already executed');
+  //   }
+  // });
 
-  it('Authentication should fail if the commit sender address is not equal to the address in the payload', async () => {
-    await starknet.devnet.loadL1MessagingContract(networkUrl, mockStarknetMessaging.address);
-    const target = BigInt(space.address);
-    // Random l1 address in the calldata
-    propose_calldata[0] = RANDOM_ADDRESS;
-    const propose_commit = getCommit(target, propose_selector, propose_calldata);
-    await starknetCommit.commit(propose_commit);
-    await starknet.devnet.flush();
-    try {
-      await ethTxAuthenticator.invoke('execute', {
-        target: target,
-        function_selector: propose_selector,
-        calldata: propose_calldata,
-      });
-    } catch (err: any) {
-      expect(err.message).to.contain('Commit made by invalid L1 address');
-    }
-  });
+  // it('Authentication should fail if the commit sender address is not equal to the address in the payload', async () => {
+  //   await starknet.devnet.loadL1MessagingContract(networkUrl, mockStarknetMessaging.address);
+  //   const target = BigInt(space.address);
+  //   // Random l1 address in the calldata
+  //   propose_calldata[0] = RANDOM_ADDRESS;
+  //   const propose_commit = getCommit(target, propose_selector, propose_calldata);
+  //   await starknetCommit.commit(propose_commit);
+  //   await starknet.devnet.flush();
+  //   try {
+  //     await ethTxAuthenticator.invoke('execute', {
+  //       target: target,
+  //       function_selector: propose_selector,
+  //       calldata: propose_calldata,
+  //     });
+  //   } catch (err: any) {
+  //     expect(err.message).to.contain('Commit made by invalid L1 address');
+  //   }
+  // });
 });
