@@ -1,26 +1,26 @@
 import { SignerWithAddress } from '@nomiclabs/hardhat-ethers/signers';
 import { expect } from 'chai';
 import { Contract, ContractFactory } from 'ethers';
-import { starknet, network, ethers } from 'hardhat';
-import { FOR } from '../starknet/shared/types';
-import { StarknetContract, HttpNetworkConfig } from 'hardhat/types';
+import hre, { starknet, network, ethers, waffle } from 'hardhat';
+import { Choice, SplitUint256 } from '../shared/types';
+import { StarknetContract, HttpNetworkConfig, Account } from 'hardhat/types';
 import { stark } from 'starknet';
 import { strToShortStringArr } from '@snapshot-labs/sx';
+import { zodiacRelayerSetup } from '../shared/setup';
 import {
-  VITALIK_ADDRESS,
-  VITALIK_STRING_ADDRESS,
-  vanillaSetup,
-  EXECUTE_METHOD,
-  PROPOSAL_METHOD,
-  VOTE_METHOD,
-} from '../starknet/shared/setup';
-import { expectAddressEquality, createExecutionHash, flatten2DArray } from '../shared/helpers';
+  createExecutionHash,
+  getCommit,
+  flatten2DArray,
+  expectAddressEquality,
+  getProposeCalldata,
+  getVoteCalldata,
+} from '../shared/helpers';
 
 const { getSelectorFromName } = stark;
 
 // Dummy tx
 const tx1 = {
-  to: VITALIK_STRING_ADDRESS,
+  to: ethers.Wallet.createRandom().address,
   value: 0,
   data: '0x11',
   operation: 0,
@@ -29,7 +29,7 @@ const tx1 = {
 
 // Dummy tx 2
 const tx2 = {
-  to: VITALIK_STRING_ADDRESS,
+  to: ethers.Wallet.createRandom().address,
   value: 0,
   data: '0x22',
   operation: 0,
@@ -48,7 +48,7 @@ describe('Create proposal, cast vote, and send execution to l1', function () {
   let vanillaAuthenticator: StarknetContract;
   let vanillaVotingStrategy: StarknetContract;
   let zodiacRelayer: StarknetContract;
-  let starknetCommit: Contract;
+  let zodiacModule: Contract;
 
   // Proposal creation parameters
   let spaceAddress: bigint;
@@ -70,181 +70,149 @@ describe('Create proposal, cast vote, and send execution to l1', function () {
   let votingParamsAll2: bigint[][];
   let voteCalldata: bigint[];
 
+  let txHashes: any;
+
   before(async function () {
     this.timeout(800000);
-    const signers = await ethers.getSigners();
+    const signers = await hre.ethers.getSigners();
     signer = signers[0];
 
-    ({ space, controller, vanillaAuthenticator, vanillaVotingStrategy, zodiacRelayer } =
-      await zodiacRelayerSetup());
+    ({
+      space,
+      controller,
+      vanillaAuthenticator,
+      vanillaVotingStrategy,
+      zodiacRelayer,
+      zodiacModule,
+      mockStarknetMessaging,
+    } = await zodiacRelayerSetup());
 
-    MockStarknetMessaging = (await ethers.getContractFactory(
-      'MockStarknetMessaging',
-      signer
-    )) as ContractFactory;
-    mockStarknetMessaging = await MockStarknetMessaging.deploy();
-    await mockStarknetMessaging.deployed();
+    metadataUri = strToShortStringArr(
+      'Hello and welcome to Snapshot X. This is the future of governance.'
+    );
+    ({ executionHash, txHashes } = createExecutionHash(zodiacModule.address, tx1, tx2));
 
-    const owner = signer.address;
-    const avatar = signer.address; // Dummy
-    const target = signer.address; // Dummy
-    const starknetCore = mockStarknetMessaging.address;
-    const relayer = BigInt(zodiacRelayer.address);
-    l1ExecutorFactory = await ethers.getContractFactory('SnapshotXL1Executor', signer);
-    l1Executor = await l1ExecutorFactory.deploy(owner, avatar, target, starknetCore, relayer, [
-      BigInt(spaceContract.address),
-    ]);
-    await l1Executor.deployed();
-  });
+    proposerEthAddress = signer.address;
+    ethBlockNumber = BigInt(1337);
+    spaceAddress = BigInt(space.address);
+    usedVotingStrategies1 = [BigInt(vanillaVotingStrategy.address)];
+    votingParamsAll1 = [[]];
+    executionStrategy = BigInt(zodiacRelayer.address);
+    executionParams = [BigInt(zodiacModule.address)];
 
-  it('should deploy the messaging contract', async () => {
-    const { address: deployedTo, l1_provider: L1Provider } =
-      await starknet.devnet.loadL1MessagingContract(networkUrl);
-    expect(deployedTo).not.to.be.undefined;
-    expect(L1Provider).to.equal(networkUrl);
-  });
-
-  it('should load the already deployed contract if the address is provided', async () => {
-    const { address: loadedFrom } = await starknet.devnet.loadL1MessagingContract(
-      networkUrl,
-      mockStarknetMessaging.address
+    proposeCalldata = getProposeCalldata(
+      proposerEthAddress,
+      executionHash,
+      metadataUri,
+      ethBlockNumber,
+      executionStrategy,
+      usedVotingStrategies1,
+      votingParamsAll1,
+      executionParams
     );
 
-    expect(mockStarknetMessaging.address).to.equal(loadedFrom);
+    voterEthAddress = hre.ethers.Wallet.createRandom().address;
+
+    proposalId = BigInt(1);
+    choice = Choice.FOR;
+    usedVotingStrategies2 = [BigInt(vanillaVotingStrategy.address)];
+    votingParamsAll2 = [[]];
+    voteCalldata = getVoteCalldata(
+      voterEthAddress,
+      proposalId,
+      choice,
+      usedVotingStrategies2,
+      votingParamsAll2
+    );
   });
 
   it('should correctly receive and accept a finalized proposal on l1', async () => {
     this.timeout(1200000);
-    const { executionHash, txHashes } = createExecutionHash(l1Executor.address, tx1, tx2);
-    const metadata_uri = strToShortStringArr(
-      'Hello and welcome to Snapshot X. This is the future of governance.'
-    );
-    const proposer_address = VITALIK_ADDRESS;
-    const proposal_id = BigInt(1);
-    const votingParamsAll: bigint[][] = [[]];
-    const votingParamsAllFlat = flatten2DArray(votingParamsAll);
-    const eth_block_number = BigInt(1337);
-    const execution_params: Array<bigint> = [BigInt(l1Executor.address)];
-    const used_voting_strategies = [BigInt(votingContract.address)];
-    const calldata = [
-      proposer_address,
-      executionHash.low,
-      executionHash.high,
-      BigInt(metadata_uri.length),
-      ...metadata_uri,
-      eth_block_number,
-      BigInt(zodiacRelayer.address),
-      BigInt(used_voting_strategies.length),
-      ...used_voting_strategies,
-      BigInt(votingParamsAllFlat.length),
-      ...votingParamsAllFlat,
-      BigInt(execution_params.length),
-      execution_params,
-    ];
 
     // -- Creates a proposal --
-    await authContract.invoke(EXECUTE_METHOD, {
-      target: BigInt(spaceContract.address),
-      function_selector: BigInt(getSelectorFromName(PROPOSAL_METHOD)),
-      calldata,
+    await vanillaAuthenticator.invoke('execute', {
+      target: BigInt(space.address),
+      function_selector: BigInt(getSelectorFromName('propose')),
+      calldata: proposeCalldata,
     });
 
     // -- Casts a vote FOR --
-    {
-      const voter_address = proposer_address;
-      const votingParamsAll: bigint[][] = [[]];
-      const votingParamsAllFlat = flatten2DArray(votingParamsAll);
-      await authContract.invoke(EXECUTE_METHOD, {
-        target: BigInt(spaceContract.address),
-        function_selector: BigInt(getSelectorFromName(VOTE_METHOD)),
-        calldata: [
-          voter_address,
-          proposal_id,
-          FOR,
-          BigInt(used_voting_strategies.length),
-          ...used_voting_strategies,
-          BigInt(votingParamsAllFlat.length),
-          ...votingParamsAllFlat,
-        ],
-      });
-
-      const { proposal_info } = await spaceContract.call('get_proposal_info', {
-        proposal_id: proposal_id,
-      });
-    }
+    await vanillaAuthenticator.invoke('execute', {
+      target: BigInt(space.address),
+      function_selector: BigInt(getSelectorFromName('vote')),
+      calldata: voteCalldata,
+    });
 
     // -- Load messaging contract
-    {
-      await starknet.devnet.loadL1MessagingContract(networkUrl, mockStarknetMessaging.address);
-    }
+    await starknet.devnet.loadL1MessagingContract(networkUrl, mockStarknetMessaging.address);
 
     // -- Finalize proposal and send execution hash to L1 --
-    {
-      await spaceContract.invoke('finalize_proposal', {
-        proposal_id: proposal_id,
-        execution_params: [BigInt(l1Executor.address)],
-      });
-    }
+
+    await space.invoke('finalize_proposal', {
+      proposal_id: proposalId,
+      execution_params: executionParams,
+    });
 
     // --  Flush messages and check that communication went well --
-    {
-      const flushL2Response = await starknet.devnet.flush();
-      expect(flushL2Response.consumed_messages.from_l1).to.be.empty;
-      const flushL2Messages = flushL2Response.consumed_messages.from_l2;
 
-      expect(flushL2Messages).to.have.a.lengthOf(1);
-      expectAddressEquality(flushL2Messages[0].from_address, zodiacRelayer.address);
-      expectAddressEquality(flushL2Messages[0].to_address, l1Executor.address);
-    }
+    const flushL2Response = await starknet.devnet.flush();
+    expect(flushL2Response.consumed_messages.from_l1).to.be.empty;
+    const flushL2Messages = flushL2Response.consumed_messages.from_l2;
+    expect(flushL2Messages).to.have.a.lengthOf(1);
+    expectAddressEquality(flushL2Messages[0].from_address, zodiacRelayer.address);
+    expectAddressEquality(flushL2Messages[0].to_address, zodiacModule.address);
 
     // Check that l1 can receive the proposal correctly
-    {
-      const proposalOutcome = BigInt(1);
+    const proposalOutcome = BigInt(1);
+    const fakeTxHashes = txHashes.slice(0, -1);
+    const callerAddress = BigInt(space.address);
+    const fakeCallerAddress = BigInt(zodiacRelayer.address);
+    const splitExecutionHash = SplitUint256.fromHex(executionHash);
+    console.log(splitExecutionHash);
+    // Check that if the tx hash is incorrect, the transaction reverts.
+    // await expect(
+    //   zodiacModule.receiveProposal(
+    //     callerAddress,
+    //     proposalOutcome,
+    //     splitExecutionHash.low,
+    //     splitExecutionHash.high,
+    //     fakeTxHashes
+    //   )
+    // ).to.be.reverted;
+    // console.log('b');
 
-      const fakeTxHashes = txHashes.slice(0, -1);
-      const callerAddress = BigInt(spaceContract.address);
-      const fakeCallerAddress = BigInt(zodiacRelayer.address);
-      // Check that if the tx hash is incorrect, the transaction reverts.
-      await expect(
-        l1Executor.receiveProposal(
-          callerAddress,
-          proposalOutcome,
-          executionHash.low,
-          executionHash.high,
-          fakeTxHashes
-        )
-      ).to.be.reverted;
+    // // Check that if `proposalOutcome` parameter is incorrect, transaction reverts.
+    // await expect(
+    //   zodiacModule.receiveProposal(
+    //     callerAddress,
+    //     !proposalOutcome,
+    //     splitExecutionHash.low,
+    //     splitExecutionHash.high,
+    //     txHashes
+    //   )
+    // ).to.be.reverted;
+    // console.log('c');
+    // // Check that if `callerAddress` parameter is incorrect, transaction reverts.
+    // await expect(
+    //   zodiacModule.receiveProposal(
+    //     fakeCallerAddress,
+    //     proposalOutcome,
+    //     splitExecutionHash.low,
+    //     splitExecutionHash.high,
+    //     txHashes
+    //   )
+    // ).to.be.reverted;
+    console.log(await zodiacModule.getProposalState(0));
 
-      // Check that if `proposalOutcome` parameter is incorrect, transaction reverts.
-      await expect(
-        l1Executor.receiveProposal(
-          callerAddress,
-          !proposalOutcome,
-          executionHash.low,
-          executionHash.high,
-          txHashes
-        )
-      ).to.be.reverted;
-
-      // Check that if `callerAddress` parameter is incorrect, transaction reverts.
-      await expect(
-        l1Executor.receiveProposal(
-          fakeCallerAddress,
-          proposalOutcome,
-          executionHash.low,
-          executionHash.high,
-          txHashes
-        )
-      ).to.be.reverted;
-
-      // Check that it works when provided correct parameters.
-      await l1Executor.receiveProposal(
+    // Check that it works when provided correct parameters.
+    await zodiacModule
+      .connect(signer)
+      .receiveProposal(
         callerAddress,
         proposalOutcome,
-        executionHash.low,
-        executionHash.high,
+        splitExecutionHash.low,
+        splitExecutionHash.high,
         txHashes
       );
-    }
   });
 });

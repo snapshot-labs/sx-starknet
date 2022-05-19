@@ -3,7 +3,7 @@ import { SplitUint256, Choice } from './types';
 import { expect } from 'chai';
 import { computeHashOnElements } from 'starknet/dist/utils/hash';
 import { toBN } from 'starknet/dist/utils/number';
-import { EIP712_TYPES } from '../ethereum/shared/utils';
+import { EIP712_TYPES } from '../shared/utils';
 import { _TypedDataEncoder } from '@ethersproject/hash';
 
 export function assert(condition: boolean, message = 'Assertion Failed'): boolean {
@@ -145,6 +145,7 @@ export function getProposeCalldata(
   executionParams: bigint[]
 ): bigint[] {
   const executionHashUint256 = SplitUint256.fromHex(executionHash);
+  console.log(executionHashUint256);
   const usedVotingStrategyParamsFlat = flatten2DArray(usedVotingStrategyParams);
   return [
     BigInt(proposerEthAddress),

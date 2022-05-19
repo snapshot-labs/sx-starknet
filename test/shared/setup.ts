@@ -1,11 +1,15 @@
-import { starknet, ethers } from 'hardhat';
+import { expect } from 'chai';
+import hre, { starknet, ethers, waffle } from 'hardhat';
 import { SignerWithAddress } from '@nomiclabs/hardhat-ethers/signers';
-import { StarknetContract, Account } from 'hardhat/types';
+import { StarknetContract, Account, Wallet } from 'hardhat/types';
 import { Contract, ContractFactory } from 'ethers';
 import { SplitUint256, IntsSequence } from './types';
 import { hexToBytes, flatten2DArray } from './helpers';
 import { block } from '../data/blocks';
 import { ProcessBlockInputs } from './parseRPCData';
+import { AddressZero } from '@ethersproject/constants';
+import { executeContractCallWithSigners, buildContractCall, EIP712_TYPES } from './utils';
+import { Sign } from 'crypto';
 
 export async function vanillaSetup() {
   const controller = (await starknet.deployAccount('OpenZeppelin')) as Account;
@@ -74,7 +78,7 @@ export async function zodiacRelayerSetup() {
   const vanillaAuthenticatorFactory = await starknet.getContractFactory(
     './contracts/starknet/authenticators/vanilla.cairo'
   );
-  const vanillaExecutionStrategyFactory = await starknet.getContractFactory(
+  const zodiacRelayerFactory = await starknet.getContractFactory(
     './contracts/starknet/execution_strategies/zodiac_relayer.cairo'
   );
 
@@ -89,24 +93,13 @@ export async function zodiacRelayerSetup() {
   const zodiacRelayer = contracts[2] as StarknetContract;
 
   // Deploying StarkNet core instance required for L2 -> L1 message passing
-  MockStarknetMessaging = (await ethers.getContractFactory(
-    'MockStarknetMessaging',
-    signer
+  const mockStarknetMessagingFactory = (await ethers.getContractFactory(
+    'MockStarknetMessaging'
   )) as ContractFactory;
-  mockStarknetMessaging = await MockStarknetMessaging.deploy();
+  const mockStarknetMessaging = await mockStarknetMessagingFactory.deploy();
   await mockStarknetMessaging.deployed();
 
-  // Deploying L1 Zodiac Module
-  const owner = signer.address;
-  const avatar = signer.address; // Dummy
-  const target = signer.address; // Dummy
-  const starknetCore = mockStarknetMessaging.address;
-  const relayer = BigInt(zodiacRelayer.address);
-  l1ExecutorFactory = await ethers.getContractFactory('SnapshotXL1Executor', signer);
-  l1Executor = await l1ExecutorFactory.deploy(owner, avatar, target, starknetCore, relayer, [
-    BigInt(spaceContract.address),
-  ]);
-  await l1Executor.deployed();
+  const { zodiacModule, safe, safeSigner } = await safeWithZodiacSetup();
 
   const votingDelay = BigInt(0);
   const minVotingDuration = BigInt(0);
@@ -140,12 +133,97 @@ export async function zodiacRelayerSetup() {
     vanillaAuthenticator,
     vanillaVotingStrategy,
     zodiacRelayer,
+    zodiacModule,
+    mockStarknetMessaging,
   };
 }
 
-// export async function safeWithZodiacSetup() {
+export async function safeWithZodiacSetup() {
+  const wallets = await ethers.getSigners();
+  const safeSigner = wallets[0]; // One 1 signer on the safe
 
-// }
+  const GnosisSafeL2 = await ethers.getContractFactory(
+    '@gnosis.pm/safe-contracts/contracts/GnosisSafeL2.sol:GnosisSafeL2'
+  );
+  const FactoryContract = await ethers.getContractFactory(
+    '@gnosis.pm/safe-contracts/contracts/proxies/GnosisSafeProxyFactory.sol:GnosisSafeProxyFactory'
+  );
+  const singleton = await GnosisSafeL2.deploy();
+  const factory = await FactoryContract.deploy();
+
+  const template = await factory.callStatic.createProxy(singleton.address, '0x');
+  await factory.createProxy(singleton.address, '0x');
+
+  const safe = GnosisSafeL2.attach(template);
+  safe.setup([safeSigner.address], 1, AddressZero, '0x', AddressZero, AddressZero, 0, AddressZero);
+
+  const moduleFactoryContract = await ethers.getContractFactory('ModuleProxyFactory');
+  const moduleFactory = await moduleFactoryContract.deploy();
+
+  const SnapshotXContract = await ethers.getContractFactory('SnapshotXL1Executor');
+
+  //deploying singleton master contract
+  const masterzodiacModule = await SnapshotXContract.deploy(
+    '0x0000000000000000000000000000000000000001',
+    '0x0000000000000000000000000000000000000001',
+    '0x0000000000000000000000000000000000000001',
+    '0x0000000000000000000000000000000000000001',
+    1,
+    []
+  );
+
+  const encodedInitParams = ethers.utils.defaultAbiCoder.encode(
+    ['address', 'address', 'address', 'address', 'uint256', 'uint256[]'],
+    [
+      safe.address,
+      safe.address,
+      safe.address,
+      '0xB0aC056995C4904a9cc04A6Cc3a864A9E9A7d3a9',
+      1234,
+      [],
+    ]
+  );
+
+  const initData = masterzodiacModule.interface.encodeFunctionData('setUp', [encodedInitParams]);
+
+  const masterCopyAddress = masterzodiacModule.address.toLowerCase().replace(/^0x/, '');
+
+  //This is the bytecode of the module proxy contract
+  const byteCode =
+    '0x602d8060093d393df3363d3d373d3d3d363d73' +
+    masterCopyAddress +
+    '5af43d82803e903d91602b57fd5bf3';
+
+  const salt = ethers.utils.solidityKeccak256(
+    ['bytes32', 'uint256'],
+    [ethers.utils.solidityKeccak256(['bytes'], [initData]), '0x01']
+  );
+
+  const expectedAddress = ethers.utils.getCreate2Address(
+    moduleFactory.address,
+    salt,
+    ethers.utils.keccak256(byteCode)
+  );
+
+  expect(await moduleFactory.deployModule(masterzodiacModule.address, initData, '0x01'))
+    .to.emit(moduleFactory, 'ModuleProxyCreation')
+    .withArgs(expectedAddress, masterzodiacModule.address);
+  const zodiacModule = SnapshotXContract.attach(expectedAddress);
+
+  await executeContractCallWithSigners(
+    safe,
+    safe,
+    'enableModule',
+    [zodiacModule.address],
+    [safeSigner]
+  );
+
+  return {
+    zodiacModule: zodiacModule as Contract,
+    safe: safe as Contract,
+    safeSigner: safeSigner as SignerWithAddress,
+  };
+}
 
 export async function ethTxAuthSetup() {
   const controller = (await starknet.deployAccount('OpenZeppelin')) as Account;

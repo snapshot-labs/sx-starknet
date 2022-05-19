@@ -12,6 +12,7 @@ import {
 } from 'ethers';
 import { TypedDataSigner } from '@ethersproject/abstract-signer';
 import { AddressZero } from '@ethersproject/constants';
+import { SignerWithAddress } from '@nomiclabs/hardhat-ethers/signers';
 
 export const EIP712_TYPES = {
   Transaction: [
@@ -325,7 +326,7 @@ export const buildContractCallVariable = (
 export const executeTxWithSigners = async (
   safe: Contract,
   tx: SafeTransaction,
-  signers: Wallet[],
+  signers: SignerWithAddress[],
   overrides?: any
 ) => {
   const sigs = await Promise.all(signers.map((signer) => safeSignTypedData(signer, safe, tx)));
@@ -337,7 +338,7 @@ export const executeContractCallWithSigners = async (
   contract: Contract,
   method: string,
   params: any[],
-  signers: Wallet[],
+  signers: SignerWithAddress[],
   delegateCall?: boolean,
   overrides?: Partial<SafeTransaction>
 ) => {
