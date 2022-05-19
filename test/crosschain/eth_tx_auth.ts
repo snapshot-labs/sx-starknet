@@ -100,7 +100,7 @@ describe('L1 interaction with Snapshot X', function () {
     //Checking that the L1 -> L2 message has been propogated
     expect((await starknet.devnet.flush()).consumed_messages.from_l1).to.have.a.lengthOf(1);
     // Creating proposal
-    await ethTxAuthenticator.invoke('execute', {
+    await ethTxAuthenticator.invoke('authenticate', {
       target: target,
       function_selector: propose_selector,
       calldata: propose_calldata,
@@ -115,14 +115,14 @@ describe('L1 interaction with Snapshot X', function () {
     await starknetCommit.commit(propose_commit);
 
     await starknet.devnet.flush();
-    await ethTxAuthenticator.invoke('execute', {
+    await ethTxAuthenticator.invoke('authenticate', {
       target: target,
       function_selector: propose_selector,
       calldata: propose_calldata,
     });
     // Second execute should fail
     try {
-      await ethTxAuthenticator.invoke('execute', {
+      await ethTxAuthenticator.invoke('authenticate', {
         target: target,
         function_selector: propose_selector,
         calldata: propose_calldata,
@@ -141,7 +141,7 @@ describe('L1 interaction with Snapshot X', function () {
     await starknetCommit.commit(propose_commit);
     await starknet.devnet.flush();
     try {
-      await ethTxAuthenticator.invoke('execute', {
+      await ethTxAuthenticator.invoke('authenticate', {
         target: target,
         function_selector: propose_selector,
         calldata: propose_calldata,
@@ -160,7 +160,7 @@ describe('L1 interaction with Snapshot X', function () {
     await starknetCommit.commit(propose_commit);
     await starknet.devnet.flush();
     try {
-      await ethTxAuthenticator.invoke('execute', {
+      await ethTxAuthenticator.invoke('authenticate', {
         target: target,
         function_selector: propose_selector,
         calldata: propose_calldata,

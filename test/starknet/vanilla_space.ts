@@ -6,7 +6,7 @@ import { expect } from 'chai';
 import {
   vanillaSetup,
   VITALIK_ADDRESS,
-  EXECUTE_METHOD,
+  AUTHENTICATE_METHOD,
   PROPOSAL_METHOD,
   VOTE_METHOD,
   MIN_VOTING_DURATION,
@@ -68,7 +68,7 @@ describe('Space testing', () => {
     // -- Creates the proposal --
     {
       console.log('Creating proposal...');
-      await vanillaAuthenticator.invoke(EXECUTE_METHOD, {
+      await vanillaAuthenticator.invoke(AUTHENTICATE_METHOD, {
         target: spaceContract,
         function_selector: BigInt(getSelectorFromName(PROPOSAL_METHOD)),
         calldata,
@@ -100,7 +100,7 @@ describe('Space testing', () => {
       // Cairo cannot handle 2D arrays in calldata so we must flatten the data then reconstruct the individual arrays inside the contract
       const votingParamsAllFlat = flatten2DArray(votingParamsAll);
       const used_voting_strategies = [BigInt(vanillaVotingStrategy.address)];
-      await vanillaAuthenticator.invoke(EXECUTE_METHOD, {
+      await vanillaAuthenticator.invoke(AUTHENTICATE_METHOD, {
         target: spaceContract,
         function_selector: BigInt(getSelectorFromName(VOTE_METHOD)),
         calldata: [

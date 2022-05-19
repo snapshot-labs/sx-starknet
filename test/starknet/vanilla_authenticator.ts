@@ -17,7 +17,7 @@ describe('Authenticator execute call:', () => {
     const { vanillaAuthenticator } = await setup();
 
     // TODO: Uncomment these when merging vanilla_space
-    // await vanillaAuthenticator.call(EXECUTE_METHOD, {
+    // await vanillaAuthenticator.call(AUTHENTICATE_METHOD, {
     //   to: SPACE_CONTRACT,
     //   function_selector: BigInt(getSelectorFromName(VOTE_METHOD)),
     //   calldata: [],
@@ -28,7 +28,7 @@ describe('Authenticator execute call:', () => {
     const { vanillaAuthenticator } = await setup();
 
     // TODO: Uncomment these when merging vanilla_space
-    // await vanillaAuthenticator.call(EXECUTE_METHOD, {
+    // await vanillaAuthenticator.call(AUTHENTICATE_METHOD, {
     //   to: SPACE_CONTRACT,
     //   function_selector: BigInt(getSelectorFromName(PROPOSAL_METHOD)),
     //   calldata: [],

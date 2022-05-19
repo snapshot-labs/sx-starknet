@@ -10,7 +10,7 @@ import {
   VITALIK_ADDRESS,
   VITALIK_STRING_ADDRESS,
   vanillaSetup,
-  EXECUTE_METHOD,
+  AUTHENTICATE_METHOD,
   PROPOSAL_METHOD,
   VOTE_METHOD,
 } from '../starknet/shared/setup';
@@ -131,7 +131,7 @@ describe('Create proposal, cast vote, and send execution to l1', function () {
     ];
 
     // -- Creates a proposal --
-    await authContract.invoke(EXECUTE_METHOD, {
+    await authContract.invoke(AUTHENTICATE_METHOD, {
       target: BigInt(spaceContract.address),
       function_selector: BigInt(getSelectorFromName(PROPOSAL_METHOD)),
       calldata,
@@ -142,7 +142,7 @@ describe('Create proposal, cast vote, and send execution to l1', function () {
       const voter_address = proposer_address;
       const votingParamsAll: bigint[][] = [[]];
       const votingParamsAllFlat = flatten2DArray(votingParamsAll);
-      await authContract.invoke(EXECUTE_METHOD, {
+      await authContract.invoke(AUTHENTICATE_METHOD, {
         target: BigInt(spaceContract.address),
         function_selector: BigInt(getSelectorFromName(VOTE_METHOD)),
         calldata: [

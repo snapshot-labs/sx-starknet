@@ -2,7 +2,12 @@ import { stark } from 'starknet';
 import { SplitUint256, FOR } from './shared/types';
 import { strToShortStringArr } from '@snapshot-labs/sx';
 import { expect } from 'chai';
-import { vanillaSetup, VITALIK_ADDRESS, EXECUTE_METHOD, PROPOSAL_METHOD } from './shared/setup';
+import {
+  vanillaSetup,
+  VITALIK_ADDRESS,
+  AUTHENTICATE_METHOD,
+  PROPOSAL_METHOD,
+} from './shared/setup';
 import { flatten2DArray } from './shared/helpers';
 import { StarknetContract } from 'hardhat/types';
 import { Account } from '@shardlabs/starknet-hardhat-plugin/dist/account';
@@ -75,7 +80,7 @@ describe('Whitelist testing', () => {
 
   it('Should create a proposal for a whitelisted executor', async () => {
     {
-      await vanillaAuthenticator.invoke(EXECUTE_METHOD, {
+      await vanillaAuthenticator.invoke(AUTHENTICATE_METHOD, {
         target: spaceContract,
         function_selector: BigInt(getSelectorFromName(PROPOSAL_METHOD)),
         calldata,
@@ -92,7 +97,7 @@ describe('Whitelist testing', () => {
     try {
       // Try to create a proposal, should fail because it just got removed
       // from the whitelist
-      await vanillaAuthenticator.invoke(EXECUTE_METHOD, {
+      await vanillaAuthenticator.invoke(AUTHENTICATE_METHOD, {
         target: spaceContract,
         function_selector: BigInt(getSelectorFromName(PROPOSAL_METHOD)),
         calldata,
@@ -107,7 +112,7 @@ describe('Whitelist testing', () => {
       to_add: [BigInt(zodiacRelayer.address), VITALIK_ADDRESS],
     });
 
-    await vanillaAuthenticator.invoke(EXECUTE_METHOD, {
+    await vanillaAuthenticator.invoke(AUTHENTICATE_METHOD, {
       target: spaceContract,
       function_selector: BigInt(getSelectorFromName(PROPOSAL_METHOD)),
       calldata: calldata2,

@@ -7,6 +7,7 @@ from starkware.cairo.common.memcpy import memcpy
 from starkware.cairo.common.math import assert_not_equal
 from contracts.starknet.lib.eth_address import EthAddress
 from contracts.starknet.lib.hash_array import hash_array
+from contracts.starknet.lib.execute import execute
 
 # Address of the StarkNet Commit L1 contract which acts as the origin address of the messages sent to this contract.
 @storage_var
@@ -42,7 +43,7 @@ func commit{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr : 
 end
 
 @external
-func execute{syscall_ptr : felt*, range_check_ptr, pedersen_ptr : HashBuiltin*}(
+func authenticate{syscall_ptr : felt*, range_check_ptr, pedersen_ptr : HashBuiltin*}(
     target : felt, function_selector : felt, calldata_len : felt, calldata : felt*
 ):
     alloc_locals
@@ -65,11 +66,6 @@ func execute{syscall_ptr : felt*, range_check_ptr, pedersen_ptr : HashBuiltin*}(
     # Clear the hash from the contract by writing the zero address to the mapping.
     commit_store.write(hash, EthAddress(0))
     # Execute the function call with calldata supplied.
-    call_contract(
-        contract_address=target,
-        function_selector=function_selector,
-        calldata_size=calldata_len,
-        calldata=calldata,
-    )
+    execute(target, function_selector, calldata_len, calldata)
     return ()
 end

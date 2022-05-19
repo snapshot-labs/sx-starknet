@@ -6,7 +6,7 @@ import { SplitUint256, IntsSequence } from './types';
 import { hexToBytes, flatten2DArray } from './helpers';
 import { block } from '../data/blocks';
 import { ProcessBlockInputs } from './parseRPCData';
-export const EXECUTE_METHOD = 'execute';
+export const AUTHENTICATE_METHOD = 'authenticate';
 export const PROPOSAL_METHOD = 'propose';
 export const VOTE_METHOD = 'vote';
 export const GET_PROPOSAL_INFO = 'get_proposal_info';
