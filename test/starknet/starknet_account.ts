@@ -3,7 +3,7 @@ import { SplitUint256, FOR } from './shared/types';
 import { strToShortStringArr } from '@snapshot-labs/sx';
 import { expect } from 'chai';
 import {
-  starknetTxSetup,
+  starknetAccountSetup,
   VITALIK_ADDRESS,
   AUTHENTICATE_METHOD,
   PROPOSAL_METHOD,
@@ -11,12 +11,13 @@ import {
 } from './shared/setup';
 import { StarknetContract } from 'hardhat/types';
 import { Account } from '@shardlabs/starknet-hardhat-plugin/dist/account';
+import { joinSignature } from 'ethers/lib/utils';
 
 const { getSelectorFromName } = stark;
 
-describe('Starknet Tx Auth testing', () => {
+describe('Starknet Account Auth testing', () => {
   let vanillaSpace: StarknetContract;
-  let starknetTxAuth: StarknetContract;
+  let starknetAccountAuth: StarknetContract;
   let vanillaVotingStrategy: StarknetContract;
   let zodiacRelayer: StarknetContract;
   const executionHash = new SplitUint256(BigInt(1), BigInt(2)); // Dummy uint256
@@ -37,8 +38,8 @@ describe('Starknet Tx Auth testing', () => {
   before(async function () {
     this.timeout(800000);
 
-    ({ vanillaSpace, starknetTxAuth, vanillaVotingStrategy, zodiacRelayer, account } =
-      await starknetTxSetup());
+    ({ vanillaSpace, starknetAccountAuth, vanillaVotingStrategy, zodiacRelayer, account } =
+      await starknetAccountSetup());
     executionParams = [BigInt(l1_zodiac_module)];
     spaceContract = BigInt(vanillaSpace.address);
     used_voting_strategies = [BigInt(vanillaVotingStrategy.address)];
@@ -66,7 +67,7 @@ describe('Starknet Tx Auth testing', () => {
       const fake_data = [...calldata];
       fake_data[0] = VITALIK_ADDRESS;
 
-      await account.invoke(starknetTxAuth, AUTHENTICATE_METHOD, {
+      await account.invoke(starknetAccountAuth, AUTHENTICATE_METHOD, {
         target: spaceContract,
         function_selector: BigInt(getSelectorFromName(PROPOSAL_METHOD)),
         calldata: fake_data,
@@ -81,7 +82,7 @@ describe('Starknet Tx Auth testing', () => {
     // -- Creates the proposal --
     {
       console.log('Creating proposal...');
-      await account.invoke(starknetTxAuth, AUTHENTICATE_METHOD, {
+      await account.invoke(starknetAccountAuth, AUTHENTICATE_METHOD, {
         target: spaceContract,
         function_selector: BigInt(getSelectorFromName(PROPOSAL_METHOD)),
         calldata,
@@ -111,7 +112,11 @@ describe('Starknet Tx Auth testing', () => {
       const voter_address = proposerAddress;
       const votingparams: Array<BigInt> = [];
       const used_voting_strategies = [BigInt(vanillaVotingStrategy.address)];
-      await account.invoke(starknetTxAuth, AUTHENTICATE_METHOD, {
+      const hash = 1;
+      const sig = [BigInt(1)];
+      await account.invoke(starknetAccountAuth, AUTHENTICATE_METHOD, {
+        hash: hash,
+        sig: sig,
         target: spaceContract,
         function_selector: BigInt(getSelectorFromName(VOTE_METHOD)),
         calldata: [

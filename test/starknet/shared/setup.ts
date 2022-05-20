@@ -77,6 +77,63 @@ export async function vanillaSetup() {
   };
 }
 
+export async function starknetAccountSetup() {
+  const account = await starknet.deployAccount('OpenZeppelin');
+
+  const vanillaSpaceFactory = await starknet.getContractFactory('./contracts/starknet/space.cairo');
+  const vanillaVotingStategyFactory = await starknet.getContractFactory(
+    './contracts/starknet/voting_strategies/vanilla.cairo'
+  );
+  const starknetAccountAuthFactory = await starknet.getContractFactory(
+    './contracts/starknet/authenticators/starknet_account.cairo'
+  );
+  const zodiacRelayerFactory = await starknet.getContractFactory(
+    './contracts/starknet/execution_strategies/zodiac_relayer.cairo'
+  );
+
+  const deployments = [
+    starknetAccountAuthFactory.deploy(),
+    vanillaVotingStategyFactory.deploy(),
+    zodiacRelayerFactory.deploy(),
+  ];
+  console.log('Deploying auth, voting and zodiac relayer contracts...');
+  const contracts = await Promise.all(deployments);
+  const starknetAccountAuth = contracts[0] as StarknetContract;
+  const vanillaVotingStrategy = contracts[1] as StarknetContract;
+  const zodiacRelayer = contracts[2] as StarknetContract;
+
+  const voting_strategy = BigInt(vanillaVotingStrategy.address);
+  const authenticator = BigInt(starknetAccountAuth.address);
+  const zodiac_relayer = BigInt(zodiacRelayer.address);
+  const quorum = SplitUint256.fromUint(BigInt(0));
+
+  // This should be declared along with the other const but doing so will make the compiler unhappy as `SplitUin256`
+  // will be undefined for some reason?
+  const PROPOSAL_THRESHOLD = SplitUint256.fromUint(BigInt(1));
+
+  console.log('Deploying space contract...');
+  const vanillaSpace = (await vanillaSpaceFactory.deploy({
+    _voting_delay: VOTING_DELAY,
+    _min_voting_duration: MIN_VOTING_DURATION,
+    _max_voting_duration: MAX_VOTING_DURATION,
+    _proposal_threshold: PROPOSAL_THRESHOLD,
+    _quorum: quorum,
+    _controller: BigInt(account.starknetContract.address),
+    _voting_strategies: [voting_strategy],
+    _authenticators: [authenticator],
+    _executors: [zodiac_relayer],
+  })) as StarknetContract;
+  console.log('deployed!');
+
+  return {
+    vanillaSpace,
+    starknetAccountAuth,
+    vanillaVotingStrategy,
+    zodiacRelayer,
+    account,
+  };
+}
+
 export async function starknetTxSetup() {
   const account = await starknet.deployAccount('OpenZeppelin');
 
