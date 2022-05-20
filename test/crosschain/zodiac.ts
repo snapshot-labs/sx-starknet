@@ -18,9 +18,12 @@ import {
 
 const { getSelectorFromName } = stark;
 
+export const VITALIK_ADDRESS = BigInt('0xd8da6bf26964af9d7eed9e03e53415d37aa96045');
+export const VITALIK_STRING_ADDRESS = VITALIK_ADDRESS.toString(16);
+
 // Dummy tx
 const tx1 = {
-  to: ethers.Wallet.createRandom().address,
+  to: VITALIK_STRING_ADDRESS,
   value: 0,
   data: '0x11',
   operation: 0,
@@ -29,7 +32,7 @@ const tx1 = {
 
 // Dummy tx 2
 const tx2 = {
-  to: ethers.Wallet.createRandom().address,
+  to: VITALIK_STRING_ADDRESS,
   value: 0,
   data: '0x22',
   operation: 0,
@@ -204,9 +207,14 @@ describe('Create proposal, cast vote, and send execution to l1', function () {
     // ).to.be.reverted;
     console.log(await zodiacModule.getProposalState(0));
 
+    console.log(callerAddress,
+    proposalOutcome,
+    splitExecutionHash.low,
+    splitExecutionHash.high,
+    txHashes);
+    
     // Check that it works when provided correct parameters.
     await zodiacModule
-      .connect(signer)
       .receiveProposal(
         callerAddress,
         proposalOutcome,
