@@ -171,56 +171,48 @@ describe('Create proposal, cast vote, and send execution to l1', function () {
     const callerAddress = BigInt(space.address);
     const fakeCallerAddress = BigInt(zodiacRelayer.address);
     const splitExecutionHash = SplitUint256.fromHex(executionHash);
-    console.log(splitExecutionHash);
+
     // Check that if the tx hash is incorrect, the transaction reverts.
-    // await expect(
-    //   zodiacModule.receiveProposal(
-    //     callerAddress,
-    //     proposalOutcome,
-    //     splitExecutionHash.low,
-    //     splitExecutionHash.high,
-    //     fakeTxHashes
-    //   )
-    // ).to.be.reverted;
-    // console.log('b');
-
-    // // Check that if `proposalOutcome` parameter is incorrect, transaction reverts.
-    // await expect(
-    //   zodiacModule.receiveProposal(
-    //     callerAddress,
-    //     !proposalOutcome,
-    //     splitExecutionHash.low,
-    //     splitExecutionHash.high,
-    //     txHashes
-    //   )
-    // ).to.be.reverted;
-    // console.log('c');
-    // // Check that if `callerAddress` parameter is incorrect, transaction reverts.
-    // await expect(
-    //   zodiacModule.receiveProposal(
-    //     fakeCallerAddress,
-    //     proposalOutcome,
-    //     splitExecutionHash.low,
-    //     splitExecutionHash.high,
-    //     txHashes
-    //   )
-    // ).to.be.reverted;
-    console.log(await zodiacModule.getProposalState(0));
-
-    console.log(callerAddress,
-    proposalOutcome,
-    splitExecutionHash.low,
-    splitExecutionHash.high,
-    txHashes);
-    
-    // Check that it works when provided correct parameters.
-    await zodiacModule
-      .receiveProposal(
+    await expect(
+      zodiacModule.receiveProposal(
         callerAddress,
         proposalOutcome,
         splitExecutionHash.low,
         splitExecutionHash.high,
+        fakeTxHashes
+      )
+    ).to.be.reverted;
+    console.log('b');
+
+    // Check that if `proposalOutcome` parameter is incorrect, transaction reverts.
+    await expect(
+      zodiacModule.receiveProposal(
+        callerAddress,
+        !proposalOutcome,
+        splitExecutionHash.low,
+        splitExecutionHash.high,
         txHashes
-      );
+      )
+    ).to.be.reverted;
+    console.log('c');
+    // Check that if `callerAddress` parameter is incorrect, transaction reverts.
+    await expect(
+      zodiacModule.receiveProposal(
+        fakeCallerAddress,
+        proposalOutcome,
+        splitExecutionHash.low,
+        splitExecutionHash.high,
+        txHashes
+      )
+    ).to.be.reverted;
+
+    // Check that it works when provided correct parameters.
+    await zodiacModule.receiveProposal(
+      fakeCallerAddress,
+      proposalOutcome,
+      splitExecutionHash.low,
+      splitExecutionHash.high,
+      txHashes
+    );
   });
 });
