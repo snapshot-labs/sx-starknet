@@ -15,7 +15,7 @@ describe('Snapshot X Single Slot Strategy:', () => {
 
     const proofInputs = ProofInputs.fromProofRPCData(block.number, proofs, encodeParams);
 
-    const globalParams: bigint[] = [proofInputs.ethAddressFelt, BigInt(0)];
+    const params: bigint[] = [proofInputs.ethAddressFelt, BigInt(0)];
     // Deploy Fossil storage verifier instance and the voting strategy contract.
     const { account, singleSlotProofStrategy, fossil } = await singleSlotProofSetup();
 
@@ -37,8 +37,8 @@ describe('Snapshot X Single Slot Strategy:', () => {
     const { voting_power: vp } = await singleSlotProofStrategy.call('get_voting_power', {
       block: proofInputs.blockNumber,
       voter_address: { value: voterAddress },
-      global_params: globalParams,
-      params: proofInputs.votingPowerParams,
+      params: params,
+      user_params: proofInputs.votingPowerParams,
     });
 
     // Assert voting power obtained from strategy is correct

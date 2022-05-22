@@ -70,8 +70,8 @@ describe('Whitelist testing', () => {
     const { voting_power } = await whitelistStrat.call('get_voting_power', {
       block: BigInt(0),
       voter_address: { value: random_address },
-      global_params: [],
       params: [],
+      user_params: [],
     });
 
     const vp = SplitUint256.fromObj(voting_power);
@@ -84,8 +84,8 @@ describe('Whitelist testing', () => {
     const { voting_power } = await whitelistStrat.call('get_voting_power', {
       block: BigInt(0),
       voter_address: { value: VITALIK_ADDRESS },
-      global_params: [],
       params: [],
+      user_params: [],
     });
 
     const vp = SplitUint256.fromObj(voting_power);
@@ -97,8 +97,8 @@ describe('Whitelist testing', () => {
     const { voting_power } = await emptyStrat.call('get_voting_power', {
       block: BigInt(0),
       voter_address: { value: VITALIK_ADDRESS },
-      global_params: [],
       params: [],
+      user_params: [],
     });
 
     const vp = SplitUint256.fromObj(voting_power);
@@ -110,8 +110,8 @@ describe('Whitelist testing', () => {
     const { voting_power } = await repeatStrat.call('get_voting_power', {
       block: BigInt(0),
       voter_address: { value: VITALIK_ADDRESS },
-      global_params: [],
       params: [],
+      user_params: [],
     });
 
     const vp = SplitUint256.fromObj(voting_power);
@@ -123,8 +123,8 @@ describe('Whitelist testing', () => {
     const { voting_power } = await bigStrat.call('get_voting_power', {
       block: BigInt(0),
       voter_address: { value: ADDRR_1 },
-      global_params: [],
       params: [],
+      user_params: [],
     });
 
     const vp = SplitUint256.fromObj(voting_power);
@@ -136,26 +136,26 @@ describe('Whitelist testing', () => {
     const voting_power1 = await bigStrat.call('get_voting_power', {
       block: BigInt(0),
       voter_address: { value: ADDRR_1 },
-      global_params: [],
       params: [],
+      user_params: [],
     });
     const voting_power2 = await bigStrat.call('get_voting_power', {
       block: BigInt(0),
       voter_address: { value: ADDRR_2 },
-      global_params: [],
       params: [],
+      user_params: [],
     });
     const voting_power3 = await bigStrat.call('get_voting_power', {
       block: BigInt(0),
       voter_address: { value: ADDRR_3 },
-      global_params: [],
       params: [],
+      user_params: [],
     });
     const voting_power4 = await bigStrat.call('get_voting_power', {
       block: BigInt(0),
       voter_address: { value: ADDRR_4 },
-      global_params: [],
       params: [],
+      user_params: [],
     });
 
     const results = [voting_power1, voting_power2, voting_power3, voting_power4];
@@ -171,8 +171,8 @@ describe('Whitelist testing', () => {
     const { voting_power } = await bigStrat.call('get_voting_power', {
       block: BigInt(0),
       voter_address: { value: VITALIK_ADDRESS },
-      global_params: [],
       params: [],
+      user_params: [],
     });
 
     const vp = SplitUint256.fromObj(voting_power);
