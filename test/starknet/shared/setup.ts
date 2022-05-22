@@ -43,8 +43,8 @@ export async function vanillaSetup() {
   const zodiacRelayer = contracts[2] as StarknetContract;
 
   const voting_strategy = BigInt(vanillaVotingStrategy.address);
-  const global_voting_strategy_params: bigint[][] = [[]];
-  const global_voting_strategy_params_flat = flatten2DArray(global_voting_strategy_params);
+  const voting_strategy_params: bigint[][] = [[]];
+  const voting_strategy_params_flat = flatten2DArray(voting_strategy_params);
   const authenticator = BigInt(vanillaAuthenticator.address);
   const zodiac_relayer = BigInt(zodiacRelayer.address);
   const quorum = SplitUint256.fromUint(BigInt(0));
@@ -61,7 +61,7 @@ export async function vanillaSetup() {
     _proposal_threshold: PROPOSAL_THRESHOLD,
     _controller: BigInt(account.starknetContract.address),
     _quorum: quorum,
-    _global_voting_strategy_params_flat: global_voting_strategy_params_flat,
+    _voting_strategy_params_flat: voting_strategy_params_flat,
     _voting_strategies: [voting_strategy],
     _authenticators: [authenticator],
     _executors: [zodiac_relayer],
@@ -110,8 +110,8 @@ export async function ethTxAuthSetup(signer: SignerWithAddress) {
   console.log('Deploying strat...');
   const vanillaVotingStrategy = (await vanillaVotingStategyFactory.deploy()) as StarknetContract;
   const voting_strategy = BigInt(vanillaVotingStrategy.address);
-  const global_voting_strategy_params: bigint[][] = [[]];
-  const global_voting_strategy_params_flat = flatten2DArray(global_voting_strategy_params);
+  const voting_strategy_params: bigint[][] = [[]];
+  const voting_strategy_params_flat = flatten2DArray(voting_strategy_params);
   const authenticator = BigInt(ethTxAuthenticator.address);
   console.log('Deploying space...');
 
@@ -127,7 +127,7 @@ export async function ethTxAuthSetup(signer: SignerWithAddress) {
     _proposal_threshold: PROPOSAL_THRESHOLD,
     _controller: 1,
     _quorum: quorum,
-    _global_voting_strategy_params_flat: global_voting_strategy_params_flat,
+    _voting_strategy_params_flat: voting_strategy_params_flat,
     _voting_strategies: [voting_strategy],
     _authenticators: [authenticator],
     _executors: [VITALIK_ADDRESS],
