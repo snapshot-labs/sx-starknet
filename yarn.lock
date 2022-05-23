@@ -280,7 +280,7 @@
     "@ethersproject/bytes" "^5.6.0"
     "@ethersproject/properties" "^5.6.0"
 
-"@ethersproject/bignumber@5.6.1", "@ethersproject/bignumber@>=5.0.0-beta.130", "@ethersproject/bignumber@^5.0.7", "@ethersproject/bignumber@^5.6.0":
+"@ethersproject/bignumber@5.6.1", "@ethersproject/bignumber@>=5.0.0-beta.130", "@ethersproject/bignumber@^5.0.7", "@ethersproject/bignumber@^5.6.0", "@ethersproject/bignumber@^5.6.1":
   version "5.6.1"
   resolved "https://registry.yarnpkg.com/@ethersproject/bignumber/-/bignumber-5.6.1.tgz#d5e0da518eb82ab8d08ca9db501888bbf5f0c8fb"
   dependencies:
@@ -9556,11 +9556,11 @@ swarm-js@^0.1.40:
 
 sx-api@snapshot-labs/sx-api:
   version "0.1.0"
-  uid "7c54af0dacbd3df1028e6df8667afac8e6e10044"
-  resolved "https://codeload.github.com/snapshot-labs/sx-api/tar.gz/7c54af0dacbd3df1028e6df8667afac8e6e10044"
+  uid "300c1f9cfc3175ddebff977e7e72c1f82dc3c97b"
+  resolved "https://codeload.github.com/snapshot-labs/sx-api/tar.gz/300c1f9cfc3175ddebff977e7e72c1f82dc3c97b"
   dependencies:
     "@ethersproject/address" "^5.6.0"
-    "@ethersproject/bignumber" "^5.6.0"
+    "@ethersproject/bignumber" "^5.6.1"
     "@snapshot-labs/checkpoint" "^0.1.0-beta.0"
     "@snapshot-labs/sx" "^0.1.0-beta.0"
     "@types/bn.js" "^5.1.0"
