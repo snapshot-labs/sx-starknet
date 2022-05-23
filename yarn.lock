@@ -3056,9 +3056,9 @@ concat-stream@^1.5.1, concat-stream@^1.6.0, concat-stream@^1.6.2, concat-stream@
     readable-stream "^2.2.2"
     typedarray "^0.0.6"
 
-concurrently@^7.2.0:
-  version "7.2.0"
-  resolved "https://registry.yarnpkg.com/concurrently/-/concurrently-7.2.0.tgz#4d9b4d1e527b8a8cb101bc2aee317e09496fad43"
+concurrently@^7.2.1:
+  version "7.2.1"
+  resolved "https://registry.yarnpkg.com/concurrently/-/concurrently-7.2.1.tgz#88b144060443403060aad46f837dd17451f7e55e"
   dependencies:
     chalk "^4.1.0"
     date-fns "^2.16.1"
