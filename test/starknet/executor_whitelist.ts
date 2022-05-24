@@ -1,116 +1,158 @@
-import { stark } from 'starknet';
-import { SplitUint256, FOR } from './shared/types';
-import { strToShortStringArr } from '@snapshot-labs/sx';
 import { expect } from 'chai';
-import { vanillaSetup, VITALIK_ADDRESS, EXECUTE_METHOD, PROPOSAL_METHOD } from './shared/setup';
-import { flatten2DArray } from '../shared/helpers';
-import { StarknetContract } from 'hardhat/types';
-import { Account } from '@shardlabs/starknet-hardhat-plugin/dist/account';
+import { Contract } from 'ethers';
+import { stark } from 'starknet';
+import { starknet, ethers } from 'hardhat';
+import { strToShortStringArr } from '@snapshot-labs/sx';
+import { zodiacRelayerSetup } from '../shared/setup';
+import { flatten2DArray, getProposeCalldata, getVoteCalldata } from '../shared/helpers';
+import { StarknetContract, Account } from 'hardhat/types';
 
 const { getSelectorFromName } = stark;
 
 describe('Whitelist testing', () => {
-  let vanillaSpace: StarknetContract;
+  // Contracts
+  let mockStarknetMessaging: Contract;
+  let space: StarknetContract;
+  let controller: Account;
   let vanillaAuthenticator: StarknetContract;
   let vanillaVotingStrategy: StarknetContract;
   let zodiacRelayer: StarknetContract;
-  let account: Account;
-  const executionHash = new SplitUint256(BigInt(1), BigInt(2)); // Dummy uint256
-  const metadataUri = strToShortStringArr(
-    'Hello and welcome to Snapshot X. This is the future of governance.'
-  );
-  const proposerAddress = { value: VITALIK_ADDRESS };
-  const proposalId = 1;
-  const votingParamsAll: bigint[][] = [[]];
-  let executionParams: Array<bigint>;
-  const ethBlockNumber = BigInt(1337);
-  const l1_zodiac_module = BigInt('0xaaaaaaaaaaaa');
-  let used_voting_strategies: Array<bigint>;
-  let calldata: Array<bigint>;
-  let calldata2: Array<bigint>;
-  let spaceContract: bigint;
+  let zodiacModule: Contract;
+  let vanillaExecutionStrategy: StarknetContract;
+
+  // Proposal creation parameters
+  let spaceAddress: bigint;
+  let executionHash: string;
+  let metadataUri: bigint[];
+  let proposerEthAddress: string;
+  let usedVotingStrategies1: bigint[];
+  let votingParamsAll1: bigint[][];
+  let executionStrategy1: bigint;
+  let executionParams1: bigint[];
+  let ethBlockNumber: bigint;
+  let proposeCalldata1: bigint[];
+
+  // Alternative execution strategy parameters
+  let executionStrategy2: bigint;
+  let executionParams2: bigint[];
+  let proposeCalldata2: bigint[];
 
   before(async function () {
     this.timeout(800000);
 
-    ({ vanillaSpace, vanillaAuthenticator, vanillaVotingStrategy, zodiacRelayer, account } =
-      await vanillaSetup());
-    executionParams = [BigInt(l1_zodiac_module)];
-    spaceContract = BigInt(vanillaSpace.address);
-    used_voting_strategies = [BigInt(vanillaVotingStrategy.address)];
-    const votingParamsAllFlat = flatten2DArray(votingParamsAll);
-    calldata = [
-      proposerAddress.value,
-      executionHash.low,
-      executionHash.high,
-      BigInt(metadataUri.length),
-      ...metadataUri,
-      ethBlockNumber,
-      BigInt(zodiacRelayer.address),
-      BigInt(used_voting_strategies.length),
-      ...used_voting_strategies,
-      BigInt(votingParamsAllFlat.length),
-      ...votingParamsAllFlat,
-      BigInt(executionParams.length),
-      ...executionParams,
-    ];
+    ({
+      space,
+      controller,
+      vanillaAuthenticator,
+      vanillaVotingStrategy,
+      zodiacRelayer,
+      zodiacModule,
+      mockStarknetMessaging,
+    } = await zodiacRelayerSetup());
 
-    // Same as calldata except executor is VITALIK_ADDRESS
-    calldata2 = [
-      proposerAddress.value,
-      executionHash.low,
-      executionHash.high,
-      BigInt(metadataUri.length),
-      ...metadataUri,
+    const vanillaExecutionStrategyFactory = await starknet.getContractFactory(
+      './contracts/starknet/execution_strategies/vanilla.cairo'
+    );
+    vanillaExecutionStrategy = await vanillaExecutionStrategyFactory.deploy();
+
+    spaceAddress = BigInt(space.address);
+    executionHash = '0x912ea662aac9d054ef5173da69723b88a5582cae2349f891998b6040cf9c2653'; // Random 32 byte hash
+    metadataUri = strToShortStringArr(
+      'Hello and welcome to Snapshot X. This is the future of governance.'
+    );
+    proposerEthAddress = ethers.Wallet.createRandom().address;
+    ethBlockNumber = BigInt(1337);
+    spaceAddress = BigInt(space.address);
+    usedVotingStrategies1 = [BigInt(vanillaVotingStrategy.address)];
+    votingParamsAll1 = [[]];
+    executionStrategy1 = BigInt(zodiacRelayer.address);
+    executionParams1 = [BigInt(zodiacModule.address)];
+    proposeCalldata1 = getProposeCalldata(
+      proposerEthAddress,
+      executionHash,
+      metadataUri,
       ethBlockNumber,
-      VITALIK_ADDRESS,
-      BigInt(used_voting_strategies.length),
-      ...used_voting_strategies,
-      BigInt(votingParamsAllFlat.length),
-      ...votingParamsAllFlat,
-      BigInt(executionParams.length),
-      ...executionParams,
-    ];
+      executionStrategy1,
+      usedVotingStrategies1,
+      votingParamsAll1,
+      executionParams1
+    );
+
+    executionStrategy2 = BigInt(vanillaExecutionStrategy.address);
+    executionParams2 = [];
+    proposeCalldata2 = getProposeCalldata(
+      proposerEthAddress,
+      executionHash,
+      metadataUri,
+      ethBlockNumber,
+      executionStrategy2,
+      usedVotingStrategies1,
+      votingParamsAll1,
+      executionParams2
+    );
   });
 
   it('Should create a proposal for a whitelisted executor', async () => {
     {
-      await vanillaAuthenticator.invoke(EXECUTE_METHOD, {
-        target: spaceContract,
-        function_selector: BigInt(getSelectorFromName(PROPOSAL_METHOD)),
-        calldata,
+      await vanillaAuthenticator.invoke('execute', {
+        target: spaceAddress,
+        function_selector: BigInt(getSelectorFromName('propose')),
+        calldata: proposeCalldata1,
       });
     }
   });
 
-  it('Should correctly remove two executors', async () => {
-    const randomAddr = 0x45;
-    const hash = await account.invoke(vanillaSpace, 'remove_executors', {
-      to_remove: [BigInt(zodiacRelayer.address), randomAddr],
-    });
-
+  it('Should not be able to create a proposal with a non whitelisted executor', async () => {
     try {
-      // Try to create a proposal, should fail because it just got removed
-      // from the whitelist
-      await vanillaAuthenticator.invoke(EXECUTE_METHOD, {
-        target: spaceContract,
-        function_selector: BigInt(getSelectorFromName(PROPOSAL_METHOD)),
-        calldata,
+      // proposeCalldata2 contains the vanilla execution strategy which is not whitelisted initially
+      await vanillaAuthenticator.invoke('execute', {
+        target: spaceAddress,
+        function_selector: BigInt(getSelectorFromName('propose')),
+        calldata: proposeCalldata2,
       });
     } catch (err: any) {
       expect(err.message).to.contain('Invalid executor');
     }
   });
 
-  it('Should correctly add two executors', async () => {
-    const hash = await account.invoke(vanillaSpace, 'add_executors', {
-      to_add: [BigInt(zodiacRelayer.address), VITALIK_ADDRESS],
+  it('The Controller can whitelist an executor', async () => {
+    await controller.invoke(space, 'add_executors', {
+      to_add: [BigInt(vanillaExecutionStrategy.address)],
     });
 
-    await vanillaAuthenticator.invoke(EXECUTE_METHOD, {
-      target: spaceContract,
-      function_selector: BigInt(getSelectorFromName(PROPOSAL_METHOD)),
-      calldata: calldata2,
+    await vanillaAuthenticator.invoke('execute', {
+      target: spaceAddress,
+      function_selector: BigInt(getSelectorFromName('propose')),
+      calldata: proposeCalldata2,
+    });
+  });
+
+  it('The controller can remove two executors', async () => {
+    await controller.invoke(space, 'remove_executors', {
+      to_remove: [BigInt(zodiacRelayer.address), BigInt(vanillaExecutionStrategy.address)],
+    });
+
+    try {
+      // Try to create a proposal, should fail because it just got removed from the whitelist
+      await vanillaAuthenticator.invoke('execute', {
+        target: spaceAddress,
+        function_selector: BigInt(getSelectorFromName('propose')),
+        calldata: proposeCalldata1,
+      });
+    } catch (err: any) {
+      expect(err.message).to.contain('Invalid executor');
+    }
+  });
+
+  it('The controller can add two executors', async () => {
+    await controller.invoke(space, 'add_executors', {
+      to_add: [BigInt(zodiacRelayer.address), BigInt(vanillaExecutionStrategy.address)],
+    });
+
+    await vanillaAuthenticator.invoke('execute', {
+      target: spaceAddress,
+      function_selector: BigInt(getSelectorFromName('propose')),
+      calldata: proposeCalldata2,
     });
   });
 });
