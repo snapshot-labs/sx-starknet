@@ -3,9 +3,17 @@ import { Contract } from 'ethers';
 import { stark } from 'starknet';
 import { starknet, ethers } from 'hardhat';
 import { strToShortStringArr } from '@snapshot-labs/sx';
+<<<<<<< HEAD
 import { zodiacRelayerSetup } from '../shared/setup';
 import { flatten2DArray, getProposeCalldata, getVoteCalldata } from '../shared/helpers';
 import { StarknetContract, Account } from 'hardhat/types';
+=======
+import { expect } from 'chai';
+import { vanillaSetup, VITALIK_ADDRESS, EXECUTE_METHOD, PROPOSAL_METHOD } from './shared/setup';
+import { flatten2DArray } from './shared/helpers';
+import { StarknetContract } from 'hardhat/types';
+import { Account } from '@shardlabs/starknet-hardhat-plugin/dist/account';
+>>>>>>> 52b2f15d36774198b2d33e8847367858a686421c
 
 const { getSelectorFromName } = stark;
 

@@ -21,14 +21,27 @@ func construct_array2d{range_check_ptr}(flat_array_len : felt, flat_array : felt
     return (array2d)
 end
 
+<<<<<<< HEAD
+=======
+# Extracts sub array from 2d array at postion specified by index
+>>>>>>> 52b2f15d36774198b2d33e8847367858a686421c
 func get_sub_array{range_check_ptr}(array2d : Immutable2DArray, index : felt) -> (
     array_len : felt, array : felt*
 ):
     let offset = array2d.offsets[index]
     let array = &array2d.elements[offset]
+<<<<<<< HEAD
     if index == array2d.offsets_len - 1:
         tempvar array_len = array2d.elements_len - offset
     else:
+=======
+
+    if index == array2d.offsets_len - 1:
+        # If the index points to the final array in the 2d array, the length of the sub array is the length of the 2d array elements minus the offset of the final array
+        tempvar array_len = array2d.elements_len - offset
+    else:
+        # Otherwise the length of the sub array is the offset of the next array minus the offset of the current array
+>>>>>>> 52b2f15d36774198b2d33e8847367858a686421c
         tempvar array_len = array2d.offsets[index + 1] - offset
     end
     return (array_len, array)
