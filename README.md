@@ -11,33 +11,54 @@ Programmable governance on StarkNet.
 
 ### Blueprint
 ```ml
-src
-├─ artblocks
-│  ├─ GenArt721Core — "..."
-│  └─ YobotArtBlocksBroker — "Permissionless Broker for ArtBlocks Minting using Flashbot Searchers"
-├─ external
-│  ├─ ERC165 — "A minimal ERC165 Implementation"
-│  ├─ ERC721Enumerable — "An extension of ERC721 that supports enumeration"
-│  └─ ERC721Metadata — "An Enumerable ERC721 with Metadata"
-├─ interfaces
-│  ├─ IArtBlocksFactory — "ArtBlocksFactory Contract Interface"
-│  ├─ IERC165 — "ERC165 Interface"
-│  ├─ IERC721 — "ERC721 Interface"
-│  └─ IERC721Enumerable — "An Enumerable ERC721 Interface"
-├─ mocks
-│  ├─ InfiniteMint — "An ERC721 allowing infinite mints for testnet"
-│  └─ StrictMint — "An ERC721 with strict minting"
-├─ tests
-│  ├─ utils
-│  │  └─ DSTestPlus — "Custom, extended DSTest Suite"
-│  ├─ Coordinator.t — "Coordinator Tests"
-│  ├─ YobotArtBlocksBroker.t — "YobotArtBlocksBroker Tests"
-│  └─ YobotERC721LimitOrder.t — "YobotERC721LimitOrder Tests"
-├─ utils
-│  ├─ Randomizer — "A random generation"
-│  └─ YobotDeadline — "Abstracted Deadline Logic"
-├─ Coordinator — "Coordinator for Fee Parameters and Reception"
-└─ YobotERC721LimitOrder — "Permissionless Broker for Generalized ERC721 Minting using Flashbot Searchers"
+contracts
+├─ starknet
+│   ├─ authenticators
+│   │  ├─ eth_tx.cairo — "Authenticate user via an Ethereum transaction"
+│   │  └─ vanilla.cairo — "No authentication of users"
+│   ├─ execution_strategies
+│   │  ├─ vanilla.cairo — "No execution"
+│   │  └─ zodiac_relayer.cairo — "Strategy to execute proposal transactions using an Ethereum Gnosis Safe"
+│   ├─ interfaces
+│   │  ├─ i_authenticator.cairo — "..."
+│   │  ├─ i_execution_strategy.cairo — "..."
+│   │  └─ i_voting_strategy.cairo — "Permissionless Broker for ArtBlocks Minting using Flashbot Searchers"
+│   ├─ lib
+│   │  ├─ array2d.cairo — "..."
+│   │  ├─ choice.cairo — "..."
+│   │  ├─ eth_address.cairo — "..."
+│   │  ├─ felt_to_uint256.cairo — "..."
+│   │  ├─ hash_array.cairo — "..."
+│   │  ├─ proposal.cairo — "..."
+│   │  ├─ proposal_info.cairo — "..."
+│   │  ├─ proposal_outcome.cairo — "..."
+│   │  ├─ slot_key.cairo — "..."
+│   │  ├─ vote.cairo.cairo — "..."
+│   │  ├─ words.cairo — "..."
+│   │  └─ words64_to_uint256.cairo — "Permissionless Broker for ArtBlocks Minting using Flashbot Searchers"
+│   ├─ test_contracts
+│   │  ├─ test_array2d.cairo — "..."
+│   │  ├─ test_words.cairo — "..."
+│   │  └─ test_words64_to_uint256.cairo — "Permissionless Broker for ArtBlocks Minting using Flashbot Searchers"
+│   ├─ voting_strategies
+│   │  ├─ single_slot_proof.cairo — "..."
+│   │  ├─ vanilla.cairo — "..."
+│   │  └─ whitelist.cairo — "Permissionless Broker for ArtBlocks Minting using Flashbot Searchers"
+│   └─ space.cairo
+└─ ethereum 
+    ├─ Interfaces
+    │  └─ IStarknetCore.sol — "Authenticate user via an Ethereum transaction"
+    ├─ StarkNetCommit
+    │  └─ StarknetCommit.sol — "Authenticate user via an Ethereum transaction"
+    ├─ SnapshotXZodiacModule
+    │  ├─ ProposalRelayer.sol — "Authenticate user via an Ethereum transaction"
+    │  ├─ SnapshotXL1Executor.sol — "Authenticate user via an Ethereum transaction"
+    │  └─ deps.sol — "No authentication of users"
+    └─ TestContracts
+       ├─ MockStarknetMessaging.sol — "Authenticate user via an Ethereum transaction"
+       ├─ NamedStorage.sol — "Authenticate user via an Ethereum transaction"
+       └─ StarknetMessaging.sol — "No authentication of users"
+
 ```
 ### Clone repository:
 
