@@ -36,8 +36,8 @@ export async function vanillaSetup() {
   const minVotingDuration = BigInt(0);
   const maxVotingDuration = BigInt(2000);
   const votingStrategies: bigint[] = [BigInt(vanillaVotingStrategy.address)];
-  const globalVotingStrategyParams: bigint[][] = [[]]; // No global params for the vanilla voting strategy
-  const globalVotingStrategyParamsFlat: bigint[] = flatten2DArray(globalVotingStrategyParams);
+  const votingStrategyParams: bigint[][] = [[]]; // No params for the vanilla voting strategy
+  const votingStrategyParamsFlat: bigint[] = flatten2DArray(votingStrategyParams);
   const authenticators: bigint[] = [BigInt(vanillaAuthenticator.address)];
   const executors: bigint[] = [BigInt(vanillaExecutionStrategy.address)];
   const quorum: SplitUint256 = SplitUint256.fromUint(BigInt(1)); //  Quorum of one for the vanilla test
@@ -51,7 +51,7 @@ export async function vanillaSetup() {
     _proposal_threshold: proposalThreshold,
     _controller: BigInt(controller.starknetContract.address),
     _quorum: quorum,
-    _global_voting_strategy_params_flat: globalVotingStrategyParamsFlat,
+    _voting_strategy_params_flat: votingStrategyParamsFlat,
     _voting_strategies: votingStrategies,
     _authenticators: authenticators,
     _executors: executors,
@@ -103,8 +103,8 @@ export async function zodiacRelayerSetup() {
   const minVotingDuration = BigInt(0);
   const maxVotingDuration = BigInt(2000);
   const votingStrategies: bigint[] = [BigInt(vanillaVotingStrategy.address)];
-  const globalVotingStrategyParams: bigint[][] = [[]]; // No global params for the vanilla voting strategy
-  const globalVotingStrategyParamsFlat: bigint[] = flatten2DArray(globalVotingStrategyParams);
+  const votingStrategyParams: bigint[][] = [[]]; // No params for the vanilla voting strategy
+  const votingStrategyParamsFlat: bigint[] = flatten2DArray(votingStrategyParams);
   const authenticators: bigint[] = [BigInt(vanillaAuthenticator.address)];
   const executors: bigint[] = [BigInt(zodiacRelayer.address)];
   const quorum: SplitUint256 = SplitUint256.fromUint(BigInt(1)); //  Quorum of one for the vanilla test
@@ -118,7 +118,7 @@ export async function zodiacRelayerSetup() {
     _proposal_threshold: proposalThreshold,
     _controller: BigInt(controller.starknetContract.address),
     _quorum: quorum,
-    _global_voting_strategy_params_flat: globalVotingStrategyParamsFlat,
+    _voting_strategy_params_flat: votingStrategyParamsFlat,
     _voting_strategies: votingStrategies,
     _authenticators: authenticators,
     _executors: executors,
@@ -266,8 +266,8 @@ export async function ethTxAuthSetup() {
   const quorum: SplitUint256 = SplitUint256.fromUint(BigInt(1));
   const proposalThreshold: SplitUint256 = SplitUint256.fromUint(BigInt(1));
   const votingStrategies: bigint[] = [BigInt(vanillaVotingStrategy.address)];
-  const globalVotingStrategyParams: bigint[][] = [[]];
-  const globalVotingStrategyParamsFlat: bigint[] = flatten2DArray(globalVotingStrategyParams);
+  const votingStrategyParams: bigint[][] = [[]];
+  const votingStrategyParamsFlat: bigint[] = flatten2DArray(votingStrategyParams);
   const authenticators: bigint[] = [BigInt(ethTxAuthenticator.address)];
   const executors: bigint[] = [BigInt(vanillaExecutionStrategy.address)];
 
@@ -279,7 +279,7 @@ export async function ethTxAuthSetup() {
     _proposal_threshold: proposalThreshold,
     _controller: BigInt(controller.starknetContract.address),
     _quorum: quorum,
-    _global_voting_strategy_params_flat: globalVotingStrategyParamsFlat,
+    _voting_strategy_params_flat: votingStrategyParamsFlat,
     _voting_strategies: votingStrategies,
     _authenticators: authenticators,
     _executors: executors,

@@ -57,8 +57,8 @@ describe('Single slot proof voting strategy:', () => {
     const { voting_power: vp } = await singleSlotProofStrategy.call('get_voting_power', {
       block: proofInputs.blockNumber,
       voter_address: { value: BigInt(voterAddress) },
-      global_params: params,
-      params: proofInputs.userVotingPowerParams,
+      params: params,
+      user_params: proofInputs.userVotingPowerParams,
     });
 
     // Assert voting power obtained from strategy is correct

@@ -8,10 +8,10 @@ from contracts.starknet.lib.eth_address import EthAddress
 func get_voting_power{range_check_ptr}(
     block : felt,
     voter_address : EthAddress,
-    global_params_len : felt,
-    global_params : felt*,
     params_len : felt,
     params : felt*,
+    user_params_len : felt,
+    user_params : felt*,
 ) -> (voting_power : Uint256):
     return (Uint256(1, 0))
 end

@@ -23,7 +23,7 @@ describe('Space Testing', () => {
   let metadataUri: bigint[];
   let proposerEthAddress: string;
   let usedVotingStrategies1: bigint[];
-  let votingParamsAll1: bigint[][];
+  let userVotingParamsAll1: bigint[][];
   let executionStrategy: bigint;
   let executionParams: bigint[];
   let ethBlockNumber: bigint;
@@ -34,7 +34,7 @@ describe('Space Testing', () => {
   let proposalId: bigint;
   let choice: Choice;
   let usedVotingStrategies2: bigint[];
-  let votingParamsAll2: bigint[][];
+  let userVotingParamsAll2: bigint[][];
   let voteCalldata: bigint[];
 
   before(async function () {
@@ -51,7 +51,7 @@ describe('Space Testing', () => {
     ethBlockNumber = BigInt(1337);
     spaceAddress = BigInt(space.address);
     usedVotingStrategies1 = [BigInt(vanillaVotingStrategy.address)];
-    votingParamsAll1 = [[]];
+    userVotingParamsAll1 = [[]];
     executionStrategy = BigInt(vanillaExecutionStrategy.address);
     executionParams = [];
     proposeCalldata = getProposeCalldata(
@@ -61,7 +61,7 @@ describe('Space Testing', () => {
       ethBlockNumber,
       executionStrategy,
       usedVotingStrategies1,
-      votingParamsAll1,
+      userVotingParamsAll1,
       executionParams
     );
 
@@ -69,13 +69,13 @@ describe('Space Testing', () => {
     proposalId = BigInt(1);
     choice = Choice.FOR;
     usedVotingStrategies2 = [BigInt(vanillaVotingStrategy.address)];
-    votingParamsAll2 = [[]];
+    userVotingParamsAll2 = [[]];
     voteCalldata = getVoteCalldata(
       voterEthAddress,
       proposalId,
       choice,
       usedVotingStrategies2,
-      votingParamsAll2
+      userVotingParamsAll2
     );
   });
 

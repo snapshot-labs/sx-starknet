@@ -1,182 +1,134 @@
 import { stark } from 'starknet';
-import { SplitUint256, FOR } from './shared/types';
+import { SplitUint256, FOR } from '../shared/types';
 import { strToShortStringArr } from '@snapshot-labs/sx';
 import { expect } from 'chai';
-import { starknet } from 'hardhat';
-import { VITALIK_ADDRESS } from './shared/setup';
+import { starknet, ethers } from 'hardhat';
 import { StarknetContract } from 'hardhat/types';
 
 const { getSelectorFromName } = stark;
 
 describe('Whitelist testing', () => {
-  let whitelistStrat: StarknetContract;
-  let emptyStrat: StarknetContract;
-  let repeatStrat: StarknetContract;
-  let bigStrat: StarknetContract;
-  const ADDRR_1 = BigInt('11111');
-  const ADDRR_2 = BigInt('22222');
-  const ADDRR_3 = BigInt('33333');
-  const ADDRR_4 = BigInt('44444');
+  let whitelist: StarknetContract;
+  let emptyWhitelist: StarknetContract;
+  let repeatWhitelist: StarknetContract;
 
-  const VITALIK_POWER = SplitUint256.fromUint(BigInt('1000'));
-  const ADDRR_1_POWER = SplitUint256.fromUint(BigInt('1'));
-  const ADDRR_2_POWER = SplitUint256.fromUint(BigInt('2'));
-  const ADDRR_3_POWER = SplitUint256.fromUint(BigInt('3'));
-  const ADDRR_4_POWER = SplitUint256.fromUint(BigInt('4'));
+  let address1: bigint;
+  let address2: bigint;
+  let address3: bigint;
+  let address4: bigint;
+
+  let power1: SplitUint256;
+  let power2: SplitUint256;
+  let power3: SplitUint256;
+  let power4: SplitUint256;
 
   before(async function () {
     this.timeout(800000);
 
+    address1 = BigInt(ethers.Wallet.createRandom().address);
+    address2 = BigInt(ethers.Wallet.createRandom().address);
+    address3 = BigInt(ethers.Wallet.createRandom().address);
+    address4 = BigInt(ethers.Wallet.createRandom().address);
+
+    power1 = SplitUint256.fromUint(BigInt('1000'));
+    power2 = SplitUint256.fromUint(BigInt('1'));
+    power3 = SplitUint256.fromUint(BigInt('2'));
+    power4 = SplitUint256.fromUint(BigInt('3'));
+
     const whitelistFactory = await starknet.getContractFactory(
       './contracts/starknet/voting_strategies/whitelist.cairo'
     );
-    whitelistStrat = await whitelistFactory.deploy({
-      _whitelist: [VITALIK_ADDRESS, VITALIK_POWER.low, VITALIK_POWER.high],
-    });
-    emptyStrat = await whitelistFactory.deploy({ _whitelist: [] });
-    repeatStrat = await whitelistFactory.deploy({
+    whitelist = await whitelistFactory.deploy({
       _whitelist: [
-        VITALIK_ADDRESS,
-        VITALIK_POWER.low,
-        VITALIK_POWER.high,
-        VITALIK_ADDRESS,
-        VITALIK_POWER.low,
-        VITALIK_POWER.high,
-        ADDRR_1,
-        ADDRR_1_POWER.low,
-        ADDRR_1_POWER.high,
+        address1,
+        power1.low,
+        power1.high,
+        address2,
+        power2.low,
+        power2.high,
+        address3,
+        power3.low,
+        power3.high,
+        address4,
+        power4.low,
+        power4.high,
       ],
     });
-    bigStrat = await whitelistFactory.deploy({
+    emptyWhitelist = await whitelistFactory.deploy({ _whitelist: [] });
+    repeatWhitelist = await whitelistFactory.deploy({
       _whitelist: [
-        ADDRR_1,
-        ADDRR_1_POWER.low,
-        ADDRR_1_POWER.high,
-        ADDRR_2,
-        ADDRR_2_POWER.low,
-        ADDRR_2_POWER.high,
-        ADDRR_3,
-        ADDRR_3_POWER.low,
-        ADDRR_3_POWER.high,
-        ADDRR_4,
-        ADDRR_4_POWER.low,
-        ADDRR_4_POWER.high,
+        address1,
+        power1.low,
+        power1.high,
+        address1,
+        power1.low,
+        power1.high,
+        address2,
+        power2.low,
+        power2.high,
       ],
     });
   });
 
-  it('returns 0 for non-whitelisted addresses', async () => {
-    const random_address = BigInt(0x12345);
-    const { voting_power } = await whitelistStrat.call('get_voting_power', {
+  it('returns the voting power for everyone in the list', async () => {
+    const { voting_power: vp1 } = await whitelist.call('get_voting_power', {
       block: BigInt(0),
-      voter_address: { value: random_address },
-      global_params: [],
+      voter_address: { value: address1 },
       params: [],
+      user_params: [],
     });
-
-    const vp = SplitUint256.fromObj(voting_power);
-    const expected = SplitUint256.fromUint(BigInt(0));
-    expect(vp).to.deep.equal(expected);
-  }).timeout(80000);
-
-  it('returns voting power for whitelisted addresses', async () => {
-    const random_address = BigInt(0x12345);
-    const { voting_power } = await whitelistStrat.call('get_voting_power', {
+    const { voting_power: vp2 } = await whitelist.call('get_voting_power', {
       block: BigInt(0),
-      voter_address: { value: VITALIK_ADDRESS },
-      global_params: [],
+      voter_address: { value: address2 },
       params: [],
+      user_params: [],
     });
+    const { voting_power: vp3 } = await whitelist.call('get_voting_power', {
+      block: BigInt(0),
+      voter_address: { value: address3 },
+      params: [],
+      user_params: [],
+    });
+    const { voting_power: vp4 } = await whitelist.call('get_voting_power', {
+      block: BigInt(0),
+      voter_address: { value: address4 },
+      params: [],
+      user_params: [],
+    });
+    expect(SplitUint256.fromObj(vp1)).to.deep.equal(power1);
+    expect(SplitUint256.fromObj(vp2)).to.deep.equal(power2);
+    expect(SplitUint256.fromObj(vp3)).to.deep.equal(power3);
+    expect(SplitUint256.fromObj(vp4)).to.deep.equal(power4);
+  });
 
-    const vp = SplitUint256.fromObj(voting_power);
-    const expected = VITALIK_POWER;
-    expect(vp).to.deep.equal(expected);
-  }).timeout(80000);
+  it('returns 0 voting power for non-whitelisted addresses', async () => {
+    const { voting_power: vp } = await whitelist.call('get_voting_power', {
+      block: BigInt(0),
+      voter_address: { value: BigInt(ethers.Wallet.createRandom().address) },
+      params: [],
+      user_params: [],
+    });
+    expect(SplitUint256.fromObj(vp)).to.deep.equal(SplitUint256.fromUint(BigInt(0)));
+  });
 
   it('returns 0 for an empty whitelist', async () => {
-    const { voting_power } = await emptyStrat.call('get_voting_power', {
+    const { voting_power: vp } = await emptyWhitelist.call('get_voting_power', {
       block: BigInt(0),
-      voter_address: { value: VITALIK_ADDRESS },
-      global_params: [],
+      voter_address: { value: address1 },
       params: [],
+      user_params: [],
     });
+    expect(SplitUint256.fromObj(vp)).to.deep.equal(SplitUint256.fromUint(BigInt(0)));
+  });
 
-    const vp = SplitUint256.fromObj(voting_power);
-    const expected = SplitUint256.fromUint(BigInt(0));
-    expect(vp).to.deep.equal(expected);
-  }).timeout(80000);
-
-  it('returns the voting power even if address is repeated', async () => {
-    const { voting_power } = await repeatStrat.call('get_voting_power', {
+  it('returns the correct voting power even if address is repeated', async () => {
+    const { voting_power: vp } = await repeatWhitelist.call('get_voting_power', {
       block: BigInt(0),
-      voter_address: { value: VITALIK_ADDRESS },
-      global_params: [],
+      voter_address: { value: address1 },
       params: [],
+      user_params: [],
     });
+    expect(SplitUint256.fromObj(vp)).to.deep.equal(power1);
+  });
 
-    const vp = SplitUint256.fromObj(voting_power);
-    const expected = VITALIK_POWER;
-    expect(vp).to.deep.equal(expected);
-  }).timeout(80000);
-
-  it('returns the voting power if address is NOT repeated', async () => {
-    const { voting_power } = await bigStrat.call('get_voting_power', {
-      block: BigInt(0),
-      voter_address: { value: ADDRR_1 },
-      global_params: [],
-      params: [],
-    });
-
-    const vp = SplitUint256.fromObj(voting_power);
-    const expected = ADDRR_1_POWER;
-    expect(vp).to.deep.equal(expected);
-  }).timeout(80000);
-
-  it('returns the voting power for everyone in the list', async () => {
-    const voting_power1 = await bigStrat.call('get_voting_power', {
-      block: BigInt(0),
-      voter_address: { value: ADDRR_1 },
-      global_params: [],
-      params: [],
-    });
-    const voting_power2 = await bigStrat.call('get_voting_power', {
-      block: BigInt(0),
-      voter_address: { value: ADDRR_2 },
-      global_params: [],
-      params: [],
-    });
-    const voting_power3 = await bigStrat.call('get_voting_power', {
-      block: BigInt(0),
-      voter_address: { value: ADDRR_3 },
-      global_params: [],
-      params: [],
-    });
-    const voting_power4 = await bigStrat.call('get_voting_power', {
-      block: BigInt(0),
-      voter_address: { value: ADDRR_4 },
-      global_params: [],
-      params: [],
-    });
-
-    const results = [voting_power1, voting_power2, voting_power3, voting_power4];
-    const expected_power = [ADDRR_1_POWER, ADDRR_2_POWER, ADDRR_3_POWER, ADDRR_4_POWER];
-    results.forEach(function ({ voting_power }, index) {
-      const vp = SplitUint256.fromObj(voting_power);
-      const expected = expected_power[index];
-      expect(vp).to.deep.equal(expected);
-    });
-  }).timeout(80000);
-
-  it('returns 0 if address is NOT in the big list', async () => {
-    const { voting_power } = await bigStrat.call('get_voting_power', {
-      block: BigInt(0),
-      voter_address: { value: VITALIK_ADDRESS },
-      global_params: [],
-      params: [],
-    });
-
-    const vp = SplitUint256.fromObj(voting_power);
-    const expected = SplitUint256.fromUint(BigInt(0));
-    expect(vp).to.deep.equal(expected);
-  }).timeout(80000);
 }).timeout(600000);

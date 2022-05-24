@@ -8,10 +8,10 @@ namespace i_voting_strategy:
     func get_voting_power(
         block : felt,
         voter_address : EthAddress,
-        global_params_len : felt,
-        global_params : felt*,
         params_len : felt,
         params : felt*,
+        user_params_len : felt,
+        user_params : felt*,
     ) -> (voting_power : Uint256):
     end
 end

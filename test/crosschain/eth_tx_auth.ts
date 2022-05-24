@@ -51,7 +51,7 @@ describe('L1 interaction with Snapshot X', function () {
   let metadataUri: bigint[];
   let proposerEthAddress: string;
   let usedVotingStrategies: bigint[];
-  let votingParamsAll: bigint[][];
+  let userVotingParamsAll: bigint[][];
   let executionStrategy: bigint;
   let executionParams: bigint[];
   let ethBlockNumber: bigint;
@@ -79,7 +79,7 @@ describe('L1 interaction with Snapshot X', function () {
     ethBlockNumber = BigInt(1337);
     spaceAddress = BigInt(space.address);
     usedVotingStrategies = [BigInt(vanillaVotingStrategy.address)];
-    votingParamsAll = [[]];
+    userVotingParamsAll = [[]];
     executionStrategy = BigInt(vanillaExecutionStrategy.address);
     executionParams = [];
     proposeCalldata = getProposeCalldata(
@@ -89,7 +89,7 @@ describe('L1 interaction with Snapshot X', function () {
       ethBlockNumber,
       executionStrategy,
       usedVotingStrategies,
-      votingParamsAll,
+      userVotingParamsAll,
       executionParams
     );
   });

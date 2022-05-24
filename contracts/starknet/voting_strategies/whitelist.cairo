@@ -48,10 +48,10 @@ end
 func get_voting_power{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr : felt}(
     block : felt,
     voter_address : EthAddress,
-    global_params_len : felt,
-    global_params : felt*,
     params_len : felt,
     params : felt*,
+    user_params_len : felt,
+    user_params : felt*,
 ) -> (voting_power : Uint256):
     let (power) = whitelist.read(voter_address)
 

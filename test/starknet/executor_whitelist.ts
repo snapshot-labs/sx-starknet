@@ -26,7 +26,7 @@ describe('Whitelist testing', () => {
   let metadataUri: bigint[];
   let proposerEthAddress: string;
   let usedVotingStrategies1: bigint[];
-  let votingParamsAll1: bigint[][];
+  let userVotingParamsAll1: bigint[][];
   let executionStrategy1: bigint;
   let executionParams1: bigint[];
   let ethBlockNumber: bigint;
@@ -64,7 +64,7 @@ describe('Whitelist testing', () => {
     ethBlockNumber = BigInt(1337);
     spaceAddress = BigInt(space.address);
     usedVotingStrategies1 = [BigInt(vanillaVotingStrategy.address)];
-    votingParamsAll1 = [[]];
+    userVotingParamsAll1 = [[]];
     executionStrategy1 = BigInt(zodiacRelayer.address);
     executionParams1 = [BigInt(zodiacModule.address)];
     proposeCalldata1 = getProposeCalldata(
@@ -74,7 +74,7 @@ describe('Whitelist testing', () => {
       ethBlockNumber,
       executionStrategy1,
       usedVotingStrategies1,
-      votingParamsAll1,
+      userVotingParamsAll1,
       executionParams1
     );
 
@@ -87,7 +87,7 @@ describe('Whitelist testing', () => {
       ethBlockNumber,
       executionStrategy2,
       usedVotingStrategies1,
-      votingParamsAll1,
+      userVotingParamsAll1,
       executionParams2
     );
   });
