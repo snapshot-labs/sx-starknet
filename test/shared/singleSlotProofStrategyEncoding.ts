@@ -1,6 +1,6 @@
 import { assert } from './helpers';
 
-// balanceOf strategy parameter array encoding (Inclusive -> Exclusive):
+// single slot proof strategy parameter array encoding (Inclusive -> Exclusive):
 
 // Start Index      End Index                             Name                Description
 // 0             -> 4                                   - slot              - Key of the storage slot containing the balance that will be verified

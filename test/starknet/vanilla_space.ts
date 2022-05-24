@@ -3,9 +3,9 @@ import { starknet, ethers } from 'hardhat';
 import { stark } from 'starknet';
 import { StarknetContract, Account } from 'hardhat/types';
 import { strToShortStringArr } from '@snapshot-labs/sx';
-import { SplitUint256, Choice } from './shared/types';
+import { SplitUint256, Choice } from '../shared/types';
 import { flatten2DArray, getProposeCalldata, getVoteCalldata } from '../shared/helpers';
-import { vanillaSetup } from './shared/setup';
+import { vanillaSetup } from '../shared/setup';
 
 const { getSelectorFromName } = stark;
 

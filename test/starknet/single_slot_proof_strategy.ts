@@ -2,22 +2,39 @@ import { starknet, ethers } from 'hardhat';
 import { expect } from 'chai';
 import { block } from '../data/blocks';
 import { proofs } from '../data/proofs';
-import { SplitUint256 } from './shared/types';
-import { ProofInputs } from './shared/parseRPCData';
-import { encodeParams } from './shared/singleSlotProofStrategyEncoding';
-import { singleSlotProofSetup } from '../starknet/shared/setup';
+import { SplitUint256 } from '../shared/types';
+import {
+  ProofInputs,
+  getProofInputs,
+  ProcessBlockInputs,
+  getProcessBlockInputs,
+} from '../shared/parseRPCData';
+import { encodeParams } from '../shared/singleSlotProofStrategyEncoding';
+import { singleSlotProofSetup, Fossil } from '../shared/setup';
+import { StarknetContract, Account } from 'hardhat/types';
 
-describe('Snapshot X Single Slot Strategy:', () => {
+// We test the single slot proof strategy flow directly here - ie not calling it via the space contract
+// Full end to end tests of the flow will come soon.
+describe('Single slot proof voting strategy:', () => {
+  let voterAddress: string;
+  let proofInputs: ProofInputs;
+  let params: bigint[];
+  let fossil: Fossil;
+  let singleSlotProofStrategy: StarknetContract;
+  let account: Account;
+
   it('The strategy should return the voting power', async () => {
-    // Encode proof data to produce the inputs for the account and storage proofs.
+    // Address of the user that corresponds to the slot in the contract associated with the corresponding proof
+    voterAddress = '0x5773D321394D20C36E4CA35386C97761A9BAe820';
 
-    const voterAddress = BigInt('0x5773D321394D20C36E4CA35386C97761A9BAe820');
+    // We pass the encode params function for the single slot proof strategy.
+    proofInputs = getProofInputs(block.number, proofs, encodeParams);
 
-    const proofInputs = ProofInputs.fromProofRPCData(block.number, proofs, encodeParams);
+    // Defining the parameters for the single slot proof strategy
+    params = [proofInputs.ethAddressFelt, BigInt(0)];
 
-    const globalParams: bigint[] = [proofInputs.ethAddressFelt, BigInt(0)];
     // Deploy Fossil storage verifier instance and the voting strategy contract.
-    const { account, singleSlotProofStrategy, fossil } = await singleSlotProofSetup();
+    ({ fossil, singleSlotProofStrategy, account } = await singleSlotProofSetup(block));
 
     // Verify an account proof to obtain the storage root for the account at the specified block number trustlessly on-chain.
     await account.invoke(fossil.factsRegistry, 'prove_account', {
@@ -36,9 +53,9 @@ describe('Snapshot X Single Slot Strategy:', () => {
     // Obtain voting power for the account by verifying the storage proof.
     const { voting_power: vp } = await singleSlotProofStrategy.call('get_voting_power', {
       block: proofInputs.blockNumber,
-      voter_address: { value: voterAddress },
-      global_params: globalParams,
-      params: proofInputs.votingPowerParams,
+      voter_address: { value: BigInt(voterAddress) },
+      global_params: params,
+      params: proofInputs.userVotingPowerParams,
     });
 
     // Assert voting power obtained from strategy is correct
