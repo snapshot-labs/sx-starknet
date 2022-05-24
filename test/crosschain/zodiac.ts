@@ -14,7 +14,11 @@ import {
   PROPOSAL_METHOD,
   VOTE_METHOD,
 } from '../starknet/shared/setup';
-import { expectAddressEquality, createExecutionHash } from '../starknet/shared/helpers';
+import {
+  expectAddressEquality,
+  createExecutionHash,
+  flatten2DArray,
+} from '../starknet/shared/helpers';
 
 const { getSelectorFromName } = stark;
 
@@ -105,7 +109,8 @@ describe('Create proposal, cast vote, and send execution to l1', function () {
     );
     const proposer_address = VITALIK_ADDRESS;
     const proposal_id = BigInt(1);
-    const voting_params: Array<bigint> = [];
+    const votingParamsAll: bigint[][] = [[]];
+    const votingParamsAllFlat = flatten2DArray(votingParamsAll);
     const eth_block_number = BigInt(1337);
     const execution_params: Array<bigint> = [BigInt(l1Executor.address)];
     const used_voting_strategies = [BigInt(votingContract.address)];
@@ -119,8 +124,8 @@ describe('Create proposal, cast vote, and send execution to l1', function () {
       BigInt(zodiacRelayer.address),
       BigInt(used_voting_strategies.length),
       ...used_voting_strategies,
-      BigInt(voting_params.length),
-      ...voting_params,
+      BigInt(votingParamsAllFlat.length),
+      ...votingParamsAllFlat,
       BigInt(execution_params.length),
       execution_params,
     ];
@@ -135,7 +140,8 @@ describe('Create proposal, cast vote, and send execution to l1', function () {
     // -- Casts a vote FOR --
     {
       const voter_address = proposer_address;
-      const votingParams: Array<BigInt> = [];
+      const votingParamsAll: bigint[][] = [[]];
+      const votingParamsAllFlat = flatten2DArray(votingParamsAll);
       await authContract.invoke(EXECUTE_METHOD, {
         target: BigInt(spaceContract.address),
         function_selector: BigInt(getSelectorFromName(VOTE_METHOD)),
@@ -145,8 +151,8 @@ describe('Create proposal, cast vote, and send execution to l1', function () {
           FOR,
           BigInt(used_voting_strategies.length),
           ...used_voting_strategies,
-          BigInt(votingParams.length),
-          ...votingParams,
+          BigInt(votingParamsAllFlat.length),
+          ...votingParamsAllFlat,
         ],
       });
 

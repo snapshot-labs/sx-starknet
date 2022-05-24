@@ -3,6 +3,7 @@ import { SplitUint256, FOR } from './shared/types';
 import { strToShortStringArr } from '@snapshot-labs/sx';
 import { expect } from 'chai';
 import { vanillaSetup, VITALIK_ADDRESS, EXECUTE_METHOD, PROPOSAL_METHOD } from './shared/setup';
+import { flatten2DArray } from './shared/helpers';
 import { StarknetContract } from 'hardhat/types';
 import { Account } from '@shardlabs/starknet-hardhat-plugin/dist/account';
 
@@ -20,7 +21,7 @@ describe('Whitelist testing', () => {
   );
   const proposerAddress = { value: VITALIK_ADDRESS };
   const proposalId = 1;
-  const votingParams: Array<bigint> = [];
+  const votingParamsAll: bigint[][] = [[]];
   let executionParams: Array<bigint>;
   const ethBlockNumber = BigInt(1337);
   const l1_zodiac_module = BigInt('0xaaaaaaaaaaaa');
@@ -37,7 +38,7 @@ describe('Whitelist testing', () => {
     executionParams = [BigInt(l1_zodiac_module)];
     spaceContract = BigInt(vanillaSpace.address);
     used_voting_strategies = [BigInt(vanillaVotingStrategy.address)];
-
+    const votingParamsAllFlat = flatten2DArray(votingParamsAll);
     calldata = [
       proposerAddress.value,
       executionHash.low,
@@ -48,8 +49,8 @@ describe('Whitelist testing', () => {
       BigInt(zodiacRelayer.address),
       BigInt(used_voting_strategies.length),
       ...used_voting_strategies,
-      BigInt(votingParams.length),
-      ...votingParams,
+      BigInt(votingParamsAllFlat.length),
+      ...votingParamsAllFlat,
       BigInt(executionParams.length),
       ...executionParams,
     ];
@@ -65,8 +66,8 @@ describe('Whitelist testing', () => {
       VITALIK_ADDRESS,
       BigInt(used_voting_strategies.length),
       ...used_voting_strategies,
-      BigInt(votingParams.length),
-      ...votingParams,
+      BigInt(votingParamsAllFlat.length),
+      ...votingParamsAllFlat,
       BigInt(executionParams.length),
       ...executionParams,
     ];

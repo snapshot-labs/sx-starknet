@@ -1,5 +1,6 @@
 import { stark } from 'starknet';
 import { SplitUint256, FOR } from './shared/types';
+import { flatten2DArray } from './shared/helpers';
 import { strToShortStringArr } from '@snapshot-labs/sx';
 import { expect } from 'chai';
 import {
@@ -26,7 +27,7 @@ describe('Space testing', () => {
   );
   const proposerAddress = { value: VITALIK_ADDRESS };
   const proposalId = 1;
-  const votingParams: Array<bigint> = [];
+  const votingParamsAll: bigint[][] = [[]];
   let used_voting_strategies: Array<bigint>;
   let executionParams: Array<bigint>;
   const ethBlockNumber = BigInt(1337);
@@ -43,6 +44,9 @@ describe('Space testing', () => {
     spaceContract = BigInt(vanillaSpace.address);
     used_voting_strategies = [BigInt(vanillaVotingStrategy.address)];
 
+    // Cairo cannot handle 2D arrays in calldata so we must flatten the data then reconstruct the individual arrays inside the contract
+    const votingParamsAllFlat = flatten2DArray(votingParamsAll);
+
     calldata = [
       proposerAddress.value,
       executionHash.low,
@@ -53,8 +57,8 @@ describe('Space testing', () => {
       BigInt(zodiacRelayer.address),
       BigInt(used_voting_strategies.length),
       ...used_voting_strategies,
-      BigInt(votingParams.length),
-      ...votingParams,
+      BigInt(votingParamsAllFlat.length),
+      ...votingParamsAllFlat,
       BigInt(executionParams.length),
       ...executionParams,
     ];
@@ -92,7 +96,9 @@ describe('Space testing', () => {
     {
       console.log('Casting a vote FOR...');
       const voter_address = proposerAddress.value;
-      const votingparams: Array<BigInt> = [];
+      const votingParamsAll: bigint[][] = [[]];
+      // Cairo cannot handle 2D arrays in calldata so we must flatten the data then reconstruct the individual arrays inside the contract
+      const votingParamsAllFlat = flatten2DArray(votingParamsAll);
       const used_voting_strategies = [BigInt(vanillaVotingStrategy.address)];
       await vanillaAuthenticator.invoke(EXECUTE_METHOD, {
         target: spaceContract,
@@ -103,8 +109,8 @@ describe('Space testing', () => {
           FOR,
           BigInt(used_voting_strategies.length),
           ...used_voting_strategies,
-          BigInt(votingParams.length),
-          ...votingParams,
+          BigInt(votingParamsAllFlat.length),
+          ...votingParamsAllFlat,
         ],
       });
 

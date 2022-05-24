@@ -4,7 +4,7 @@ import { Contract } from 'ethers';
 import { starknet, network, ethers } from 'hardhat';
 import { StarknetContract, HttpNetworkConfig } from 'hardhat/types';
 import { strToShortStringArr } from '@snapshot-labs/sx';
-import { getCommit } from '../starknet/shared/helpers';
+import { getCommit, flatten2DArray } from '../starknet/shared/helpers';
 import { ethTxAuthSetup, VITALIK_ADDRESS, VITALIK_STRING_ADDRESS } from '../starknet/shared/setup';
 import { createExecutionHash } from '../starknet/shared/helpers';
 const propose_selector = BigInt(
@@ -54,7 +54,8 @@ describe('L1 interaction with Snapshot X', function () {
       'Hello and welcome to Snapshot X. This is the future of governance.'
     );
     const proposal_id = BigInt(1);
-    const voting_params: Array<bigint> = [];
+    const votingParamsAll: bigint[][] = [[]];
+    const votingParamsAllFlat = flatten2DArray(votingParamsAll);
     const eth_block_number = BigInt(1337);
     // Empty execution data
     const execution_params: Array<bigint> = [BigInt(0)];
@@ -82,8 +83,8 @@ describe('L1 interaction with Snapshot X', function () {
       VITALIK_ADDRESS,
       BigInt(used_voting_strategies.length),
       ...used_voting_strategies,
-      BigInt(voting_params.length),
-      ...voting_params,
+      BigInt(votingParamsAllFlat.length),
+      ...votingParamsAllFlat,
       BigInt(execution_params.length),
       ...execution_params,
     ];

@@ -1,3 +1,4 @@
+import { starknet, ethers } from 'hardhat';
 import { expect } from 'chai';
 import { block } from './data/blocks';
 import { proofs } from './data/proofs';
@@ -9,8 +10,12 @@ import { singleSlotProofSetup } from '../starknet/shared/setup';
 describe('Snapshot X Single Slot Strategy:', () => {
   it('The strategy should return the voting power', async () => {
     // Encode proof data to produce the inputs for the account and storage proofs.
+
+    const voterAddress = BigInt('0x5773D321394D20C36E4CA35386C97761A9BAe820');
+
     const proofInputs = ProofInputs.fromProofRPCData(block.number, proofs, encodeParams);
 
+    const params: bigint[] = [proofInputs.ethAddressFelt, BigInt(0)];
     // Deploy Fossil storage verifier instance and the voting strategy contract.
     const { account, singleSlotProofStrategy, fossil } = await singleSlotProofSetup();
 
@@ -31,8 +36,9 @@ describe('Snapshot X Single Slot Strategy:', () => {
     // Obtain voting power for the account by verifying the storage proof.
     const { voting_power: vp } = await singleSlotProofStrategy.call('get_voting_power', {
       block: proofInputs.blockNumber,
-      address: { value: proofInputs.ethAddressFelt },
-      params: proofInputs.votingPowerParams,
+      voter_address: { value: voterAddress },
+      params: params,
+      user_params: proofInputs.votingPowerParams,
     });
 
     // Assert voting power obtained from strategy is correct
