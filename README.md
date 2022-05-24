@@ -9,6 +9,36 @@ Programmable governance on StarkNet.
 
 ## Usage
 
+### Blueprint
+```ml
+src
+├─ artblocks
+│  ├─ GenArt721Core — "..."
+│  └─ YobotArtBlocksBroker — "Permissionless Broker for ArtBlocks Minting using Flashbot Searchers"
+├─ external
+│  ├─ ERC165 — "A minimal ERC165 Implementation"
+│  ├─ ERC721Enumerable — "An extension of ERC721 that supports enumeration"
+│  └─ ERC721Metadata — "An Enumerable ERC721 with Metadata"
+├─ interfaces
+│  ├─ IArtBlocksFactory — "ArtBlocksFactory Contract Interface"
+│  ├─ IERC165 — "ERC165 Interface"
+│  ├─ IERC721 — "ERC721 Interface"
+│  └─ IERC721Enumerable — "An Enumerable ERC721 Interface"
+├─ mocks
+│  ├─ InfiniteMint — "An ERC721 allowing infinite mints for testnet"
+│  └─ StrictMint — "An ERC721 with strict minting"
+├─ tests
+│  ├─ utils
+│  │  └─ DSTestPlus — "Custom, extended DSTest Suite"
+│  ├─ Coordinator.t — "Coordinator Tests"
+│  ├─ YobotArtBlocksBroker.t — "YobotArtBlocksBroker Tests"
+│  └─ YobotERC721LimitOrder.t — "YobotERC721LimitOrder Tests"
+├─ utils
+│  ├─ Randomizer — "A random generation"
+│  └─ YobotDeadline — "Abstracted Deadline Logic"
+├─ Coordinator — "Coordinator for Fee Parameters and Reception"
+└─ YobotERC721LimitOrder — "Permissionless Broker for Generalized ERC721 Minting using Flashbot Searchers"
+```
 ### Clone repository:
 
 ```bash 
