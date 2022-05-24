@@ -4,7 +4,6 @@ import { Contract } from 'ethers';
 import { starknet, network, ethers } from 'hardhat';
 import { StarknetContract, Account, HttpNetworkConfig } from 'hardhat/types';
 import { strToShortStringArr } from '@snapshot-labs/sx';
-<<<<<<< HEAD
 import {
   createExecutionHash,
   getCommit,
@@ -13,16 +12,6 @@ import {
 } from '../shared/helpers';
 import { ethTxAuthSetup } from '../shared/setup';
 import { proposeSelector, voteSelector } from '../shared/constants';
-=======
-import { getCommit, flatten2DArray } from '../starknet/shared/helpers';
-import { ethTxAuthSetup, VITALIK_ADDRESS, VITALIK_STRING_ADDRESS } from '../starknet/shared/setup';
-import { createExecutionHash } from '../starknet/shared/helpers';
-const propose_selector = BigInt(
-  '0x1BFD596AE442867EF71CA523061610682AF8B00FC2738329422F4AD8D220B81'
-);
-const vote_selector = BigInt('0x132BDF85FC8AA10AC3C22F02317F8F53D4B4F52235ED1EABB3A4CBBE08B5C41');
-const RANDOM_ADDRESS = BigInt('0xAD4Eb63b9a2F1A4D241c92e2bBa78eEFc56ab990');
->>>>>>> 52b2f15d36774198b2d33e8847367858a686421c
 
 // Dummy tx
 const tx1 = {

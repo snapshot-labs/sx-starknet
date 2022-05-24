@@ -130,5 +130,4 @@ describe('Whitelist testing', () => {
     });
     expect(SplitUint256.fromObj(vp)).to.deep.equal(power1);
   });
-
 }).timeout(600000);
