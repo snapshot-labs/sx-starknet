@@ -8,7 +8,6 @@ import { hexToBytes, flatten2DArray } from './helpers';
 import { ProcessBlockInputs, getProcessBlockInputs } from './parseRPCData';
 import { AddressZero } from '@ethersproject/constants';
 import { executeContractCallWithSigners, buildContractCall, EIP712_TYPES } from './utils';
-import { Sign } from 'crypto';
 
 export async function vanillaSetup() {
   const controller = (await starknet.deployAccount('OpenZeppelin')) as Account;

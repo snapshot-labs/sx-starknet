@@ -23,7 +23,8 @@ describe('Single slot proof voting strategy:', () => {
   let singleSlotProofStrategy: StarknetContract;
   let account: Account;
 
-  it('The strategy should return the voting power', async () => {
+  before(async function () {
+    this.timeout(800000);
     // Address of the user that corresponds to the slot in the contract associated with the corresponding proof
     voterAddress = '0x5773D321394D20C36E4CA35386C97761A9BAe820';
 
@@ -35,7 +36,9 @@ describe('Single slot proof voting strategy:', () => {
 
     // Deploy Fossil storage verifier instance and the voting strategy contract.
     ({ fossil, singleSlotProofStrategy, account } = await singleSlotProofSetup(block));
+  });
 
+  it('The strategy should return the voting power', async () => {
     // Verify an account proof to obtain the storage root for the account at the specified block number trustlessly on-chain.
     await account.invoke(fossil.factsRegistry, 'prove_account', {
       options_set: proofInputs.accountOptions,
