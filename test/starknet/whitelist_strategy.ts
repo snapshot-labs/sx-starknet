@@ -24,7 +24,6 @@ describe('Whitelist testing', () => {
 
   before(async function () {
     this.timeout(800000);
-
     address1 = BigInt(ethers.Wallet.createRandom().address);
     address2 = BigInt(ethers.Wallet.createRandom().address);
     address3 = BigInt(ethers.Wallet.createRandom().address);
@@ -99,7 +98,7 @@ describe('Whitelist testing', () => {
     expect(SplitUint256.fromObj(vp2)).to.deep.equal(power2);
     expect(SplitUint256.fromObj(vp3)).to.deep.equal(power3);
     expect(SplitUint256.fromObj(vp4)).to.deep.equal(power4);
-  });
+  }).timeout(1000000);
 
   it('returns 0 voting power for non-whitelisted addresses', async () => {
     const { voting_power: vp } = await whitelist.call('get_voting_power', {
@@ -109,7 +108,7 @@ describe('Whitelist testing', () => {
       user_params: [],
     });
     expect(SplitUint256.fromObj(vp)).to.deep.equal(SplitUint256.fromUint(BigInt(0)));
-  });
+  }).timeout(1000000);
 
   it('returns 0 for an empty whitelist', async () => {
     const { voting_power: vp } = await emptyWhitelist.call('get_voting_power', {
@@ -119,7 +118,7 @@ describe('Whitelist testing', () => {
       user_params: [],
     });
     expect(SplitUint256.fromObj(vp)).to.deep.equal(SplitUint256.fromUint(BigInt(0)));
-  });
+  }).timeout(1000000);
 
   it('returns the correct voting power even if address is repeated', async () => {
     const { voting_power: vp } = await repeatWhitelist.call('get_voting_power', {
@@ -129,5 +128,5 @@ describe('Whitelist testing', () => {
       user_params: [],
     });
     expect(SplitUint256.fromObj(vp)).to.deep.equal(power1);
-  });
-}).timeout(600000);
+  }).timeout(1000000);
+});
