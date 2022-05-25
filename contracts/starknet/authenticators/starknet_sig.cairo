@@ -8,9 +8,10 @@ from starkware.cairo.common.math import assert_not_zero
 from starkware.cairo.common.uint256 import uint256_eq
 # from openzeppelin.account.IAccount import IAccount
 
+# TODO: change `hash` to actual data, not simply the hash
 @external
 func authenticate{syscall_ptr : felt*, range_check_ptr, bitwise_ptr : BitwiseBuiltin*}(
-    hash : felt, # TODO: change this to actual data, not simply the hash
+    hash : felt,
     sig_len : felt,
     sig : felt*,
     target : felt,
