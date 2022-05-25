@@ -49,7 +49,7 @@ export async function vanillaSetup() {
   const zodiac_relayer = BigInt(zodiacRelayer.address);
   const quorum = SplitUint256.fromUint(BigInt(0));
 
-  // This should be declared along with the other const but doing so will make the compiler unhappy as `SplitUin256`
+  // This should be declared along with the other const but doing so will make the compiler unhappy as `SplitUint256`
   // will be undefined for some reason?
   const PROPOSAL_THRESHOLD = SplitUint256.fromUint(BigInt(1));
 
@@ -107,7 +107,10 @@ export async function starknetAccountSetup() {
   const zodiac_relayer = BigInt(zodiacRelayer.address);
   const quorum = SplitUint256.fromUint(BigInt(0));
 
-  // This should be declared along with the other const but doing so will make the compiler unhappy as `SplitUin256`
+  const voting_strategy_params: bigint[][] = [[]];
+  const voting_strategy_params_flat = flatten2DArray(voting_strategy_params);
+
+  // This should be declared along with the other const but doing so will make the compiler unhappy as `SplitUint256`
   // will be undefined for some reason?
   const PROPOSAL_THRESHOLD = SplitUint256.fromUint(BigInt(1));
 
@@ -119,6 +122,7 @@ export async function starknetAccountSetup() {
     _proposal_threshold: PROPOSAL_THRESHOLD,
     _quorum: quorum,
     _controller: BigInt(account.starknetContract.address),
+    _voting_strategy_params_flat: voting_strategy_params_flat,
     _voting_strategies: [voting_strategy],
     _authenticators: [authenticator],
     _executors: [zodiac_relayer],
@@ -164,7 +168,10 @@ export async function starknetTxSetup() {
   const zodiac_relayer = BigInt(zodiacRelayer.address);
   const quorum = SplitUint256.fromUint(BigInt(0));
 
-  // This should be declared along with the other const but doing so will make the compiler unhappy as `SplitUin256`
+  const voting_strategy_params: bigint[][] = [[]];
+  const voting_strategy_params_flat = flatten2DArray(voting_strategy_params);
+
+  // This should be declared along with the other const but doing so will make the compiler unhappy as `SplitUint256`
   // will be undefined for some reason?
   const PROPOSAL_THRESHOLD = SplitUint256.fromUint(BigInt(1));
 
@@ -176,6 +183,7 @@ export async function starknetTxSetup() {
     _proposal_threshold: PROPOSAL_THRESHOLD,
     _quorum: quorum,
     _controller: BigInt(account.starknetContract.address),
+    _voting_strategy_params_flat: voting_strategy_params_flat,
     _voting_strategies: [voting_strategy],
     _authenticators: [authenticator],
     _executors: [zodiac_relayer],
@@ -229,7 +237,7 @@ export async function ethTxAuthSetup(signer: SignerWithAddress) {
   const authenticator = BigInt(ethTxAuthenticator.address);
   console.log('Deploying space...');
 
-  // This should be declared along with the other const but doing so will make the compiler unhappy as `SplitUin256`
+  // This should be declared along with the other const but doing so will make the compiler unhappy as `SplitUint256`
   // will be undefined for some reason?
   const PROPOSAL_THRESHOLD = SplitUint256.fromUint(BigInt(1));
   const quorum = SplitUint256.fromUint(BigInt(0));

@@ -1,5 +1,6 @@
 import { stark } from 'starknet';
 import { SplitUint256, FOR } from './shared/types';
+import { flatten2DArray } from './shared/helpers';
 import { strToShortStringArr } from '@snapshot-labs/sx';
 import { expect } from 'chai';
 import {
@@ -25,7 +26,8 @@ describe('Starknet Tx Auth testing', () => {
   );
   let proposerAddress: bigint;
   const proposalId = 1;
-  const votingParams: Array<bigint> = [];
+  const votingParamsAll: bigint[][] = [[]];
+  const votingParamsAllFlat = flatten2DArray(votingParamsAll);
   let used_voting_strategies: Array<bigint>;
   let executionParams: Array<bigint>;
   const ethBlockNumber = BigInt(1337);
@@ -54,8 +56,8 @@ describe('Starknet Tx Auth testing', () => {
       BigInt(zodiacRelayer.address),
       BigInt(used_voting_strategies.length),
       ...used_voting_strategies,
-      BigInt(votingParams.length),
-      ...votingParams,
+      BigInt(votingParamsAllFlat.length),
+      ...votingParamsAllFlat,
       BigInt(executionParams.length),
       ...executionParams,
     ];
@@ -120,8 +122,8 @@ describe('Starknet Tx Auth testing', () => {
           FOR,
           BigInt(used_voting_strategies.length),
           ...used_voting_strategies,
-          BigInt(votingParams.length),
-          ...votingParams,
+          BigInt(votingParamsAllFlat.length),
+          ...votingParamsAllFlat,
         ],
       });
 
