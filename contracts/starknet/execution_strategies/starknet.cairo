@@ -39,7 +39,8 @@ func execute_calls{syscall_ptr : felt*}(data_ptr : felt*, calls_len : felt, call
 
     # TODO: what should we do with the return values?
 
-    # do the next calls recursively
+    # Do the next calls recursively
+    # We subtract `4` + calls[2]` because a `call` has 4 felts and we also need to substract its associated calldata length.
     execute_calls(data_ptr, calls_len - (4 + calls[2]), calls)
 
     return ()
