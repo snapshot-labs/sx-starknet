@@ -6,7 +6,7 @@ import { SplitUint256 } from '../shared/types';
 
 async function setup() {
   const testWordsFactory = await starknet.getContractFactory(
-    './contracts/starknet/test_contracts/test_words64_to_uint256.cairo'
+    './contracts/starknet/test_contracts/Test_words_to_uint256.cairo'
   );
   const testWords = await testWordsFactory.deploy();
   return {
@@ -21,7 +21,7 @@ describe('Words 64 to Uint256:', () => {
     const word2 = BigInt(bytesToHex(ethers.utils.randomBytes(2)));
     const word3 = BigInt(bytesToHex(ethers.utils.randomBytes(2)));
     const word4 = BigInt(bytesToHex(ethers.utils.randomBytes(2)));
-    const { uint256: uint256 } = await testWords.call('test_words64_to_uint256', {
+    const { uint256: uint256 } = await testWords.call('test_words_to_uint256', {
       word1: word1,
       word2: word2,
       word3: word3,

@@ -10,8 +10,8 @@ from starkware.cairo.common.math import (
     assert_lt, assert_le, assert_nn, assert_not_zero, assert_lt_felt
 )
 
-from contracts.starknet.interfaces.i_voting_strategy import i_voting_strategy
-from contracts.starknet.interfaces.i_execution_strategy import i_execution_strategy
+from contracts.starknet.interfaces.IVotingStrategy import IVotingStrategy
+from contracts.starknet.interfaces.IExecutionStrategy import IExecutionStrategy
 from contracts.starknet.lib.eth_address import EthAddress
 from contracts.starknet.lib.proposal import Proposal
 from contracts.starknet.lib.proposal_info import ProposalInfo
@@ -419,7 +419,7 @@ func get_cumulative_voting_power{syscall_ptr : felt*, pedersen_ptr : HashBuiltin
         user_voting_strategy_params_all, index
     )
 
-    let (user_voting_power) = i_voting_strategy.get_voting_power(
+    let (user_voting_power) = IVotingStrategy.get_voting_power(
         contract_address=voting_strategy,
         block=current_timestamp,
         voter_address=voter_address,
@@ -914,7 +914,7 @@ func finalize_proposal{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_c
         tempvar proposal_outcome = proposal_outcome
     end
 
-    i_execution_strategy.execute(
+    IExecutionStrategy.execute(
         contract_address=proposal.executor,
         proposal_outcome=proposal_outcome,
         execution_hash=proposal.execution_hash,
@@ -957,7 +957,7 @@ func cancel_proposal{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_che
 
     let proposal_outcome = ProposalOutcome.CANCELLED
 
-    i_execution_strategy.execute(
+    IExecutionStrategy.execute(
         contract_address=proposal.executor,
         proposal_outcome=proposal_outcome,
         execution_hash=proposal.execution_hash,

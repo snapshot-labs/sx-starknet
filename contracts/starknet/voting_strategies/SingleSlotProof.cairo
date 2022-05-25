@@ -7,7 +7,7 @@ from starkware.cairo.common.math import unsigned_div_rem, assert_nn_le
 from contracts.starknet.fossil.contracts.starknet.types import StorageSlot
 from contracts.starknet.lib.eth_address import EthAddress
 from contracts.starknet.lib.slot_key import get_slot_key
-from contracts.starknet.lib.words64_to_uint256 import words64_to_uint256
+from contracts.starknet.lib.words_to_uint256 import words_to_uint256
 
 # FactRegistry simplified interface
 @contract_interface
@@ -67,7 +67,7 @@ func get_voting_power{
 
     # Checking slot proof is for the correct slot
     let (valid_slot) = get_slot_key(slot_index, voter_address.value)
-    let (slot_uint256) = words64_to_uint256(slot.word_1, slot.word_2, slot.word_3, slot.word_4)
+    let (slot_uint256) = words_to_uint256(slot.word_1, slot.word_2, slot.word_3, slot.word_4)
     with_attr error_message("Invalid slot proof provided"):
         assert valid_slot = slot_uint256
     end

@@ -4,7 +4,7 @@ import { stark } from 'starknet';
 import { starknet, ethers } from 'hardhat';
 import { strToShortStringArr } from '@snapshot-labs/sx';
 import { zodiacRelayerSetup } from '../shared/setup';
-import { flatten2DArray, getProposeCalldata, getVoteCalldata } from '../shared/helpers';
+import { flatten2DArray, getProposeCalldata, getVoteCalldata, bytesToHex } from '../shared/helpers';
 import { StarknetContract, Account } from 'hardhat/types';
 
 const { getSelectorFromName } = stark;
@@ -51,12 +51,12 @@ describe('Whitelist testing', () => {
     } = await zodiacRelayerSetup());
 
     const vanillaExecutionStrategyFactory = await starknet.getContractFactory(
-      './contracts/starknet/execution_strategies/vanilla.cairo'
+      './contracts/starknet/execution_strategies/Vanilla.cairo'
     );
     vanillaExecutionStrategy = await vanillaExecutionStrategyFactory.deploy();
 
     spaceAddress = BigInt(space.address);
-    executionHash = '0x912ea662aac9d054ef5173da69723b88a5582cae2349f891998b6040cf9c2653'; // Random 32 byte hash
+    executionHash = bytesToHex(ethers.utils.randomBytes(32)); // Random 32 byte hash
     metadataUri = strToShortStringArr(
       'Hello and welcome to Snapshot X. This is the future of governance.'
     );

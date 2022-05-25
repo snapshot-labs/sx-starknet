@@ -8,7 +8,7 @@ describe('2D Arrays:', () => {
 
   before(async () => {
     const testArray2dFactory = await starknet.getContractFactory(
-      './contracts/starknet/test_contracts/test_array2d.cairo'
+      './contracts/starknet/test_contracts/Test_array2d.cairo'
     );
     testArray2d = await testArray2dFactory.deploy();
     return {

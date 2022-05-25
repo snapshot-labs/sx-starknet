@@ -35,7 +35,7 @@ describe('Whitelist testing', () => {
     power4 = SplitUint256.fromUint(BigInt('3'));
 
     const whitelistFactory = await starknet.getContractFactory(
-      './contracts/starknet/voting_strategies/whitelist.cairo'
+      './contracts/starknet/voting_strategies/Whitelist.cairo'
     );
     whitelist = await whitelistFactory.deploy({
       _whitelist: [

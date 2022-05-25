@@ -11,15 +11,15 @@ import { executeContractCallWithSigners, buildContractCall, EIP712_TYPES } from 
 
 export async function vanillaSetup() {
   const controller = (await starknet.deployAccount('OpenZeppelin')) as Account;
-  const spaceFactory = await starknet.getContractFactory('./contracts/starknet/space.cairo');
+  const spaceFactory = await starknet.getContractFactory('./contracts/starknet/Space.cairo');
   const vanillaVotingStategyFactory = await starknet.getContractFactory(
-    './contracts/starknet/voting_strategies/vanilla.cairo'
+    './contracts/starknet/voting_strategies/Vanilla.cairo'
   );
   const vanillaAuthenticatorFactory = await starknet.getContractFactory(
-    './contracts/starknet/authenticators/vanilla.cairo'
+    './contracts/starknet/authenticators/Vanilla.cairo'
   );
   const vanillaExecutionStrategyFactory = await starknet.getContractFactory(
-    './contracts/starknet/execution_strategies/vanilla.cairo'
+    './contracts/starknet/execution_strategies/Vanilla.cairo'
   );
 
   const deployments = [
@@ -69,15 +69,15 @@ export async function vanillaSetup() {
 
 export async function zodiacRelayerSetup() {
   const controller = (await starknet.deployAccount('OpenZeppelin')) as Account;
-  const spaceFactory = await starknet.getContractFactory('./contracts/starknet/space.cairo');
+  const spaceFactory = await starknet.getContractFactory('./contracts/starknet/Space.cairo');
   const vanillaVotingStategyFactory = await starknet.getContractFactory(
-    './contracts/starknet/voting_strategies/vanilla.cairo'
+    './contracts/starknet/voting_strategies/Vanilla.cairo'
   );
   const vanillaAuthenticatorFactory = await starknet.getContractFactory(
-    './contracts/starknet/authenticators/vanilla.cairo'
+    './contracts/starknet/authenticators/Vanilla.cairo'
   );
   const zodiacRelayerFactory = await starknet.getContractFactory(
-    './contracts/starknet/execution_strategies/zodiac_relayer.cairo'
+    './contracts/starknet/execution_strategies/ZodiacRelayer.cairo'
   );
 
   const deployments = [
@@ -225,15 +225,15 @@ export async function safeWithZodiacSetup() {
 
 export async function ethTxAuthSetup() {
   const controller = (await starknet.deployAccount('OpenZeppelin')) as Account;
-  const spaceFactory = await starknet.getContractFactory('./contracts/starknet/space.cairo');
+  const spaceFactory = await starknet.getContractFactory('./contracts/starknet/Space.cairo');
   const vanillaVotingStategyFactory = await starknet.getContractFactory(
-    './contracts/starknet/voting_strategies/vanilla.cairo'
+    './contracts/starknet/voting_strategies/Vanilla.cairo'
   );
   const ethTxAuthenticatorFactory = await starknet.getContractFactory(
-    './contracts/starknet/authenticators/eth_tx.cairo'
+    './contracts/starknet/authenticators/EthTx.cairo'
   );
   const vanillaExecutionStrategyFactory = await starknet.getContractFactory(
-    './contracts/starknet/execution_strategies/vanilla.cairo'
+    './contracts/starknet/execution_strategies/Vanilla.cairo'
   );
 
   // Deploying StarkNet core instance required for L1 -> L2 message passing
@@ -303,7 +303,7 @@ export async function singleSlotProofSetup(block: any) {
   const account = await starknet.deployAccount('OpenZeppelin');
   const fossil = await fossilSetup(account);
   const singleSlotProofStrategyFactory = await starknet.getContractFactory(
-    'contracts/starknet/voting_strategies/single_slot_proof.cairo'
+    'contracts/starknet/voting_strategies/SingleSlotProof.cairo'
   );
   const singleSlotProofStrategy = await singleSlotProofStrategyFactory.deploy({
     fact_registry: BigInt(fossil.factsRegistry.address),
