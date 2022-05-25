@@ -1,7 +1,7 @@
 import { StarknetContract } from 'hardhat/types/runtime';
 import { expect } from 'chai';
-import { starknet } from 'hardhat';
-import { SplitUint256 } from './shared/types';
+import { starknet, ethers } from 'hardhat';
+import { SplitUint256 } from '../shared/types';
 
 async function setup() {
   const vanillaVotingStrategyFactory = await starknet.getContractFactory(
@@ -18,7 +18,7 @@ describe('Snapshot X Vanilla Voting Strategy:', () => {
     const { vanillaVotingStrategy } = await setup();
     const { voting_power: vp } = await vanillaVotingStrategy.call('get_voting_power', {
       block: 1,
-      voter_address: { value: BigInt('0xffffffffffffffffffff') },
+      voter_address: { value: BigInt(ethers.Wallet.createRandom().address) },
       params: [],
       user_params: [],
     });

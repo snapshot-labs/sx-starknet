@@ -4,7 +4,7 @@ import { stark } from 'starknet';
 import { StarknetContract, Account } from 'hardhat/types';
 import { strToShortStringArr } from '@snapshot-labs/sx';
 import { SplitUint256, Choice } from '../shared/types';
-import { flatten2DArray, getProposeCalldata, getVoteCalldata } from '../shared/helpers';
+import { flatten2DArray, getProposeCalldata, getVoteCalldata, bytesToHex } from '../shared/helpers';
 import { vanillaSetup } from '../shared/setup';
 
 const { getSelectorFromName } = stark;
@@ -43,7 +43,7 @@ describe('Space Testing', () => {
     ({ space, controller, vanillaAuthenticator, vanillaVotingStrategy, vanillaExecutionStrategy } =
       await vanillaSetup());
 
-    executionHash = '0x912ea662aac9d054ef5173da69723b88a5582cae2349f891998b6040cf9c2653'; // Random 32 byte hash
+    executionHash = bytesToHex(ethers.utils.randomBytes(32)); // Random 32 byte hash
     metadataUri = strToShortStringArr(
       'Hello and welcome to Snapshot X. This is the future of governance.'
     );
