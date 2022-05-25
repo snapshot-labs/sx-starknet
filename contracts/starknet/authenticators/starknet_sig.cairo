@@ -10,7 +10,7 @@ from starkware.cairo.common.uint256 import uint256_eq
 
 @external
 func authenticate{syscall_ptr : felt*, range_check_ptr, bitwise_ptr : BitwiseBuiltin*}(
-    hash : felt,
+    hash : felt, # TODO: change this to actual data, not simply the hash
     sig_len : felt,
     sig : felt*,
     target : felt,

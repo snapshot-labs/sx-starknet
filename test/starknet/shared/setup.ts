@@ -85,7 +85,7 @@ export async function starknetAccountSetup() {
     './contracts/starknet/voting_strategies/vanilla.cairo'
   );
   const starknetAccountAuthFactory = await starknet.getContractFactory(
-    './contracts/starknet/authenticators/starknet_account.cairo'
+    './contracts/starknet/authenticators/starknet_sig.cairo'
   );
   const zodiacRelayerFactory = await starknet.getContractFactory(
     './contracts/starknet/execution_strategies/zodiac_relayer.cairo'
