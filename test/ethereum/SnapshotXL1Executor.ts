@@ -10,7 +10,7 @@ import { SignerWithAddress } from '@nomiclabs/hardhat-ethers/signers';
 describe('Snapshot X L1 Proposal Executor:', () => {
   let zodiacModule: Contract;
   let safe: Contract;
-  let controller: Wallet;
+  let safeSigner: SignerWithAddress;
   let tx1: any;
   let tx2: any;
   let tx3: any;
@@ -22,7 +22,7 @@ describe('Snapshot X L1 Proposal Executor:', () => {
 
   beforeEach(async () => {
     [wallet_0, wallet_1, wallet_2, wallet_3, wallet_4] = await hre.ethers.getSigners(); //waffle.provider.getWallets();
-    ({ zodiacModule, safe, controller } = await safeWithZodiacSetup());
+    ({ zodiacModule, safe, safeSigner } = await safeWithZodiacSetup());
 
     tx1 = {
       to: wallet_1.address,
