@@ -9,42 +9,41 @@ Programmable governance on StarkNet.
 
 ## Usage
 
-### Blueprint
+### Contracts Blueprint
 ```ml
 contracts
 ├─ starknet
 │   ├─ authenticators
-│   │  ├─ eth_tx.cairo — "Authenticate user via an Ethereum transaction"
-│   │  └─ vanilla.cairo — "No authentication of users"
-│   ├─ execution_strategies
-│   │  ├─ vanilla.cairo — "No execution"
-│   │  └─ zodiac_relayer.cairo — "Strategy to execute proposal transactions using an Ethereum Gnosis Safe"
+│   │  ├─ EthTx.cairo — "Authenticate user via an Ethereum transaction"
+│   │  └─ Vanilla.cairo — "Dummy authentication"
+│   ├─ voting-strategies
+│   │  ├─ SingleSlotProof.cairo — "Enables the use the contents of an Ethereum storage slot as voting power"
+│   │  ├─ Vanilla.cairo — "Voting power of 1 for every user"
+│   │  └─ Whitelist.cairo — "Predetermined voting power for members in a whitelist, otherwise zero"
+│   ├─ execution-strategies
+│   │  ├─ Vanilla.cairo — "Dummy execution"
+│   │  └─ ZodiacRelayer.cairo — "Strategy to execute proposal transactions using an Ethereum Gnosis Safe"
 │   ├─ interfaces
-│   │  ├─ i_authenticator.cairo — "..."
-│   │  ├─ i_execution_strategy.cairo — "..."
-│   │  └─ i_voting_strategy.cairo — "Permissionless Broker for ArtBlocks Minting using Flashbot Searchers"
+│   │  ├─ IAuthenticator.cairo — "Interface for all authenticators"
+│   │  ├─ IExecutionStrategy.cairo — "Interface for all execution strategies"
+│   │  └─ IVotingStrategy.cairo — "Interface for all voting strategies"
 │   ├─ lib
-│   │  ├─ array2d.cairo — "..."
-│   │  ├─ choice.cairo — "..."
-│   │  ├─ eth_address.cairo — "..."
-│   │  ├─ felt_to_uint256.cairo — "..."
-│   │  ├─ hash_array.cairo — "..."
-│   │  ├─ proposal.cairo — "..."
-│   │  ├─ proposal_info.cairo — "..."
-│   │  ├─ proposal_outcome.cairo — "..."
-│   │  ├─ slot_key.cairo — "..."
-│   │  ├─ vote.cairo.cairo — "..."
-│   │  ├─ words.cairo — "..."
-│   │  └─ words64_to_uint256.cairo — "Permissionless Broker for ArtBlocks Minting using Flashbot Searchers"
-│   ├─ test_contracts
-│   │  ├─ test_array2d.cairo — "..."
-│   │  ├─ test_words.cairo — "..."
-│   │  └─ test_words64_to_uint256.cairo — "Permissionless Broker for ArtBlocks Minting using Flashbot Searchers"
-│   ├─ voting_strategies
-│   │  ├─ single_slot_proof.cairo — "..."
-│   │  ├─ vanilla.cairo — "..."
-│   │  └─ whitelist.cairo — "Permissionless Broker for ArtBlocks Minting using Flashbot Searchers"
-│   └─ space.cairo
+│   │  ├─ array2d.cairo — "For handling 2 dimensional arrays"
+│   │  ├─ choice.cairo — "The set of choices one can make for a vote"
+│   │  ├─ eth_address.cairo — "Ethereum address type"
+│   │  ├─ felt_to_uint256.cairo — "Convert a felt to a uint256"
+│   │  ├─ hash_array.cairo — "Wrapper function for pedersen hashing arrays"
+│   │  ├─ proposal.cairo — "Proposal metadata type"
+│   │  ├─ proposal_info.cairo — "Proposal vote data type"
+│   │  ├─ proposal_outcome.cairo — "The set of proposal outcomes"
+│   │  ├─ slot_key.cairo — "Function to find the slot key for an slot in the Ethereum state"
+│   │  ├─ vote.cairo.cairo — "User vote data type"
+│   │  └─ words.cairo — "Small 64 bit word library"
+│   ├─ test-contracts
+│   │  ├─ Test_array2d.cairo 
+│   │  ├─ Test_words.cairo 
+│   │  └─ Test_words_to_uint256.cairo 
+│   └─ Space.cairo - "The core contract for Snapshot X"
 └─ ethereum 
     ├─ Interfaces
     │  └─ IStarknetCore.sol — "Authenticate user via an Ethereum transaction"
