@@ -7,7 +7,11 @@ from starkware.cairo.common.uint256 import Uint256, uint256_add, uint256_lt, uin
 from starkware.cairo.common.bool import TRUE, FALSE
 from starkware.cairo.common.hash_state import hash_init, hash_update
 from starkware.cairo.common.math import (
-    assert_lt, assert_le, assert_nn, assert_not_zero, assert_lt_felt
+    assert_lt,
+    assert_le,
+    assert_nn,
+    assert_not_zero,
+    assert_lt_felt,
 )
 
 from contracts.starknet.interfaces.i_voting_strategy import i_voting_strategy
@@ -23,7 +27,10 @@ from contracts.starknet.lib.array2d import Immutable2DArray, construct_array2d, 
 from contracts.starknet.lib.slot_key import get_slot_key
 
 from openzeppelin.access.ownable import (
-    Ownable_only_owner, Ownable_transfer_ownership, Ownable_get_owner, Ownable_initializer
+    Ownable_only_owner,
+    Ownable_transfer_ownership,
+    Ownable_get_owner,
+    Ownable_initializer,
 )
 
 #

@@ -4,51 +4,50 @@ import { flatten2DArray } from './shared/helpers';
 import { strToShortStringArr } from '@snapshot-labs/sx';
 import { expect } from 'chai';
 import {
-  vanillaSetup,
+  starknetTxSetup,
   VITALIK_ADDRESS,
   AUTHENTICATE_METHOD,
   PROPOSAL_METHOD,
   VOTE_METHOD,
-  MIN_VOTING_DURATION,
-  MAX_VOTING_DURATION,
 } from './shared/setup';
 import { StarknetContract } from 'hardhat/types';
+import { Account } from '@shardlabs/starknet-hardhat-plugin/dist/account';
 
 const { getSelectorFromName } = stark;
 
-describe('Space testing', () => {
+describe('Starknet Tx Auth testing', () => {
   let vanillaSpace: StarknetContract;
-  let vanillaAuthenticator: StarknetContract;
+  let starknetTxAuth: StarknetContract;
   let vanillaVotingStrategy: StarknetContract;
   let zodiacRelayer: StarknetContract;
   const executionHash = new SplitUint256(BigInt(1), BigInt(2)); // Dummy uint256
   const metadataUri = strToShortStringArr(
     'Hello and welcome to Snapshot X. This is the future of governance.'
   );
-  const proposerAddress = { value: VITALIK_ADDRESS };
+  let proposerAddress: bigint;
   const proposalId = 1;
   const votingParamsAll: bigint[][] = [[]];
+  const votingParamsAllFlat = flatten2DArray(votingParamsAll);
   let used_voting_strategies: Array<bigint>;
   let executionParams: Array<bigint>;
   const ethBlockNumber = BigInt(1337);
   const l1_zodiac_module = BigInt('0xaaaaaaaaaaaa');
   let calldata: Array<bigint>;
   let spaceContract: bigint;
+  let account: Account;
 
   before(async function () {
     this.timeout(800000);
 
-    ({ vanillaSpace, vanillaAuthenticator, vanillaVotingStrategy, zodiacRelayer } =
-      await vanillaSetup());
+    ({ vanillaSpace, starknetTxAuth, vanillaVotingStrategy, zodiacRelayer, account } =
+      await starknetTxSetup());
     executionParams = [BigInt(l1_zodiac_module)];
     spaceContract = BigInt(vanillaSpace.address);
     used_voting_strategies = [BigInt(vanillaVotingStrategy.address)];
-
-    // Cairo cannot handle 2D arrays in calldata so we must flatten the data then reconstruct the individual arrays inside the contract
-    const votingParamsAllFlat = flatten2DArray(votingParamsAll);
+    proposerAddress = BigInt(account.starknetContract.address);
 
     calldata = [
-      proposerAddress.value,
+      proposerAddress,
       executionHash.low,
       executionHash.high,
       BigInt(metadataUri.length),
@@ -64,11 +63,27 @@ describe('Space testing', () => {
     ];
   });
 
+  it('Should not authenticate an invalid user', async () => {
+    try {
+      const fake_data = [...calldata];
+      fake_data[0] = VITALIK_ADDRESS;
+
+      await account.invoke(starknetTxAuth, AUTHENTICATE_METHOD, {
+        target: spaceContract,
+        function_selector: BigInt(getSelectorFromName(PROPOSAL_METHOD)),
+        calldata: fake_data,
+      });
+      throw 'error';
+    } catch (err: any) {
+      expect(err.message).to.contain('Incorrect caller');
+    }
+  });
+
   it('Should create a proposal and cast a vote', async () => {
     // -- Creates the proposal --
     {
       console.log('Creating proposal...');
-      await vanillaAuthenticator.invoke(AUTHENTICATE_METHOD, {
+      await account.invoke(starknetTxAuth, AUTHENTICATE_METHOD, {
         target: spaceContract,
         function_selector: BigInt(getSelectorFromName(PROPOSAL_METHOD)),
         calldata,
@@ -95,12 +110,10 @@ describe('Space testing', () => {
     // -- Casts a vote FOR --
     {
       console.log('Casting a vote FOR...');
-      const voter_address = proposerAddress.value;
-      const votingParamsAll: bigint[][] = [[]];
-      // Cairo cannot handle 2D arrays in calldata so we must flatten the data then reconstruct the individual arrays inside the contract
-      const votingParamsAllFlat = flatten2DArray(votingParamsAll);
+      const voter_address = proposerAddress;
+      const votingparams: Array<BigInt> = [];
       const used_voting_strategies = [BigInt(vanillaVotingStrategy.address)];
-      await vanillaAuthenticator.invoke(AUTHENTICATE_METHOD, {
+      await account.invoke(starknetTxAuth, AUTHENTICATE_METHOD, {
         target: spaceContract,
         function_selector: BigInt(getSelectorFromName(VOTE_METHOD)),
         calldata: [
