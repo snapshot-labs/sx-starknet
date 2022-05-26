@@ -6,6 +6,9 @@ from starkware.starknet.common.syscalls import call_contract
 from starkware.cairo.common.alloc import alloc
 from starkware.starknet.common.messages import send_message_to_l1
 from contracts.starknet.lib.proposal_outcome import ProposalOutcome
+from contracts.starknet.lib.hash_array import hash_array
+from contracts.starknet.lib.felt_to_uint256 import uint256_to_felt
+from starkware.cairo.common.cairo_builtins import HashBuiltin
 from openzeppelin.account.library import AccountCallArray, Call
 
 # Starknet execution strategy
@@ -48,7 +51,7 @@ func execute_calls{syscall_ptr : felt*}(data_ptr : felt*, calls_len : felt, call
 end
 
 @external
-func execute{syscall_ptr : felt*, range_check_ptr : felt}(
+func execute{syscall_ptr : felt*, range_check_ptr : felt, pedersen_ptr : HashBuiltin*}(
     proposal_outcome : felt,
     execution_hash : Uint256,
     execution_params_len : felt,
@@ -64,11 +67,10 @@ func execute{syscall_ptr : felt*, range_check_ptr : felt}(
 
     if proposal_outcome == ProposalOutcome.ACCEPTED:
         # Check that the execution hash corresponds to the array of calls
-        # TODO: actually check lmao
-        let recovered_hash = execution_hash
-        let (is_equal) = uint256_eq(execution_hash, recovered_hash)
+        let (recovered_hash) = hash_array(execution_params_len, execution_params)
+        let (execution_hash_felt) = uint256_to_felt(execution_hash)
         with_attr error_message("Execution hash mismatch"):
-            assert is_equal = 1
+            assert recovered_hash = execution_hash_felt
         end
 
         # The calldata offset is located in the first parameter

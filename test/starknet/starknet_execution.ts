@@ -15,8 +15,8 @@ import {
   starknetExecSetup,
 } from './shared/setup';
 import { StarknetContract } from 'hardhat/types';
-import { executionAsyncId } from 'async_hooks';
-import { starknet } from 'hardhat';
+import { computeHashOnElements } from 'starknet/dist/utils/hash';
+import { toBN } from 'starknet/dist/utils/number';
 
 const { getSelectorFromName } = stark;
 
@@ -25,7 +25,7 @@ describe('Starknet Execution', () => {
   let vanillaAuthenticator: StarknetContract;
   let vanillaVotingStrategy: StarknetContract;
   let starknetExec: StarknetContract;
-  const executionHash = new SplitUint256(BigInt(1), BigInt(2)); // Dummy uint256
+  let executionHash: SplitUint256;
   const metadataUri = strToShortStringArr(
     'Hello and welcome to Snapshot X. This is the future of governance.'
   );
@@ -51,6 +51,7 @@ describe('Starknet Execution', () => {
     const votingParamsAllFlat = flatten2DArray(votingParamsAll);
     const emptyExecutionParams: bigint[] = [];
 
+    executionHash = new SplitUint256(BigInt(1), BigInt(2)); // Dummy
     const call_calldata = [
       proposerAddress.value,
       executionHash.low,
@@ -80,6 +81,8 @@ describe('Starknet Execution', () => {
     };
     const calls = [call];
     executionParams = createStarknetExecutionParams(calls);
+    const executionParamsBN = executionParams.map((n) => toBN(n.toString()));
+    executionHash = SplitUint256.fromUint(BigInt(computeHashOnElements(executionParamsBN)));
 
     calldata = [
       proposerAddress.value,

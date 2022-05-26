@@ -1,7 +1,7 @@
 from starkware.cairo.common.cairo_builtins import BitwiseBuiltin
 from starkware.cairo.common.math import unsigned_div_rem
 from starkware.cairo.common.bitwise import bitwise_and
-from starkware.cairo.common.uint256 import Uint256
+from starkware.cairo.common.uint256 import Uint256, uint256_check
 
 const MASK_LOW = 2 ** 128 - 1
 const MASK_HIGH = 2 ** 251 - 2 ** 128
@@ -20,4 +20,14 @@ func felt_to_uint256{bitwise_ptr : BitwiseBuiltin*, range_check_ptr}(value : fel
     let (high, _) = unsigned_div_rem(t1, SHIFT_8)
 
     return (Uint256(low=low, high=high))
+end
+
+# Converts a Uint256 to a felt
+func uint256_to_felt{range_check_ptr}(value : Uint256) -> (output : felt):
+    # Check that it's a valid felt.
+    uint256_check(value)
+
+    let res = value.low + value.high * 2 ** 128
+
+    return (res)
 end
