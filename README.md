@@ -2,14 +2,9 @@
 
 # Snapshot X
 
-Programmable governance on StarkNet.
+Programmable governance on StarkNet. Refer to the [documentation](https://docs.snapshotx.xyz) for more information.
 
-#### [Documentation](https://docs.snapshotx.xyz)
-
-
-## Usage
-
-### Contracts Blueprint
+## Contracts Blueprint
 ```ml
 contracts
 ├─ starknet
@@ -36,7 +31,7 @@ contracts
 │   │  ├─ proposal.cairo — "Proposal metadata type"
 │   │  ├─ proposal_info.cairo — "Proposal vote data type"
 │   │  ├─ proposal_outcome.cairo — "The set of proposal outcomes"
-│   │  ├─ slot_key.cairo — "Function to find the slot key for an slot in the Ethereum state"
+│   │  ├─ slot_key.cairo — "Function to find the slot key for a slot in the Ethereum state"
 │   │  ├─ vote.cairo.cairo — "User vote data type"
 │   │  └─ words.cairo — "Small 64 bit word library"
 │   ├─ test-contracts
@@ -59,6 +54,9 @@ contracts
        └─ StarknetMessaging.sol — "No authentication of users"
 
 ```
+
+## Usage
+
 ### Clone repository:
 
 ```bash 
