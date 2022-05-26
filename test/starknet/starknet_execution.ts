@@ -7,7 +7,7 @@ import { expect } from 'chai';
 import {
   vanillaSetup,
   VITALIK_ADDRESS,
-  EXECUTE_METHOD,
+  AUTHENTICATE_METHOD,
   PROPOSAL_METHOD,
   VOTE_METHOD,
   MIN_VOTING_DURATION,
@@ -71,7 +71,7 @@ describe('Starknet Execution', () => {
     // To better understand how this is constructed, please read the Starknet execution strategy comments.
     const call: Call = {
       to: BigInt(vanillaAuthenticator.address),
-      functionSelector: BigInt(getSelectorFromName(EXECUTE_METHOD)),
+      functionSelector: BigInt(getSelectorFromName(AUTHENTICATE_METHOD)),
       calldata: [
         spaceContract,
         BigInt(getSelectorFromName(PROPOSAL_METHOD)),
@@ -105,7 +105,7 @@ describe('Starknet Execution', () => {
     // -- Creates the proposal --
     {
       console.log('Creating proposal...');
-      await vanillaAuthenticator.invoke(EXECUTE_METHOD, {
+      await vanillaAuthenticator.invoke(AUTHENTICATE_METHOD, {
         target: spaceContract,
         function_selector: BigInt(getSelectorFromName(PROPOSAL_METHOD)),
         calldata,
@@ -137,7 +137,7 @@ describe('Starknet Execution', () => {
       // Cairo cannot handle 2D arrays in calldata so we must flatten the data then reconstruct the individual arrays inside the contract
       const votingParamsAllFlat = flatten2DArray(votingParamsAll);
       const used_voting_strategies = [BigInt(vanillaVotingStrategy.address)];
-      await vanillaAuthenticator.invoke(EXECUTE_METHOD, {
+      await vanillaAuthenticator.invoke(AUTHENTICATE_METHOD, {
         target: spaceContract,
         function_selector: BigInt(getSelectorFromName(VOTE_METHOD)),
         calldata: [
@@ -182,7 +182,7 @@ describe('Starknet Execution', () => {
       // Cairo cannot handle 2D arrays in calldata so we must flatten the data then reconstruct the individual arrays inside the contract
       const votingParamsAllFlat = flatten2DArray(votingParamsAll);
       const used_voting_strategies = [BigInt(vanillaVotingStrategy.address)];
-      await vanillaAuthenticator.invoke(EXECUTE_METHOD, {
+      await vanillaAuthenticator.invoke(AUTHENTICATE_METHOD, {
         target: spaceContract,
         function_selector: BigInt(getSelectorFromName(VOTE_METHOD)),
         calldata: [
