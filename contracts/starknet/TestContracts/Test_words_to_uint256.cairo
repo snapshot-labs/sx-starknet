@@ -1,6 +1,6 @@
 %lang starknet
 from starkware.cairo.common.uint256 import Uint256
-from starknet.lib.words_to_uint256 import words_to_uint256
+from starknet.lib.words import words_to_uint256
 
 @view
 func test_words_to_uint256{range_check_ptr}(

@@ -4,7 +4,7 @@ import { stark } from 'starknet';
 import { starknet, ethers } from 'hardhat';
 import { strToShortStringArr } from '@snapshot-labs/sx';
 import { zodiacRelayerSetup } from '../shared/setup';
-import { flatten2DArray, getProposeCalldata, getVoteCalldata, bytesToHex } from '../shared/helpers';
+import { getProposeCalldata, bytesToHex } from '../shared/helpers';
 import { StarknetContract, Account } from 'hardhat/types';
 
 const { getSelectorFromName } = stark;
@@ -51,7 +51,7 @@ describe('Whitelist testing', () => {
     } = await zodiacRelayerSetup());
 
     const vanillaExecutionStrategyFactory = await starknet.getContractFactory(
-      './contracts/starknet/execution_strategies/Vanilla.cairo'
+      './contracts/starknet/ExecutionStrategies/Vanilla.cairo'
     );
     vanillaExecutionStrategy = await vanillaExecutionStrategyFactory.deploy();
 

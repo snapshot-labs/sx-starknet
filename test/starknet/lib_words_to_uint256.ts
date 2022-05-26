@@ -6,7 +6,7 @@ import { SplitUint256 } from '../shared/types';
 
 async function setup() {
   const testWordsFactory = await starknet.getContractFactory(
-    './contracts/starknet/test_contracts/Test_words_to_uint256.cairo'
+    './contracts/starknet/TestContracts/Test_words_to_uint256.cairo'
   );
   const testWords = await testWordsFactory.deploy();
   return {

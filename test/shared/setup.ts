@@ -1,25 +1,25 @@
 import { expect } from 'chai';
-import hre, { starknet, ethers, waffle } from 'hardhat';
+import { starknet, ethers } from 'hardhat';
 import { SignerWithAddress } from '@nomiclabs/hardhat-ethers/signers';
-import { StarknetContract, Account, Wallet } from 'hardhat/types';
+import { StarknetContract, Account } from 'hardhat/types';
 import { Contract, ContractFactory } from 'ethers';
 import { SplitUint256, IntsSequence } from './types';
 import { hexToBytes, flatten2DArray } from './helpers';
 import { ProcessBlockInputs, getProcessBlockInputs } from './parseRPCData';
 import { AddressZero } from '@ethersproject/constants';
-import { executeContractCallWithSigners, buildContractCall, EIP712_TYPES } from './utils';
+import { executeContractCallWithSigners } from './utils';
 
 export async function vanillaSetup() {
   const controller = (await starknet.deployAccount('OpenZeppelin')) as Account;
   const spaceFactory = await starknet.getContractFactory('./contracts/starknet/Space.cairo');
   const vanillaVotingStategyFactory = await starknet.getContractFactory(
-    './contracts/starknet/voting_strategies/Vanilla.cairo'
+    './contracts/starknet/VotingStrategies/Vanilla.cairo'
   );
   const vanillaAuthenticatorFactory = await starknet.getContractFactory(
-    './contracts/starknet/authenticators/Vanilla.cairo'
+    './contracts/starknet/Authenticators/Vanilla.cairo'
   );
   const vanillaExecutionStrategyFactory = await starknet.getContractFactory(
-    './contracts/starknet/execution_strategies/Vanilla.cairo'
+    './contracts/starknet/ExecutionStrategies/Vanilla.cairo'
   );
 
   const deployments = [
@@ -71,13 +71,13 @@ export async function zodiacRelayerSetup() {
   const controller = (await starknet.deployAccount('OpenZeppelin')) as Account;
   const spaceFactory = await starknet.getContractFactory('./contracts/starknet/Space.cairo');
   const vanillaVotingStategyFactory = await starknet.getContractFactory(
-    './contracts/starknet/voting_strategies/Vanilla.cairo'
+    './contracts/starknet/VotingStrategies/Vanilla.cairo'
   );
   const vanillaAuthenticatorFactory = await starknet.getContractFactory(
-    './contracts/starknet/authenticators/Vanilla.cairo'
+    './contracts/starknet/Authenticators/Vanilla.cairo'
   );
   const zodiacRelayerFactory = await starknet.getContractFactory(
-    './contracts/starknet/execution_strategies/ZodiacRelayer.cairo'
+    './contracts/starknet/ExecutionStrategies/ZodiacRelayer.cairo'
   );
 
   const deployments = [
@@ -227,13 +227,13 @@ export async function ethTxAuthSetup() {
   const controller = (await starknet.deployAccount('OpenZeppelin')) as Account;
   const spaceFactory = await starknet.getContractFactory('./contracts/starknet/Space.cairo');
   const vanillaVotingStategyFactory = await starknet.getContractFactory(
-    './contracts/starknet/voting_strategies/Vanilla.cairo'
+    './contracts/starknet/VotingStrategies/Vanilla.cairo'
   );
   const ethTxAuthenticatorFactory = await starknet.getContractFactory(
-    './contracts/starknet/authenticators/EthTx.cairo'
+    './contracts/starknet/Authenticators/EthTx.cairo'
   );
   const vanillaExecutionStrategyFactory = await starknet.getContractFactory(
-    './contracts/starknet/execution_strategies/Vanilla.cairo'
+    './contracts/starknet/ExecutionStrategies/Vanilla.cairo'
   );
 
   // Deploying StarkNet core instance required for L1 -> L2 message passing
@@ -303,7 +303,7 @@ export async function singleSlotProofSetup(block: any) {
   const account = await starknet.deployAccount('OpenZeppelin');
   const fossil = await fossilSetup(account);
   const singleSlotProofStrategyFactory = await starknet.getContractFactory(
-    'contracts/starknet/voting_strategies/SingleSlotProof.cairo'
+    'contracts/starknet/VotingStrategies/SingleSlotProof.cairo'
   );
   const singleSlotProofStrategy = await singleSlotProofStrategyFactory.deploy({
     fact_registry: BigInt(fossil.factsRegistry.address),
@@ -314,7 +314,7 @@ export async function singleSlotProofSetup(block: any) {
     block_number: block.number + 1,
   });
   // Encode block header and then submit to L1 Headers Store
-  const processBlockInputs = getProcessBlockInputs(block);
+  const processBlockInputs: ProcessBlockInputs = getProcessBlockInputs(block);
   await fossil.l1RelayerAccount.invoke(fossil.l1HeadersStore, 'process_block', {
     options_set: processBlockInputs.blockOptions,
     block_number: processBlockInputs.blockNumber,

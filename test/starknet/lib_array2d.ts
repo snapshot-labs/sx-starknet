@@ -1,14 +1,14 @@
 import { StarknetContract } from 'hardhat/types/runtime';
 import { expect } from 'chai';
 import { starknet } from 'hardhat';
-import { wordsToUint, flatten2DArray } from '../shared/helpers';
+import { flatten2DArray } from '../shared/helpers';
 
 describe('2D Arrays:', () => {
   let testArray2d: StarknetContract;
 
   before(async () => {
     const testArray2dFactory = await starknet.getContractFactory(
-      './contracts/starknet/test_contracts/Test_array2d.cairo'
+      './contracts/starknet/TestContracts/Test_array2d.cairo'
     );
     testArray2d = await testArray2dFactory.deploy();
     return {

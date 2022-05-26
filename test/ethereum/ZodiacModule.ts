@@ -1,9 +1,8 @@
 import { expect } from 'chai';
-import hre, { ethers, network, waffle } from 'hardhat';
+import hre, { ethers, network } from 'hardhat';
 import { _TypedDataEncoder } from '@ethersproject/hash';
-import { executeContractCallWithSigners, buildContractCall, EIP712_TYPES } from '../shared/utils';
-import { AddressZero } from '@ethersproject/constants';
-import { Contract, Wallet } from 'ethers';
+import { executeContractCallWithSigners, EIP712_TYPES } from '../shared/utils';
+import { Contract } from 'ethers';
 import { safeWithZodiacSetup } from '../shared/setup';
 import { SignerWithAddress } from '@nomiclabs/hardhat-ethers/signers';
 

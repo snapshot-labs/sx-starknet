@@ -10,8 +10,8 @@ from starkware.cairo.common.math import (
     assert_lt, assert_le, assert_nn, assert_not_zero, assert_lt_felt
 )
 
-from contracts.starknet.interfaces.IVotingStrategy import IVotingStrategy
-from contracts.starknet.interfaces.IExecutionStrategy import IExecutionStrategy
+from contracts.starknet.Interfaces.IVotingStrategy import IVotingStrategy
+from contracts.starknet.Interfaces.IExecutionStrategy import IExecutionStrategy
 from contracts.starknet.lib.eth_address import EthAddress
 from contracts.starknet.lib.proposal import Proposal
 from contracts.starknet.lib.proposal_info import ProposalInfo

@@ -5,7 +5,7 @@ import { wordsToUint, bytesToHex } from '../shared/helpers';
 
 async function setup() {
   const testWordsFactory = await starknet.getContractFactory(
-    './contracts/starknet/test_contracts/Test_words.cairo'
+    './contracts/starknet/TestContracts/Test_words.cairo'
   );
   const testWords = await testWordsFactory.deploy();
   return {

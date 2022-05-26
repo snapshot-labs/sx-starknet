@@ -1,14 +1,8 @@
-import { starknet, ethers } from 'hardhat';
 import { expect } from 'chai';
 import { block } from '../data/blocks';
 import { proofs } from '../data/proofs';
 import { SplitUint256 } from '../shared/types';
-import {
-  ProofInputs,
-  getProofInputs,
-  ProcessBlockInputs,
-  getProcessBlockInputs,
-} from '../shared/parseRPCData';
+import { ProofInputs, getProofInputs } from '../shared/parseRPCData';
 import { encodeParams } from '../shared/singleSlotProofStrategyEncoding';
 import { singleSlotProofSetup, Fossil } from '../shared/setup';
 import { StarknetContract, Account } from 'hardhat/types';

@@ -4,12 +4,7 @@ import { Contract } from 'ethers';
 import { starknet, network, ethers } from 'hardhat';
 import { StarknetContract, Account, HttpNetworkConfig } from 'hardhat/types';
 import { strToShortStringArr } from '@snapshot-labs/sx';
-import {
-  createExecutionHash,
-  getCommit,
-  flatten2DArray,
-  getProposeCalldata,
-} from '../shared/helpers';
+import { createExecutionHash, getCommit, getProposeCalldata } from '../shared/helpers';
 import { ethTxAuthSetup } from '../shared/setup';
 import { proposeSelector, voteSelector } from '../shared/constants';
 

@@ -1,7 +1,7 @@
 import { SignerWithAddress } from '@nomiclabs/hardhat-ethers/signers';
 import { expect } from 'chai';
-import { Contract, ContractFactory } from 'ethers';
-import hre, { starknet, network, ethers, waffle } from 'hardhat';
+import { Contract } from 'ethers';
+import hre, { starknet, network } from 'hardhat';
 import { Choice, SplitUint256 } from '../shared/types';
 import { StarknetContract, HttpNetworkConfig, Account } from 'hardhat/types';
 import { stark } from 'starknet';
@@ -9,8 +9,6 @@ import { strToShortStringArr } from '@snapshot-labs/sx';
 import { zodiacRelayerSetup } from '../shared/setup';
 import {
   createExecutionHash,
-  getCommit,
-  flatten2DArray,
   expectAddressEquality,
   getProposeCalldata,
   getVoteCalldata,

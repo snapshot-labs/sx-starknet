@@ -1,11 +1,8 @@
 import { stark } from 'starknet';
-import { SplitUint256, FOR } from '../shared/types';
-import { strToShortStringArr } from '@snapshot-labs/sx';
+import { SplitUint256 } from '../shared/types';
 import { expect } from 'chai';
 import { starknet, ethers } from 'hardhat';
 import { StarknetContract } from 'hardhat/types';
-
-const { getSelectorFromName } = stark;
 
 describe('Whitelist testing', () => {
   let whitelist: StarknetContract;
