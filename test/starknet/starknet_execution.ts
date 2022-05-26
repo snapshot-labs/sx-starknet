@@ -1,6 +1,7 @@
 import { stark } from 'starknet';
 import { SplitUint256, FOR } from './shared/types';
 import { flatten2DArray } from './shared/helpers';
+import { createStarknetExecutionParams, Call } from './shared/executionParams';
 import { strToShortStringArr } from '@snapshot-labs/sx';
 import { expect } from 'chai';
 import {
@@ -48,7 +49,7 @@ describe('Starknet Execution', () => {
 
     // Cairo cannot handle 2D arrays in calldata so we must flatten the data then reconstruct the individual arrays inside the contract
     const votingParamsAllFlat = flatten2DArray(votingParamsAll);
-    executionParams = [];
+    const emptyExecutionParams: bigint[] = [];
 
     const call_calldata = [
       proposerAddress.value,
@@ -62,14 +63,14 @@ describe('Starknet Execution', () => {
       ...used_voting_strategies,
       BigInt(votingParamsAllFlat.length),
       ...votingParamsAllFlat,
-      BigInt(executionParams.length),
-      ...executionParams,
+      BigInt(emptyExecutionParams.length),
+      ...emptyExecutionParams,
     ];
 
     // To better understand how this is constructed, please read the Starknet execution strategy comments.
-    const call = {
+    const call: Call = {
       to: BigInt(vanillaAuthenticator.address),
-      selector: getSelectorFromName(EXECUTE_METHOD),
+      functionSelector: BigInt(getSelectorFromName(EXECUTE_METHOD)),
       calldata: [
         spaceContract,
         BigInt(getSelectorFromName(PROPOSAL_METHOD)),
@@ -77,14 +78,8 @@ describe('Starknet Execution', () => {
         ...call_calldata,
       ],
     };
-    executionParams = [
-      BigInt(5),
-      call.to,
-      BigInt(call.selector),
-      BigInt(call.calldata.length),
-      BigInt(0),
-      ...call.calldata,
-    ];
+    const calls = [call];
+    executionParams = createStarknetExecutionParams(calls);
 
     calldata = [
       proposerAddress.value,

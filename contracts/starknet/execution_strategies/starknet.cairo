@@ -1,6 +1,7 @@
 %lang starknet
 
 from starkware.cairo.common.uint256 import Uint256, uint256_eq
+from starkware.cairo.common.math_cmp import is_le
 from starkware.starknet.common.syscalls import call_contract
 from starkware.cairo.common.alloc import alloc
 from starkware.starknet.common.messages import send_message_to_l1
@@ -45,6 +46,7 @@ func execute_calls{syscall_ptr : felt*}(data_ptr : felt*, calls_len : felt, call
 
     return ()
 end
+
 @external
 func execute{syscall_ptr : felt*, range_check_ptr : felt}(
     proposal_outcome : felt,
@@ -53,6 +55,12 @@ func execute{syscall_ptr : felt*, range_check_ptr : felt}(
     execution_params : felt*,
 ):
     alloc_locals
+
+    # Check that there are `Calls` ton execute in the execution parameters.
+    let (is_lower) = is_le(execution_params_len, 4)
+    if is_lower == 1:
+        return ()
+    end
 
     if proposal_outcome == ProposalOutcome.ACCEPTED:
         # Check that the execution hash corresponds to the array of calls
