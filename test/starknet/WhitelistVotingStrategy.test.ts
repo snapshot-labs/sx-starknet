@@ -1,4 +1,3 @@
-import { stark } from 'starknet';
 import { SplitUint256 } from '../shared/types';
 import { expect } from 'chai';
 import { starknet, ethers } from 'hardhat';
