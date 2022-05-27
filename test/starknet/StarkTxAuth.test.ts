@@ -4,8 +4,8 @@ import { flatten2DArray } from '../shared/helpers';
 import { strToShortStringArr } from '@snapshot-labs/sx';
 import { expect } from 'chai';
 import { starknetTxSetup } from '../shared/setup';
-import { StarknetContract } from 'hardhat/types';
-import { Account } from '@shardlabs/starknet-hardhat-plugin/dist/account';
+import { StarknetContract, Account } from 'hardhat/types';
+
 const { getSelectorFromName } = stark;
 
 export const VITALIK_ADDRESS = BigInt('0xd8da6bf26964af9d7eed9e03e53415d37aa96045');
