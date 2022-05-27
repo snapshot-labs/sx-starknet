@@ -9,6 +9,12 @@ import { ProcessBlockInputs, getProcessBlockInputs } from './parseRPCData';
 import { AddressZero } from '@ethersproject/constants';
 import { executeContractCallWithSigners } from './utils';
 
+export interface Fossil {
+  factsRegistry: StarknetContract;
+  l1HeadersStore: StarknetContract;
+  l1RelayerAccount: Account;
+}
+
 export async function vanillaSetup() {
   const controller = (await starknet.deployAccount('OpenZeppelin')) as Account;
   const spaceFactory = await starknet.getContractFactory('./contracts/starknet/Space.cairo');
@@ -328,20 +334,6 @@ export async function singleSlotProofSetup(block: any) {
   };
 }
 
-export interface Fossil {
-  factsRegistry: StarknetContract;
-  l1HeadersStore: StarknetContract;
-  l1RelayerAccount: Account;
-}
-
-export interface SnapshotX {
-  space: StarknetContract;
-  controller: Account;
-  authenticators: StarknetContract[];
-  votingStrategies: StarknetContract[];
-  executors: StarknetContract[];
-}
-
 async function fossilSetup(deployer: Account): Promise<Fossil> {
   const factsRegistryFactory = await starknet.getContractFactory(
     'fossil/contracts/starknet/FactsRegistry.cairo'
@@ -362,5 +354,129 @@ async function fossilSetup(deployer: Account): Promise<Fossil> {
     factsRegistry: factsRegistry as StarknetContract,
     l1HeadersStore: l1HeadersStore as StarknetContract,
     l1RelayerAccount: l1RelayerAccount as Account,
+  };
+}
+
+// TODO: Ive left these functions in the old style for now as some changes are needed, but they should be refactored like the ones above soon.
+
+export async function starknetAccountSetup() {
+  const account = await starknet.deployAccount('OpenZeppelin');
+
+  const vanillaSpaceFactory = await starknet.getContractFactory('./contracts/starknet/Space.cairo');
+  const vanillaVotingStategyFactory = await starknet.getContractFactory(
+    './contracts/starknet/VotingStrategies/Vanilla.cairo'
+  );
+  const starknetAccountAuthFactory = await starknet.getContractFactory(
+    './contracts/starknet/Authenticators/StarkSig.cairo'
+  );
+  const zodiacRelayerFactory = await starknet.getContractFactory(
+    './contracts/starknet/ExecutionStrategies/ZodiacRelayer.cairo'
+  );
+
+  const deployments = [
+    starknetAccountAuthFactory.deploy(),
+    vanillaVotingStategyFactory.deploy(),
+    zodiacRelayerFactory.deploy(),
+  ];
+  console.log('Deploying auth, voting and zodiac relayer contracts...');
+  const contracts = await Promise.all(deployments);
+  const starknetAccountAuth = contracts[0] as StarknetContract;
+  const vanillaVotingStrategy = contracts[1] as StarknetContract;
+  const zodiacRelayer = contracts[2] as StarknetContract;
+
+  const voting_strategy = BigInt(vanillaVotingStrategy.address);
+  const authenticator = BigInt(starknetAccountAuth.address);
+  const zodiac_relayer = BigInt(zodiacRelayer.address);
+  const quorum = SplitUint256.fromUint(BigInt(0));
+
+  const voting_strategy_params: bigint[][] = [[]];
+  const voting_strategy_params_flat = flatten2DArray(voting_strategy_params);
+
+  // This should be declared along with the other const but doing so will make the compiler unhappy as `SplitUint256`
+  // will be undefined for some reason?
+  const PROPOSAL_THRESHOLD = SplitUint256.fromUint(BigInt(1));
+
+  console.log('Deploying space contract...');
+  const vanillaSpace = (await vanillaSpaceFactory.deploy({
+    _voting_delay: BigInt(0),
+    _min_voting_duration: BigInt(0),
+    _max_voting_duration: BigInt(2000),
+    _proposal_threshold: PROPOSAL_THRESHOLD,
+    _quorum: quorum,
+    _controller: BigInt(account.starknetContract.address),
+    _voting_strategy_params_flat: voting_strategy_params_flat,
+    _voting_strategies: [voting_strategy],
+    _authenticators: [authenticator],
+    _executors: [zodiac_relayer],
+  })) as StarknetContract;
+  console.log('deployed!');
+
+  return {
+    vanillaSpace,
+    starknetAccountAuth,
+    vanillaVotingStrategy,
+    zodiacRelayer,
+    account,
+  };
+}
+
+export async function starknetTxSetup() {
+  const account = await starknet.deployAccount('OpenZeppelin');
+
+  const vanillaSpaceFactory = await starknet.getContractFactory('./contracts/starknet/Space.cairo');
+  const vanillaVotingStategyFactory = await starknet.getContractFactory(
+    './contracts/starknet/VotingStrategies/Vanilla.cairo'
+  );
+  const starknetTxAuthFactory = await starknet.getContractFactory(
+    './contracts/starknet/Authenticators/StarkTx.cairo'
+  );
+  const zodiacRelayerFactory = await starknet.getContractFactory(
+    './contracts/starknet/ExecutionStrategies/ZodiacRelayer.cairo'
+  );
+
+  const deployments = [
+    starknetTxAuthFactory.deploy(),
+    vanillaVotingStategyFactory.deploy(),
+    zodiacRelayerFactory.deploy(),
+  ];
+  console.log('Deploying auth, voting and zodiac relayer contracts...');
+  const contracts = await Promise.all(deployments);
+  const starknetTxAuth = contracts[0] as StarknetContract;
+  const vanillaVotingStrategy = contracts[1] as StarknetContract;
+  const zodiacRelayer = contracts[2] as StarknetContract;
+
+  const voting_strategy = BigInt(vanillaVotingStrategy.address);
+  const authenticator = BigInt(starknetTxAuth.address);
+  const zodiac_relayer = BigInt(zodiacRelayer.address);
+  const quorum = SplitUint256.fromUint(BigInt(0));
+
+  const voting_strategy_params: bigint[][] = [[]];
+  const voting_strategy_params_flat = flatten2DArray(voting_strategy_params);
+
+  // This should be declared along with the other const but doing so will make the compiler unhappy as `SplitUint256`
+  // will be undefined for some reason?
+  const PROPOSAL_THRESHOLD = SplitUint256.fromUint(BigInt(1));
+
+  console.log('Deploying space contract...');
+  const vanillaSpace = (await vanillaSpaceFactory.deploy({
+    _voting_delay: BigInt(0),
+    _min_voting_duration: BigInt(0),
+    _max_voting_duration: BigInt(2000),
+    _proposal_threshold: PROPOSAL_THRESHOLD,
+    _quorum: quorum,
+    _controller: BigInt(account.starknetContract.address),
+    _voting_strategy_params_flat: voting_strategy_params_flat,
+    _voting_strategies: [voting_strategy],
+    _authenticators: [authenticator],
+    _executors: [zodiac_relayer],
+  })) as StarknetContract;
+  console.log('deployed!');
+
+  return {
+    vanillaSpace,
+    starknetTxAuth,
+    vanillaVotingStrategy,
+    zodiacRelayer,
+    account,
   };
 }

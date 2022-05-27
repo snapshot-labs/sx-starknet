@@ -1,9 +1,5 @@
 import { assert, hexToBytes, bytesToHex } from './helpers';
 
-export const FOR = BigInt(1);
-export const AGAINST = BigInt(2);
-export const ABSTAIN = BigInt(3);
-
 export enum Choice {
   FOR = 1,
   AGAINST = 2,

@@ -8,17 +8,19 @@ Programmable governance on StarkNet. Refer to the [documentation](https://docs.s
 ```ml
 contracts
 ├─ starknet
-│   ├─ authenticators
+│   ├─ Authenticators
 │   │  ├─ EthTx.cairo — "Authenticate user via an Ethereum transaction"
+│   │  ├─ StarkTx.cairo — "Authenticate user via a StarkNet  transaction"
+│   │  ├─ StarkSig.cairo — "Authenticate user via a Starknet signature"
 │   │  └─ Vanilla.cairo — "Dummy authentication"
-│   ├─ voting-strategies
+│   ├─ VotingStrategies
 │   │  ├─ SingleSlotProof.cairo — "Enables the use the contents of an Ethereum storage slot as voting power"
 │   │  ├─ Vanilla.cairo — "Voting power of 1 for every user"
 │   │  └─ Whitelist.cairo — "Predetermined voting power for members in a whitelist, otherwise zero"
-│   ├─ execution-strategies
+│   ├─ ExecutionStrategies
 │   │  ├─ Vanilla.cairo — "Dummy execution"
 │   │  └─ ZodiacRelayer.cairo — "Strategy to execute proposal transactions using an Ethereum Gnosis Safe"
-│   ├─ interfaces
+│   ├─ Interfaces
 │   │  ├─ IAuthenticator.cairo — "Interface for all authenticators"
 │   │  ├─ IExecutionStrategy.cairo — "Interface for all execution strategies"
 │   │  └─ IVotingStrategy.cairo — "Interface for all voting strategies"
@@ -34,7 +36,7 @@ contracts
 │   │  ├─ slot_key.cairo — "Function to find the slot key for a slot in the Ethereum state"
 │   │  ├─ vote.cairo.cairo — "User vote data type"
 │   │  └─ words.cairo — "Small 64 bit word library"
-│   ├─ test-contracts
+│   ├─ TestContracts
 │   │  ├─ Test_array2d.cairo 
 │   │  ├─ Test_words.cairo 
 │   │  └─ Test_words_to_uint256.cairo 
@@ -44,7 +46,7 @@ contracts
     │  └─ IStarknetCore.sol — "Authenticate user via an Ethereum transaction"
     ├─ StarkNetCommit
     │  └─ StarknetCommit.sol — "Authenticate user via an Ethereum transaction"
-    ├─ SnapshotXZodiacModule
+    ├─ ZodiacModule
     │  ├─ ProposalRelayer.sol — "Authenticate user via an Ethereum transaction"
     │  ├─ SnapshotXL1Executor.sol — "Authenticate user via an Ethereum transaction"
     │  └─ deps.sol — "No authentication of users"
