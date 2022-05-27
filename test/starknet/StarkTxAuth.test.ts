@@ -3,21 +3,8 @@ import { SplitUint256, Choice } from '../shared/types';
 import { flatten2DArray } from '../shared/helpers';
 import { strToShortStringArr } from '@snapshot-labs/sx';
 import { expect } from 'chai';
-<<<<<<< HEAD:test/starknet/StarkTxAuth.test.ts
 import { starknetTxSetup } from '../shared/setup';
 import { StarknetContract, Account } from 'hardhat/types';
-=======
-import {
-  vanillaSetup,
-  VITALIK_ADDRESS,
-  AUTHENTICATE_METHOD,
-  PROPOSAL_METHOD,
-  VOTE_METHOD,
-  MIN_VOTING_DURATION,
-  MAX_VOTING_DURATION,
-} from './shared/setup';
-import { StarknetContract } from 'hardhat/types';
->>>>>>> develop:test/starknet/vanilla_space.ts
 
 const { getSelectorFromName } = stark;
 
@@ -94,11 +81,7 @@ describe('Starknet Tx Auth testing', () => {
     // -- Creates the proposal --
     {
       console.log('Creating proposal...');
-<<<<<<< HEAD:test/starknet/StarkTxAuth.test.ts
       await account.invoke(starknetTxAuth, AUTHENTICATE_METHOD, {
-=======
-      await vanillaAuthenticator.invoke(AUTHENTICATE_METHOD, {
->>>>>>> develop:test/starknet/vanilla_space.ts
         target: spaceContract,
         function_selector: BigInt(getSelectorFromName(PROPOSAL_METHOD)),
         calldata,
@@ -128,11 +111,7 @@ describe('Starknet Tx Auth testing', () => {
       const voter_address = proposerAddress;
       const votingparams: Array<BigInt> = [];
       const used_voting_strategies = [BigInt(vanillaVotingStrategy.address)];
-<<<<<<< HEAD:test/starknet/StarkTxAuth.test.ts
       await account.invoke(starknetTxAuth, AUTHENTICATE_METHOD, {
-=======
-      await vanillaAuthenticator.invoke(AUTHENTICATE_METHOD, {
->>>>>>> develop:test/starknet/vanilla_space.ts
         target: spaceContract,
         function_selector: BigInt(getSelectorFromName(VOTE_METHOD)),
         calldata: [
