@@ -14,7 +14,7 @@
     "test:crosschain": "'./scripts/test-crosschain.sh'",
     "test:crosschain:ci": "concurrently './scripts/chain.sh' './scripts/test-crosschain.sh'",
     "chain:l1": "hardhat node",
-    "chain:l2": "starknet-devnet -p 8000",
+    "chain:l2": "starknet-devnet -p 8000 --lite-mode",
     "chain": "concurrently 'yarn chain:l1' 'yarn chain:l2'",
     "format:l1": "prettier --write 'contracts/**/*.sol'",
     "check-format:l1": "prettier -c 'contracts/**/*.sol'",
