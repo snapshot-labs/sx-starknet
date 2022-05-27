@@ -100,7 +100,7 @@ describe('Whitelist testing', () => {
         calldata: proposeCalldata1,
       });
     }
-  });
+  }).timeout(1000000);
 
   it('Should not be able to create a proposal with a non whitelisted executor', async () => {
     try {
@@ -113,7 +113,7 @@ describe('Whitelist testing', () => {
     } catch (err: any) {
       expect(err.message).to.contain('Invalid executor');
     }
-  });
+  }).timeout(1000000);
 
   it('The Controller can whitelist an executor', async () => {
     await controller.invoke(space, 'add_executors', {
@@ -125,7 +125,7 @@ describe('Whitelist testing', () => {
       function_selector: BigInt(getSelectorFromName('propose')),
       calldata: proposeCalldata2,
     });
-  });
+  }).timeout(1000000);
 
   it('The controller can remove two executors', async () => {
     await controller.invoke(space, 'remove_executors', {
@@ -142,7 +142,7 @@ describe('Whitelist testing', () => {
     } catch (err: any) {
       expect(err.message).to.contain('Invalid executor');
     }
-  });
+  }).timeout(1000000);
 
   it('The controller can add two executors', async () => {
     await controller.invoke(space, 'add_executors', {
@@ -154,5 +154,5 @@ describe('Whitelist testing', () => {
       function_selector: BigInt(getSelectorFromName('propose')),
       calldata: proposeCalldata2,
     });
-  });
+  }).timeout(1000000);
 });

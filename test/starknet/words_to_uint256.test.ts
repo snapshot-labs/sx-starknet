@@ -30,5 +30,5 @@ describe('Words 64 to Uint256:', () => {
     const uint = wordsToUint(word1, word2, word3, word4);
 
     expect(new SplitUint256(uint256.low, uint256.high)).to.deep.equal(SplitUint256.fromUint(uint));
-  }).timeout(60000);
+  }).timeout(600000);
 });

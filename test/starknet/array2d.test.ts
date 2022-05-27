@@ -3,21 +3,20 @@ import { expect } from 'chai';
 import { starknet } from 'hardhat';
 import { flatten2DArray } from '../shared/helpers';
 
+async function setup() {
+  const testArray2dFactory = await starknet.getContractFactory(
+    './contracts/starknet/TestContracts/Test_array2d.cairo'
+  );
+  const testArray2d = await testArray2dFactory.deploy();
+  return {
+    testArray2d: testArray2d as StarknetContract,
+  };
+}
+
 describe('2D Arrays:', () => {
-  let testArray2d: StarknetContract;
-
-  before(async function () {
-    this.timeout(800000);
-    const testArray2dFactory = await starknet.getContractFactory(
-      './contracts/starknet/TestContracts/Test_array2d.cairo'
-    );
-    testArray2d = await testArray2dFactory.deploy();
-    return {
-      testArray2d: testArray2d as StarknetContract,
-    };
-  });
-
   it('The library should be able to construct the 2D array type from a flat array and then retrieve the sub arrays individually.', async () => {
+    const { testArray2d } = await setup();
+
     // Sub Arrays: [[5],[],[1,2,3],[7,9]]
     // Offsets: [0,1,1,4]
     const arr1: bigint[] = [BigInt(5)];
@@ -60,5 +59,5 @@ describe('2D Arrays:', () => {
       index: 0,
     });
     expect(array5).to.deep.equal(arr2);
-  }).timeout(60000);
+  }).timeout(600000);
 });
