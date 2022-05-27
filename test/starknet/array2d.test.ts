@@ -6,7 +6,7 @@ import { flatten2DArray } from '../shared/helpers';
 describe('2D Arrays:', () => {
   let testArray2d: StarknetContract;
 
-  before(async () => {
+  before(async function () {
     this.timeout(800000);
     const testArray2dFactory = await starknet.getContractFactory(
       './contracts/starknet/TestContracts/Test_array2d.cairo'
