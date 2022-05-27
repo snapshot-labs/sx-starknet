@@ -2,10 +2,60 @@
 
 # Snapshot X
 
-Programmable governance on StarkNet.
+Programmable governance on StarkNet. Refer to the [documentation](https://docs.snapshotx.xyz) for more information.
 
-#### [Documentation](https://docs.snapshotx.xyz)
+## Contracts Blueprint
+```ml
+contracts
+├─ starknet
+│   ├─ Authenticators
+│   │  ├─ EthTx.cairo — "Authenticate user via an Ethereum transaction"
+│   │  ├─ StarkTx.cairo — "Authenticate user via a StarkNet  transaction"
+│   │  ├─ StarkSig.cairo — "Authenticate user via a Starknet signature"
+│   │  └─ Vanilla.cairo — "Dummy authentication"
+│   ├─ VotingStrategies
+│   │  ├─ SingleSlotProof.cairo — "Enables the use the contents of an Ethereum storage slot as voting power"
+│   │  ├─ Vanilla.cairo — "Voting power of 1 for every user"
+│   │  └─ Whitelist.cairo — "Predetermined voting power for members in a whitelist, otherwise zero"
+│   ├─ ExecutionStrategies
+│   │  ├─ Vanilla.cairo — "Dummy execution"
+│   │  └─ ZodiacRelayer.cairo — "Strategy to execute proposal transactions using an Ethereum Gnosis Safe"
+│   ├─ Interfaces
+│   │  ├─ IAuthenticator.cairo — "Interface for all authenticators"
+│   │  ├─ IExecutionStrategy.cairo — "Interface for all execution strategies"
+│   │  └─ IVotingStrategy.cairo — "Interface for all voting strategies"
+│   ├─ lib
+│   │  ├─ array2d.cairo — "For handling 2 dimensional arrays"
+│   │  ├─ choice.cairo — "The set of choices one can make for a vote"
+│   │  ├─ eth_address.cairo — "Ethereum address type"
+│   │  ├─ felt_to_uint256.cairo — "Convert a felt to a uint256"
+│   │  ├─ hash_array.cairo — "Wrapper function for pedersen hashing arrays"
+│   │  ├─ proposal.cairo — "Proposal metadata type"
+│   │  ├─ proposal_info.cairo — "Proposal vote data type"
+│   │  ├─ proposal_outcome.cairo — "The set of proposal outcomes"
+│   │  ├─ slot_key.cairo — "Function to find the slot key for a slot in the Ethereum state"
+│   │  ├─ vote.cairo.cairo — "User vote data type"
+│   │  └─ words.cairo — "Small 64 bit word library"
+│   ├─ TestContracts
+│   │  ├─ Test_array2d.cairo 
+│   │  ├─ Test_words.cairo 
+│   │  └─ Test_words_to_uint256.cairo 
+│   └─ Space.cairo - "The core contract for Snapshot X"
+└─ ethereum 
+    ├─ Interfaces
+    │  └─ IStarknetCore.sol — "Authenticate user via an Ethereum transaction"
+    ├─ StarkNetCommit
+    │  └─ StarknetCommit.sol — "Authenticate user via an Ethereum transaction"
+    ├─ ZodiacModule
+    │  ├─ ProposalRelayer.sol — "Authenticate user via an Ethereum transaction"
+    │  ├─ SnapshotXL1Executor.sol — "Authenticate user via an Ethereum transaction"
+    │  └─ deps.sol — "No authentication of users"
+    └─ TestContracts
+       ├─ MockStarknetMessaging.sol — "Authenticate user via an Ethereum transaction"
+       ├─ NamedStorage.sol — "Authenticate user via an Ethereum transaction"
+       └─ StarknetMessaging.sol — "No authentication of users"
 
+```
 
 ## Usage
 

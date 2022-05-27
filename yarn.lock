@@ -1020,12 +1020,15 @@
     "@sentry/types" "5.30.0"
     tslib "^1.9.3"
 
-"@shardlabs/starknet-hardhat-plugin@^0.5.3":
-  version "0.5.3"
-  resolved "https://registry.yarnpkg.com/@shardlabs/starknet-hardhat-plugin/-/starknet-hardhat-plugin-0.5.3.tgz#b0308f31d9e255839f08bca166ab1eafdb037d91"
+"@shardlabs/starknet-hardhat-plugin@^0.5.5":
+  version "0.5.5"
+  resolved "https://registry.yarnpkg.com/@shardlabs/starknet-hardhat-plugin/-/starknet-hardhat-plugin-0.5.5.tgz#a79d164208c22723dd31f783e0a3b3ef799e3321"
+  integrity sha512-yqDH8dvhQ7WSPkp/pwvmPKLy+PZPmuLkeYWNjrTzzLFTA8n4tNSIo7jcJTGynzGfLqCQ6prFlMaQIFiPKoHIZw==
   dependencies:
     "@nomiclabs/hardhat-docker" "^2.0.2"
     axios "^0.24.0"
+    exit-hook "2.2.1"
+    form-data "^4.0.0"
     glob "^7.2.0"
     starknet "^3.5.1"
 
@@ -4281,7 +4284,6 @@ ethereumjs-abi@0.6.8, ethereumjs-abi@^0.6.8:
 
 "ethereumjs-abi@git+https://github.com/ethereumjs/ethereumjs-abi.git":
   version "0.6.8"
-  uid ee3994657fa7a427238e6ba92a84d0b529bbcde0
   resolved "git+https://github.com/ethereumjs/ethereumjs-abi.git#ee3994657fa7a427238e6ba92a84d0b529bbcde0"
   dependencies:
     bn.js "^4.11.8"
@@ -4535,6 +4537,11 @@ evp_bytestokey@^1.0.0, evp_bytestokey@^1.0.3:
   dependencies:
     md5.js "^1.3.4"
     safe-buffer "^5.1.1"
+
+exit-hook@2.2.1:
+  version "2.2.1"
+  resolved "https://registry.yarnpkg.com/exit-hook/-/exit-hook-2.2.1.tgz#007b2d92c6428eda2b76e7016a34351586934593"
+  integrity sha512-eNTPlAD67BmP31LDINZ3U7HSF8l57TxOY2PmBJ1shpCvpnxBF93mWCE8YHBnXs8qiUZJc9WDcWIeC3a2HIAMfw==
 
 expand-brackets@^2.1.4:
   version "2.1.4"
@@ -4858,6 +4865,15 @@ form-data@^2.2.0:
 form-data@^3.0.0:
   version "3.0.1"
   resolved "https://registry.yarnpkg.com/form-data/-/form-data-3.0.1.tgz#ebd53791b78356a99af9a300d4282c4d5eb9755f"
+  dependencies:
+    asynckit "^0.4.0"
+    combined-stream "^1.0.8"
+    mime-types "^2.1.12"
+
+form-data@^4.0.0:
+  version "4.0.0"
+  resolved "https://registry.yarnpkg.com/form-data/-/form-data-4.0.0.tgz#93919daeaf361ee529584b9b31664dc12c9fa452"
+  integrity sha512-ETEklSGi5t0QMZuiXoA/Q6vcnxcLQP5vdugSpuAyi6SVGi2clPPp+xgEhuMaHC+zGgn31Kd235W35f7Hykkaww==
   dependencies:
     asynckit "^0.4.0"
     combined-stream "^1.0.8"
@@ -9567,7 +9583,6 @@ swarm-js@^0.1.40:
 
 sx-api@snapshot-labs/sx-api:
   version "0.1.0"
-  uid "300c1f9cfc3175ddebff977e7e72c1f82dc3c97b"
   resolved "https://codeload.github.com/snapshot-labs/sx-api/tar.gz/300c1f9cfc3175ddebff977e7e72c1f82dc3c97b"
   dependencies:
     "@ethersproject/address" "^5.6.0"
