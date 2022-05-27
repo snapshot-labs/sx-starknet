@@ -55,15 +55,8 @@ func get_voting_power{
     let (local fact_registry_addr) = fact_registry_store.read()
 
     # Decoding voting strategy parameters
-    let (
-        slot,
-        proof_sizes_bytes_len,
-        proof_sizes_bytes,
-        proof_sizes_words_len,
-        proof_sizes_words,
-        proofs_concat_len,
-        proofs_concat,
-    ) = decode_param_array(user_params_len, user_params)
+    let (slot, proof_sizes_bytes_len, proof_sizes_bytes, proof_sizes_words_len, proof_sizes_words,
+        proofs_concat_len, proofs_concat) = decode_param_array(user_params_len, user_params)
 
     # Checking that the parameters array is valid and then extracting the individual parameters
     # For the single slot proof strategy, the parameters array is length 2 where the first element is the
