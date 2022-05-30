@@ -146,7 +146,7 @@ export async function zodiacRelayerSetup() {
 }
 
 export async function safeWithZodiacSetup(
-  starknetCoreAddress = '0x01',
+  starknetCoreAddress = '0x0000000000000000000000000000000000000001',
   spaceAddress = BigInt(0),
   zodiacRelayerAddress = BigInt(0)
 ) {

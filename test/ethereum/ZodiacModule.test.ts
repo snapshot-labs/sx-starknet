@@ -52,10 +52,6 @@ describe('Snapshot X L1 Proposal Executor:', () => {
       expect(await zodiacModule.owner()).to.equal(safe.address);
       expect(await zodiacModule.target()).to.equal(safe.address);
       expect(await zodiacModule.proposalIndex()).to.equal(0);
-      expect(await zodiacModule.l2ExecutionRelayer()).to.equal(1234);
-      expect(await zodiacModule.starknetCore()).to.equal(
-        '0xB0aC056995C4904a9cc04A6Cc3a864A9E9A7d3a9'
-      );
     });
 
     it('The safe can register Snapshot X module', async () => {
