@@ -1,10 +1,11 @@
-import { stark } from 'starknet';
-import { SplitUint256, Choice } from '../shared/types';
-import { flatten2DArray } from '../shared/helpers';
-import { strToShortStringArr } from '@snapshot-labs/sx';
 import { expect } from 'chai';
-import { starknetTxSetup } from '../shared/setup';
+import { starknet, ethers } from 'hardhat';
+import { stark } from 'starknet';
 import { StarknetContract, Account } from 'hardhat/types';
+import { strToShortStringArr } from '@snapshot-labs/sx';
+import { SplitUint256, Choice } from '../shared/types';
+import { getProposeCalldata, getVoteCalldata, bytesToHex } from '../shared/helpers';
+import { starkTxAuthSetup } from '../shared/setup';
 
 const { getSelectorFromName } = stark;
 
@@ -14,62 +15,91 @@ export const PROPOSAL_METHOD = 'propose';
 export const VOTE_METHOD = 'vote';
 
 describe('StarkNet Tx Auth testing', () => {
-  let vanillaSpace: StarknetContract;
-  let starknetTxAuth: StarknetContract;
+  // Contracts
+  let space: StarknetContract;
+  let controller: Account;
+  let starknetTxAuthenticator: StarknetContract;
   let vanillaVotingStrategy: StarknetContract;
-  let zodiacRelayer: StarknetContract;
-  const executionHash = new SplitUint256(BigInt(1), BigInt(2)); // Dummy uint256
-  const metadataUri = strToShortStringArr(
-    'Hello and welcome to Snapshot X. This is the future of governance.'
-  );
-  let proposerAddress: bigint;
-  const proposalId = 1;
-  const votingParamsAll: bigint[][] = [[]];
-  const votingParamsAllFlat = flatten2DArray(votingParamsAll);
-  let used_voting_strategies: Array<bigint>;
-  let executionParams: Array<bigint>;
-  const ethBlockNumber = BigInt(1337);
-  const l1_zodiac_module = BigInt('0xaaaaaaaaaaaa');
-  let calldata: Array<bigint>;
-  let spaceContract: bigint;
-  let account: Account;
+  let vanillaExecutionStrategy: StarknetContract;
+
+  // Proposal creation parameters
+  let spaceAddress: bigint;
+  let executionHash: string;
+  let metadataUri: bigint[];
+  let proposerAccount: Account;
+  let proposerAddress: string;
+  let usedVotingStrategies1: bigint[];
+  let userVotingParamsAll1: bigint[][];
+  let executionStrategy: bigint;
+  let executionParams: bigint[];
+  let ethBlockNumber: bigint;
+  let proposeCalldata: bigint[];
+
+  // Additional parameters for voting
+  let voterAccount: Account;
+  let voterAddress: string;
+  let proposalId: bigint;
+  let choice: Choice;
+  let usedVotingStrategies2: bigint[];
+  let userVotingParamsAll2: bigint[][];
+  let voteCalldata: bigint[];
 
   before(async function () {
     this.timeout(800000);
+    proposerAccount = (await starknet.deployAccount('OpenZeppelin')) as Account;
+    voterAccount = (await starknet.deployAccount('OpenZeppelin')) as Account;
+    ({
+      space,
+      controller,
+      starknetTxAuthenticator,
+      vanillaVotingStrategy,
+      vanillaExecutionStrategy,
+    } = await starkTxAuthSetup());
 
-    ({ vanillaSpace, starknetTxAuth, vanillaVotingStrategy, zodiacRelayer, account } =
-      await starknetTxSetup());
-    executionParams = [BigInt(l1_zodiac_module)];
-    spaceContract = BigInt(vanillaSpace.address);
-    used_voting_strategies = [BigInt(vanillaVotingStrategy.address)];
-    proposerAddress = BigInt(account.starknetContract.address);
-
-    calldata = [
+    executionHash = bytesToHex(ethers.utils.randomBytes(32)); // Random 32 byte hash
+    metadataUri = strToShortStringArr(
+      'Hello and welcome to Snapshot X. This is the future of governance.'
+    );
+    proposerAddress = proposerAccount.starknetContract.address;
+    ethBlockNumber = BigInt(1337);
+    spaceAddress = BigInt(space.address);
+    usedVotingStrategies1 = [BigInt(vanillaVotingStrategy.address)];
+    userVotingParamsAll1 = [[]];
+    executionStrategy = BigInt(vanillaExecutionStrategy.address);
+    executionParams = [];
+    proposeCalldata = getProposeCalldata(
       proposerAddress,
-      executionHash.low,
-      executionHash.high,
-      BigInt(metadataUri.length),
-      ...metadataUri,
+      executionHash,
+      metadataUri,
       ethBlockNumber,
-      BigInt(zodiacRelayer.address),
-      BigInt(used_voting_strategies.length),
-      ...used_voting_strategies,
-      BigInt(votingParamsAllFlat.length),
-      ...votingParamsAllFlat,
-      BigInt(executionParams.length),
-      ...executionParams,
-    ];
+      executionStrategy,
+      usedVotingStrategies1,
+      userVotingParamsAll1,
+      executionParams
+    );
+
+    voterAddress = voterAccount.starknetContract.address;
+    proposalId = BigInt(1);
+    choice = Choice.FOR;
+    usedVotingStrategies2 = [BigInt(vanillaVotingStrategy.address)];
+    userVotingParamsAll2 = [[]];
+    voteCalldata = getVoteCalldata(
+      voterAddress,
+      proposalId,
+      choice,
+      usedVotingStrategies2,
+      userVotingParamsAll2
+    );
   });
 
   it('Should not authenticate an invalid user', async () => {
+    const fakeData = [...proposeCalldata];
+    fakeData[0] = VITALIK_ADDRESS;
     try {
-      const fake_data = [...calldata];
-      fake_data[0] = VITALIK_ADDRESS;
-
-      await account.invoke(starknetTxAuth, AUTHENTICATE_METHOD, {
-        target: spaceContract,
+      await proposerAccount.invoke(starknetTxAuthenticator, AUTHENTICATE_METHOD, {
+        target: spaceAddress,
         function_selector: BigInt(getSelectorFromName(PROPOSAL_METHOD)),
-        calldata: fake_data,
+        calldata: fakeData,
       });
       throw 'error';
     } catch (err: any) {
@@ -81,21 +111,19 @@ describe('StarkNet Tx Auth testing', () => {
     // -- Creates the proposal --
     {
       console.log('Creating proposal...');
-      await account.invoke(starknetTxAuth, AUTHENTICATE_METHOD, {
-        target: spaceContract,
+      await proposerAccount.invoke(starknetTxAuthenticator, AUTHENTICATE_METHOD, {
+        target: spaceAddress,
         function_selector: BigInt(getSelectorFromName(PROPOSAL_METHOD)),
-        calldata,
+        calldata: proposeCalldata,
       });
 
       console.log('Getting proposal info...');
-      const { proposal_info } = await vanillaSpace.call('get_proposal_info', {
+      const { proposal_info } = await space.call('get_proposal_info', {
         proposal_id: proposalId,
       });
 
-      // We can't directly compare the `info` object because we don't know for sure the value of `start_block` (and hence `end_block`),
-      // so we compare it element by element.
-      const _executionHash = SplitUint256.fromObj(proposal_info.proposal.execution_hash);
-      expect(_executionHash).to.deep.equal(executionHash);
+      const _executionHash = SplitUint256.fromObj(proposal_info.proposal.execution_hash).toUint();
+      expect(_executionHash).to.deep.equal(BigInt(executionHash));
 
       const _for = SplitUint256.fromObj(proposal_info.power_for).toUint();
       expect(_for).to.deep.equal(BigInt(0));
@@ -108,25 +136,14 @@ describe('StarkNet Tx Auth testing', () => {
     // -- Casts a vote FOR --
     {
       console.log('Casting a vote FOR...');
-      const voter_address = proposerAddress;
-      const votingparams: Array<BigInt> = [];
-      const used_voting_strategies = [BigInt(vanillaVotingStrategy.address)];
-      await account.invoke(starknetTxAuth, AUTHENTICATE_METHOD, {
-        target: spaceContract,
+      await voterAccount.invoke(starknetTxAuthenticator, AUTHENTICATE_METHOD, {
+        target: spaceAddress,
         function_selector: BigInt(getSelectorFromName(VOTE_METHOD)),
-        calldata: [
-          voter_address,
-          proposalId,
-          Choice.FOR,
-          BigInt(used_voting_strategies.length),
-          ...used_voting_strategies,
-          BigInt(votingParamsAllFlat.length),
-          ...votingParamsAllFlat,
-        ],
+        calldata: voteCalldata,
       });
 
       console.log('Getting proposal info...');
-      const { proposal_info } = await vanillaSpace.call('get_proposal_info', {
+      const { proposal_info } = await space.call('get_proposal_info', {
         proposal_id: proposalId,
       });
 
