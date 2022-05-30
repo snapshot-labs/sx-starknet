@@ -7,7 +7,7 @@ import { SplitUint256, IntsSequence } from './types';
 import { hexToBytes, flatten2DArray } from './helpers';
 import { ProcessBlockInputs, getProcessBlockInputs } from './parseRPCData';
 import { AddressZero } from '@ethersproject/constants';
-import { executeContractCallWithSigners } from './utils';
+import { executeContractCallWithSigners } from './safeUtils';
 
 export interface Fossil {
   factsRegistry: StarknetContract;
@@ -96,15 +96,6 @@ export async function zodiacRelayerSetup() {
   const vanillaVotingStrategy = contracts[1] as StarknetContract;
   const zodiacRelayer = contracts[2] as StarknetContract;
 
-  // Deploying StarkNet core instance required for L2 -> L1 message passing
-  const mockStarknetMessagingFactory = (await ethers.getContractFactory(
-    'MockStarknetMessaging'
-  )) as ContractFactory;
-  const mockStarknetMessaging = await mockStarknetMessagingFactory.deploy();
-  await mockStarknetMessaging.deployed();
-
-  const { zodiacModule, safe, safeSigner } = await safeWithZodiacSetup();
-
   const votingDelay = BigInt(0);
   const minVotingDuration = BigInt(0);
   const maxVotingDuration = BigInt(2000);
@@ -116,7 +107,6 @@ export async function zodiacRelayerSetup() {
   const quorum: SplitUint256 = SplitUint256.fromUint(BigInt(1)); //  Quorum of one for the vanilla test
   const proposalThreshold: SplitUint256 = SplitUint256.fromUint(BigInt(1)); // Proposal threshold of 1 for the vanilla test
 
-  console.log('Deploying space contract...');
   const space = (await spaceFactory.deploy({
     _voting_delay: votingDelay,
     _min_voting_duration: minVotingDuration,
@@ -129,7 +119,20 @@ export async function zodiacRelayerSetup() {
     _authenticators: authenticators,
     _executors: executors,
   })) as StarknetContract;
-  console.log('deployed!');
+
+  // Deploying StarkNet core instance required for L2 -> L1 message passing
+  const mockStarknetMessagingFactory = (await ethers.getContractFactory(
+    'MockStarknetMessaging'
+  )) as ContractFactory;
+  const mockStarknetMessaging = await mockStarknetMessagingFactory.deploy();
+  await mockStarknetMessaging.deployed();
+
+  // Deploying zodiac module
+  const { zodiacModule, safe, safeSigner } = await safeWithZodiacSetup(
+    mockStarknetMessaging.address,
+    BigInt(space.address),
+    BigInt(zodiacRelayer.address)
+  );
 
   return {
     space,
@@ -142,7 +145,11 @@ export async function zodiacRelayerSetup() {
   };
 }
 
-export async function safeWithZodiacSetup() {
+export async function safeWithZodiacSetup(
+  starknetCoreAddress = '0x01',
+  spaceAddress = BigInt(0),
+  zodiacRelayerAddress = BigInt(0)
+) {
   const wallets = await ethers.getSigners();
   const safeSigner = wallets[0]; // One 1 signer on the safe
 
@@ -182,9 +189,9 @@ export async function safeWithZodiacSetup() {
       safe.address,
       safe.address,
       safe.address,
-      '0xB0aC056995C4904a9cc04A6Cc3a864A9E9A7d3a9',
-      1234,
-      [],
+      starknetCoreAddress,
+      zodiacRelayerAddress,
+      [spaceAddress],
     ]
   );
 

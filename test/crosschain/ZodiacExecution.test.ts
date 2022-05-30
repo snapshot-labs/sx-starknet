@@ -163,7 +163,8 @@ describe('Create proposal, cast vote, and send execution to l1', function () {
     expectAddressEquality(flushL2Messages[0].from_address, zodiacRelayer.address);
     expectAddressEquality(flushL2Messages[0].to_address, zodiacModule.address);
 
-    // Check that l1 can receive the proposal correctly
+    // -- Check that l1 can receive the proposal correctly --
+
     const proposalOutcome = BigInt(1);
     const fakeTxHashes = txHashes.slice(0, -1);
     const callerAddress = BigInt(space.address);
@@ -179,18 +180,18 @@ describe('Create proposal, cast vote, and send execution to l1', function () {
         splitExecutionHash.high,
         fakeTxHashes
       )
-    ).to.be.reverted;
+    ).to.be.revertedWith('Invalid execution');
 
     // Check that if `proposalOutcome` parameter is incorrect, transaction reverts.
     await expect(
       zodiacModule.receiveProposal(
         callerAddress,
-        !proposalOutcome,
+        0,
         splitExecutionHash.low,
         splitExecutionHash.high,
         txHashes
       )
-    ).to.be.reverted;
+    ).to.be.revertedWith('Proposal did not pass');
 
     // Check that if `callerAddress` parameter is incorrect, transaction reverts.
     await expect(
@@ -203,14 +204,13 @@ describe('Create proposal, cast vote, and send execution to l1', function () {
       )
     ).to.be.reverted;
 
-    // BROKEN
     // Check that it works when provided correct parameters.
-    // await zodiacModule.receiveProposal(
-    //   fakeCallerAddress,
-    //   proposalOutcome,
-    //   splitExecutionHash.low,
-    //   splitExecutionHash.high,
-    //   txHashes
-    // );
+    await zodiacModule.receiveProposal(
+      callerAddress,
+      proposalOutcome,
+      splitExecutionHash.low,
+      splitExecutionHash.high,
+      txHashes
+    );
   });
 });

@@ -3,7 +3,7 @@ import { SplitUint256, Choice } from './types';
 import { expect } from 'chai';
 import { computeHashOnElements } from 'starknet/dist/utils/hash';
 import { toBN } from 'starknet/dist/utils/number';
-import { EIP712_TYPES } from '../shared/utils';
+import { EIP712_TYPES } from './safeUtils';
 import { _TypedDataEncoder } from '@ethersproject/hash';
 
 export function assert(condition: boolean, message = 'Assertion Failed'): boolean {
