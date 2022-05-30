@@ -145,7 +145,6 @@ export function getProposeCalldata(
   executionParams: bigint[]
 ): bigint[] {
   const executionHashUint256 = SplitUint256.fromHex(executionHash);
-  console.log(executionHashUint256);
   const usedVotingStrategyParamsFlat = flatten2DArray(usedVotingStrategyParams);
   return [
     BigInt(proposerEthAddress),

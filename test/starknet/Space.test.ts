@@ -92,10 +92,8 @@ describe('Space Testing', () => {
         proposal_id: proposalId,
       });
 
-      // We can't directly compare the `info` object because we don't know for sure the value of `start_block` (and hence `end_block`),
-      // so we compare it element by element.
-      const _executionHash = SplitUint256.fromObj(proposal_info.proposal.execution_hash).toHex();
-      expect(_executionHash).to.deep.equal(executionHash);
+      const _executionHash = SplitUint256.fromObj(proposal_info.proposal.execution_hash).toUint();
+      expect(_executionHash).to.deep.equal(BigInt(executionHash));
       const _for = SplitUint256.fromObj(proposal_info.power_for).toUint();
       expect(_for).to.deep.equal(BigInt(0));
       const against = SplitUint256.fromObj(proposal_info.power_against).toUint();
@@ -129,8 +127,6 @@ describe('Space Testing', () => {
         proposal_id: proposalId,
         execution_params: executionParams,
       });
-
-      // We should add more info to the get_proposal_info call to check that the proposal was executed
     }
   }).timeout(6000000);
 });
