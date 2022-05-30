@@ -13,7 +13,7 @@ export const AUTHENTICATE_METHOD = 'authenticate';
 export const PROPOSAL_METHOD = 'propose';
 export const VOTE_METHOD = 'vote';
 
-describe('Starknet Tx Auth testing', () => {
+describe('StarkNet Tx Auth testing', () => {
   let vanillaSpace: StarknetContract;
   let starknetTxAuth: StarknetContract;
   let vanillaVotingStrategy: StarknetContract;
