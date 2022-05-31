@@ -14,7 +14,7 @@ contracts
 │   │  ├─ StarkSig.cairo — "Authenticate user via a Starknet signature"
 │   │  └─ Vanilla.cairo — "Dummy authentication"
 │   ├─ VotingStrategies
-│   │  ├─ SingleSlotProof.cairo — "Enables the use the contents of an Ethereum storage slot as voting power"
+│   │  ├─ SingleSlotProof.cairo — "Enables the use of the contents of an Ethereum storage slot as voting power"
 │   │  ├─ Vanilla.cairo — "Voting power of 1 for every user"
 │   │  └─ Whitelist.cairo — "Predetermined voting power for members in a whitelist, otherwise zero"
 │   ├─ ExecutionStrategies

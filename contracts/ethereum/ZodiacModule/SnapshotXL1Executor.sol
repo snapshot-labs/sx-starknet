@@ -192,10 +192,10 @@ contract SnapshotXL1Executor is Module, SnapshotXProposalRelayer {
   ) external {
     require(proposalOutcome != 0, 'Proposal did not pass');
     require(_txHashes.length > 0, 'proposal must contain transactions');
+    require(whitelistedSpaces[callerAddress] == true, 'Invalid caller');
 
     //External call will fail if finalized proposal message was not received on L1.
     _receiveFinalizedProposal(callerAddress, proposalOutcome, executionHashLow, executionHashHigh);
-    require(whitelistedSpaces[callerAddress] == true, 'Invalid caller');
 
     // Re-assemble the lowest and highest bytes to get the full execution hash
     uint256 executionHash = (executionHashHigh << 128) + executionHashLow;
