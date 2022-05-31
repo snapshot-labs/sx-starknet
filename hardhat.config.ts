@@ -50,6 +50,7 @@ const config: HardhatUserConfig = {
     },
     ethereumLocal: {
       url: 'http://localhost:8545',
+      chainId: 31337,
     },
     starknetLocal: {
       url: 'http://localhost:8000',

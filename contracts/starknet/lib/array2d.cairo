@@ -21,7 +21,6 @@ func construct_array2d{range_check_ptr}(flat_array_len : felt, flat_array : felt
     return (array2d)
 end
 
-# Extracts sub array from 2d array at postion specified by index
 func get_sub_array{range_check_ptr}(array2d : Immutable2DArray, index : felt) -> (
     array_len : felt, array : felt*
 ):

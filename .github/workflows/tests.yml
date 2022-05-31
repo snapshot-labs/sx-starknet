@@ -44,10 +44,8 @@ jobs:
         run: |
           sudo apt install -y libgmp3-dev
           python -m pip install --upgrade pip
-          pip install starknet-devnet==0.2.1
-          pip install werkzeug==2.0.3
+          pip install starknet-devnet==0.2.2
           pip install openzeppelin-cairo-contracts
-          pip install marshmallow-dataclass==8.5.3 --force
   
       - name: Compile Contracts
         run: yarn compile
