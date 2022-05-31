@@ -33,7 +33,7 @@
     "ethereumjs-util": "^7.1.4",
     "install": "^0.13.0",
     "npm": "^8.11.0",
-    "starknet": "^2.5.1",
+    "starknet": "^3.9.0",
     "sx-api": "snapshot-labs/sx-api",
     "wait-on": "^6.0.1",
     "yargs": "^17.5.0"

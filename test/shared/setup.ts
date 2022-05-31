@@ -18,7 +18,7 @@ export interface Fossil {
 export async function vanillaSetup() {
   const controller = (await starknet.deployAccount('OpenZeppelin')) as Account;
   const spaceFactory = await starknet.getContractFactory('./contracts/starknet/Space.cairo');
-  const vanillaVotingStategyFactory = await starknet.getContractFactory(
+  const vanillaVotingStrategyFactory = await starknet.getContractFactory(
     './contracts/starknet/VotingStrategies/Vanilla.cairo'
   );
   const vanillaAuthenticatorFactory = await starknet.getContractFactory(
@@ -30,7 +30,7 @@ export async function vanillaSetup() {
 
   const deployments = [
     vanillaAuthenticatorFactory.deploy(),
-    vanillaVotingStategyFactory.deploy(),
+    vanillaVotingStrategyFactory.deploy(),
     vanillaExecutionStrategyFactory.deploy(),
   ];
   const contracts = await Promise.all(deployments);
@@ -239,7 +239,7 @@ export async function safeWithZodiacSetup(
 export async function ethTxAuthSetup() {
   const controller = (await starknet.deployAccount('OpenZeppelin')) as Account;
   const spaceFactory = await starknet.getContractFactory('./contracts/starknet/Space.cairo');
-  const vanillaVotingStategyFactory = await starknet.getContractFactory(
+  const vanillaVotingStrategyFactory = await starknet.getContractFactory(
     './contracts/starknet/VotingStrategies/Vanilla.cairo'
   );
   const ethTxAuthenticatorFactory = await starknet.getContractFactory(
@@ -265,7 +265,7 @@ export async function ethTxAuthSetup() {
 
   const deployments = [
     ethTxAuthenticatorFactory.deploy({ starknet_commit_address: BigInt(starknetCommit.address) }),
-    vanillaVotingStategyFactory.deploy(),
+    vanillaVotingStrategyFactory.deploy(),
     vanillaExecutionStrategyFactory.deploy(),
   ];
   const contracts = await Promise.all(deployments);
@@ -370,7 +370,7 @@ export async function starknetAccountSetup() {
   const account = await starknet.deployAccount('OpenZeppelin');
 
   const vanillaSpaceFactory = await starknet.getContractFactory('./contracts/starknet/Space.cairo');
-  const vanillaVotingStategyFactory = await starknet.getContractFactory(
+  const vanillaVotingStrategyFactory = await starknet.getContractFactory(
     './contracts/starknet/VotingStrategies/Vanilla.cairo'
   );
   const starknetAccountAuthFactory = await starknet.getContractFactory(
@@ -382,7 +382,7 @@ export async function starknetAccountSetup() {
 
   const deployments = [
     starknetAccountAuthFactory.deploy(),
-    vanillaVotingStategyFactory.deploy(),
+    vanillaVotingStrategyFactory.deploy(),
     zodiacRelayerFactory.deploy(),
   ];
   console.log('Deploying auth, voting and zodiac relayer contracts...');
@@ -430,7 +430,7 @@ export async function starknetAccountSetup() {
 export async function starkTxAuthSetup() {
   const controller = (await starknet.deployAccount('OpenZeppelin')) as Account;
   const spaceFactory = await starknet.getContractFactory('./contracts/starknet/Space.cairo');
-  const vanillaVotingStategyFactory = await starknet.getContractFactory(
+  const vanillaVotingStrategyFactory = await starknet.getContractFactory(
     './contracts/starknet/VotingStrategies/Vanilla.cairo'
   );
   const starknetTxAuthenticatorFactory = await starknet.getContractFactory(
@@ -442,7 +442,7 @@ export async function starkTxAuthSetup() {
 
   const deployments = [
     starknetTxAuthenticatorFactory.deploy(),
-    vanillaVotingStategyFactory.deploy(),
+    vanillaVotingStrategyFactory.deploy(),
     vanillaExecutionStrategyFactory.deploy(),
   ];
   const contracts = await Promise.all(deployments);
