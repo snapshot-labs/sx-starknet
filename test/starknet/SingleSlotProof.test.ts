@@ -27,7 +27,7 @@ describe('Single slot proof voting strategy:', () => {
 
     // Defining the parameters for the single slot proof strategy
     params = [proofInputs.ethAddressFelt, BigInt(0)];
-
+    console.log(params);
     // Deploy Fossil storage verifier instance and the voting strategy contract.
     ({ fossil, singleSlotProofStrategy, account } = await singleSlotProofSetup(block));
   });

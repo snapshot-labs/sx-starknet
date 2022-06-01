@@ -1,0 +1,29 @@
+{
+    "space": {
+        "name":"Test space",
+        "address":"0x5aab5c54be6af6295efa2629357409f543e7c7da221182140d3f21e964eb3bd",
+        "controller":"0x0070d911463b2cb48de8bfec826483631cdc492a6c5798917651297769fc9d68",
+        "minVotingDuration":"0x0",
+        "maxVotingDuration":"0x7d0",
+        "proposalThreshold":"0x1",
+        "quorum":"0x1",
+        "authenticators": {
+            "Vanilla":"0x70ac03f88c3ea8c7b55eaecde955a26e75f003569310658febca981e0c257f0",
+            "StarkTx":"0x65c6b0a504cda434d20314dad0f81958fc2c5b4c0b68c3b09f085e47fed87c2"
+        },
+        "votingStrategies": {
+            "Vanilla": {
+                "address":"0x19c7897bf9dc5e6e4d7bdfdd7d12463cd8e57913ee4552746f39d1a6f3047bc",
+                "parameters":[]
+            },
+            "SingleSlotProof": {
+                "address":"0x32cd4d176b8f04c00ac9a30cf9542c52ef9d74da41f02048c6d7b87af8b37cc",
+                "parameters":["0x7Fc66500c84A76Ad7e9c93437bFc5Ac33E2DDaE9","0x0"]
+            }
+        },
+        "executionStrategies": {
+            "Vanilla":"0x35b4984649e784669b517dbba3ac2ce117f3f825dface0135910d5e3617097a",
+            "zodiacRelayer":"0x20b84cf97b7141287fc957d74255742f993df78ed93b0b02daa680c4519ceba"
+        }
+    }
+}
