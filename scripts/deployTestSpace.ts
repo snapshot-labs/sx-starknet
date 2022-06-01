@@ -11,9 +11,6 @@ import {
   stark,
   RawCalldata,
 } from 'starknet';
-import { toBN } from 'starknet/dist/utils/number';
-import BN, { isBN } from 'bn.js';
-import { BigNumberish } from 'ethers';
 import { SplitUint256 } from '../test/shared/types';
 import { flatten2DArray } from '../test/shared/helpers';
 

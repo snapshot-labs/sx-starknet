@@ -13,6 +13,7 @@
     "test:l2:ci": "concurrently './scripts/chain-l2.sh' './scripts/test-l2.sh'",
     "test:crosschain": "'./scripts/test-crosschain.sh'",
     "test:crosschain:ci": "concurrently './scripts/chain.sh' './scripts/test-crosschain.sh'",
+    "deploy:goerli": "yarn hardhat run ./scripts/deployTestSpace.ts",
     "chain:l1": "hardhat node",
     "chain:l2": "starknet-devnet -p 8000 --lite-mode",
     "chain": "concurrently 'yarn chain:l1' 'yarn chain:l2'",
