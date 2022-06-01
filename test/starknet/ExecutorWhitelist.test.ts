@@ -1,13 +1,11 @@
 import { expect } from 'chai';
 import { Contract } from 'ethers';
-import { stark } from 'starknet';
 import { starknet, ethers } from 'hardhat';
 import { strToShortStringArr } from '@snapshot-labs/sx';
 import { zodiacRelayerSetup } from '../shared/setup';
 import { getProposeCalldata, bytesToHex } from '../shared/helpers';
 import { StarknetContract, Account } from 'hardhat/types';
-
-const { getSelectorFromName } = stark;
+import { PROPOSE_SELECTOR, VOTE_SELECTOR } from '../shared/constants';
 
 describe('Whitelist testing', () => {
   // Contracts
@@ -94,9 +92,9 @@ describe('Whitelist testing', () => {
 
   it('Should create a proposal for a whitelisted executor', async () => {
     {
-      await vanillaAuthenticator.invoke('execute', {
+      await vanillaAuthenticator.invoke('authenticate', {
         target: spaceAddress,
-        function_selector: BigInt(getSelectorFromName('propose')),
+        function_selector: PROPOSE_SELECTOR,
         calldata: proposeCalldata1,
       });
     }
@@ -105,9 +103,9 @@ describe('Whitelist testing', () => {
   it('Should not be able to create a proposal with a non whitelisted executor', async () => {
     try {
       // proposeCalldata2 contains the vanilla execution strategy which is not whitelisted initially
-      await vanillaAuthenticator.invoke('execute', {
+      await vanillaAuthenticator.invoke('authenticate', {
         target: spaceAddress,
-        function_selector: BigInt(getSelectorFromName('propose')),
+        function_selector: PROPOSE_SELECTOR,
         calldata: proposeCalldata2,
       });
     } catch (err: any) {
@@ -120,9 +118,9 @@ describe('Whitelist testing', () => {
       to_add: [BigInt(vanillaExecutionStrategy.address)],
     });
 
-    await vanillaAuthenticator.invoke('execute', {
+    await vanillaAuthenticator.invoke('authenticate', {
       target: spaceAddress,
-      function_selector: BigInt(getSelectorFromName('propose')),
+      function_selector: PROPOSE_SELECTOR,
       calldata: proposeCalldata2,
     });
   }).timeout(1000000);
@@ -134,9 +132,9 @@ describe('Whitelist testing', () => {
 
     try {
       // Try to create a proposal, should fail because it just got removed from the whitelist
-      await vanillaAuthenticator.invoke('execute', {
+      await vanillaAuthenticator.invoke('authenticate', {
         target: spaceAddress,
-        function_selector: BigInt(getSelectorFromName('propose')),
+        function_selector: PROPOSE_SELECTOR,
         calldata: proposeCalldata1,
       });
     } catch (err: any) {
@@ -149,9 +147,9 @@ describe('Whitelist testing', () => {
       to_add: [BigInt(zodiacRelayer.address), BigInt(vanillaExecutionStrategy.address)],
     });
 
-    await vanillaAuthenticator.invoke('execute', {
+    await vanillaAuthenticator.invoke('authenticate', {
       target: spaceAddress,
-      function_selector: BigInt(getSelectorFromName('propose')),
+      function_selector: PROPOSE_SELECTOR,
       calldata: proposeCalldata2,
     });
   }).timeout(1000000);
