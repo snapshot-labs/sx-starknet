@@ -83,11 +83,12 @@ yarn compile
 # or yarn compile:l2 to just compile cairo contracts
 ```
 
-### Deploy a space contract and a set of authenticators, voting strategies and execution strategies to Alpha Goerli:
+### Deploy to Alpha Goerli:
 
 ```bash 
 yarn deploy:goerli
 ```
+Will deploy an example space contract and a set of authenticators, voting strategies and execution strategies to the alpha goerli testnet. 
 
 ### Testing
 
