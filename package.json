@@ -30,7 +30,7 @@
     "@gnosis.pm/zodiac": "^1.0.10",
     "@openzeppelin/contracts": "^4.5.0",
     "concurrently": "^7.2.1",
-    "ethereumjs-util": "^7.1.4",
+    "ethereumjs-util": "^7.1.5",
     "install": "^0.13.0",
     "npm": "^8.12.1",
     "starknet": "^2.5.1",
