@@ -6192,6 +6192,14 @@ json-buffer@3.0.0:
   version "3.0.0"
   resolved "https://registry.yarnpkg.com/json-buffer/-/json-buffer-3.0.0.tgz#5b1f397afc75d677bde8bcfc0e47e1f9a3d9a898"
 
+json-format-cli@^1.1.1:
+  version "1.1.1"
+  resolved "https://registry.yarnpkg.com/json-format-cli/-/json-format-cli-1.1.1.tgz#1c25ddc55e786c2886a808dd39e4fbed03aade95"
+  integrity sha512-IMQ+/RZkxVVSBxPB8EdwD7gipqQtuPYGumWHryyoc9Q7rhcOi+O9dlZaInlMpwjv4rdFoTEU09hkVBgrmeh6Ew==
+  dependencies:
+    json-stable-stringify "^1.0.1"
+    minimist "^1.2.0"
+
 json-parse-better-errors@^1.0.1:
   version "1.0.2"
   resolved "https://registry.yarnpkg.com/json-parse-better-errors/-/json-parse-better-errors-1.0.2.tgz#bb867cfb3450e69107c131d1c514bab3dc8bcaa9"
@@ -8138,6 +8146,14 @@ pretty-format@^27.0.0, pretty-format@^27.5.1:
     ansi-regex "^5.0.1"
     ansi-styles "^5.0.0"
     react-is "^17.0.1"
+
+prettyjson@^1.2.5:
+  version "1.2.5"
+  resolved "https://registry.yarnpkg.com/prettyjson/-/prettyjson-1.2.5.tgz#ef3cfffcc70505c032abc59785884b4027031835"
+  integrity sha512-rksPWtoZb2ZpT5OVgtmy0KHVM+Dca3iVwWY9ifwhcexfjebtgjg3wmrUt9PvJ59XIYBcknQeYHD8IAnVlh9lAw==
+  dependencies:
+    colors "1.4.0"
+    minimist "^1.2.0"
 
 private@^0.1.6, private@^0.1.8:
   version "0.1.8"

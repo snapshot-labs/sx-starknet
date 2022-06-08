@@ -23,7 +23,8 @@
     "check-format:l2": "cairo-format -c --one_item_per_line contracts/starknet/**/*.cairo && cairo-format -c --one_item_per_line contracts/starknet/*.cairo",
     "format:ts": "eslint . --ext .ts --fix",
     "check-format:ts": "eslint . --ext .ts",
-    "format": "yarn format:l1 && yarn format:l2 && yarn format:ts",
+    "format:json": "json-format ./deployments/*.json",
+    "format": "yarn format:l1 && yarn format:l2 && yarn format:ts && yarn format:json",
     "check-format": "yarn check-format:l1 && yarn check-format:l2 && yarn check-format:ts"
   },
   "dependencies": {
@@ -33,7 +34,9 @@
     "concurrently": "^7.2.1",
     "ethereumjs-util": "^7.1.4",
     "install": "^0.13.0",
+    "json-format-cli": "^1.1.1",
     "npm": "^8.11.0",
+    "prettyjson": "^1.2.5",
     "starknet": "^3.9.0",
     "sx-api": "snapshot-labs/sx-api",
     "wait-on": "^6.0.1",
