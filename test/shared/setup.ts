@@ -16,7 +16,7 @@ export interface Fossil {
 }
 
 export async function vanillaSetup() {
-  const controller = (await starknet.deployAccount('OpenZeppelin')) as Account;
+  const controller = (await starknet.deployAccount('Argent')) as Account;
   const spaceFactory = await starknet.getContractFactory('./contracts/starknet/Space.cairo');
   const vanillaVotingStategyFactory = await starknet.getContractFactory(
     './contracts/starknet/VotingStrategies/Vanilla.cairo'
@@ -74,7 +74,7 @@ export async function vanillaSetup() {
 }
 
 export async function zodiacRelayerSetup() {
-  const controller = (await starknet.deployAccount('OpenZeppelin')) as Account;
+  const controller = (await starknet.deployAccount('Argent')) as Account;
   const spaceFactory = await starknet.getContractFactory('./contracts/starknet/Space.cairo');
   const vanillaVotingStategyFactory = await starknet.getContractFactory(
     './contracts/starknet/VotingStrategies/Vanilla.cairo'
@@ -237,7 +237,7 @@ export async function safeWithZodiacSetup(
 }
 
 export async function ethTxAuthSetup() {
-  const controller = (await starknet.deployAccount('OpenZeppelin')) as Account;
+  const controller = (await starknet.deployAccount('Argent')) as Account;
   const spaceFactory = await starknet.getContractFactory('./contracts/starknet/Space.cairo');
   const vanillaVotingStategyFactory = await starknet.getContractFactory(
     './contracts/starknet/VotingStrategies/Vanilla.cairo'
@@ -313,13 +313,14 @@ export async function ethTxAuthSetup() {
 }
 
 export async function singleSlotProofSetup(block: any) {
-  const account = await starknet.deployAccount('OpenZeppelin');
+  const account = await starknet.deployAccount('Argent');
   const fossil = await fossilSetup(account);
   const singleSlotProofStrategyFactory = await starknet.getContractFactory(
     'contracts/starknet/VotingStrategies/SingleSlotProof.cairo'
   );
   const singleSlotProofStrategy = await singleSlotProofStrategyFactory.deploy({
-    fact_registry: BigInt(fossil.factsRegistry.address),
+    fact_registry_address: BigInt(fossil.factsRegistry.address),
+    l1_headers_store_address: BigInt(fossil.l1HeadersStore.address)
   });
   // Submit blockhash to L1 Headers Store (via dummy function rather than L1 -> L2 bridge)
   await fossil.l1RelayerAccount.invoke(fossil.l1HeadersStore, 'receive_from_l1', {
@@ -350,7 +351,7 @@ async function fossilSetup(deployer: Account): Promise<Fossil> {
   );
   const factsRegistry = await factsRegistryFactory.deploy();
   const l1HeadersStore = await l1HeadersStoreFactory.deploy();
-  const l1RelayerAccount = await starknet.deployAccount('OpenZeppelin');
+  const l1RelayerAccount = await starknet.deployAccount('Argent');
   await deployer.invoke(factsRegistry, 'initialize', {
     l1_headers_store_addr: BigInt(l1HeadersStore.address),
   });
@@ -367,7 +368,7 @@ async function fossilSetup(deployer: Account): Promise<Fossil> {
 // TODO: Ive left these functions in the old style for now as some changes are needed, but they should be refactored like the ones above soon.
 
 export async function starknetAccountSetup() {
-  const account = await starknet.deployAccount('OpenZeppelin');
+  const account = await starknet.deployAccount('Argent');
 
   const vanillaSpaceFactory = await starknet.getContractFactory('./contracts/starknet/Space.cairo');
   const vanillaVotingStategyFactory = await starknet.getContractFactory(
@@ -428,7 +429,7 @@ export async function starknetAccountSetup() {
 }
 
 export async function starknetTxSetup() {
-  const account = await starknet.deployAccount('OpenZeppelin');
+  const account = await starknet.deployAccount('Argent');
 
   const vanillaSpaceFactory = await starknet.getContractFactory('./contracts/starknet/Space.cairo');
   const vanillaVotingStategyFactory = await starknet.getContractFactory(

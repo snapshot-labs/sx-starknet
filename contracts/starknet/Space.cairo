@@ -428,7 +428,7 @@ func get_cumulative_voting_power{syscall_ptr : felt*, pedersen_ptr : HashBuiltin
 
     let (user_voting_power) = IVotingStrategy.get_voting_power(
         contract_address=voting_strategy,
-        block=current_timestamp,
+        timestamp=current_timestamp,
         voter_address=voter_address,
         params_len=voting_strategy_params_len,
         params=voting_strategy_params,
