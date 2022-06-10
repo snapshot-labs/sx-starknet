@@ -5,7 +5,13 @@ import { StarknetContract, Account } from 'hardhat/types';
 import { Contract, ContractFactory } from 'ethers';
 import { SplitUint256, IntsSequence } from './types';
 import { hexToBytes, flatten2DArray } from './helpers';
-import { ProcessBlockInputs, getProcessBlockInputs } from './parseRPCData';
+import {
+  ProcessBlockInputs,
+  getProcessBlockInputs,
+  ProofInputs,
+  getProofInputs,
+} from './parseRPCData';
+import { encodeParams } from './singleSlotProofStrategyEncoding';
 import { AddressZero } from '@ethersproject/constants';
 import { executeContractCallWithSigners } from './safeUtils';
 
@@ -312,7 +318,89 @@ export async function ethTxAuthSetup() {
   };
 }
 
-export async function singleSlotProofSetup(block: any) {
+export async function singleSlotProofSetup(block: any, proofs: any) {
+  const controller = (await starknet.deployAccount('Argent')) as Account;
+  const fossil = await fossilSetup(controller);
+  const spaceFactory = await starknet.getContractFactory('./contracts/starknet/Space.cairo');
+  const singleSlotProofStrategyFactory = await starknet.getContractFactory(
+    'contracts/starknet/VotingStrategies/SingleSlotProof.cairo'
+  );
+  const vanillaAuthenticatorFactory = await starknet.getContractFactory(
+    './contracts/starknet/Authenticators/Vanilla.cairo'
+  );
+  const vanillaExecutionStrategyFactory = await starknet.getContractFactory(
+    './contracts/starknet/ExecutionStrategies/Vanilla.cairo'
+  );
+  const deployments = [
+    vanillaAuthenticatorFactory.deploy(),
+    singleSlotProofStrategyFactory.deploy({
+      fact_registry_address: BigInt(fossil.factsRegistry.address),
+      l1_headers_store_address: BigInt(fossil.l1HeadersStore.address),
+    }),
+    vanillaExecutionStrategyFactory.deploy(),
+  ];
+  const contracts = await Promise.all(deployments);
+  const vanillaAuthenticator = contracts[0] as StarknetContract;
+  const singleSlotProofStrategy = contracts[1] as StarknetContract;
+  const vanillaExecutionStrategy = contracts[2] as StarknetContract;
+
+  // Submit blockhash to L1 Headers Store (via dummy function rather than L1 -> L2 bridge)
+  await fossil.l1RelayerAccount.invoke(fossil.l1HeadersStore, 'receive_from_l1', {
+    parent_hash: IntsSequence.fromBytes(hexToBytes(block.hash)).values,
+    block_number: block.number + 1,
+  });
+
+  // Encode block header and then submit to L1 Headers Store
+  const processBlockInputs: ProcessBlockInputs = getProcessBlockInputs(block);
+  await fossil.l1RelayerAccount.invoke(fossil.l1HeadersStore, 'process_block', {
+    options_set: processBlockInputs.blockOptions,
+    block_number: processBlockInputs.blockNumber,
+    block_header_rlp_bytes_len: processBlockInputs.headerInts.bytesLength,
+    block_header_rlp: processBlockInputs.headerInts.values,
+  });
+
+  // We pass the encode params function for the single slot proof strategy to generate the encoded data for the single slot proof strategy
+  const proofInputs: ProofInputs = getProofInputs(block.number, proofs, encodeParams);
+
+  const votingDelay = BigInt(0);
+  const minVotingDuration = BigInt(0);
+  const maxVotingDuration = BigInt(2000);
+  const votingStrategies: bigint[] = [BigInt(singleSlotProofStrategy.address)];
+  const votingStrategyParams: bigint[][] = [[proofInputs.ethAddressFelt, BigInt(1)]];
+  const votingStrategyParamsFlat: bigint[] = flatten2DArray(votingStrategyParams);
+  const authenticators: bigint[] = [BigInt(vanillaAuthenticator.address)];
+  const executors: bigint[] = [BigInt(vanillaExecutionStrategy.address)];
+  const quorum: SplitUint256 = SplitUint256.fromUint(BigInt(1)); //  Quorum of one for the vanilla test
+  const proposalThreshold: SplitUint256 = SplitUint256.fromUint(BigInt(1)); // Proposal threshold of 1 for the vanilla test
+
+  console.log('Deploying space contract...');
+  const space = (await spaceFactory.deploy({
+    _voting_delay: votingDelay,
+    _min_voting_duration: minVotingDuration,
+    _max_voting_duration: maxVotingDuration,
+    _proposal_threshold: proposalThreshold,
+    _controller: BigInt(controller.starknetContract.address),
+    _quorum: quorum,
+    _voting_strategy_params_flat: votingStrategyParamsFlat,
+    _voting_strategies: votingStrategies,
+    _authenticators: authenticators,
+    _executors: executors,
+  })) as StarknetContract;
+  console.log('deployed!');
+
+  return {
+    space,
+    controller,
+    vanillaAuthenticator,
+    singleSlotProofStrategy,
+    vanillaExecutionStrategy,
+    fossil,
+    proofInputs,
+  };
+}
+
+// Setup function to test the single slot proof strategy in isolation, ie without space contract
+export async function singleSlotProofSetupIsolated(block: any) {
   const account = await starknet.deployAccount('Argent');
   const fossil = await fossilSetup(account);
   const singleSlotProofStrategyFactory = await starknet.getContractFactory(
@@ -320,7 +408,7 @@ export async function singleSlotProofSetup(block: any) {
   );
   const singleSlotProofStrategy = await singleSlotProofStrategyFactory.deploy({
     fact_registry_address: BigInt(fossil.factsRegistry.address),
-    l1_headers_store_address: BigInt(fossil.l1HeadersStore.address)
+    l1_headers_store_address: BigInt(fossil.l1HeadersStore.address),
   });
   // Submit blockhash to L1 Headers Store (via dummy function rather than L1 -> L2 bridge)
   await fossil.l1RelayerAccount.invoke(fossil.l1HeadersStore, 'receive_from_l1', {

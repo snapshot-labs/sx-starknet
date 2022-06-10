@@ -34,7 +34,7 @@ end
 
 @constructor
 func constructor{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr}(
-    fact_registry_address : felt, l1_headers_store_address : felt 
+    fact_registry_address : felt, l1_headers_store_address : felt
 ):
     fact_registry_store.write(value=fact_registry_address)
     l1_headers_store.write(value=l1_headers_store_address)
@@ -58,7 +58,7 @@ func get_voting_power{
 
     let (eth_block_number) = get_eth_block_number(timestamp)
     let eth_block_number = eth_block_number - 1
-    
+
     # Decoding voting strategy parameters
     let (
         slot,
@@ -75,7 +75,7 @@ func get_voting_power{
     # contract address where the desired slot resides, and the section element is the index of the slot in that contract.
     assert params_len = 2
     let contract_address = params[0]
-    let slot_index = params[1]
+    let slot_index = params[1] - 1
 
     # Checking slot proof is for the correct slot
     let (valid_slot) = get_slot_key(slot_index, voter_address.value)
