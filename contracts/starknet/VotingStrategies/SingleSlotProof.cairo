@@ -57,7 +57,7 @@ func get_voting_power{
     let (fact_registry_addr) = fact_registry_store.read()
 
     let (eth_block_number) = get_eth_block_number(timestamp)
-    let eth_block_number = eth_block_number - 1
+    let eth_block_number = eth_block_number - 1 # temp shift - waiting for Fossil fix 
 
     # Decoding voting strategy parameters
     let (
@@ -75,6 +75,10 @@ func get_voting_power{
     # contract address where the desired slot resides, and the section element is the index of the slot in that contract.
     assert params_len = 2
     let contract_address = params[0]
+
+    # In the current implementation, we cant store arrays with a zero as the last element because the read function would just treat 
+    # the array is 1 element shorter. Hence, we offset the slot_index by 1 so that it is never zero. 
+    # Probably worth changing our array handling so this is not necessary. 
     let slot_index = params[1] - 1
 
     # Checking slot proof is for the correct slot

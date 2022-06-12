@@ -680,8 +680,11 @@ func vote{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr : fe
     end
 
     let (proposal) = proposal_registry_store.read(proposal_id)
-    let (current_timestamp) = get_block_timestamp()
 
+    # The snapshot timestamp at which voting power will be taken
+    let snapshot_timestamp = proposal.snapshot_timestamp
+
+    let (current_timestamp) = get_block_timestamp()
     # Make sure proposal is still open for voting
     with_attr error_message("Voting period has ended"):
         assert_lt(current_timestamp, proposal.max_end_timestamp)
@@ -713,7 +716,7 @@ func vote{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr : fe
     )
 
     let (user_voting_power) = get_cumulative_voting_power(
-        current_timestamp,
+        snapshot_timestamp,
         voter_address,
         used_voting_strategies_len,
         used_voting_strategies,
@@ -771,14 +774,16 @@ func propose{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr :
     # Verify that the executor address is one of the whitelisted addresses
     assert_valid_executor(executor)
 
-    let (current_timestamp) = get_block_timestamp()
+    # The snapshot for the proposal is the current timestamp at proposal creation 
+    # We use a timestamp instead of a block number to define a snapshot so that the system can generalize to multi-chain
+    let (snapshot_timestamp) = get_block_timestamp()
     let (delay) = voting_delay_store.read()
 
     let (_min_voting_duration) = min_voting_duration_store.read()
     let (_max_voting_duration) = max_voting_duration_store.read()
 
     # Define start_timestamp, min_end and max_end
-    let start_timestamp = current_timestamp + delay
+    let start_timestamp = snapshot_timestamp + delay
     let min_end_timestamp = start_timestamp + _min_voting_duration
     let max_end_timestamp = start_timestamp + _max_voting_duration
 
@@ -788,7 +793,7 @@ func propose{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr :
     )
 
     let (voting_power) = get_cumulative_voting_power(
-        start_timestamp,
+        snapshot_timestamp,
         proposer_address,
         used_voting_strategies_len,
         used_voting_strategies,
@@ -815,6 +820,7 @@ func propose{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr :
     let proposal = Proposal(
         execution_hash,
         _quorum,
+        snapshot_timestamp,
         start_timestamp,
         min_end_timestamp,
         max_end_timestamp,

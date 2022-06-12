@@ -319,6 +319,9 @@ export async function ethTxAuthSetup() {
 }
 
 export async function singleSlotProofSetup(block: any, proofs: any) {
+  // We pass the encode params function for the single slot proof strategy to generate the encoded data for the single slot proof strategy
+  const proofInputs: ProofInputs = getProofInputs(block.number, proofs, encodeParams);
+
   const controller = (await starknet.deployAccount('Argent')) as Account;
   const fossil = await fossilSetup(controller);
   const spaceFactory = await starknet.getContractFactory('./contracts/starknet/Space.cairo');
@@ -358,9 +361,6 @@ export async function singleSlotProofSetup(block: any, proofs: any) {
     block_header_rlp_bytes_len: processBlockInputs.headerInts.bytesLength,
     block_header_rlp: processBlockInputs.headerInts.values,
   });
-
-  // We pass the encode params function for the single slot proof strategy to generate the encoded data for the single slot proof strategy
-  const proofInputs: ProofInputs = getProofInputs(block.number, proofs, encodeParams);
 
   const votingDelay = BigInt(0);
   const minVotingDuration = BigInt(0);

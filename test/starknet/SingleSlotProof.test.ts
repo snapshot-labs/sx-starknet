@@ -1,9 +1,7 @@
+import fs from 'fs';
 import { expect } from 'chai';
 import { starknet, ethers } from 'hardhat';
 import { stark } from 'starknet';
-// import { block } from '../data/blocks1';
-// import { proofs } from '../data/proofs1';
-import fs from 'fs';
 import { SplitUint256, Choice } from '../shared/types';
 import { ProofInputs, getProofInputs } from '../shared/parseRPCData';
 import { encodeParams } from '../shared/singleSlotProofStrategyEncoding';
@@ -55,13 +53,8 @@ describe('Single slot proof voting strategy:', () => {
     const block = JSON.parse(fs.readFileSync('./test/data/block.json').toString());
     const proofs = JSON.parse(fs.readFileSync('./test/data/proofs.json').toString());
 
-    // const account2 = (await starknet.deployAccount("Argent")) as ArgentAccount;
     account = await starknet.deployAccount('Argent');
 
-    // Address of the user that corresponds to the slot in the contract associated with the corresponding proof
-    // proposerAddress = '0x5773D321394D20C36E4CA35386C97761A9BAe820';
-
-    // Deploy Fossil storage verifier instance and the voting strategy contract.
     ({
       space,
       controller,
@@ -71,7 +64,7 @@ describe('Single slot proof voting strategy:', () => {
       fossil,
       proofInputs,
     } = await singleSlotProofSetup(block, proofs));
-
+    console.log(fossil);
     proposalId = BigInt(1);
     executionHash = bytesToHex(ethers.utils.randomBytes(32)); // Random 32 byte hash
     metadataUri = strToShortStringArr(
@@ -82,7 +75,7 @@ describe('Single slot proof voting strategy:', () => {
     ethBlockNumber = BigInt(1337);
     spaceAddress = BigInt(space.address);
     usedVotingStrategies1 = [BigInt(singleSlotProofStrategy.address)];
-    userVotingParamsAll1 = [proofInputs.userVotingPowerParams];
+    userVotingParamsAll1 = [proofInputs.storageProofs[0]];
     executionStrategy = BigInt(vanillaExecutionStrategy.address);
     executionParams = [];
     proposeCalldata = getProposeCalldata(
@@ -97,6 +90,16 @@ describe('Single slot proof voting strategy:', () => {
     );
     // Eth address corresponding to slot with key: 0x9dd2a912bd3f98d4e52ea66ae2fff8b73a522895d081d522fe86f592ec8467c3
     voterEthAddress = '0x3744da57184575064838bbc87a0fc791f5e39ea2';
+    choice = Choice.FOR;
+    usedVotingStrategies2 = [BigInt(singleSlotProofStrategy.address)];
+    userVotingParamsAll2 = [proofInputs.storageProofs[1]];
+    voteCalldata = getVoteCalldata(
+      voterEthAddress,
+      proposalId,
+      choice,
+      usedVotingStrategies2,
+      userVotingParamsAll2
+    );
   });
 
   it('A user can create a proposal', async () => {
@@ -135,6 +138,27 @@ describe('Single slot proof voting strategy:', () => {
       expect(against).to.deep.equal(BigInt(0));
       const abstain = SplitUint256.fromObj(proposal_info.power_abstain).toUint();
       expect(abstain).to.deep.equal(BigInt(0));
+      console.log('proposal created');
+    }
+
+    // -- Casts a vote FOR --
+    {
+      await vanillaAuthenticator.invoke('execute', {
+        target: spaceAddress,
+        function_selector: BigInt(getSelectorFromName('vote')),
+        calldata: voteCalldata,
+      });
+
+      // const { proposal_info } = await space.call('get_proposal_info', {
+      //   proposal_id: proposalId,
+      // });
+
+      // const _for = SplitUint256.fromObj(proposal_info.power_for).toUint();
+      // expect(_for).to.deep.equal(BigInt('0x26d16aea9a19cda40000'));
+      // const against = SplitUint256.fromObj(proposal_info.power_against).toUint();
+      // expect(against).to.deep.equal(BigInt(0));
+      // const abstain = SplitUint256.fromObj(proposal_info.power_abstain).toUint();
+      // expect(abstain).to.deep.equal(BigInt(0));
     }
   }).timeout(1000000);
 
