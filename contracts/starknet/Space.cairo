@@ -774,7 +774,7 @@ func propose{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr :
     # Verify that the executor address is one of the whitelisted addresses
     assert_valid_executor(executor)
 
-    # The snapshot for the proposal is the current timestamp at proposal creation 
+    # The snapshot for the proposal is the current timestamp at proposal creation
     # We use a timestamp instead of a block number to define a snapshot so that the system can generalize to multi-chain
     let (snapshot_timestamp) = get_block_timestamp()
     let (delay) = voting_delay_store.read()

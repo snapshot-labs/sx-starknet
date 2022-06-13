@@ -13,11 +13,11 @@ export interface ProcessBlockInputs {
 }
 
 /**
- * Produces the inputs for the process_block function in Fossil. 
+ * Produces the inputs for the process_block function in Fossil.
  * @param block Block object from RPC call
  * @param _chain EVM chain identifier
  * @param _hardfork Hardfork identifier
- * @returns ProcessBlockInputs object 
+ * @returns ProcessBlockInputs object
  */
 export function getProcessBlockInputs(
   block: any,

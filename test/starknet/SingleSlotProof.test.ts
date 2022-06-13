@@ -64,7 +64,7 @@ describe('Single slot proof voting strategy:', () => {
       fossil,
       proofInputs,
     } = await singleSlotProofSetup(block, proofs));
-    console.log(fossil);
+    console.log('l1 headers store:', fossil.l1HeadersStore.address);
     proposalId = BigInt(1);
     executionHash = bytesToHex(ethers.utils.randomBytes(32)); // Random 32 byte hash
     metadataUri = strToShortStringArr(
