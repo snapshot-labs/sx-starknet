@@ -42,17 +42,16 @@ contracts
 │   └─ Space.cairo - "The core contract for Snapshot X"
 └─ ethereum 
     ├─ Interfaces
-    │  └─ IStarknetCore.sol — "Authenticate user via an Ethereum transaction"
+    │  └─ IStarknetCore.sol — "Interface of the StarkNet core contract"
     ├─ StarkNetCommit
-    │  └─ StarknetCommit.sol — "Authenticate user via an Ethereum transaction"
+    │  └─ StarknetCommit.sol — "Commits a hash to StarkNet required for Ethereum transaction authentication"
     ├─ ZodiacModule
-    │  ├─ ProposalRelayer.sol — "Authenticate user via an Ethereum transaction"
-    │  ├─ SnapshotXL1Executor.sol — "Authenticate user via an Ethereum transaction"
-    │  └─ deps.sol — "No authentication of users"
+    │  ├─ ProposalRelayer.sol — "Provides functionality for recieving proposal data from StarkNet"
+    │  └─ SnapshotXL1Executor.sol — "Execute proposal transactions using a Gnosis Safe"
     └─ TestContracts
-       ├─ MockStarknetMessaging.sol — "Authenticate user via an Ethereum transaction"
-       ├─ NamedStorage.sol — "Authenticate user via an Ethereum transaction"
-       └─ StarknetMessaging.sol — "No authentication of users"
+       ├─ MockStarknetMessaging.sol — "Mock StarkNet core contract for testing purposes"
+       ├─ NamedStorage.sol — "Storage library"
+       └─ StarknetMessaging.sol — "StarkNet core contract"
 
 ```
 
