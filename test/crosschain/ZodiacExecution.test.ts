@@ -4,7 +4,6 @@ import { Contract } from 'ethers';
 import hre, { starknet, network } from 'hardhat';
 import { Choice, SplitUint256 } from '../shared/types';
 import { StarknetContract, HttpNetworkConfig, Account } from 'hardhat/types';
-import { stark } from 'starknet';
 import { strToShortStringArr } from '@snapshot-labs/sx';
 import { zodiacRelayerSetup } from '../shared/setup';
 import {
@@ -13,15 +12,13 @@ import {
   getProposeCalldata,
   getVoteCalldata,
 } from '../shared/helpers';
+import { PROPOSE_SELECTOR, VOTE_SELECTOR } from '../shared/constants';
 
-const { getSelectorFromName } = stark;
-
-export const VITALIK_ADDRESS = BigInt('0xd8da6bf26964af9d7eed9e03e53415d37aa96045');
-export const VITALIK_STRING_ADDRESS = VITALIK_ADDRESS.toString(16);
+const VITALIK_ADDRESS = 'd8da6bf26964af9d7eed9e03e53415d37aa96045'; //removed hex prefix
 
 // Dummy tx
 const tx1 = {
-  to: VITALIK_STRING_ADDRESS,
+  to: VITALIK_ADDRESS,
   value: 0,
   data: '0x11',
   operation: 0,
@@ -30,7 +27,7 @@ const tx1 = {
 
 // Dummy tx 2
 const tx2 = {
-  to: VITALIK_STRING_ADDRESS,
+  to: VITALIK_ADDRESS,
   value: 0,
   data: '0x22',
   operation: 0,
@@ -131,16 +128,16 @@ describe('Create proposal, cast vote, and send execution to l1', function () {
     this.timeout(1200000);
 
     // -- Creates a proposal --
-    await vanillaAuthenticator.invoke('execute', {
+    await vanillaAuthenticator.invoke('authenticate', {
       target: BigInt(space.address),
-      function_selector: BigInt(getSelectorFromName('propose')),
+      function_selector: PROPOSE_SELECTOR,
       calldata: proposeCalldata,
     });
 
     // -- Casts a vote FOR --
-    await vanillaAuthenticator.invoke('execute', {
+    await vanillaAuthenticator.invoke('authenticate', {
       target: BigInt(space.address),
-      function_selector: BigInt(getSelectorFromName('vote')),
+      function_selector: VOTE_SELECTOR,
       calldata: voteCalldata,
     });
 
