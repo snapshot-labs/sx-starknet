@@ -43,7 +43,6 @@ describe('Whitelist testing', () => {
       vanillaVotingStrategy,
       zodiacRelayer,
       zodiacModule,
-      mockStarknetMessaging,
     } = await zodiacRelayerSetup());
 
     const vanillaExecutionStrategyFactory = await starknet.getContractFactory(
