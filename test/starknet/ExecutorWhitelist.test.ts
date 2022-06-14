@@ -5,11 +5,10 @@ import { strToShortStringArr } from '@snapshot-labs/sx';
 import { zodiacRelayerSetup } from '../shared/setup';
 import { getProposeCalldata, bytesToHex } from '../shared/helpers';
 import { StarknetContract, Account } from 'hardhat/types';
-import { PROPOSE_SELECTOR, VOTE_SELECTOR } from '../shared/constants';
+import { PROPOSE_SELECTOR } from '../shared/constants';
 
 describe('Whitelist testing', () => {
   // Contracts
-  let mockStarknetMessaging: Contract;
   let space: StarknetContract;
   let controller: Account;
   let vanillaAuthenticator: StarknetContract;

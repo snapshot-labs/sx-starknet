@@ -1,16 +1,5 @@
 import fs from 'fs';
-import {
-  Contract,
-  Account,
-  defaultProvider,
-  ec,
-  encode,
-  hash,
-  json,
-  number,
-  stark,
-  RawCalldata,
-} from 'starknet';
+import { defaultProvider, json } from 'starknet';
 import { SplitUint256 } from '../test/shared/types';
 import { flatten2DArray } from '../test/shared/helpers';
 

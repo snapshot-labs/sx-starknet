@@ -126,14 +126,14 @@ describe('Create proposal, cast vote, and send execution to l1', function () {
 
     // -- Creates a proposal --
     await vanillaAuthenticator.invoke('authenticate', {
-      target: BigInt(space.address),
+      target: spaceAddress,
       function_selector: PROPOSE_SELECTOR,
       calldata: proposeCalldata,
     });
 
     // -- Casts a vote FOR --
     await vanillaAuthenticator.invoke('authenticate', {
-      target: BigInt(space.address),
+      target: spaceAddress,
       function_selector: VOTE_SELECTOR,
       calldata: voteCalldata,
     });
