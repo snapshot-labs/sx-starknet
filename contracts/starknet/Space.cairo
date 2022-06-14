@@ -751,7 +751,6 @@ func propose{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr :
     execution_hash : Uint256,
     metadata_uri_len : felt,
     metadata_uri : felt*,
-    ethereum_block_number : felt,
     executor : felt,
     used_voting_strategies_len : felt,
     used_voting_strategies : felt*,
@@ -761,12 +760,6 @@ func propose{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr :
     execution_params : felt*,
 ) -> ():
     alloc_locals
-
-    # We cannot have `0` as the `ethereum_block_number` because we rely on checking
-    # if it's different than 0 in `finalize_proposal`.
-    with_attr error_message("Invalid block number"):
-        assert_not_zero(ethereum_block_number)
-    end
 
     # Verify that the caller is the authenticator contract.
     assert_valid_authenticator()
@@ -825,7 +818,6 @@ func propose{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr :
         min_end_timestamp,
         max_end_timestamp,
         hash,
-        ethereum_block_number,
         executor,
     )
 
@@ -868,16 +860,15 @@ func finalize_proposal{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_c
     let (proposal) = proposal_registry_store.read(proposal_id)
     with_attr error_message("Invalid proposal id"):
         # Checks that the proposal id exists. If it doesn't exist, then the whole `Proposal` struct will
-        # be set to 0, hence `ethereum_block_number` will be set to 0 too.
-        assert_not_zero(proposal.ethereum_block_number)
+        # be set to 0, hence the snapshot timestamp will be set to 0 too.
+        assert_not_zero(proposal.snapshot_timestamp)
     end
 
     # Make sure proposal period has ended
-    # NOTE: commented out the `with_attr` block because it needs 0.8.1 to work
-    # with_attr error_message("Min voting period has not elapsed"):
     let (current_timestamp) = get_block_timestamp()
-    assert_le(proposal.min_end_timestamp, current_timestamp)
-    # end
+    with_attr error_message("Min voting period has not elapsed"):
+        assert_le(proposal.min_end_timestamp, current_timestamp)
+    end
 
     # Make sure execution params match the stored hash
     let (recovered_hash) = hash_array(execution_params_len, execution_params)
@@ -964,8 +955,8 @@ func cancel_proposal{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_che
     let (proposal) = proposal_registry_store.read(proposal_id)
     with_attr error_message("Invalid proposal id"):
         # Checks that the proposal id exists. If it doesn't exist, then the whole `Proposal` struct will
-        # be set to 0, hence `ethereum_block_number` will be set to 0 too.
-        assert_not_zero(proposal.ethereum_block_number)
+        # be set to 0, hence the snapshot timestamp will be set to 0 too.
+        assert_not_zero(proposal.snapshot_timestamp)
     end
 
     let proposal_outcome = ProposalOutcome.CANCELLED

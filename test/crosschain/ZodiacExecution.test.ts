@@ -57,7 +57,6 @@ describe('Create proposal, cast vote, and send execution to l1', function () {
   let userVotingParamsAll1: bigint[][];
   let executionStrategy: bigint;
   let executionParams: bigint[];
-  let ethBlockNumber: bigint;
   let proposeCalldata: bigint[];
 
   // Additional parameters for voting
@@ -91,7 +90,6 @@ describe('Create proposal, cast vote, and send execution to l1', function () {
     ({ executionHash, txHashes } = createExecutionHash(zodiacModule.address, tx1, tx2));
 
     proposerEthAddress = signer.address;
-    ethBlockNumber = BigInt(1337);
     spaceAddress = BigInt(space.address);
     usedVotingStrategies1 = [BigInt(vanillaVotingStrategy.address)];
     userVotingParamsAll1 = [[]];
@@ -102,7 +100,6 @@ describe('Create proposal, cast vote, and send execution to l1', function () {
       proposerEthAddress,
       executionHash,
       metadataUri,
-      ethBlockNumber,
       executionStrategy,
       usedVotingStrategies1,
       userVotingParamsAll1,

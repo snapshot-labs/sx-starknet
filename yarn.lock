@@ -1291,17 +1291,10 @@
     "@types/node" "*"
     form-data "^3.0.0"
 
-<<<<<<< HEAD
-"@types/node@*", "@types/node@^17.0.24", "@types/node@^17.0.40":
-  version "17.0.40"
-  resolved "https://registry.yarnpkg.com/@types/node/-/node-17.0.40.tgz#76ee88ae03650de8064a6cf75b8d95f9f4a16090"
-  integrity sha512-UXdBxNGqTMtm7hCwh9HtncFVLrXoqA3oJW30j6XWp5BH/wu3mVeaxo7cq5benFdBw34HB3XDT2TRPI7rXZ+mDg==
-=======
 "@types/node@*", "@types/node@^17.0.24", "@types/node@^17.0.42":
   version "17.0.42"
   resolved "https://registry.yarnpkg.com/@types/node/-/node-17.0.42.tgz#d7e8f22700efc94d125103075c074396b5f41f9b"
   integrity sha512-Q5BPGyGKcvQgAMbsr7qEGN/kIPN6zZecYYABeTDBizOsau+2NMdSVTar9UQw21A2+JyA2KRNDYaYrPB0Rpk2oQ==
->>>>>>> develop
 
 "@types/node@^10.0.3":
   version "10.17.60"
@@ -7602,7 +7595,7 @@ npm-user-validate@^1.0.1:
   version "1.0.1"
   resolved "https://registry.yarnpkg.com/npm-user-validate/-/npm-user-validate-1.0.1.tgz#31428fc5475fe8416023f178c0ab47935ad8c561"
 
-npm@^8.12.1:
+npm@^8.11.0:
   version "8.12.1"
   resolved "https://registry.yarnpkg.com/npm/-/npm-8.12.1.tgz#624064fa7a8e0730223f6b2effe087e7127d567b"
   integrity sha512-0yOlhfgu1UzP6UijnaFuIS2bES2H9D90EA5OVsf2iOZw7VBrjntXKEwKfCaFA6vMVWkCP8qnPwCxxPdnDVwlNw==
@@ -9696,7 +9689,6 @@ swarm-js@^0.1.40:
 
 sx-api@snapshot-labs/sx-api:
   version "0.1.0"
-  uid "61f14e6caa1e986f754455560f9fd245e7af4697"
   resolved "https://codeload.github.com/snapshot-labs/sx-api/tar.gz/61f14e6caa1e986f754455560f9fd245e7af4697"
   dependencies:
     "@ethersproject/address" "^5.6.1"
@@ -10010,11 +10002,7 @@ ts-generator@^0.1.1:
     resolve "^1.8.1"
     ts-essentials "^1.0.0"
 
-<<<<<<< HEAD
-ts-node@^10.7.0, ts-node@^10.8.1:
-=======
 ts-node@^10.8.1:
->>>>>>> develop
   version "10.8.1"
   resolved "https://registry.yarnpkg.com/ts-node/-/ts-node-10.8.1.tgz#ea2bd3459011b52699d7e88daa55a45a1af4f066"
   integrity sha512-Wwsnao4DQoJsN034wePSg5nZiw4YKXf56mPIAeD6wVmiv+RytNSWqc2f3fKvcUoV+Yn2+yocD71VOfQHbmVX4g==

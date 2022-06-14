@@ -46,7 +46,7 @@ end
 
 @view
 func get_voting_power{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr : felt}(
-    block : felt,
+    timestamp : felt,
     voter_address : Address,
     params_len : felt,
     params : felt*,

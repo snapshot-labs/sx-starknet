@@ -46,7 +46,7 @@ func get_voting_power{
     syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr, bitwise_ptr : BitwiseBuiltin*
 }(
     timestamp : felt,
-    voter_address : EthAddress,
+    voter_address : Address,
     params_len : felt,
     params : felt*,
     user_params_len : felt,

@@ -49,7 +49,6 @@ describe('L1 interaction with Snapshot X', function () {
   let userVotingParamsAll: bigint[][];
   let executionStrategy: bigint;
   let executionParams: bigint[];
-  let ethBlockNumber: bigint;
   let proposeCalldata: bigint[];
 
   before(async function () {
@@ -71,7 +70,6 @@ describe('L1 interaction with Snapshot X', function () {
       'Hello and welcome to Snapshot X. This is the future of governance.'
     );
     proposerEthAddress = signer.address;
-    ethBlockNumber = BigInt(1337);
     spaceAddress = BigInt(space.address);
     usedVotingStrategies = [BigInt(vanillaVotingStrategy.address)];
     userVotingParamsAll = [[]];
@@ -81,7 +79,6 @@ describe('L1 interaction with Snapshot X', function () {
       proposerEthAddress,
       executionHash,
       metadataUri,
-      ethBlockNumber,
       executionStrategy,
       usedVotingStrategies,
       userVotingParamsAll,

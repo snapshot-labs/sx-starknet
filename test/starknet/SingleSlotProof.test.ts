@@ -1,16 +1,14 @@
 import fs from 'fs';
 import { expect } from 'chai';
 import { starknet, ethers } from 'hardhat';
-import { stark } from 'starknet';
 import { SplitUint256, Choice } from '../shared/types';
 import { ProofInputs, getProofInputs } from '../shared/parseRPCData';
 import { encodeParams } from '../shared/singleSlotProofStrategyEncoding';
 import { singleSlotProofSetup, Fossil } from '../shared/setup';
+import { PROPOSE_SELECTOR, VOTE_SELECTOR } from '../shared/constants';
 import { getProposeCalldata, getVoteCalldata, bytesToHex } from '../shared/helpers';
 import { StarknetContract, OpenZeppelinAccount, ArgentAccount, Account } from 'hardhat/types';
 import { strToShortStringArr } from '@snapshot-labs/sx';
-
-const { getSelectorFromName } = stark;
 
 describe('Single slot proof voting strategy:', () => {
   // Contracts
@@ -22,7 +20,7 @@ describe('Single slot proof voting strategy:', () => {
   let vanillaExecutionStrategy: StarknetContract;
   let fossil: Fossil;
 
-  let proposerAddress: string;
+  // Data for account and storage proofs
   let proofInputs: ProofInputs;
 
   // Proposal creation parameters
@@ -34,7 +32,6 @@ describe('Single slot proof voting strategy:', () => {
   let userVotingParamsAll1: bigint[][];
   let executionStrategy: bigint;
   let executionParams: bigint[];
-  let ethBlockNumber: bigint;
   let proposeCalldata: bigint[];
 
   // Additional parameters for voting
@@ -70,7 +67,6 @@ describe('Single slot proof voting strategy:', () => {
     );
     // Eth address corresponding to slot with key: 0x1f209fa834e9c9c92b83d1bd04d8d1914bd212e440f88fdda8a5879962bda665
     proposerEthAddress = '0x4048c47b546b68ad226ea20b5f0acac49b086a21';
-    ethBlockNumber = BigInt(1337);
     spaceAddress = BigInt(space.address);
     usedVotingStrategies1 = [BigInt(singleSlotProofStrategy.address)];
     userVotingParamsAll1 = [proofInputs.storageProofs[0]];
@@ -80,7 +76,6 @@ describe('Single slot proof voting strategy:', () => {
       proposerEthAddress,
       executionHash,
       metadataUri,
-      ethBlockNumber,
       executionStrategy,
       usedVotingStrategies1,
       userVotingParamsAll1,
@@ -118,9 +113,9 @@ describe('Single slot proof voting strategy:', () => {
 
     // -- Creates the proposal --
     {
-      await vanillaAuthenticator.invoke('execute', {
+      await vanillaAuthenticator.invoke('authenticate', {
         target: spaceAddress,
-        function_selector: BigInt(getSelectorFromName('propose')),
+        function_selector: PROPOSE_SELECTOR,
         calldata: proposeCalldata,
       });
 
@@ -141,9 +136,9 @@ describe('Single slot proof voting strategy:', () => {
 
     // -- Casts a vote FOR --
     {
-      await vanillaAuthenticator.invoke('execute', {
+      await vanillaAuthenticator.invoke('authenticate', {
         target: spaceAddress,
-        function_selector: BigInt(getSelectorFromName('vote')),
+        function_selector: VOTE_SELECTOR,
         calldata: voteCalldata,
       });
 
