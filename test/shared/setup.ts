@@ -323,6 +323,7 @@ export async function singleSlotProofSetup(block: any, proofs: any) {
   const proofInputs: ProofInputs = getProofInputs(block.number, proofs, encodeParams);
 
   const controller = (await starknet.deployAccount('Argent')) as Account;
+
   const fossil = await fossilSetup(controller);
   const spaceFactory = await starknet.getContractFactory('./contracts/starknet/Space.cairo');
   const singleSlotProofStrategyFactory = await starknet.getContractFactory(
@@ -362,6 +363,7 @@ export async function singleSlotProofSetup(block: any, proofs: any) {
     block_header_rlp: processBlockInputs.headerInts.values,
   });
 
+  const controllerAddress = BigInt(controller.starknetContract.address);
   const votingDelay = BigInt(0);
   const minVotingDuration = BigInt(0);
   const maxVotingDuration = BigInt(2000);
@@ -373,20 +375,19 @@ export async function singleSlotProofSetup(block: any, proofs: any) {
   const quorum: SplitUint256 = SplitUint256.fromUint(BigInt(1)); //  Quorum of one for the vanilla test
   const proposalThreshold: SplitUint256 = SplitUint256.fromUint(BigInt(1)); // Proposal threshold of 1 for the vanilla test
 
-  console.log('Deploying space contract...');
+  // Deploy space with specified parameters
   const space = (await spaceFactory.deploy({
     _voting_delay: votingDelay,
     _min_voting_duration: minVotingDuration,
     _max_voting_duration: maxVotingDuration,
     _proposal_threshold: proposalThreshold,
-    _controller: BigInt(controller.starknetContract.address),
+    _controller: controllerAddress,
     _quorum: quorum,
     _voting_strategy_params_flat: votingStrategyParamsFlat,
     _voting_strategies: votingStrategies,
     _authenticators: authenticators,
     _executors: executors,
   })) as StarknetContract;
-  console.log('deployed!');
 
   return {
     space,
@@ -399,7 +400,7 @@ export async function singleSlotProofSetup(block: any, proofs: any) {
   };
 }
 
-// Setup function to test the single slot proof strategy in isolation, ie without space contract
+// Setup function to test the single slot proof strategy in isolation, ie not within context of space contract
 export async function singleSlotProofSetupIsolated(block: any) {
   const account = await starknet.deployAccount('Argent');
   const fossil = await fossilSetup(account);
@@ -484,7 +485,6 @@ export async function starknetAccountSetup() {
   const authenticator = BigInt(starknetAccountAuth.address);
   const zodiac_relayer = BigInt(zodiacRelayer.address);
   const quorum = SplitUint256.fromUint(BigInt(0));
-
   const voting_strategy_params: bigint[][] = [[]];
   const voting_strategy_params_flat = flatten2DArray(voting_strategy_params);
 

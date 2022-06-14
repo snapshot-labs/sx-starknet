@@ -109,7 +109,6 @@ describe('Starknet Tx Auth testing', () => {
     {
       console.log('Casting a vote FOR...');
       const voter_address = proposerAddress;
-      const votingparams: Array<BigInt> = [];
       const used_voting_strategies = [BigInt(vanillaVotingStrategy.address)];
       await account.invoke(starknetTxAuth, AUTHENTICATE_METHOD, {
         target: spaceContract,

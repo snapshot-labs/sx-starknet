@@ -12,8 +12,6 @@ import { strToShortStringArr } from '@snapshot-labs/sx';
 
 const { getSelectorFromName } = stark;
 
-// We test the single slot proof strategy flow directly here - ie not calling it via the space contract
-// Full end to end tests of the flow will come soon.
 describe('Single slot proof voting strategy:', () => {
   // Contracts
   let space: StarknetContract;
@@ -64,7 +62,7 @@ describe('Single slot proof voting strategy:', () => {
       fossil,
       proofInputs,
     } = await singleSlotProofSetup(block, proofs));
-    console.log('l1 headers store:', fossil.l1HeadersStore.address);
+
     proposalId = BigInt(1);
     executionHash = bytesToHex(ethers.utils.randomBytes(32)); // Random 32 byte hash
     metadataUri = strToShortStringArr(
@@ -149,20 +147,24 @@ describe('Single slot proof voting strategy:', () => {
         calldata: voteCalldata,
       });
 
-      // const { proposal_info } = await space.call('get_proposal_info', {
-      //   proposal_id: proposalId,
-      // });
+      const { proposal_info } = await space.call('get_proposal_info', {
+        proposal_id: proposalId,
+      });
 
-      // const _for = SplitUint256.fromObj(proposal_info.power_for).toUint();
-      // expect(_for).to.deep.equal(BigInt('0x26d16aea9a19cda40000'));
-      // const against = SplitUint256.fromObj(proposal_info.power_against).toUint();
-      // expect(against).to.deep.equal(BigInt(0));
-      // const abstain = SplitUint256.fromObj(proposal_info.power_abstain).toUint();
-      // expect(abstain).to.deep.equal(BigInt(0));
+      const _for = SplitUint256.fromObj(proposal_info.power_for).toUint();
+      expect(_for).to.deep.equal(BigInt('0x26d16aea9a19cda40000'));
+      const against = SplitUint256.fromObj(proposal_info.power_against).toUint();
+      expect(against).to.deep.equal(BigInt(0));
+      const abstain = SplitUint256.fromObj(proposal_info.power_abstain).toUint();
+      expect(abstain).to.deep.equal(BigInt(0));
+    }
+
+    // -- Executes the proposal --
+    {
+      await space.invoke('finalize_proposal', {
+        proposal_id: proposalId,
+        execution_params: executionParams,
+      });
     }
   }).timeout(1000000);
-
-  it('A user cannot create a proposal if they do not exceed the proposal threshold of voting power create a proposal', async () => {}).timeout(
-    1000000
-  );
 });

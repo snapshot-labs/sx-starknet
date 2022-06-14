@@ -824,8 +824,8 @@ func propose{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr :
         start_timestamp,
         min_end_timestamp,
         max_end_timestamp,
-        ethereum_block_number,
         hash,
+        ethereum_block_number,
         executor,
     )
 
