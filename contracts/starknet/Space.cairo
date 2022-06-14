@@ -16,7 +16,7 @@ from starkware.cairo.common.math import (
 
 from contracts.starknet.Interfaces.IVotingStrategy import IVotingStrategy
 from contracts.starknet.Interfaces.IExecutionStrategy import IExecutionStrategy
-from contracts.starknet.lib.eth_address import EthAddress
+from contracts.starknet.lib.general_address import Address
 from contracts.starknet.lib.proposal import Proposal
 from contracts.starknet.lib.proposal_info import ProposalInfo
 from contracts.starknet.lib.vote import Vote
@@ -88,7 +88,7 @@ func executed_proposals_store(proposal_id : felt) -> (executed : felt):
 end
 
 @storage_var
-func vote_registry_store(proposal_id : felt, voter_address : EthAddress) -> (vote : Vote):
+func vote_registry_store(proposal_id : felt, voter_address : Address) -> (vote : Vote):
 end
 
 @storage_var
@@ -102,7 +102,7 @@ end
 @event
 func proposal_created(
     proposal_id : felt,
-    proposer_address : EthAddress,
+    proposer_address : Address,
     proposal : Proposal,
     metadata_uri_len : felt,
     metadata_uri : felt*,
@@ -112,7 +112,7 @@ func proposal_created(
 end
 
 @event
-func vote_created(proposal_id : felt, voter_address : EthAddress, vote : Vote):
+func vote_created(proposal_id : felt, voter_address : Address, vote : Vote):
 end
 
 @event
@@ -392,7 +392,7 @@ end
 # TODO: In the future we will need to transition to an array of `voter_address` because they might be different for different voting strategies.
 func get_cumulative_voting_power{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr}(
     current_timestamp : felt,
-    voter_address : EthAddress,
+    voter_address : Address,
     used_voting_strategies_len : felt,
     used_voting_strategies : felt*,
     user_voting_strategy_params_all : Immutable2DArray,
@@ -660,7 +660,7 @@ end
 
 @external
 func vote{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr : felt}(
-    voter_address : EthAddress,
+    voter_address : Address,
     proposal_id : felt,
     choice : felt,
     used_voting_strategies_len : felt,
@@ -747,7 +747,7 @@ end
 
 @external
 func propose{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr : felt}(
-    proposer_address : EthAddress,
+    proposer_address : Address,
     execution_hash : Uint256,
     metadata_uri_len : felt,
     metadata_uri : felt*,
@@ -994,7 +994,7 @@ end
 
 @view
 func get_vote_info{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr : felt}(
-    voter_address : EthAddress, proposal_id : felt
+    voter_address : Address, proposal_id : felt
 ) -> (vote : Vote):
     return vote_registry_store.read(proposal_id, voter_address)
 end

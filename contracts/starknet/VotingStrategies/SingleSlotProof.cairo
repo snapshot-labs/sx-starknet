@@ -5,7 +5,7 @@ from starkware.cairo.common.uint256 import Uint256, uint256_add
 from starkware.cairo.common.math import unsigned_div_rem, assert_nn_le
 
 from contracts.starknet.fossil.contracts.starknet.types import StorageSlot
-from contracts.starknet.lib.eth_address import EthAddress
+from contracts.starknet.lib.general_address import Address
 from contracts.starknet.lib.slot_key import get_slot_key
 from contracts.starknet.lib.words import words_to_uint256
 from contracts.starknet.lib.timestamp import get_eth_block_number, l1_headers_store

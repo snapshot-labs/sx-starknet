@@ -1,9 +1,0 @@
-{
- 	"authenticators": {
-		"vanilla": "0x063d3c1c93411131b65491f216301263e6071ef0df02ab800cdd7748ddedcecf"
-	},
- 	"voting_strategies": {
-		"vanilla": "0x06a7b4259999163b09d9e2480ccbefee5c1cc9672fa8416411e485e502f8ee95"
-	},
- 	"space": "0x0625dc1290b6e936be5f1a3e963cf629326b1f4dfd5a56738dea98e1ad31b7f3"
-}

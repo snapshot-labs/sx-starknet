@@ -1,6 +1,5 @@
 %lang starknet
 from contracts.starknet.lib.execute import execute
-from contracts.starknet.lib.felt_to_uint256 import felt_to_uint256
 from starkware.starknet.common.syscalls import get_caller_address
 from starkware.cairo.common.cairo_builtins import BitwiseBuiltin
 from starkware.cairo.common.uint256 import uint256_eq
