@@ -769,7 +769,7 @@ func propose{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr :
 
     # The snapshot for the proposal is the current timestamp at proposal creation
     # We use a timestamp instead of a block number to define a snapshot so that the system can generalize to multi-chain
-    # TODO: Need to consider what sort of guarantees we have on the timestamp returned being correct.  
+    # TODO: Need to consider what sort of guarantees we have on the timestamp returned being correct.
     let (snapshot_timestamp) = get_block_timestamp()
     let (delay) = voting_delay_store.read()
 
