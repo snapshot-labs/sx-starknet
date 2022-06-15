@@ -50,7 +50,7 @@ export interface ProofInputs {
 
 /**
  * Takes a proofs object obtained via a getStorageProof RPC call parses the data to extract the necessary data
- * and convert it to the correct form required by the SX/Fossil contracts.
+ * and converts it to the correct form required by the SX/Fossil contracts.
  * @param blockNumber Number of the block that the proof targets
  * @param proofs Proofs object
  * @params encodeParams The encoding function that should be used on the storage proof data
