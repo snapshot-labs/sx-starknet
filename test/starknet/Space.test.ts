@@ -24,7 +24,6 @@ describe('Space Testing', () => {
   let userVotingParamsAll1: bigint[][];
   let executionStrategy: bigint;
   let executionParams: bigint[];
-  let ethBlockNumber: bigint;
   let proposeCalldata: bigint[];
 
   // Additional parameters for voting
@@ -46,7 +45,6 @@ describe('Space Testing', () => {
       'Hello and welcome to Snapshot X. This is the future of governance.'
     );
     proposerEthAddress = ethers.Wallet.createRandom().address;
-    ethBlockNumber = BigInt(1337);
     spaceAddress = BigInt(space.address);
     usedVotingStrategies1 = [BigInt(vanillaVotingStrategy.address)];
     userVotingParamsAll1 = [[]];
@@ -56,7 +54,6 @@ describe('Space Testing', () => {
       proposerEthAddress,
       executionHash,
       metadataUri,
-      ethBlockNumber,
       executionStrategy,
       usedVotingStrategies1,
       userVotingParamsAll1,

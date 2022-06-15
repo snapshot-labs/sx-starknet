@@ -27,7 +27,6 @@ describe('StarkNet Tx Auth testing', () => {
   let userVotingParamsAll1: bigint[][];
   let executionStrategy: bigint;
   let executionParams: bigint[];
-  let ethBlockNumber: bigint;
   let proposeCalldata: bigint[];
 
   // Additional parameters for voting
@@ -56,7 +55,6 @@ describe('StarkNet Tx Auth testing', () => {
       'Hello and welcome to Snapshot X. This is the future of governance.'
     );
     proposerAddress = proposerAccount.starknetContract.address;
-    ethBlockNumber = BigInt(1337);
     spaceAddress = BigInt(space.address);
     usedVotingStrategies1 = [BigInt(vanillaVotingStrategy.address)];
     userVotingParamsAll1 = [[]];
@@ -66,7 +64,6 @@ describe('StarkNet Tx Auth testing', () => {
       proposerAddress,
       executionHash,
       metadataUri,
-      ethBlockNumber,
       executionStrategy,
       usedVotingStrategies1,
       userVotingParamsAll1,

@@ -8,6 +8,7 @@ from contracts.starknet.fossil.contracts.starknet.types import StorageSlot
 from contracts.starknet.lib.general_address import Address
 from contracts.starknet.lib.slot_key import get_slot_key
 from contracts.starknet.lib.words import words_to_uint256
+from contracts.starknet.lib.timestamp import get_eth_block_number, l1_headers_store
 
 # FactRegistry simplified interface
 @contract_interface
@@ -33,9 +34,10 @@ end
 
 @constructor
 func constructor{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr}(
-    fact_registry : felt
+    fact_registry_address : felt, l1_headers_store_address : felt
 ):
-    fact_registry_store.write(value=fact_registry)
+    fact_registry_store.write(value=fact_registry_address)
+    l1_headers_store.write(value=l1_headers_store_address)
     return ()
 end
 
@@ -43,7 +45,7 @@ end
 func get_voting_power{
     syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr, bitwise_ptr : BitwiseBuiltin*
 }(
-    block : felt,
+    timestamp : felt,
     voter_address : Address,
     params_len : felt,
     params : felt*,
@@ -52,7 +54,10 @@ func get_voting_power{
 ) -> (voting_power : Uint256):
     alloc_locals
 
-    let (local fact_registry_addr) = fact_registry_store.read()
+    let (fact_registry_addr) = fact_registry_store.read()
+
+    let (eth_block_number) = get_eth_block_number(timestamp)
+    let eth_block_number = eth_block_number - 1  # temp shift - waiting for Fossil fix
 
     # Decoding voting strategy parameters
     let (
@@ -70,7 +75,11 @@ func get_voting_power{
     # contract address where the desired slot resides, and the section element is the index of the slot in that contract.
     assert params_len = 2
     let contract_address = params[0]
-    let slot_index = params[1]
+
+    # In the current implementation, we cant store arrays with a zero as the last element because the read function would just treat
+    # the array is 1 element shorter. Hence, we offset the slot_index by 1 so that it is never zero.
+    # Probably worth changing our array handling so this is not necessary.
+    let slot_index = params[1] - 1
 
     # Checking slot proof is for the correct slot
     let (valid_slot) = get_slot_key(slot_index, voter_address.value)
@@ -83,7 +92,7 @@ func get_voting_power{
 
     let (voting_power) = IFactsRegistry.get_storage_uint(
         fact_registry_addr,
-        block,
+        eth_block_number,
         contract_address,
         slot,
         proof_sizes_bytes_len,
@@ -93,6 +102,7 @@ func get_voting_power{
         proofs_concat_len,
         proofs_concat,
     )
+
     # If any part of the voting strategy calculation is invalid, the voting power returned should be zero
     return (voting_power)
 end

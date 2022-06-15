@@ -17,7 +17,7 @@ describe('Snapshot X Vanilla Voting Strategy:', () => {
   it('The voting strategy should return a voting power of 1', async () => {
     const { vanillaVotingStrategy } = await setup();
     const { voting_power: vp } = await vanillaVotingStrategy.call('get_voting_power', {
-      block: 1,
+      timestamp: 1,
       voter_address: { value: BigInt(ethers.Wallet.createRandom().address) },
       params: [],
       user_params: [],

@@ -5,11 +5,10 @@ import { strToShortStringArr } from '@snapshot-labs/sx';
 import { zodiacRelayerSetup } from '../shared/setup';
 import { getProposeCalldata, bytesToHex } from '../shared/helpers';
 import { StarknetContract, Account } from 'hardhat/types';
-import { PROPOSE_SELECTOR, VOTE_SELECTOR } from '../shared/constants';
+import { PROPOSE_SELECTOR } from '../shared/constants';
 
 describe('Whitelist testing', () => {
   // Contracts
-  let mockStarknetMessaging: Contract;
   let space: StarknetContract;
   let controller: Account;
   let vanillaAuthenticator: StarknetContract;
@@ -27,7 +26,6 @@ describe('Whitelist testing', () => {
   let userVotingParamsAll1: bigint[][];
   let executionStrategy1: bigint;
   let executionParams1: bigint[];
-  let ethBlockNumber: bigint;
   let proposeCalldata1: bigint[];
 
   // Alternative execution strategy parameters
@@ -45,7 +43,6 @@ describe('Whitelist testing', () => {
       vanillaVotingStrategy,
       zodiacRelayer,
       zodiacModule,
-      mockStarknetMessaging,
     } = await zodiacRelayerSetup());
 
     const vanillaExecutionStrategyFactory = await starknet.getContractFactory(
@@ -59,7 +56,6 @@ describe('Whitelist testing', () => {
       'Hello and welcome to Snapshot X. This is the future of governance.'
     );
     proposerEthAddress = ethers.Wallet.createRandom().address;
-    ethBlockNumber = BigInt(1337);
     spaceAddress = BigInt(space.address);
     usedVotingStrategies1 = [BigInt(vanillaVotingStrategy.address)];
     userVotingParamsAll1 = [[]];
@@ -69,7 +65,6 @@ describe('Whitelist testing', () => {
       proposerEthAddress,
       executionHash,
       metadataUri,
-      ethBlockNumber,
       executionStrategy1,
       usedVotingStrategies1,
       userVotingParamsAll1,
@@ -82,7 +77,6 @@ describe('Whitelist testing', () => {
       proposerEthAddress,
       executionHash,
       metadataUri,
-      ethBlockNumber,
       executionStrategy2,
       usedVotingStrategies1,
       userVotingParamsAll1,

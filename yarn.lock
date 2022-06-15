@@ -9691,7 +9691,6 @@ swarm-js@^0.1.40:
 
 sx-api@snapshot-labs/sx-api:
   version "0.1.0"
-  uid "61f14e6caa1e986f754455560f9fd245e7af4697"
   resolved "https://codeload.github.com/snapshot-labs/sx-api/tar.gz/61f14e6caa1e986f754455560f9fd245e7af4697"
   dependencies:
     "@ethersproject/address" "^5.6.1"

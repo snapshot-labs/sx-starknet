@@ -6,15 +6,11 @@ import { StarknetContract, Account } from 'hardhat/types';
 describe('Controller', () => {
   let space: StarknetContract;
   let controller: Account;
-  let vanillaAuthenticator: StarknetContract;
-  let vanillaVotingStrategy: StarknetContract;
-  let vanillaExecutionStrategy: StarknetContract;
 
   before(async function () {
     this.timeout(800000);
 
-    ({ space, controller, vanillaAuthenticator, vanillaVotingStrategy, vanillaExecutionStrategy } =
-      await vanillaSetup());
+    ({ space, controller } = await vanillaSetup());
   });
 
   it('Should be able to update controller if properly called', async () => {
