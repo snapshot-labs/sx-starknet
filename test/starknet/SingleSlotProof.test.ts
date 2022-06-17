@@ -1,11 +1,11 @@
 import fs from 'fs';
 import { expect } from 'chai';
-import { starknet, ethers } from 'hardhat';
+import { starknet } from 'hardhat';
 import { SplitUint256, Choice } from '../shared/types';
 import { ProofInputs } from '../shared/parseRPCData';
 import { singleSlotProofSetup, Fossil } from '../shared/setup';
 import { PROPOSE_SELECTOR, VOTE_SELECTOR } from '../shared/constants';
-import { getProposeCalldata, getVoteCalldata, bytesToHex } from '../shared/helpers';
+import { getProposeCalldata, getVoteCalldata } from '../shared/helpers';
 import { StarknetContract, Account } from 'hardhat/types';
 import { strToShortStringArr } from '@snapshot-labs/sx';
 

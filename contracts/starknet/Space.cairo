@@ -234,6 +234,7 @@ func constructor{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_p
     unchecked_add_authenticators(_authenticators_len, _authenticators)
     unchecked_add_executors(_executors_len, _executors)
 
+    # The first proposal in a space will have a proposal ID of 1.
     next_proposal_nonce_store.write(1)
 
     space_created.emit(

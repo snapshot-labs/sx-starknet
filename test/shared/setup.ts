@@ -584,7 +584,7 @@ export async function starknetExecutionSetup() {
     './contracts/starknet/Authenticators/Vanilla.cairo'
   );
   const starknetExecutionStrategyFactory = await starknet.getContractFactory(
-    './contracts/starknet/ExecutionStrategies/Vanilla.cairo'
+    './contracts/starknet/ExecutionStrategies/Starknet.cairo'
   );
 
   const deployments = [

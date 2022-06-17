@@ -54,7 +54,7 @@ func execute{syscall_ptr : felt*, range_check_ptr : felt, pedersen_ptr : HashBui
     proposal_outcome : felt, execution_params_len : felt, execution_params : felt*
 ):
     alloc_locals
-
+    # assert execution_params_len = 1
     # Check that there are `Calls` ton execute in the execution parameters.
     let (is_lower) = is_le(execution_params_len, 4)
     if is_lower == 1:

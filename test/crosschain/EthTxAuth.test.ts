@@ -4,27 +4,9 @@ import { Contract } from 'ethers';
 import { starknet, network, ethers } from 'hardhat';
 import { StarknetContract, Account, HttpNetworkConfig } from 'hardhat/types';
 import { strToShortStringArr } from '@snapshot-labs/sx';
-import { createExecutionHash, getCommit, getProposeCalldata } from '../shared/helpers';
+import { getCommit, getProposeCalldata } from '../shared/helpers';
 import { ethTxAuthSetup } from '../shared/setup';
 import { PROPOSE_SELECTOR } from '../shared/constants';
-
-// Dummy tx
-const tx1 = {
-  to: ethers.Wallet.createRandom().address,
-  value: 0,
-  data: '0x11',
-  operation: 0,
-  nonce: 0,
-};
-
-// Dummy tx 2
-const tx2 = {
-  to: ethers.Wallet.createRandom().address,
-  value: 0,
-  data: '0x22',
-  operation: 0,
-  nonce: 0,
-};
 
 describe('L1 interaction with Snapshot X', function () {
   this.timeout(5000000);
@@ -42,7 +24,6 @@ describe('L1 interaction with Snapshot X', function () {
 
   // Proposal creation parameters
   let spaceAddress: bigint;
-  let executionHash: string;
   let metadataUri: bigint[];
   let proposerEthAddress: string;
   let usedVotingStrategies: bigint[];

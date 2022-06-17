@@ -3,9 +3,15 @@ import { ethers } from 'hardhat';
 import { StarknetContract, Account } from 'hardhat/types';
 import { strToShortStringArr } from '@snapshot-labs/sx';
 import { SplitUint256, Choice } from '../shared/types';
-import { getProposeCalldata, getVoteCalldata, bytesToHex } from '../shared/helpers';
+import {
+  getProposeCalldata,
+  getVoteCalldata,
+  bytesToHex,
+  createStarknetExecutionParams,
+  Call,
+} from '../shared/helpers';
 import { starknetExecutionSetup } from '../shared/setup';
-import { PROPOSE_SELECTOR, VOTE_SELECTOR } from '../shared/constants';
+import { PROPOSE_SELECTOR, VOTE_SELECTOR, AUTHENTICATE_SELECTOR } from '../shared/constants';
 
 describe('Space Testing', () => {
   // Contracts
@@ -17,7 +23,6 @@ describe('Space Testing', () => {
 
   // Proposal creation parameters
   let spaceAddress: bigint;
-  let executionHash: string;
   let metadataUri: bigint[];
   let proposerEthAddress: string;
   let usedVotingStrategies1: bigint[];
@@ -40,7 +45,6 @@ describe('Space Testing', () => {
     ({ space, controller, vanillaAuthenticator, vanillaVotingStrategy, starknetExecutionStrategy } =
       await starknetExecutionSetup());
 
-    executionHash = bytesToHex(ethers.utils.randomBytes(32)); // Random 32 byte hash
     metadataUri = strToShortStringArr(
       'Hello and welcome to Snapshot X. This is the future of governance.'
     );
@@ -48,8 +52,37 @@ describe('Space Testing', () => {
     spaceAddress = BigInt(space.address);
     usedVotingStrategies1 = [BigInt(vanillaVotingStrategy.address)];
     userVotingParamsAll1 = [[]];
-    executionStrategy = BigInt(vanillaExecutionStrategy.address);
-    executionParams = [];
+    executionStrategy = BigInt(starknetExecutionStrategy.address);
+
+    // For the execution of the proposal, we create 2 new dummy proposals
+    const callCalldata1 = getProposeCalldata(
+      proposerEthAddress,
+      metadataUri,
+      executionStrategy,
+      usedVotingStrategies1,
+      userVotingParamsAll1,
+      []
+    );
+    const callCalldata2 = getProposeCalldata(
+      proposerEthAddress,
+      metadataUri,
+      executionStrategy,
+      usedVotingStrategies1,
+      userVotingParamsAll1,
+      []
+    );
+    const call1: Call = {
+      to: BigInt(vanillaAuthenticator.address),
+      functionSelector: AUTHENTICATE_SELECTOR,
+      calldata: [spaceAddress, PROPOSE_SELECTOR, BigInt(callCalldata1.length), ...callCalldata1],
+    };
+    const call2: Call = {
+      to: BigInt(vanillaAuthenticator.address),
+      functionSelector: AUTHENTICATE_SELECTOR,
+      calldata: [spaceAddress, PROPOSE_SELECTOR, BigInt(callCalldata2.length), ...callCalldata2],
+    };
+    executionParams = createStarknetExecutionParams([call1, call2]);
+
     proposeCalldata = getProposeCalldata(
       proposerEthAddress,
       metadataUri,
@@ -86,8 +119,6 @@ describe('Space Testing', () => {
         proposal_id: proposalId,
       });
 
-      const _executionHash = SplitUint256.fromObj(proposal_info.proposal.execution_hash).toUint();
-      expect(_executionHash).to.deep.equal(BigInt(executionHash));
       const _for = SplitUint256.fromObj(proposal_info.power_for).toUint();
       expect(_for).to.deep.equal(BigInt(0));
       const against = SplitUint256.fromObj(proposal_info.power_against).toUint();
@@ -115,12 +146,25 @@ describe('Space Testing', () => {
       expect(abstain).to.deep.equal(BigInt(0));
     }
 
-    // -- Executes the proposal --
+    // -- Executes the proposal, which should create 2 new dummy proposal in the same space
     {
       await space.invoke('finalize_proposal', {
         proposal_id: proposalId,
         execution_params: executionParams,
       });
+
+      let { proposal_info } = await space.call('get_proposal_info', {
+        proposal_id: 2,
+      });
+      // We can check that the proposal was successfully created by checking the execution strategy
+      // as it will be zero if the new proposal was not created
+      expect(proposal_info.proposal.executor).to.deep.equal(executionStrategy);
+
+      // Same for second dummy proposal
+      ({ proposal_info } = await space.call('get_proposal_info', {
+        proposal_id: 3,
+      }));
+      expect(proposal_info.proposal.executor).to.deep.equal(executionStrategy);
     }
   }).timeout(6000000);
 });

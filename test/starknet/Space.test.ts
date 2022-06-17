@@ -3,7 +3,7 @@ import { ethers } from 'hardhat';
 import { StarknetContract, Account } from 'hardhat/types';
 import { strToShortStringArr } from '@snapshot-labs/sx';
 import { SplitUint256, Choice } from '../shared/types';
-import { getProposeCalldata, getVoteCalldata, bytesToHex } from '../shared/helpers';
+import { getProposeCalldata, getVoteCalldata } from '../shared/helpers';
 import { vanillaSetup } from '../shared/setup';
 import { PROPOSE_SELECTOR, VOTE_SELECTOR } from '../shared/constants';
 
@@ -17,7 +17,6 @@ describe('Space Testing', () => {
 
   // Proposal creation parameters
   let spaceAddress: bigint;
-  let executionHash: string;
   let metadataUri: bigint[];
   let proposerEthAddress: string;
   let usedVotingStrategies1: bigint[];
