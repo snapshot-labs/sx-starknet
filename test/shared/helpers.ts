@@ -136,19 +136,15 @@ export function flatten2DArray(array2D: bigint[][]): bigint[] {
 
 export function getProposeCalldata(
   proposerEthAddress: string,
-  executionHash: string,
   metadataUri: bigint[],
   executorAddress: bigint,
   usedVotingStrategies: bigint[],
   usedVotingStrategyParams: bigint[][],
   executionParams: bigint[]
 ): bigint[] {
-  const executionHashUint256 = SplitUint256.fromHex(executionHash);
   const usedVotingStrategyParamsFlat = flatten2DArray(usedVotingStrategyParams);
   return [
     BigInt(proposerEthAddress),
-    executionHashUint256.low,
-    executionHashUint256.high,
     BigInt(metadataUri.length),
     ...metadataUri,
     executorAddress,

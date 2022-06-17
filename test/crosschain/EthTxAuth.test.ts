@@ -65,7 +65,6 @@ describe('L1 interaction with Snapshot X', function () {
       starknetCommit,
     } = await ethTxAuthSetup());
 
-    ({ executionHash } = createExecutionHash(ethers.Wallet.createRandom().address, tx1, tx2));
     metadataUri = strToShortStringArr(
       'Hello and welcome to Snapshot X. This is the future of governance.'
     );
@@ -77,7 +76,6 @@ describe('L1 interaction with Snapshot X', function () {
     executionParams = [];
     proposeCalldata = getProposeCalldata(
       proposerEthAddress,
-      executionHash,
       metadataUri,
       executionStrategy,
       usedVotingStrategies,

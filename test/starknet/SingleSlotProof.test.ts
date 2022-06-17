@@ -60,7 +60,6 @@ describe('Single slot proof voting strategy:', () => {
     } = await singleSlotProofSetup(block, proofs));
 
     proposalId = BigInt(1);
-    executionHash = bytesToHex(ethers.utils.randomBytes(32)); // Random 32 byte hash
     metadataUri = strToShortStringArr(
       'Hello and welcome to Snapshot X. This is the future of governance.'
     );
@@ -73,7 +72,6 @@ describe('Single slot proof voting strategy:', () => {
     executionParams = [];
     proposeCalldata = getProposeCalldata(
       proposerEthAddress,
-      executionHash,
       metadataUri,
       executionStrategy,
       usedVotingStrategies1,

@@ -4,7 +4,7 @@ import { StarknetContract, Account } from 'hardhat/types';
 import { strToShortStringArr } from '@snapshot-labs/sx';
 import { SplitUint256, Choice } from '../shared/types';
 import { getProposeCalldata, getVoteCalldata, bytesToHex } from '../shared/helpers';
-import { vanillaSetup } from '../shared/setup';
+import { starknetExecutionSetup } from '../shared/setup';
 import { PROPOSE_SELECTOR, VOTE_SELECTOR } from '../shared/constants';
 
 describe('Space Testing', () => {
@@ -13,7 +13,7 @@ describe('Space Testing', () => {
   let controller: Account;
   let vanillaAuthenticator: StarknetContract;
   let vanillaVotingStrategy: StarknetContract;
-  let vanillaExecutionStrategy: StarknetContract;
+  let starknetExecutionStrategy: StarknetContract;
 
   // Proposal creation parameters
   let spaceAddress: bigint;
@@ -37,9 +37,10 @@ describe('Space Testing', () => {
   before(async function () {
     this.timeout(800000);
 
-    ({ space, controller, vanillaAuthenticator, vanillaVotingStrategy, vanillaExecutionStrategy } =
-      await vanillaSetup());
+    ({ space, controller, vanillaAuthenticator, vanillaVotingStrategy, starknetExecutionStrategy } =
+      await starknetExecutionSetup());
 
+    executionHash = bytesToHex(ethers.utils.randomBytes(32)); // Random 32 byte hash
     metadataUri = strToShortStringArr(
       'Hello and welcome to Snapshot X. This is the future of governance.'
     );
@@ -85,6 +86,8 @@ describe('Space Testing', () => {
         proposal_id: proposalId,
       });
 
+      const _executionHash = SplitUint256.fromObj(proposal_info.proposal.execution_hash).toUint();
+      expect(_executionHash).to.deep.equal(BigInt(executionHash));
       const _for = SplitUint256.fromObj(proposal_info.power_for).toUint();
       expect(_for).to.deep.equal(BigInt(0));
       const against = SplitUint256.fromObj(proposal_info.power_against).toUint();

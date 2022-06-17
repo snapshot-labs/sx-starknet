@@ -50,7 +50,6 @@ describe('StarkNet Tx Auth testing', () => {
       vanillaExecutionStrategy,
     } = await starkTxAuthSetup());
 
-    executionHash = bytesToHex(ethers.utils.randomBytes(32)); // Random 32 byte hash
     metadataUri = strToShortStringArr(
       'Hello and welcome to Snapshot X. This is the future of governance.'
     );
@@ -62,7 +61,6 @@ describe('StarkNet Tx Auth testing', () => {
     executionParams = [];
     proposeCalldata = getProposeCalldata(
       proposerAddress,
-      executionHash,
       metadataUri,
       executionStrategy,
       usedVotingStrategies1,
@@ -113,9 +111,6 @@ describe('StarkNet Tx Auth testing', () => {
       const { proposal_info } = await space.call('get_proposal_info', {
         proposal_id: proposalId,
       });
-
-      const _executionHash = SplitUint256.fromObj(proposal_info.proposal.execution_hash).toUint();
-      expect(_executionHash).to.deep.equal(BigInt(executionHash));
 
       const _for = SplitUint256.fromObj(proposal_info.power_for).toUint();
       expect(_for).to.deep.equal(BigInt(0));

@@ -573,3 +573,61 @@ export async function starkTxAuthSetup() {
     vanillaExecutionStrategy,
   };
 }
+
+export async function starknetExecutionSetup() {
+  const controller = (await starknet.deployAccount('Argent')) as Account;
+  const spaceFactory = await starknet.getContractFactory('./contracts/starknet/Space.cairo');
+  const vanillaVotingStrategyFactory = await starknet.getContractFactory(
+    './contracts/starknet/VotingStrategies/Vanilla.cairo'
+  );
+  const vanillaAuthenticatorFactory = await starknet.getContractFactory(
+    './contracts/starknet/Authenticators/Vanilla.cairo'
+  );
+  const starknetExecutionStrategyFactory = await starknet.getContractFactory(
+    './contracts/starknet/ExecutionStrategies/Vanilla.cairo'
+  );
+
+  const deployments = [
+    vanillaAuthenticatorFactory.deploy(),
+    vanillaVotingStrategyFactory.deploy(),
+    starknetExecutionStrategyFactory.deploy(),
+  ];
+  const contracts = await Promise.all(deployments);
+  const vanillaAuthenticator = contracts[0] as StarknetContract;
+  const vanillaVotingStrategy = contracts[1] as StarknetContract;
+  const starknetExecutionStrategy = contracts[2] as StarknetContract;
+
+  const votingDelay = BigInt(0);
+  const minVotingDuration = BigInt(0);
+  const maxVotingDuration = BigInt(2000);
+  const votingStrategies: bigint[] = [BigInt(vanillaVotingStrategy.address)];
+  const votingStrategyParams: bigint[][] = [[]]; // No params for the vanilla voting strategy
+  const votingStrategyParamsFlat: bigint[] = flatten2DArray(votingStrategyParams);
+  const authenticators: bigint[] = [BigInt(vanillaAuthenticator.address)];
+  const executors: bigint[] = [BigInt(starknetExecutionStrategy.address)];
+  const quorum: SplitUint256 = SplitUint256.fromUint(BigInt(1)); //  Quorum of one for the vanilla test
+  const proposalThreshold: SplitUint256 = SplitUint256.fromUint(BigInt(1)); // Proposal threshold of 1 for the vanilla test
+
+  console.log('Deploying space contract...');
+  const space = (await spaceFactory.deploy({
+    _voting_delay: votingDelay,
+    _min_voting_duration: minVotingDuration,
+    _max_voting_duration: maxVotingDuration,
+    _proposal_threshold: proposalThreshold,
+    _controller: BigInt(controller.starknetContract.address),
+    _quorum: quorum,
+    _voting_strategy_params_flat: votingStrategyParamsFlat,
+    _voting_strategies: votingStrategies,
+    _authenticators: authenticators,
+    _executors: executors,
+  })) as StarknetContract;
+  console.log('deployed!');
+
+  return {
+    space,
+    controller,
+    vanillaAuthenticator,
+    vanillaVotingStrategy,
+    starknetExecutionStrategy,
+  };
+}
