@@ -58,7 +58,7 @@ describe('Space Testing', () => {
     const callCalldata1 = getProposeCalldata(
       proposerEthAddress,
       metadataUri,
-      executionStrategy,
+      BigInt(1234),
       usedVotingStrategies1,
       userVotingParamsAll1,
       []
@@ -66,7 +66,7 @@ describe('Space Testing', () => {
     const callCalldata2 = getProposeCalldata(
       proposerEthAddress,
       metadataUri,
-      executionStrategy,
+      BigInt(4567),
       usedVotingStrategies1,
       userVotingParamsAll1,
       []
@@ -82,7 +82,7 @@ describe('Space Testing', () => {
       calldata: [spaceAddress, PROPOSE_SELECTOR, BigInt(callCalldata2.length), ...callCalldata2],
     };
     executionParams = createStarknetExecutionParams([call1, call2]);
-
+    console.log(executionParams);
     proposeCalldata = getProposeCalldata(
       proposerEthAddress,
       metadataUri,
@@ -158,13 +158,13 @@ describe('Space Testing', () => {
       });
       // We can check that the proposal was successfully created by checking the execution strategy
       // as it will be zero if the new proposal was not created
-      expect(proposal_info.proposal.executor).to.deep.equal(executionStrategy);
+      expect(proposal_info.proposal.executor).to.deep.equal(BigInt(1234));
 
       // Same for second dummy proposal
       ({ proposal_info } = await space.call('get_proposal_info', {
         proposal_id: 3,
       }));
-      expect(proposal_info.proposal.executor).to.deep.equal(executionStrategy);
+      expect(proposal_info.proposal.executor).to.deep.equal(BigInt(4567));
     }
   }).timeout(6000000);
 });

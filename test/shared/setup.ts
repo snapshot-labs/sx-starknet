@@ -604,7 +604,11 @@ export async function starknetExecutionSetup() {
   const votingStrategyParams: bigint[][] = [[]]; // No params for the vanilla voting strategy
   const votingStrategyParamsFlat: bigint[] = flatten2DArray(votingStrategyParams);
   const authenticators: bigint[] = [BigInt(vanillaAuthenticator.address)];
-  const executors: bigint[] = [BigInt(starknetExecutionStrategy.address)];
+  const executors: bigint[] = [
+    BigInt(starknetExecutionStrategy.address),
+    BigInt(1234),
+    BigInt(4567),
+  ]; // We add dummy executors that get used in the test transactions
   const quorum: SplitUint256 = SplitUint256.fromUint(BigInt(1)); //  Quorum of one for the vanilla test
   const proposalThreshold: SplitUint256 = SplitUint256.fromUint(BigInt(1)); // Proposal threshold of 1 for the vanilla test
 
