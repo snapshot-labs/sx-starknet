@@ -71,6 +71,14 @@ describe('Space Testing', () => {
       userVotingParamsAll1,
       []
     );
+    const callCalldata3 = getProposeCalldata(
+      proposerEthAddress,
+      metadataUri,
+      BigInt(456789),
+      usedVotingStrategies1,
+      userVotingParamsAll1,
+      []
+    );
     const call1: Call = {
       to: BigInt(vanillaAuthenticator.address),
       functionSelector: AUTHENTICATE_SELECTOR,
@@ -81,8 +89,13 @@ describe('Space Testing', () => {
       functionSelector: AUTHENTICATE_SELECTOR,
       calldata: [spaceAddress, PROPOSE_SELECTOR, BigInt(callCalldata2.length), ...callCalldata2],
     };
-    executionParams = createStarknetExecutionParams([call1, call2]);
-    console.log(executionParams);
+    const call3: Call = {
+      to: BigInt(vanillaAuthenticator.address),
+      functionSelector: AUTHENTICATE_SELECTOR,
+      calldata: [spaceAddress, PROPOSE_SELECTOR, BigInt(callCalldata3.length), ...callCalldata3],
+    };
+    executionParams = createStarknetExecutionParams([call1, call2, call3]);
+
     proposeCalldata = getProposeCalldata(
       proposerEthAddress,
       metadataUri,
@@ -165,6 +178,11 @@ describe('Space Testing', () => {
         proposal_id: 3,
       }));
       expect(proposal_info.proposal.executor).to.deep.equal(BigInt(4567));
+
+      ({ proposal_info } = await space.call('get_proposal_info', {
+        proposal_id: 4,
+      }));
+      expect(proposal_info.proposal.executor).to.deep.equal(BigInt(456789));
     }
   }).timeout(6000000);
 });

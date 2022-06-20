@@ -608,6 +608,7 @@ export async function starknetExecutionSetup() {
     BigInt(starknetExecutionStrategy.address),
     BigInt(1234),
     BigInt(4567),
+    BigInt(456789),
   ]; // We add dummy executors that get used in the test transactions
   const quorum: SplitUint256 = SplitUint256.fromUint(BigInt(1)); //  Quorum of one for the vanilla test
   const proposalThreshold: SplitUint256 = SplitUint256.fromUint(BigInt(1)); // Proposal threshold of 1 for the vanilla test
