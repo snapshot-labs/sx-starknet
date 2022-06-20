@@ -46,6 +46,13 @@ async function main() {
       )
       .toString('ascii')
   );
+  const compiledStarknetExecutionStrategy = json.parse(
+    fs
+      .readFileSync(
+        './starknet-artifacts/contracts/starknet/ExecutionStrategies/Starknet.cairo/Starknet.json'
+      )
+      .toString('ascii')
+  );
   const compiledSpace = json.parse(
     fs
       .readFileSync('./starknet-artifacts/contracts/starknet/Space.cairo/Space.json')
@@ -59,6 +66,7 @@ async function main() {
     defaultProvider.deployContract({ contract: compiledSingleSlotProofVotingStrategy }),
     defaultProvider.deployContract({ contract: compiledVanillaExecutionStrategy }),
     defaultProvider.deployContract({ contract: compiledZodiacRelayerExecutionStrategy }),
+    defaultProvider.deployContract({ contract: compiledStarknetExecutionStrategy }),
   ];
   const responses = await Promise.all(deployTxs);
   const vanillaAuthenticatorAddress = responses[0].address!;
@@ -67,7 +75,7 @@ async function main() {
   const singleSlotProofVotingStrategyAddress = responses[3].address!;
   const vanillaExecutionStrategyAddress = responses[4].address!;
   const zodiacRelayerExecutionStrategyAddress = responses[5].address!;
-
+  const starknetExecutionStrategyAddress = responses[6].address!;
   console.log(responses);
 
   const votingDelay = BigInt(0);
@@ -89,6 +97,7 @@ async function main() {
   const executors: bigint[] = [
     BigInt(vanillaExecutionStrategyAddress),
     BigInt(zodiacRelayerExecutionStrategyAddress),
+    BigInt(starknetExecutionStrategyAddress),
   ];
   const quorum: SplitUint256 = SplitUint256.fromUint(BigInt(1)); //  Quorum of one for the vanilla test
   const proposalThreshold: SplitUint256 = SplitUint256.fromUint(BigInt(1)); // Proposal threshold of 1 for the vanilla test
@@ -146,10 +155,12 @@ async function main() {
       executionStrategies: {
         Vanilla: vanillaExecutionStrategyAddress,
         zodiacRelayer: zodiacRelayerExecutionStrategyAddress,
+        Starknet: starknetExecutionStrategyAddress,
       },
     },
   };
-  fs.writeFileSync('./deployments/goerli1.json', JSON.stringify(deployments));
+
+  fs.writeFileSync('./deployments/goerli2.json', JSON.stringify(deployments));
 }
 
 main()

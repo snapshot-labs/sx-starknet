@@ -24,7 +24,6 @@ describe('Single slot proof voting strategy:', () => {
 
   // Proposal creation parameters
   let spaceAddress: bigint;
-  let executionHash: string;
   let metadataUri: bigint[];
   let proposerEthAddress: string;
   let usedVotingStrategies1: bigint[];
@@ -120,8 +119,6 @@ describe('Single slot proof voting strategy:', () => {
         proposal_id: proposalId,
       });
 
-      const _executionHash = SplitUint256.fromObj(proposal_info.proposal.execution_hash).toUint();
-      expect(_executionHash).to.deep.equal(BigInt(executionHash));
       const _for = SplitUint256.fromObj(proposal_info.power_for).toUint();
       expect(_for).to.deep.equal(BigInt(0));
       const against = SplitUint256.fromObj(proposal_info.power_against).toUint();

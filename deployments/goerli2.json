@@ -1,0 +1,34 @@
+{
+    "space": {
+        "address": "0x794d325db8a7e60b1671c7280e697260433af01b017235f9ce092e775dacdf8",
+        "authenticators": {
+            "StarkTx": "0x6b468438f5692139f657f42ba54ac89a8944eda73088173489fe3cae08addfb",
+            "Vanilla": "0x406c761687627770ffe3913904215c4652bd9f06b72046b301ce4aee093329f"
+        },
+        "controller": "0x0070d911463b2cb48de8bfec826483631cdc492a6c5798917651297769fc9d68",
+        "executionStrategies": {
+            "Starknet": "0x76c99e71d34564a754c3a4bba02ff7c45c6e4264afce540827085348b4dc6aa",
+            "Vanilla": "0x4194fa1be0fce6f70e8b8d3e2b4730467f80637878f9e5111db0cefefb0da72",
+            "zodiacRelayer": "0xcf166a5c95d1d49109d058fc4a89b6a5ae6e2abc4f487f24a5d9fb6ee947b0"
+        },
+        "maxVotingDuration": "0x7d0",
+        "minVotingDuration": "0x0",
+        "name": "Test space",
+        "proposalThreshold": "0x1",
+        "quorum": "0x1",
+        "votingStrategies": {
+            "SingleSlotProof": {
+                "address": "0x275b259a35fe0be03d9f211aefcc04c5f5e3fec89e87b8681f84bae87535b51",
+                "parameters": [
+                    "0x7Fc66500c84A76Ad7e9c93437bFc5Ac33E2DDaE9",
+                    "0x0"
+                ]
+            },
+            "Vanilla": {
+                "address": "0x244949da6544e5b8281e4bb2b06107fa0cbfd7169d89762e4f960379eb6b3b2",
+                "parameters": [
+                ]
+            }
+        }
+    }
+}
