@@ -296,8 +296,13 @@ func unchecked_add_voting_strategies{
         # Extract voting params for the voting strategy
         let (params_len, params) = get_sub_array(params_all, index)
 
-        # Add voting params
-        unchecked_add_voting_strategy_params(to_add[0], params_len, params, 0)
+        # Storing voting strategy params
+
+        # The first element of the voting strategy params array is the length of the param array
+        voting_strategy_params_store.write(to_add[0], 0, params_len)
+
+        # The following elements are the actual params
+        unchecked_add_voting_strategy_params(to_add[0], params_len, params, 1)
 
         unchecked_add_voting_strategies(to_add_len - 1, &to_add[1], params_all, index + 1)
         return ()
@@ -413,17 +418,19 @@ func get_cumulative_voting_power{syscall_ptr : felt*, pedersen_ptr : HashBuiltin
         assert is_valid = 1
     end
 
-    # Initialize empty array to store voting params
-    let (voting_strategy_params : felt*) = alloc()
-
-    # Retrieve voting strategy params
-    let (voting_strategy_params_len) = get_voting_strategy_params(
-        voting_strategy, voting_strategy_params, 0
-    )
-
     # Extract voting params array for the voting strategy specified by the index
     let (user_voting_strategy_params_len, user_voting_strategy_params) = get_sub_array(
         user_voting_strategy_params_all, index
+    )
+
+    # Initialize empty array to store voting params
+    let (voting_strategy_params : felt*) = alloc()
+
+    # Check that voting strategy params exist by the length which is stored in the first element of the array
+    let (voting_strategy_params_len) = voting_strategy_params_store.read(voting_strategy, 0)
+
+    let (voting_strategy_params_len, voting_strategy_params) = get_voting_strategy_params(
+        voting_strategy, voting_strategy_params_len, voting_strategy_params, 1
     )
 
     let (user_voting_power) = IVotingStrategy.get_voting_power(
@@ -456,21 +463,30 @@ end
 
 # Function to reconstruct voting param array for voting strategy specified
 func get_voting_strategy_params{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr}(
-    _voting_strategy_contract : felt, _voting_strategy_params : felt*, index : felt
-) -> (voting_strategy_params_len : felt):
+    _voting_strategy_contract : felt,
+    voting_strategy_params_len : felt,
+    voting_strategy_params : felt*,
+    index : felt,
+) -> (voting_strategy_params_len : felt, voting_strategy_params : felt*):
+    # The are no parameters so we just return an empty array
+    if voting_strategy_params_len == 0:
+        return (0, voting_strategy_params)
+    end
+
     let (voting_strategy_param) = voting_strategy_params_store.read(
         _voting_strategy_contract, index
     )
-    if voting_strategy_param == 0:
-        return (index)
-    else:
-        assert _voting_strategy_params[index] = voting_strategy_param
+    assert voting_strategy_params[index - 1] = voting_strategy_param
 
-        let (voting_strategy_params_len) = get_voting_strategy_params(
-            _voting_strategy_contract, _voting_strategy_params, index + 1
-        )
-        return (voting_strategy_params_len)
+    # All parameters have been added to the array so we can return it
+    if index == voting_strategy_params_len:
+        return (voting_strategy_params_len, voting_strategy_params)
     end
+
+    let (voting_strategy_params_len, voting_strategy_params) = get_voting_strategy_params(
+        _voting_strategy_contract, voting_strategy_params_len, voting_strategy_params, index + 1
+    )
+    return (voting_strategy_params_len, voting_strategy_params)
 end
 
 #
