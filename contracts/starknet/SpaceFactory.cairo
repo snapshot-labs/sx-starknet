@@ -4,7 +4,7 @@ from starkware.cairo.common.cairo_builtins import HashBuiltin
 from starkware.cairo.common.uint256 import Uint256
 from starkware.cairo.common.alloc import alloc
 from starkware.cairo.common.memcpy import memcpy
-from starkware.starknet.common.syscalls import deploy
+from starkware.starknet.common.syscalls import deploy, get_caller_address
 
 @storage_var
 func salt() -> (value : felt):
@@ -15,7 +15,22 @@ func space_class_hash_store() -> (value : felt):
 end
 
 @event
-func space_deployed(address : felt):
+func space_deployed(
+    deployer_address : felt,
+    space_address : felt,
+    _voting_delay : felt,
+    _min_voting_duration : felt,
+    _max_voting_duration : felt,
+    _proposal_threshold : Uint256,
+    _controller : felt,
+    _quorum : Uint256,
+    _voting_strategies_len : felt,
+    _voting_strategies : felt*,
+    _authenticators_len : felt,
+    _authenticators : felt*,
+    _executors_len : felt,
+    _executors : felt*,
+):
 end
 
 @constructor
@@ -71,6 +86,7 @@ func deploy_space{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_
         _executors,
         _executors_len,
     )
+    let (deployer_address) = get_caller_address()
     let calldata_len = 12 + _voting_strategies_len + _voting_strategy_params_flat_len + _authenticators_len + _executors_len
     let (current_salt) = salt.read()
     let (space_class_hash) = space_class_hash_store.read()
@@ -81,6 +97,23 @@ func deploy_space{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_
         constructor_calldata=calldata,
     )
     salt.write(value=current_salt + 1)
-    space_deployed.emit(space_address)
+
+    # NOTE: We should probably remove the space creation event from the space constructor and just use this one
+    space_deployed.emit(
+        deployer_address,
+        space_address,
+        _voting_delay,
+        _min_voting_duration,
+        _max_voting_duration,
+        _proposal_threshold,
+        _controller,
+        _quorum,
+        _voting_strategies_len,
+        _voting_strategies,
+        _authenticators_len,
+        _authenticators,
+        _executors_len,
+        _executors,
+    )
     return ()
 end
