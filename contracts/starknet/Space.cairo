@@ -296,9 +296,7 @@ func unchecked_add_voting_strategies{
         # Extract voting params for the voting strategy
         let (params_len, params) = get_sub_array(params_all, index)
 
-        # Storing voting strategy params
-
-        # The first element of the voting strategy params array is the length of the param array
+        # We store the length of the voting strategy params array in the first parameter
         voting_strategy_params_store.write(to_add[0], 0, params_len)
 
         # The following elements are the actual params
@@ -324,9 +322,6 @@ func unchecked_add_voting_strategy_params{
     end
 end
 
-# NOTE: We need to think carefully about how to handle the case where a voting strategy is removed.
-# Do we also need to remove the voting strategy params? Currently we are not.
-# Setting the voting strategy to 0 will remove it from the store, but what happens if someone re-adds the strategy but with different params?
 func unchecked_remove_voting_strategies{
     syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr : felt
 }(to_remove_len : felt, to_remove : felt*):
@@ -335,9 +330,33 @@ func unchecked_remove_voting_strategies{
     else:
         voting_strategies_store.write(to_remove[0], 0)
 
+        let (params_len) = voting_strategy_params_store.read(to_remove[0], 0)
+
+        unchecked_remove_voting_strategy_params(to_remove[0], params_len, 1)
+
+        voting_strategy_params_store.write(to_remove[0], 0, 0)
+
         unchecked_remove_voting_strategies(to_remove_len - 1, &to_remove[1])
         return ()
     end
+end
+
+func unchecked_remove_voting_strategy_params{
+    syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr
+}(to_remove : felt, params_len : felt, index : felt):
+    if params_len == 0:
+        # List is empty
+        return ()
+    end
+    if index == params_len + 1:
+        # All params have been removed from the array
+        return ()
+    end
+    # Remove voting parameter
+    voting_strategy_params_store.write(to_remove, index, 0)
+    # Recurse
+    unchecked_remove_voting_strategy_params(to_remove, params_len, index + 1)
+    return ()
 end
 
 func unchecked_add_authenticators{
