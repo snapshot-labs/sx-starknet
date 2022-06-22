@@ -296,7 +296,7 @@ func unchecked_add_voting_strategies{
         # Extract voting params for the voting strategy
         let (params_len, params) = get_sub_array(params_all, index)
 
-        # We store the length of the voting strategy params array in the first parameter
+        # We store the length of the voting strategy params array at index zero
         voting_strategy_params_store.write(to_add[0], 0, params_len)
 
         # The following elements are the actual params
@@ -316,7 +316,7 @@ func unchecked_add_voting_strategy_params{
     else:
         # Store voting parameter
         voting_strategy_params_store.write(to_add, index, params[0])
-        # Recurse
+
         unchecked_add_voting_strategy_params(to_add, params_len - 1, &params[1], index + 1)
         return ()
     end
@@ -330,11 +330,13 @@ func unchecked_remove_voting_strategies{
     else:
         voting_strategies_store.write(to_remove[0], 0)
 
+        # The length of the voting strategy params is stored at index zero
         let (params_len) = voting_strategy_params_store.read(to_remove[0], 0)
 
-        unchecked_remove_voting_strategy_params(to_remove[0], params_len, 1)
-
         voting_strategy_params_store.write(to_remove[0], 0, 0)
+
+        # Removing voting strategy params
+        unchecked_remove_voting_strategy_params(to_remove[0], params_len, 1)
 
         unchecked_remove_voting_strategies(to_remove_len - 1, &to_remove[1])
         return ()
@@ -354,7 +356,7 @@ func unchecked_remove_voting_strategy_params{
     end
     # Remove voting parameter
     voting_strategy_params_store.write(to_remove, index, 0)
-    # Recurse
+
     unchecked_remove_voting_strategy_params(to_remove, params_len, index + 1)
     return ()
 end
