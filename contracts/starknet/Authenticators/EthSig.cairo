@@ -5,7 +5,7 @@ from starkware.cairo.common.cairo_builtins import BitwiseBuiltin
 from starkware.cairo.common.uint256 import Uint256, uint256_eq, uint256_mul, uint256_unsigned_div_rem, uint256_sub
 from starkware.cairo.common.alloc import alloc
 from starkware.cairo.common.memcpy import memcpy
-from starkware.cairo.common.cairo_keccak.keccak import keccak_uint256s, keccak_uint256s_bigend, keccak_add_uint256s, keccak_bigend
+from starkware.cairo.common.cairo_keccak.keccak import keccak_uint256s, keccak_uint256s_bigend, keccak_add_uint256s, keccak_bigend, keccak
 from starkware.cairo.common.bitwise import bitwise_and
 from starkware.cairo.common.cairo_secp.signature import verify_eth_signature_uint256
 from starkware.cairo.common.cairo_secp.bigint import uint256_to_bigint
@@ -65,7 +65,7 @@ const VOTE_HASH_LOW = 0x75ba32fff928b67c45d391a0bfac1c0
 const DOMAIN_HASH_HIGH = 0x4ea062c13aa1ccc0dde3383926ef9137
 const DOMAIN_HASH_LOW = 0x72c5ab51b06b74e448d6b02ce79ba93c
 
-func add_prefix{range_check_ptr, bitwise_ptr : BitwiseBuiltin*}(value : felt, prefix : felt) -> (
+func add_prefix64{range_check_ptr, bitwise_ptr : BitwiseBuiltin*}(value : felt, prefix : felt) -> (
         result : felt, overflow):
     let shifted_prefix = prefix * 2 ** 64
     # with_prefix is 10 bytes long
@@ -76,20 +76,32 @@ func add_prefix{range_check_ptr, bitwise_ptr : BitwiseBuiltin*}(value : felt, pr
     return (result, overflow)
 end
 
-func recurse_prepend{range_check_ptr, bitwise_ptr : BitwiseBuiltin*}(prefix: felt, signable_bytes: felt*, inputs_len: felt, inputs: felt*):
-    return ()
+# value has to be a 16 byte word
+# prefix length = PREFIX_BITS
+func add_prefix128{range_check_ptr, bitwise_ptr : BitwiseBuiltin*}(value : felt, prefix : felt) -> (
+        result : felt, overflow):
+    let shifted_prefix = prefix * 2 ** 128
+    # with_prefix is 18 bytes long
+    let with_prefix = shifted_prefix + value
+    let overflow_mask = 2 ** 16 - 1
+    let (overflow) = bitwise_and(with_prefix, overflow_mask)
+    let result = (with_prefix - overflow) / 2 ** 16 # TODO: remove -overflow?
+    return (result, overflow)
 end
 
-func prepend_prefix{range_check_ptr, bitwise_ptr : BitwiseBuiltin*}(prefix: felt, signable_bytes: felt*, inputs_len: felt, inputs: felt*):
-    if inputs_len == 0:
-        assert signable_bytes[0] = prefix
+func prepend_prefix{range_check_ptr, bitwise_ptr : BitwiseBuiltin*}(prefix: felt, output: Uint256*, input_len: felt, input: Uint256*):
+    if input_len == 0:
+        assert output[0] = Uint256(0, prefix * 16 ** 28)
         return ()
     else:
-        let (w0, prefix) = add_prefix(inputs[0], prefix)
+        let num = input[0]
+        let (w1, prefix) = add_prefix128(num.high, prefix)
+        let (w0, prefix) = add_prefix128(num.low, prefix)
 
-        assert signable_bytes[0] = w0
+        let res = Uint256(w0, w1)
+        assert output[0] = res
 
-        prepend_prefix(prefix, &signable_bytes[1], inputs_len - 1, &inputs[1])
+        prepend_prefix(prefix, &output[1], input_len - 1, &input[1])
         return ()
     end
 end
@@ -99,15 +111,15 @@ func keccak_uint256s_precise_bytes{range_check_ptr, bitwise_ptr : BitwiseBuiltin
 ) -> (res : Uint256):
     alloc_locals
 
-    let (inputs) = alloc()
-    let inputs_start = inputs
-
-    keccak_add_uint256s{inputs=inputs}(n_elements=n_elements, elements=elements, bigend=1)
+    let (prefixed_uints: Uint256*) = alloc()
+    prepend_prefix(ETHEREUM_PREFIX, prefixed_uints, n_elements, elements)
 
     let (signable_bytes) = alloc()
-    prepend_prefix(ETHEREUM_PREFIX, signable_bytes, n_elements * 4, inputs_start)
+    let signable_bytes_start = signable_bytes
 
-    return keccak_bigend(inputs=signable_bytes, n_bytes=n_elements * 32 + 2)
+    keccak_add_uint256s{inputs=signable_bytes}(n_elements=n_elements + 1, elements=prefixed_uints, bigend=1)
+
+    return keccak_bigend(inputs=signable_bytes_start, n_bytes=n_elements * 32 + 2)
 end
 
 func get_keccak_hash{range_check_ptr, bitwise_ptr: BitwiseBuiltin*}(uint256_words_len : felt, uint256_words : Uint256*) -> (hash : Uint256):
@@ -202,6 +214,8 @@ func authenticate_proposal{range_check_ptr, bitwise_ptr: BitwiseBuiltin*}(msg_ha
     # let metadata_uri_len = calldata[3]
     # metadata_uri pointer should be in calldata[5]
     # let metadata_uri = cast(calldata[4], felt*)
+    # tempvar a = 3
+    # %{ print(f"Printing {ids.a=}") %}
 
     # now construct the hash
     let (encoded_data: Uint256*) = alloc()
@@ -222,12 +236,12 @@ func authenticate_proposal{range_check_ptr, bitwise_ptr: BitwiseBuiltin*}(msg_ha
     let (recovered_hash) = keccak_uint256s_precise_bytes{keccak_ptr=keccak_ptr}(2, prepared)
 
     let (is_eq) = uint256_eq(recovered_hash, msg_hash)
-    with_attr error_message("Incorrect hash!"):
+    with_attr error_message("invalid hash"):
         assert is_eq = 1
     end
     
     let (local keccak_ptr : felt*) = alloc()
-    verify_eth_signature_uint256{keccak_ptr=keccak_ptr}(recovered_hash, r, s, v, eth_address)
+    verify_eth_signature_uint256{keccak_ptr=keccak_ptr}(recovered_hash, r, s, v - 27, eth_address)
 
     #TODO: CALL FINALIZE_KECCAK
 
