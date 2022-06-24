@@ -3,7 +3,7 @@ import { BigNumberish } from 'starknet/dist/utils/number';
 
 export const domain = {
   name: 'snapshot-x',
-  version: '1'
+  version: '1',
 };
 
 export const proposeTypes = {
@@ -11,7 +11,7 @@ export const proposeTypes = {
     { name: 'salt', type: 'uint256' },
     { name: 'space', type: 'bytes32' },
     { name: 'executionHash', type: 'bytes32' },
-  ]
+  ],
 };
 
 export const voteTypes = {
@@ -19,8 +19,8 @@ export const voteTypes = {
     { name: 'salt', type: 'uint256' },
     { name: 'space', type: 'bytes32' },
     { name: 'proposal', type: 'uint256' },
-    { name: 'choice', type: 'uint256' }
-  ]
+    { name: 'choice', type: 'uint256' },
+  ],
 };
 
 export interface Propose {

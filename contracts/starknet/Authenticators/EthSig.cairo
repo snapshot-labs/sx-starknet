@@ -2,10 +2,21 @@
 from contracts.starknet.lib.execute import execute
 from contracts.starknet.lib.felt_to_uint256 import felt_to_uint256
 from starkware.cairo.common.cairo_builtins import BitwiseBuiltin
-from starkware.cairo.common.uint256 import Uint256, uint256_eq, uint256_mul, uint256_unsigned_div_rem, uint256_sub
+from starkware.cairo.common.uint256 import (
+    Uint256,
+    uint256_eq,
+    uint256_mul,
+    uint256_unsigned_div_rem,
+    uint256_sub,
+)
 from starkware.cairo.common.alloc import alloc
 from starkware.cairo.common.memcpy import memcpy
-from starkware.cairo.common.cairo_keccak.keccak import keccak_uint256s_bigend, keccak_add_uint256s, keccak_bigend, finalize_keccak
+from starkware.cairo.common.cairo_keccak.keccak import (
+    keccak_uint256s_bigend,
+    keccak_add_uint256s,
+    keccak_bigend,
+    finalize_keccak,
+)
 from starkware.cairo.common.bitwise import bitwise_and
 from starkware.cairo.common.cairo_secp.signature import verify_eth_signature_uint256
 from starkware.cairo.common.cairo_secp.bigint import uint256_to_bigint
@@ -44,13 +55,14 @@ const DOMAIN_HASH_HIGH = 0x4ea062c13aa1ccc0dde3383926ef9137
 const DOMAIN_HASH_LOW = 0x72c5ab51b06b74e448d6b02ce79ba93c
 
 @storage_var
-func salts(user: felt, salt: Uint256) -> (already_used: felt):
+func salts(user : felt, salt : Uint256) -> (already_used : felt):
 end
 
 # value has to be a 16 byte word
 # prefix length = PREFIX_BITS
 func add_prefix128{range_check_ptr, bitwise_ptr : BitwiseBuiltin*}(value : felt, prefix : felt) -> (
-        result : felt, overflow):
+    result : felt, overflow
+):
     let shifted_prefix = prefix * 2 ** 128
     # with_prefix is 18 bytes long
     let with_prefix = shifted_prefix + value
@@ -60,7 +72,9 @@ func add_prefix128{range_check_ptr, bitwise_ptr : BitwiseBuiltin*}(value : felt,
     return (result, overflow)
 end
 
-func prepend_prefix_2bytes{range_check_ptr, bitwise_ptr : BitwiseBuiltin*}(prefix: felt, output: Uint256*, input_len: felt, input: Uint256*):
+func prepend_prefix_2bytes{range_check_ptr, bitwise_ptr : BitwiseBuiltin*}(
+    prefix : felt, output : Uint256*, input_len : felt, input : Uint256*
+):
     if input_len == 0:
         assert output[0] = Uint256(0, prefix * 16 ** 28)
         return ()
@@ -77,7 +91,9 @@ func prepend_prefix_2bytes{range_check_ptr, bitwise_ptr : BitwiseBuiltin*}(prefi
     end
 end
 
-func get_keccak_hash{range_check_ptr, bitwise_ptr: BitwiseBuiltin*, keccak_ptr: felt*}(uint256_words_len : felt, uint256_words : Uint256*) -> (hash : Uint256):
+func get_keccak_hash{range_check_ptr, bitwise_ptr : BitwiseBuiltin*, keccak_ptr : felt*}(
+    uint256_words_len : felt, uint256_words : Uint256*
+) -> (hash : Uint256):
     alloc_locals
 
     let (hash) = keccak_uint256s_bigend{keccak_ptr=keccak_ptr}(uint256_words_len, uint256_words)
@@ -87,7 +103,7 @@ end
 
 # will not work for 0
 # might need to optimize this?
-func get_base16_len{range_check_ptr}(num: Uint256) -> (res: felt):
+func get_base16_len{range_check_ptr}(num : Uint256) -> (res : felt):
     let (is_eq) = uint256_eq(num, Uint256(0, 0))
     if is_eq == 1:
         return (0)
@@ -98,7 +114,7 @@ func get_base16_len{range_check_ptr}(num: Uint256) -> (res: felt):
     end
 end
 
-func u256_pow{range_check_ptr}(base: Uint256, exp: Uint256) -> (res: Uint256):
+func u256_pow{range_check_ptr}(base : Uint256, exp : Uint256) -> (res : Uint256):
     alloc_locals
 
     let zero = Uint256(0, 0)
@@ -120,7 +136,7 @@ func u256_pow{range_check_ptr}(base: Uint256, exp: Uint256) -> (res: Uint256):
     end
 end
 
-func pad_right{range_check_ptr}(num: Uint256) -> (res: Uint256):
+func pad_right{range_check_ptr}(num : Uint256) -> (res : Uint256):
     alloc_locals
 
     let (len_base16) = get_base16_len(num)
@@ -148,7 +164,18 @@ func pad_right{range_check_ptr}(num: Uint256) -> (res: Uint256):
     return (padded)
 end
 
-func authenticate_proposal{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_ptr, bitwise_ptr: BitwiseBuiltin*}(msg_hash: Uint256, r: Uint256, s: Uint256, v: felt, salt : Uint256, target : felt, calldata_len : felt, calldata : felt*):
+func authenticate_proposal{
+    syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr, bitwise_ptr : BitwiseBuiltin*
+}(
+    msg_hash : Uint256,
+    r : Uint256,
+    s : Uint256,
+    v : felt,
+    salt : Uint256,
+    target : felt,
+    calldata_len : felt,
+    calldata : felt*,
+):
     alloc_locals
 
     # Proposer address should be located in calldata[0]
@@ -177,25 +204,25 @@ func authenticate_proposal{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range
     # let metadata_uri = cast(calldata[4], felt*)
 
     # Now construct the data hash (hashStruct)
-    let (data: Uint256*) = alloc()
+    let (data : Uint256*) = alloc()
 
     assert data[0] = Uint256(PROPOSAL_HASH_LOW, PROPOSAL_HASH_HIGH)
     assert data[1] = salt
     assert data[2] = padded_space
     assert data[3] = padded_execution_hash
 
-    let (local keccak_ptr : felt*) = alloc() 
+    let (local keccak_ptr : felt*) = alloc()
     let keccak_ptr_start = keccak_ptr
 
     let (hash_struct) = get_keccak_hash{keccak_ptr=keccak_ptr}(4, data)
 
     # Prepare the encoded data
-    let (prepared_encoded: Uint256*) = alloc()
+    let (prepared_encoded : Uint256*) = alloc()
     assert prepared_encoded[0] = Uint256(DOMAIN_HASH_LOW, DOMAIN_HASH_HIGH)
     assert prepared_encoded[1] = hash_struct
 
     # Prepend the ethereum prefix
-    let (encoded_data: Uint256*) = alloc()
+    let (encoded_data : Uint256*) = alloc()
     prepend_prefix_2bytes(ETHEREUM_PREFIX, encoded_data, 2, prepared_encoded)
 
     # Now go from Uint256s to Uint64s (required in order to call `keccak`)
@@ -204,7 +231,9 @@ func authenticate_proposal{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range
     keccak_add_uint256s{inputs=signable_bytes}(n_elements=3, elements=encoded_data, bigend=1)
 
     # Compute the hash
-    let (hash) = keccak_bigend{keccak_ptr=keccak_ptr}(inputs=signable_bytes_start, n_bytes=2 * 32 + 2)
+    let (hash) = keccak_bigend{keccak_ptr=keccak_ptr}(
+        inputs=signable_bytes_start, n_bytes=2 * 32 + 2
+    )
 
     # `v` is supposed to be `yParity` and not the `v` usually used in the Ethereum world (pre-EIP155).
     # We substract `27` because `v` = `{0, 1} + 27`
@@ -219,7 +248,18 @@ func authenticate_proposal{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range
     return ()
 end
 
-func authenticate_vote{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_ptr, bitwise_ptr: BitwiseBuiltin*}(msg_hash: Uint256, r: Uint256, s: Uint256, v: felt, salt : Uint256, target : felt, calldata_len : felt, calldata : felt*):
+func authenticate_vote{
+    syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr, bitwise_ptr : BitwiseBuiltin*
+}(
+    msg_hash : Uint256,
+    r : Uint256,
+    s : Uint256,
+    v : felt,
+    salt : Uint256,
+    target : felt,
+    calldata_len : felt,
+    calldata : felt*,
+):
     alloc_locals
 
     # Voter address should be located in calldata[0]
@@ -239,7 +279,7 @@ func authenticate_vote{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_che
     let (choice) = felt_to_uint256(calldata[2])
 
     # Now construct the data hash (hashStruct)
-    let (data: Uint256*) = alloc()
+    let (data : Uint256*) = alloc()
 
     assert data[0] = Uint256(VOTE_HASH_LOW, VOTE_HASH_HIGH)
     assert data[1] = salt
@@ -247,18 +287,18 @@ func authenticate_vote{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_che
     assert data[3] = proposal_id
     assert data[4] = choice
 
-    let (local keccak_ptr : felt*) = alloc() 
+    let (local keccak_ptr : felt*) = alloc()
     let keccak_ptr_start = keccak_ptr
 
     let (hash_struct) = get_keccak_hash{keccak_ptr=keccak_ptr}(5, data)
 
     # Prepare the encoded data
-    let (prepared_encoded: Uint256*) = alloc()
+    let (prepared_encoded : Uint256*) = alloc()
     assert prepared_encoded[0] = Uint256(DOMAIN_HASH_LOW, DOMAIN_HASH_HIGH)
     assert prepared_encoded[1] = hash_struct
 
     # Prepend the ethereum prefix
-    let (encoded_data: Uint256*) = alloc()
+    let (encoded_data : Uint256*) = alloc()
     prepend_prefix_2bytes(ETHEREUM_PREFIX, encoded_data, 2, prepared_encoded)
 
     # Now go from Uint256s to Uint64s (required in order to call `keccak`)
@@ -267,7 +307,9 @@ func authenticate_vote{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_che
     keccak_add_uint256s{inputs=signable_bytes}(n_elements=3, elements=encoded_data, bigend=1)
 
     # Compute the hash
-    let (hash) = keccak_bigend{keccak_ptr=keccak_ptr}(inputs=signable_bytes_start, n_bytes=2 * 32 + 2)
+    let (hash) = keccak_bigend{keccak_ptr=keccak_ptr}(
+        inputs=signable_bytes_start, n_bytes=2 * 32 + 2
+    )
 
     with_attr error_message("Incorrect hash"):
         assert hash.low = msg_hash.low
@@ -288,8 +330,18 @@ func authenticate_vote{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_che
 end
 
 @external
-func authenticate{syscall_ptr : felt*, pedersen_ptr: HashBuiltin*, range_check_ptr, bitwise_ptr : BitwiseBuiltin*}(
-    msg_hash: Uint256, r: Uint256, s: Uint256, v: felt, salt : Uint256, target : felt, function_selector : felt, calldata_len : felt, calldata : felt*
+func authenticate{
+    syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr, bitwise_ptr : BitwiseBuiltin*
+}(
+    msg_hash : Uint256,
+    r : Uint256,
+    s : Uint256,
+    v : felt,
+    salt : Uint256,
+    target : felt,
+    function_selector : felt,
+    calldata_len : felt,
+    calldata : felt*,
 ) -> ():
     if function_selector == PROPOSAL_SELECTOR:
         authenticate_proposal(msg_hash, r, s, v, salt, target, calldata_len, calldata)
