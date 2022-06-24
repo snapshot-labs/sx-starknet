@@ -1,4 +1,4 @@
-import { stark } from 'starknet';
+import { hash } from 'starknet';
 import { SplitUint256, Choice } from '../shared/types';
 import { createExecutionHash, flatten2DArray } from '../shared/helpers';
 import { strToShortStringArr } from '@snapshot-labs/sx';
@@ -25,7 +25,7 @@ import { type } from 'os';
 import { keccak } from 'ethereumjs-util';
 import { Signature } from 'ethers';
 
-const { getSelectorFromName } = stark;
+const { getSelectorFromName } = hash;
 
 export const VITALIK_ADDRESS = BigInt('0xd8da6bf26964af9d7eed9e03e53415d37aa96045');
 export const AUTHENTICATE_METHOD = 'authenticate';
