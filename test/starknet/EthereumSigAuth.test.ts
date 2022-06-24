@@ -152,7 +152,6 @@ describe('Ethereum Sig Auth testing', () => {
       fake_data[0] = BigInt(accounts[1].address);
 
       await account.invoke(starknetSigAuth, AUTHENTICATE_METHOD, {
-        msg_hash: SplitUint256.fromHex('0x0'),
         r: r,
         s: s,
         v: v,
@@ -184,11 +183,9 @@ describe('Ethereum Sig Auth testing', () => {
 
       const { r, s, v } = getRSVFromSig(sig);
 
-      const msg_hash_uint256 = SplitUint256.fromHex(msgHash);
 
       console.log('Creating proposal...');
       await account.invoke(starknetSigAuth, AUTHENTICATE_METHOD, {
-        msg_hash: msg_hash_uint256,
         r: r,
         s: s,
         v: v,
@@ -226,11 +223,9 @@ describe('Ethereum Sig Auth testing', () => {
       const spaceStr = hexPadRight(spaceContract.toString(16));
       const message: Vote = { salt: 2, space: spaceStr, proposal: proposalId, choice: Choice.FOR };
       const sig = await accounts[0]._signTypedData(domain, voteTypes, message);
-      const msg_hash_uint256 = SplitUint256.fromHex(getHash(domain, voteTypes, message));
       const { r, s, v } = getRSVFromSig(sig);
       const salt = SplitUint256.fromHex('0x02');
       await account.invoke(starknetSigAuth, AUTHENTICATE_METHOD, {
-        msg_hash: msg_hash_uint256,
         r: r,
         s: s,
         v: v,

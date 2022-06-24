@@ -167,7 +167,6 @@ end
 func authenticate_proposal{
     syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr, bitwise_ptr : BitwiseBuiltin*
 }(
-    msg_hash : Uint256,
     r : Uint256,
     s : Uint256,
     v : felt,
@@ -251,7 +250,6 @@ end
 func authenticate_vote{
     syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr, bitwise_ptr : BitwiseBuiltin*
 }(
-    msg_hash : Uint256,
     r : Uint256,
     s : Uint256,
     v : felt,
@@ -311,11 +309,6 @@ func authenticate_vote{
         inputs=signable_bytes_start, n_bytes=2 * 32 + 2
     )
 
-    with_attr error_message("Incorrect hash"):
-        assert hash.low = msg_hash.low
-        assert hash.high = msg_hash.high
-    end
-
     # `v` is supposed to be `yParity` and not the `v` usually used in the Ethereum world (pre-EIP155).
     # We substract `27` because `v` = `{0, 1} + 27`
     verify_eth_signature_uint256{keccak_ptr=keccak_ptr}(hash, r, s, v - 27, voter_address)
@@ -333,7 +326,6 @@ end
 func authenticate{
     syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr, bitwise_ptr : BitwiseBuiltin*
 }(
-    msg_hash : Uint256,
     r : Uint256,
     s : Uint256,
     v : felt,
@@ -344,9 +336,9 @@ func authenticate{
     calldata : felt*,
 ) -> ():
     if function_selector == PROPOSAL_SELECTOR:
-        authenticate_proposal(msg_hash, r, s, v, salt, target, calldata_len, calldata)
+        authenticate_proposal(r, s, v, salt, target, calldata_len, calldata)
     else:
-        authenticate_vote(msg_hash, r, s, v, salt, target, calldata_len, calldata)
+        authenticate_vote(r, s, v, salt, target, calldata_len, calldata)
     end
 
     # Call the contract
