@@ -1,13 +1,13 @@
 %lang starknet
 
 from starkware.cairo.common.uint256 import Uint256
-from contracts.starknet.lib.eth_address import EthAddress
+from contracts.starknet.lib.general_address import Address
 
 # Returns a voting power of 1 for every address it is queried with.
 @view
 func get_voting_power{range_check_ptr}(
-    block : felt,
-    voter_address : EthAddress,
+    timestamp : felt,
+    voter_address : Address,
     params_len : felt,
     params : felt*,
     user_params_len : felt,

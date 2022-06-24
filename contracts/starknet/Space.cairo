@@ -16,7 +16,7 @@ from starkware.cairo.common.math import (
 
 from contracts.starknet.Interfaces.IVotingStrategy import IVotingStrategy
 from contracts.starknet.Interfaces.IExecutionStrategy import IExecutionStrategy
-from contracts.starknet.lib.eth_address import EthAddress
+from contracts.starknet.lib.general_address import Address
 from contracts.starknet.lib.proposal import Proposal
 from contracts.starknet.lib.proposal_info import ProposalInfo
 from contracts.starknet.lib.vote import Vote
@@ -88,7 +88,7 @@ func executed_proposals_store(proposal_id : felt) -> (executed : felt):
 end
 
 @storage_var
-func vote_registry_store(proposal_id : felt, voter_address : EthAddress) -> (vote : Vote):
+func vote_registry_store(proposal_id : felt, voter_address : Address) -> (vote : Vote):
 end
 
 @storage_var
@@ -102,7 +102,7 @@ end
 @event
 func proposal_created(
     proposal_id : felt,
-    proposer_address : EthAddress,
+    proposer_address : Address,
     proposal : Proposal,
     metadata_uri_len : felt,
     metadata_uri : felt*,
@@ -112,7 +112,7 @@ func proposal_created(
 end
 
 @event
-func vote_created(proposal_id : felt, voter_address : EthAddress, vote : Vote):
+func vote_created(proposal_id : felt, voter_address : Address, vote : Vote):
 end
 
 @event
@@ -392,7 +392,7 @@ end
 # TODO: In the future we will need to transition to an array of `voter_address` because they might be different for different voting strategies.
 func get_cumulative_voting_power{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr}(
     current_timestamp : felt,
-    voter_address : EthAddress,
+    voter_address : Address,
     used_voting_strategies_len : felt,
     used_voting_strategies : felt*,
     user_voting_strategy_params_all : Immutable2DArray,
@@ -428,7 +428,7 @@ func get_cumulative_voting_power{syscall_ptr : felt*, pedersen_ptr : HashBuiltin
 
     let (user_voting_power) = IVotingStrategy.get_voting_power(
         contract_address=voting_strategy,
-        block=current_timestamp,
+        timestamp=current_timestamp,
         voter_address=voter_address,
         params_len=voting_strategy_params_len,
         params=voting_strategy_params,
@@ -660,7 +660,7 @@ end
 
 @external
 func vote{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr : felt}(
-    voter_address : EthAddress,
+    voter_address : Address,
     proposal_id : felt,
     choice : felt,
     used_voting_strategies_len : felt,
@@ -680,8 +680,11 @@ func vote{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr : fe
     end
 
     let (proposal) = proposal_registry_store.read(proposal_id)
-    let (current_timestamp) = get_block_timestamp()
 
+    # The snapshot timestamp at which voting power will be taken
+    let snapshot_timestamp = proposal.snapshot_timestamp
+
+    let (current_timestamp) = get_block_timestamp()
     # Make sure proposal is still open for voting
     with_attr error_message("Voting period has ended"):
         assert_lt(current_timestamp, proposal.max_end_timestamp)
@@ -713,7 +716,7 @@ func vote{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr : fe
     )
 
     let (user_voting_power) = get_cumulative_voting_power(
-        current_timestamp,
+        snapshot_timestamp,
         voter_address,
         used_voting_strategies_len,
         used_voting_strategies,
@@ -744,11 +747,10 @@ end
 
 @external
 func propose{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr : felt}(
-    proposer_address : EthAddress,
+    proposer_address : Address,
     execution_hash : Uint256,
     metadata_uri_len : felt,
     metadata_uri : felt*,
-    ethereum_block_number : felt,
     executor : felt,
     used_voting_strategies_len : felt,
     used_voting_strategies : felt*,
@@ -759,26 +761,23 @@ func propose{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr :
 ) -> ():
     alloc_locals
 
-    # We cannot have `0` as the `ethereum_block_number` because we rely on checking
-    # if it's different than 0 in `finalize_proposal`.
-    with_attr error_message("Invalid block number"):
-        assert_not_zero(ethereum_block_number)
-    end
-
     # Verify that the caller is the authenticator contract.
     assert_valid_authenticator()
 
     # Verify that the executor address is one of the whitelisted addresses
     assert_valid_executor(executor)
 
-    let (current_timestamp) = get_block_timestamp()
+    # The snapshot for the proposal is the current timestamp at proposal creation
+    # We use a timestamp instead of a block number to define a snapshot so that the system can generalize to multi-chain
+    # TODO: Need to consider what sort of guarantees we have on the timestamp returned being correct.
+    let (snapshot_timestamp) = get_block_timestamp()
     let (delay) = voting_delay_store.read()
 
     let (_min_voting_duration) = min_voting_duration_store.read()
     let (_max_voting_duration) = max_voting_duration_store.read()
 
     # Define start_timestamp, min_end and max_end
-    let start_timestamp = current_timestamp + delay
+    let start_timestamp = snapshot_timestamp + delay
     let min_end_timestamp = start_timestamp + _min_voting_duration
     let max_end_timestamp = start_timestamp + _max_voting_duration
 
@@ -788,7 +787,7 @@ func propose{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr :
     )
 
     let (voting_power) = get_cumulative_voting_power(
-        start_timestamp,
+        snapshot_timestamp,
         proposer_address,
         used_voting_strategies_len,
         used_voting_strategies,
@@ -815,10 +814,10 @@ func propose{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr :
     let proposal = Proposal(
         execution_hash,
         _quorum,
+        snapshot_timestamp,
         start_timestamp,
         min_end_timestamp,
         max_end_timestamp,
-        ethereum_block_number,
         hash,
         executor,
     )
@@ -862,16 +861,15 @@ func finalize_proposal{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_c
     let (proposal) = proposal_registry_store.read(proposal_id)
     with_attr error_message("Invalid proposal id"):
         # Checks that the proposal id exists. If it doesn't exist, then the whole `Proposal` struct will
-        # be set to 0, hence `ethereum_block_number` will be set to 0 too.
-        assert_not_zero(proposal.ethereum_block_number)
+        # be set to 0, hence the snapshot timestamp will be set to 0 too.
+        assert_not_zero(proposal.snapshot_timestamp)
     end
 
     # Make sure proposal period has ended
-    # NOTE: commented out the `with_attr` block because it needs 0.8.1 to work
-    # with_attr error_message("Min voting period has not elapsed"):
     let (current_timestamp) = get_block_timestamp()
-    assert_le(proposal.min_end_timestamp, current_timestamp)
-    # end
+    with_attr error_message("Min voting period has not elapsed"):
+        assert_le(proposal.min_end_timestamp, current_timestamp)
+    end
 
     # Make sure execution params match the stored hash
     let (recovered_hash) = hash_array(execution_params_len, execution_params)
@@ -958,8 +956,8 @@ func cancel_proposal{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_che
     let (proposal) = proposal_registry_store.read(proposal_id)
     with_attr error_message("Invalid proposal id"):
         # Checks that the proposal id exists. If it doesn't exist, then the whole `Proposal` struct will
-        # be set to 0, hence `ethereum_block_number` will be set to 0 too.
-        assert_not_zero(proposal.ethereum_block_number)
+        # be set to 0, hence the snapshot timestamp will be set to 0 too.
+        assert_not_zero(proposal.snapshot_timestamp)
     end
 
     let proposal_outcome = ProposalOutcome.CANCELLED
@@ -988,7 +986,7 @@ end
 
 @view
 func get_vote_info{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr : felt}(
-    voter_address : EthAddress, proposal_id : felt
+    voter_address : Address, proposal_id : felt
 ) -> (vote : Vote):
     return vote_registry_store.read(proposal_id, voter_address)
 end

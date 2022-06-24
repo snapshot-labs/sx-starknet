@@ -2,13 +2,11 @@ import { SignerWithAddress } from '@nomiclabs/hardhat-ethers/signers';
 import { expect } from 'chai';
 import { Contract } from 'ethers';
 import { starknet, network, ethers } from 'hardhat';
-import { stark } from 'starknet';
 import { StarknetContract, Account, HttpNetworkConfig } from 'hardhat/types';
 import { strToShortStringArr } from '@snapshot-labs/sx';
 import { createExecutionHash, getCommit, getProposeCalldata } from '../shared/helpers';
 import { ethTxAuthSetup } from '../shared/setup';
-
-const { getSelectorFromName } = stark;
+import { PROPOSE_SELECTOR } from '../shared/constants';
 
 // Dummy tx
 const tx1 = {
@@ -51,7 +49,6 @@ describe('L1 interaction with Snapshot X', function () {
   let userVotingParamsAll: bigint[][];
   let executionStrategy: bigint;
   let executionParams: bigint[];
-  let ethBlockNumber: bigint;
   let proposeCalldata: bigint[];
 
   before(async function () {
@@ -73,7 +70,6 @@ describe('L1 interaction with Snapshot X', function () {
       'Hello and welcome to Snapshot X. This is the future of governance.'
     );
     proposerEthAddress = signer.address;
-    ethBlockNumber = BigInt(1337);
     spaceAddress = BigInt(space.address);
     usedVotingStrategies = [BigInt(vanillaVotingStrategy.address)];
     userVotingParamsAll = [[]];
@@ -83,7 +79,6 @@ describe('L1 interaction with Snapshot X', function () {
       proposerEthAddress,
       executionHash,
       metadataUri,
-      ethBlockNumber,
       executionStrategy,
       usedVotingStrategies,
       userVotingParamsAll,
@@ -96,15 +91,13 @@ describe('L1 interaction with Snapshot X', function () {
     // Committing the hash of the payload to the StarkNet Commit L1 contract
     await starknetCommit
       .connect(signer)
-      .commit(
-        getCommit(BigInt(space.address), BigInt(getSelectorFromName('propose')), proposeCalldata)
-      );
+      .commit(getCommit(spaceAddress, PROPOSE_SELECTOR, proposeCalldata));
     // Checking that the L1 -> L2 message has been propogated
     expect((await starknet.devnet.flush()).consumed_messages.from_l1).to.have.a.lengthOf(1);
     // Creating proposal
-    await ethTxAuthenticator.invoke('execute', {
-      target: BigInt(space.address),
-      function_selector: BigInt(getSelectorFromName('propose')),
+    await ethTxAuthenticator.invoke('authenticate', {
+      target: spaceAddress,
+      function_selector: PROPOSE_SELECTOR,
       calldata: proposeCalldata,
     });
   });
@@ -113,20 +106,18 @@ describe('L1 interaction with Snapshot X', function () {
     await starknet.devnet.loadL1MessagingContract(networkUrl, mockStarknetMessaging.address);
     await starknetCommit
       .connect(signer)
-      .commit(
-        getCommit(BigInt(space.address), BigInt(getSelectorFromName('propose')), proposeCalldata)
-      );
+      .commit(getCommit(spaceAddress, PROPOSE_SELECTOR, proposeCalldata));
     await starknet.devnet.flush();
-    await ethTxAuthenticator.invoke('execute', {
-      target: BigInt(space.address),
-      function_selector: BigInt(getSelectorFromName('propose')),
+    await ethTxAuthenticator.invoke('authenticate', {
+      target: spaceAddress,
+      function_selector: PROPOSE_SELECTOR,
       calldata: proposeCalldata,
     });
-    // Second attempt at calling execute should fail
+    // Second attempt at calling authenticate should fail
     try {
-      await ethTxAuthenticator.invoke('execute', {
-        target: BigInt(space.address),
-        function_selector: BigInt(getSelectorFromName('propose')),
+      await ethTxAuthenticator.invoke('authenticate', {
+        target: spaceAddress,
+        function_selector: PROPOSE_SELECTOR,
         calldata: proposeCalldata,
       });
     } catch (err: any) {
@@ -138,14 +129,12 @@ describe('L1 interaction with Snapshot X', function () {
     await starknet.devnet.loadL1MessagingContract(networkUrl, mockStarknetMessaging.address);
     await starknetCommit
       .connect(signer)
-      .commit(
-        getCommit(BigInt(space.address), BigInt(getSelectorFromName('vote')), proposeCalldata)
-      ); // Wrong selector
+      .commit(getCommit(spaceAddress, PROPOSE_SELECTOR, proposeCalldata)); // Wrong selector
     await starknet.devnet.flush();
     try {
-      await ethTxAuthenticator.invoke('execute', {
-        target: BigInt(space.address),
-        function_selector: BigInt(getSelectorFromName('propose')),
+      await ethTxAuthenticator.invoke('authenticate', {
+        target: spaceAddress,
+        function_selector: PROPOSE_SELECTOR,
         calldata: proposeCalldata,
       });
     } catch (err: any) {
@@ -158,14 +147,12 @@ describe('L1 interaction with Snapshot X', function () {
     proposeCalldata[0] = BigInt(ethers.Wallet.createRandom().address); // Random l1 address in the calldata
     await starknetCommit
       .connect(signer)
-      .commit(
-        getCommit(BigInt(space.address), BigInt(getSelectorFromName('propose')), proposeCalldata)
-      );
+      .commit(getCommit(spaceAddress, PROPOSE_SELECTOR, proposeCalldata));
     await starknet.devnet.flush();
     try {
-      await ethTxAuthenticator.invoke('execute', {
-        target: BigInt(space.address),
-        function_selector: BigInt(getSelectorFromName('propose')),
+      await ethTxAuthenticator.invoke('authenticate', {
+        target: spaceAddress,
+        function_selector: PROPOSE_SELECTOR,
         calldata: proposeCalldata,
       });
     } catch (err: any) {

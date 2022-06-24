@@ -28,7 +28,7 @@ contracts
 │   │  ├─ array2d.cairo — "For handling 2 dimensional arrays"
 │   │  ├─ choice.cairo — "The set of choices one can make for a vote"
 │   │  ├─ eth_address.cairo — "Ethereum address type"
-│   │  ├─ felt_to_uint256.cairo — "Convert a felt to a uint256"
+│   │  ├─ felto_to_uint256.cairo — "Generate a uint256 from a felt"
 │   │  ├─ hash_array.cairo — "Wrapper function for pedersen hashing arrays"
 │   │  ├─ proposal.cairo — "Proposal metadata type"
 │   │  ├─ proposal_info.cairo — "Proposal vote data type"
@@ -43,17 +43,16 @@ contracts
 │   └─ Space.cairo - "The core contract for Snapshot X"
 └─ ethereum 
     ├─ Interfaces
-    │  └─ IStarknetCore.sol — "Authenticate user via an Ethereum transaction"
+    │  └─ IStarknetCore.sol — "Interface of the StarkNet core contract"
     ├─ StarkNetCommit
-    │  └─ StarknetCommit.sol — "Authenticate user via an Ethereum transaction"
+    │  └─ StarknetCommit.sol — "Commits a hash to StarkNet required for Ethereum transaction authentication"
     ├─ ZodiacModule
-    │  ├─ ProposalRelayer.sol — "Authenticate user via an Ethereum transaction"
-    │  ├─ SnapshotXL1Executor.sol — "Authenticate user via an Ethereum transaction"
-    │  └─ deps.sol — "No authentication of users"
+    │  ├─ ProposalRelayer.sol — "Provides functionality for recieving proposal data from StarkNet"
+    │  └─ SnapshotXL1Executor.sol — "Execute proposal transactions using a Gnosis Safe"
     └─ TestContracts
-       ├─ MockStarknetMessaging.sol — "Authenticate user via an Ethereum transaction"
-       ├─ NamedStorage.sol — "Authenticate user via an Ethereum transaction"
-       └─ StarknetMessaging.sol — "No authentication of users"
+       ├─ MockStarknetMessaging.sol — "Mock StarkNet core contract for testing purposes"
+       ├─ NamedStorage.sol — "Storage library"
+       └─ StarknetMessaging.sol — "StarkNet core contract"
 
 ```
 
@@ -83,6 +82,13 @@ yarn compile
 # You can also use yarn compile:l1 to just compile solidity contracts
 # or yarn compile:l2 to just compile cairo contracts
 ```
+
+### Deploy to Alpha Goerli:
+
+```bash 
+yarn deploy:goerli
+```
+Will deploy an example space contract and a set of authenticators, voting strategies and execution strategies to the alpha goerli testnet. 
 
 ### Testing
 

@@ -183,7 +183,6 @@ describe('Ethereum Sig Auth testing', () => {
 
       const { r, s, v } = getRSVFromSig(sig);
 
-
       console.log('Creating proposal...');
       await account.invoke(starknetSigAuth, AUTHENTICATE_METHOD, {
         r: r,

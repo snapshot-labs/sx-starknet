@@ -67,25 +67,25 @@ describe('Whitelist testing', () => {
 
   it('returns the voting power for everyone in the list', async () => {
     const { voting_power: vp1 } = await whitelist.call('get_voting_power', {
-      block: BigInt(0),
+      timestamp: BigInt(0),
       voter_address: { value: address1 },
       params: [],
       user_params: [],
     });
     const { voting_power: vp2 } = await whitelist.call('get_voting_power', {
-      block: BigInt(0),
+      timestamp: BigInt(0),
       voter_address: { value: address2 },
       params: [],
       user_params: [],
     });
     const { voting_power: vp3 } = await whitelist.call('get_voting_power', {
-      block: BigInt(0),
+      timestamp: BigInt(0),
       voter_address: { value: address3 },
       params: [],
       user_params: [],
     });
     const { voting_power: vp4 } = await whitelist.call('get_voting_power', {
-      block: BigInt(0),
+      timestamp: BigInt(0),
       voter_address: { value: address4 },
       params: [],
       user_params: [],
@@ -98,7 +98,7 @@ describe('Whitelist testing', () => {
 
   it('returns 0 voting power for non-whitelisted addresses', async () => {
     const { voting_power: vp } = await whitelist.call('get_voting_power', {
-      block: BigInt(0),
+      timestamp: BigInt(0),
       voter_address: { value: BigInt(ethers.Wallet.createRandom().address) },
       params: [],
       user_params: [],
@@ -108,7 +108,7 @@ describe('Whitelist testing', () => {
 
   it('returns 0 for an empty whitelist', async () => {
     const { voting_power: vp } = await emptyWhitelist.call('get_voting_power', {
-      block: BigInt(0),
+      timestamp: BigInt(0),
       voter_address: { value: address1 },
       params: [],
       user_params: [],
@@ -118,7 +118,7 @@ describe('Whitelist testing', () => {
 
   it('returns the correct voting power even if address is repeated', async () => {
     const { voting_power: vp } = await repeatWhitelist.call('get_voting_power', {
-      block: BigInt(0),
+      timestamp: BigInt(0),
       voter_address: { value: address1 },
       params: [],
       user_params: [],

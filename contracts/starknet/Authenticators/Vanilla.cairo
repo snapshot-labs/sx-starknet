@@ -6,8 +6,6 @@ from contracts.starknet.lib.execute import execute
 func authenticate{syscall_ptr : felt*, range_check_ptr}(
     target : felt, function_selector : felt, calldata_len : felt, calldata : felt*
 ) -> ():
-    # TODO: Actually verify the signature
-
     # Call the contract
     execute(target, function_selector, calldata_len, calldata)
 

@@ -2,14 +2,14 @@
 
 from starkware.cairo.common.uint256 import Uint256, uint256_check
 from starkware.cairo.common.cairo_builtins import HashBuiltin
-from contracts.starknet.lib.eth_address import EthAddress
+from contracts.starknet.lib.general_address import Address
 
 @storage_var
-func whitelist(address : EthAddress) -> (voting_power : Uint256):
+func whitelist(address : Address) -> (voting_power : Uint256):
 end
 
 @event
-func whitelisted(address : EthAddress, voting_power : Uint256):
+func whitelisted(address : Address, voting_power : Uint256):
 end
 
 func register_whitelist{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr : felt}(
@@ -18,7 +18,7 @@ func register_whitelist{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_
     if _whitelist_len == 0:
         return ()
     else:
-        let address = EthAddress(_whitelist[0])
+        let address = Address(_whitelist[0])
         # Add it to the whitelist
         let voting_power = Uint256(_whitelist[1], _whitelist[2])
 
@@ -46,8 +46,8 @@ end
 
 @view
 func get_voting_power{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr : felt}(
-    block : felt,
-    voter_address : EthAddress,
+    timestamp : felt,
+    voter_address : Address,
     params_len : felt,
     params : felt*,
     user_params_len : felt,

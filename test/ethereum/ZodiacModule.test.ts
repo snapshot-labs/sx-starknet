@@ -17,10 +17,9 @@ describe('Snapshot X L1 Proposal Executor:', () => {
   let wallet_1: SignerWithAddress;
   let wallet_2: SignerWithAddress;
   let wallet_3: SignerWithAddress;
-  let wallet_4: SignerWithAddress;
 
   beforeEach(async () => {
-    [wallet_0, wallet_1, wallet_2, wallet_3, wallet_4] = await hre.ethers.getSigners(); //waffle.provider.getWallets();
+    [wallet_0, wallet_1, wallet_2, wallet_3] = await hre.ethers.getSigners(); //waffle.provider.getWallets();
     ({ zodiacModule, safe, safeSigner } = await safeWithZodiacSetup());
 
     tx1 = {

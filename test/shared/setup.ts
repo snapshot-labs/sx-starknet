@@ -5,7 +5,13 @@ import { StarknetContract, Account } from 'hardhat/types';
 import { Contract, ContractFactory } from 'ethers';
 import { SplitUint256, IntsSequence } from './types';
 import { hexToBytes, flatten2DArray } from './helpers';
-import { ProcessBlockInputs, getProcessBlockInputs } from './parseRPCData';
+import {
+  ProcessBlockInputs,
+  getProcessBlockInputs,
+  ProofInputs,
+  getProofInputs,
+} from './parseRPCData';
+import { encodeParams } from './singleSlotProofStrategyEncoding';
 import { AddressZero } from '@ethersproject/constants';
 import { executeContractCallWithSigners } from './safeUtils';
 
@@ -16,9 +22,9 @@ export interface Fossil {
 }
 
 export async function vanillaSetup() {
-  const controller = (await starknet.deployAccount('OpenZeppelin')) as Account;
+  const controller = (await starknet.deployAccount('Argent')) as Account;
   const spaceFactory = await starknet.getContractFactory('./contracts/starknet/Space.cairo');
-  const vanillaVotingStategyFactory = await starknet.getContractFactory(
+  const vanillaVotingStrategyFactory = await starknet.getContractFactory(
     './contracts/starknet/VotingStrategies/Vanilla.cairo'
   );
   const vanillaAuthenticatorFactory = await starknet.getContractFactory(
@@ -30,7 +36,7 @@ export async function vanillaSetup() {
 
   const deployments = [
     vanillaAuthenticatorFactory.deploy(),
-    vanillaVotingStategyFactory.deploy(),
+    vanillaVotingStrategyFactory.deploy(),
     vanillaExecutionStrategyFactory.deploy(),
   ];
   const contracts = await Promise.all(deployments);
@@ -74,7 +80,7 @@ export async function vanillaSetup() {
 }
 
 export async function zodiacRelayerSetup() {
-  const controller = (await starknet.deployAccount('OpenZeppelin')) as Account;
+  const controller = (await starknet.deployAccount('Argent')) as Account;
   const spaceFactory = await starknet.getContractFactory('./contracts/starknet/Space.cairo');
   const vanillaVotingStategyFactory = await starknet.getContractFactory(
     './contracts/starknet/VotingStrategies/Vanilla.cairo'
@@ -237,9 +243,9 @@ export async function safeWithZodiacSetup(
 }
 
 export async function ethTxAuthSetup() {
-  const controller = (await starknet.deployAccount('OpenZeppelin')) as Account;
+  const controller = (await starknet.deployAccount('Argent')) as Account;
   const spaceFactory = await starknet.getContractFactory('./contracts/starknet/Space.cairo');
-  const vanillaVotingStategyFactory = await starknet.getContractFactory(
+  const vanillaVotingStrategyFactory = await starknet.getContractFactory(
     './contracts/starknet/VotingStrategies/Vanilla.cairo'
   );
   const ethTxAuthenticatorFactory = await starknet.getContractFactory(
@@ -265,7 +271,7 @@ export async function ethTxAuthSetup() {
 
   const deployments = [
     ethTxAuthenticatorFactory.deploy({ starknet_commit_address: BigInt(starknetCommit.address) }),
-    vanillaVotingStategyFactory.deploy(),
+    vanillaVotingStrategyFactory.deploy(),
     vanillaExecutionStrategyFactory.deploy(),
   ];
   const contracts = await Promise.all(deployments);
@@ -312,14 +318,98 @@ export async function ethTxAuthSetup() {
   };
 }
 
-export async function singleSlotProofSetup(block: any) {
-  const account = await starknet.deployAccount('OpenZeppelin');
+export async function singleSlotProofSetup(block: any, proofs: any) {
+  // We pass the encode params function for the single slot proof strategy to generate the encoded data for the single slot proof strategy
+  const proofInputs: ProofInputs = getProofInputs(block.number, proofs, encodeParams);
+
+  const controller = (await starknet.deployAccount('Argent')) as Account;
+
+  const fossil = await fossilSetup(controller);
+  const spaceFactory = await starknet.getContractFactory('./contracts/starknet/Space.cairo');
+  const singleSlotProofStrategyFactory = await starknet.getContractFactory(
+    'contracts/starknet/VotingStrategies/SingleSlotProof.cairo'
+  );
+  const vanillaAuthenticatorFactory = await starknet.getContractFactory(
+    './contracts/starknet/Authenticators/Vanilla.cairo'
+  );
+  const vanillaExecutionStrategyFactory = await starknet.getContractFactory(
+    './contracts/starknet/ExecutionStrategies/Vanilla.cairo'
+  );
+  const deployments = [
+    vanillaAuthenticatorFactory.deploy(),
+    singleSlotProofStrategyFactory.deploy({
+      fact_registry_address: BigInt(fossil.factsRegistry.address),
+      l1_headers_store_address: BigInt(fossil.l1HeadersStore.address),
+    }),
+    vanillaExecutionStrategyFactory.deploy(),
+  ];
+  const contracts = await Promise.all(deployments);
+  const vanillaAuthenticator = contracts[0] as StarknetContract;
+  const singleSlotProofStrategy = contracts[1] as StarknetContract;
+  const vanillaExecutionStrategy = contracts[2] as StarknetContract;
+
+  // Submit blockhash to L1 Headers Store (via dummy function rather than L1 -> L2 bridge)
+  await fossil.l1RelayerAccount.invoke(fossil.l1HeadersStore, 'receive_from_l1', {
+    parent_hash: IntsSequence.fromBytes(hexToBytes(block.hash)).values,
+    block_number: block.number + 1,
+  });
+
+  // Encode block header and then submit to L1 Headers Store
+  const processBlockInputs: ProcessBlockInputs = getProcessBlockInputs(block);
+  await fossil.l1RelayerAccount.invoke(fossil.l1HeadersStore, 'process_block', {
+    options_set: processBlockInputs.blockOptions,
+    block_number: processBlockInputs.blockNumber,
+    block_header_rlp_bytes_len: processBlockInputs.headerInts.bytesLength,
+    block_header_rlp: processBlockInputs.headerInts.values,
+  });
+
+  const controllerAddress = BigInt(controller.starknetContract.address);
+  const votingDelay = BigInt(0);
+  const minVotingDuration = BigInt(0);
+  const maxVotingDuration = BigInt(2000);
+  const votingStrategies: bigint[] = [BigInt(singleSlotProofStrategy.address)];
+  const votingStrategyParams: bigint[][] = [[proofInputs.ethAddressFelt, BigInt(1)]];
+  const votingStrategyParamsFlat: bigint[] = flatten2DArray(votingStrategyParams);
+  const authenticators: bigint[] = [BigInt(vanillaAuthenticator.address)];
+  const executors: bigint[] = [BigInt(vanillaExecutionStrategy.address)];
+  const quorum: SplitUint256 = SplitUint256.fromUint(BigInt(1)); //  Quorum of one for the vanilla test
+  const proposalThreshold: SplitUint256 = SplitUint256.fromUint(BigInt(1)); // Proposal threshold of 1 for the vanilla test
+
+  // Deploy space with specified parameters
+  const space = (await spaceFactory.deploy({
+    _voting_delay: votingDelay,
+    _min_voting_duration: minVotingDuration,
+    _max_voting_duration: maxVotingDuration,
+    _proposal_threshold: proposalThreshold,
+    _controller: controllerAddress,
+    _quorum: quorum,
+    _voting_strategy_params_flat: votingStrategyParamsFlat,
+    _voting_strategies: votingStrategies,
+    _authenticators: authenticators,
+    _executors: executors,
+  })) as StarknetContract;
+
+  return {
+    space,
+    controller,
+    vanillaAuthenticator,
+    singleSlotProofStrategy,
+    vanillaExecutionStrategy,
+    fossil,
+    proofInputs,
+  };
+}
+
+// Setup function to test the single slot proof strategy in isolation, ie not within context of space contract
+export async function singleSlotProofSetupIsolated(block: any) {
+  const account = await starknet.deployAccount('Argent');
   const fossil = await fossilSetup(account);
   const singleSlotProofStrategyFactory = await starknet.getContractFactory(
     'contracts/starknet/VotingStrategies/SingleSlotProof.cairo'
   );
   const singleSlotProofStrategy = await singleSlotProofStrategyFactory.deploy({
-    fact_registry: BigInt(fossil.factsRegistry.address),
+    fact_registry_address: BigInt(fossil.factsRegistry.address),
+    l1_headers_store_address: BigInt(fossil.l1HeadersStore.address),
   });
   // Submit blockhash to L1 Headers Store (via dummy function rather than L1 -> L2 bridge)
   await fossil.l1RelayerAccount.invoke(fossil.l1HeadersStore, 'receive_from_l1', {
@@ -350,7 +440,7 @@ async function fossilSetup(deployer: Account): Promise<Fossil> {
   );
   const factsRegistry = await factsRegistryFactory.deploy();
   const l1HeadersStore = await l1HeadersStoreFactory.deploy();
-  const l1RelayerAccount = await starknet.deployAccount('OpenZeppelin');
+  const l1RelayerAccount = await starknet.deployAccount('Argent');
   await deployer.invoke(factsRegistry, 'initialize', {
     l1_headers_store_addr: BigInt(l1HeadersStore.address),
   });
@@ -367,10 +457,10 @@ async function fossilSetup(deployer: Account): Promise<Fossil> {
 // TODO: Ive left these functions in the old style for now as some changes are needed, but they should be refactored like the ones above soon.
 
 export async function starknetAccountSetup() {
-  const account = await starknet.deployAccount('OpenZeppelin');
+  const account = await starknet.deployAccount('Argent');
 
   const vanillaSpaceFactory = await starknet.getContractFactory('./contracts/starknet/Space.cairo');
-  const vanillaVotingStategyFactory = await starknet.getContractFactory(
+  const vanillaVotingStrategyFactory = await starknet.getContractFactory(
     './contracts/starknet/VotingStrategies/Vanilla.cairo'
   );
   const starknetAccountAuthFactory = await starknet.getContractFactory(
@@ -382,7 +472,7 @@ export async function starknetAccountSetup() {
 
   const deployments = [
     starknetAccountAuthFactory.deploy(),
-    vanillaVotingStategyFactory.deploy(),
+    vanillaVotingStrategyFactory.deploy(),
     zodiacRelayerFactory.deploy(),
   ];
   console.log('Deploying auth, voting and zodiac relayer contracts...');
@@ -395,7 +485,6 @@ export async function starknetAccountSetup() {
   const authenticator = BigInt(starknetAccountAuth.address);
   const zodiac_relayer = BigInt(zodiacRelayer.address);
   const quorum = SplitUint256.fromUint(BigInt(0));
-
   const voting_strategy_params: bigint[][] = [[]];
   const voting_strategy_params_flat = flatten2DArray(voting_strategy_params);
 
@@ -427,64 +516,61 @@ export async function starknetAccountSetup() {
   };
 }
 
-export async function starknetTxSetup() {
-  const account = await starknet.deployAccount('OpenZeppelin');
-
-  const vanillaSpaceFactory = await starknet.getContractFactory('./contracts/starknet/Space.cairo');
-  const vanillaVotingStategyFactory = await starknet.getContractFactory(
+export async function starkTxAuthSetup() {
+  const controller = await starknet.deployAccount('Argent');
+  const spaceFactory = await starknet.getContractFactory('./contracts/starknet/Space.cairo');
+  const vanillaVotingStrategyFactory = await starknet.getContractFactory(
     './contracts/starknet/VotingStrategies/Vanilla.cairo'
   );
-  const starknetTxAuthFactory = await starknet.getContractFactory(
+  const starknetTxAuthenticatorFactory = await starknet.getContractFactory(
     './contracts/starknet/Authenticators/StarkTx.cairo'
   );
-  const zodiacRelayerFactory = await starknet.getContractFactory(
-    './contracts/starknet/ExecutionStrategies/ZodiacRelayer.cairo'
+  const vanillaExecutionStrategyFactory = await starknet.getContractFactory(
+    './contracts/starknet/ExecutionStrategies/Vanilla.cairo'
   );
 
   const deployments = [
-    starknetTxAuthFactory.deploy(),
-    vanillaVotingStategyFactory.deploy(),
-    zodiacRelayerFactory.deploy(),
+    starknetTxAuthenticatorFactory.deploy(),
+    vanillaVotingStrategyFactory.deploy(),
+    vanillaExecutionStrategyFactory.deploy(),
   ];
-  console.log('Deploying auth, voting and zodiac relayer contracts...');
   const contracts = await Promise.all(deployments);
-  const starknetTxAuth = contracts[0] as StarknetContract;
+  const starknetTxAuthenticator = contracts[0] as StarknetContract;
   const vanillaVotingStrategy = contracts[1] as StarknetContract;
-  const zodiacRelayer = contracts[2] as StarknetContract;
+  const vanillaExecutionStrategy = contracts[2] as StarknetContract;
 
-  const voting_strategy = BigInt(vanillaVotingStrategy.address);
-  const authenticator = BigInt(starknetTxAuth.address);
-  const zodiac_relayer = BigInt(zodiacRelayer.address);
-  const quorum = SplitUint256.fromUint(BigInt(0));
-
-  const voting_strategy_params: bigint[][] = [[]];
-  const voting_strategy_params_flat = flatten2DArray(voting_strategy_params);
-
-  // This should be declared along with the other const but doing so will make the compiler unhappy as `SplitUint256`
-  // will be undefined for some reason?
-  const PROPOSAL_THRESHOLD = SplitUint256.fromUint(BigInt(1));
+  const votingDelay = BigInt(0);
+  const minVotingDuration = BigInt(0);
+  const maxVotingDuration = BigInt(2000);
+  const votingStrategies: bigint[] = [BigInt(vanillaVotingStrategy.address)];
+  const votingStrategyParams: bigint[][] = [[]]; // No params for the vanilla voting strategy
+  const votingStrategyParamsFlat: bigint[] = flatten2DArray(votingStrategyParams);
+  const authenticators: bigint[] = [BigInt(starknetTxAuthenticator.address)];
+  const executors: bigint[] = [BigInt(vanillaExecutionStrategy.address)];
+  const quorum: SplitUint256 = SplitUint256.fromUint(BigInt(1)); //  Quorum of one for the vanilla test
+  const proposalThreshold: SplitUint256 = SplitUint256.fromUint(BigInt(1)); // Proposal threshold of 1 for the vanilla test
 
   console.log('Deploying space contract...');
-  const vanillaSpace = (await vanillaSpaceFactory.deploy({
-    _voting_delay: BigInt(0),
-    _min_voting_duration: BigInt(0),
-    _max_voting_duration: BigInt(2000),
-    _proposal_threshold: PROPOSAL_THRESHOLD,
+  const space = (await spaceFactory.deploy({
+    _voting_delay: votingDelay,
+    _min_voting_duration: minVotingDuration,
+    _max_voting_duration: maxVotingDuration,
+    _proposal_threshold: proposalThreshold,
+    _controller: BigInt(controller.starknetContract.address),
     _quorum: quorum,
-    _controller: BigInt(account.starknetContract.address),
-    _voting_strategy_params_flat: voting_strategy_params_flat,
-    _voting_strategies: [voting_strategy],
-    _authenticators: [authenticator],
-    _executors: [zodiac_relayer],
+    _voting_strategy_params_flat: votingStrategyParamsFlat,
+    _voting_strategies: votingStrategies,
+    _authenticators: authenticators,
+    _executors: executors,
   })) as StarknetContract;
   console.log('deployed!');
 
   return {
-    vanillaSpace,
-    starknetTxAuth,
+    space,
+    controller,
+    starknetTxAuthenticator,
     vanillaVotingStrategy,
-    zodiacRelayer,
-    account,
+    vanillaExecutionStrategy,
   };
 }
 

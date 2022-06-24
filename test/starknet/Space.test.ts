@@ -1,13 +1,11 @@
 import { expect } from 'chai';
 import { ethers } from 'hardhat';
-import { stark } from 'starknet';
 import { StarknetContract, Account } from 'hardhat/types';
 import { strToShortStringArr } from '@snapshot-labs/sx';
 import { SplitUint256, Choice } from '../shared/types';
 import { getProposeCalldata, getVoteCalldata, bytesToHex } from '../shared/helpers';
 import { vanillaSetup } from '../shared/setup';
-
-const { getSelectorFromName } = stark;
+import { PROPOSE_SELECTOR, VOTE_SELECTOR } from '../shared/constants';
 
 describe('Space Testing', () => {
   // Contracts
@@ -26,7 +24,6 @@ describe('Space Testing', () => {
   let userVotingParamsAll1: bigint[][];
   let executionStrategy: bigint;
   let executionParams: bigint[];
-  let ethBlockNumber: bigint;
   let proposeCalldata: bigint[];
 
   // Additional parameters for voting
@@ -48,7 +45,6 @@ describe('Space Testing', () => {
       'Hello and welcome to Snapshot X. This is the future of governance.'
     );
     proposerEthAddress = ethers.Wallet.createRandom().address;
-    ethBlockNumber = BigInt(1337);
     spaceAddress = BigInt(space.address);
     usedVotingStrategies1 = [BigInt(vanillaVotingStrategy.address)];
     userVotingParamsAll1 = [[]];
@@ -58,7 +54,6 @@ describe('Space Testing', () => {
       proposerEthAddress,
       executionHash,
       metadataUri,
-      ethBlockNumber,
       executionStrategy,
       usedVotingStrategies1,
       userVotingParamsAll1,
@@ -79,12 +74,12 @@ describe('Space Testing', () => {
     );
   });
 
-  it('Users should be able to create a proposal, cast a vote, and execute', async () => {
+  it('Users should be able to create a proposal, cast a vote, and execute it', async () => {
     // -- Creates the proposal --
     {
-      await vanillaAuthenticator.invoke('execute', {
+      await vanillaAuthenticator.invoke('authenticate', {
         target: spaceAddress,
-        function_selector: BigInt(getSelectorFromName('propose')),
+        function_selector: PROPOSE_SELECTOR,
         calldata: proposeCalldata,
       });
 
@@ -103,9 +98,9 @@ describe('Space Testing', () => {
     }
     // -- Casts a vote FOR --
     {
-      await vanillaAuthenticator.invoke('execute', {
+      await vanillaAuthenticator.invoke('authenticate', {
         target: spaceAddress,
-        function_selector: BigInt(getSelectorFromName('vote')),
+        function_selector: VOTE_SELECTOR,
         calldata: voteCalldata,
       });
 
