@@ -32,8 +32,6 @@ const PROPOSAL_SELECTOR = 0x1bfd596ae442867ef71ca523061610682af8b00fc2738329422f
 # getSelectorFromName("vote")
 const VOTE_SELECTOR = 0x132bdf85fc8aa10ac3c22f02317f8f53d4b4f52235ed1eabb3a4cbbe08b5c41
 
-const BYTES_IN_UINT256 = 32
-
 const ETHEREUM_PREFIX = 0x1901
 
 # This is the `Proposal` typeHash, obtained by doing this:
