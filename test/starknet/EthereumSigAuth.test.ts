@@ -6,14 +6,13 @@ import { expect } from 'chai';
 import { ethereumSigSetup } from '../shared/setup';
 import { StarknetContract, Account } from 'hardhat/types';
 import { ethers } from 'hardhat';
-import { domain, Propose, proposeTypes} from './helper/types';
+import { domain, Propose, proposeTypes, Vote, voteTypes} from './helper/types';
 import { _TypedDataEncoder } from '@ethersproject/hash';
 import { TypedDataDomain, TypedDataField } from '@ethersproject/abstract-signer';
-import { recoverPublicKey, verifyMessage, verifyTypedData, toUtf8Bytes, computePublicKey, computeAddress, keccak256, hexConcat, hexZeroPad } from 'ethers/lib/utils';
+import { recoverPublicKey, verifyMessage, verifyTypedData, toUtf8Bytes, computePublicKey, computeAddress, keccak256, hexConcat, hexZeroPad, serializeTransaction } from 'ethers/lib/utils';
 import { type } from 'os';
 import { keccak } from 'ethereumjs-util';
 import { Signature } from 'ethers';
-
 
 const { getSelectorFromName } = stark;
 
@@ -22,44 +21,15 @@ export const AUTHENTICATE_METHOD = 'authenticate';
 export const PROPOSAL_METHOD = 'propose';
 export const VOTE_METHOD = 'vote';
 
-export 
-
 function getHash(domain: TypedDataDomain, types: Record<string, TypedDataField[]>, message: Record<string, any>) {
-  console.log("Domain:", domain);
-  console.log("Types: ", types);
-  console.log("Message: ", message);
-
   const msgHash = _TypedDataEncoder.hash(domain, types, message);
 
-  // hashstruct domain
-  const hashDomain = _TypedDataEncoder.hashDomain(domain);
-  console.log("official hashDomain: ", hashDomain);
+  // Stub code to generate and print the type hash
+  // const vote = "Vote(uint256 salt,bytes32 space,uint256 proposal,uint256 choice)";
+  // let s = Buffer.from(vote);
+  // let typeHash: string = keccak256(s);
+  // console.log("typeHash: ", typeHash);
 
-  // Reconstruct hash domain
-  const domainFields = [{name: 'name', type: 'string'}, {name: 'version', type: 'string'}]
-  let domainHash = _TypedDataEncoder.hashStruct("EIP712Domain", { EIP712Domain: domainFields }, domain);
-  console.log("recovered Domain Hash: ", domainHash);
-
-  let dataHash = _TypedDataEncoder.from(types).hash(message);
-
-  const prop = "Propose(uint256 salt,bytes32 space,bytes32 executionHash)";
-  let s = Buffer.from(prop);
-  let typeHash: string = keccak256(s);
-  console.log("typeHash: ", typeHash);
-  let encodedData: string = hexConcat([prefixWithZeroes("1"), message.space, message.executionHash]);
-
-  console.log("Encoded Data: ", encodedData)
-  let struct = hexConcat([typeHash, encodedData]);
-  console.log("struct: ", struct);
-  let hashStruct = keccak256(struct);
-  console.log("official dataHash:  ", dataHash);
-  console.log("Recovered dataHash: ", hashStruct);
-  console.log("Equal? ", hashStruct === dataHash);
-
-  const recoveredMsgHash = keccak256(hexConcat(["0x1901", domainHash, hashStruct]));
-  console.log("recovered msg hash: ", recoveredMsgHash);
-  console.log("msg hash: ", msgHash);
-  console.log("RES GOOD? ", msgHash === recoveredMsgHash )
   return msgHash;
 }
 
@@ -88,6 +58,8 @@ function hexPadRight(s: string) {
   return ('0x' + s + '0'.repeat(numZeroes))
 }
 
+// Extracts and returns the `r, s, v` values from a `signature`.
+// `r`, `s` are SplitUint256, `v` is a BigInt
 function getRSVFromSig(sig: string) {
   if (sig.startsWith('0x')) {
     sig = sig.substring(2);
@@ -230,36 +202,48 @@ describe('Ethereum Sig Auth testing', () => {
     }
 
     // -- Casts a vote FOR --
-    // {
-    //   console.log('Casting a vote FOR...');
-    //   const voter_address = proposerAddress;
-    //   const votingparams: Array<BigInt> = [];
-    //   const used_voting_strategies = [BigInt(vanillaVotingStrategy.address)];
-    //   await account.invoke(starknetSigAuth, AUTHENTICATE_METHOD, {
-    //     target: spaceContract,
-    //     function_selector: BigInt(getSelectorFromName(VOTE_METHOD)),
-    //     calldata: [
-    //       voter_address,
-    //       proposalId,
-    //       Choice.FOR,
-    //       BigInt(used_voting_strategies.length),
-    //       ...used_voting_strategies,
-    //       BigInt(votingParamsAllFlat.length),
-    //       ...votingParamsAllFlat,
-    //     ],
-    //   });
+    {
+      console.log('Casting a vote FOR...');
+      const accounts = await ethers.getSigners();
+      const voter_address = BigInt(accounts[0].address);
+      const votingparams: Array<BigInt> = [];
+      const used_voting_strategies = [BigInt(vanillaVotingStrategy.address)];
+      const spaceStr = hexPadRight(spaceContract.toString(16));
+      const message: Vote = {salt: 2, space: spaceStr, proposal: proposalId, choice: Choice.FOR};
+      let sig = await accounts[0]._signTypedData(domain, voteTypes, message);
+      const msg_hash_uint256 = SplitUint256.fromHex(getHash(domain, voteTypes, message));
+      const {r, s, v} = getRSVFromSig(sig);
+      const salt = SplitUint256.fromHex("0x02");
+      await account.invoke(starknetSigAuth, AUTHENTICATE_METHOD, {
+        msg_hash: msg_hash_uint256,
+        r: r,
+        s: s,
+        v: v,
+        salt: salt,
+        target: spaceContract,
+        function_selector: BigInt(getSelectorFromName(VOTE_METHOD)),
+        calldata: [
+          voter_address,
+          proposalId,
+          Choice.FOR,
+          BigInt(used_voting_strategies.length),
+          ...used_voting_strategies,
+          BigInt(votingParamsAllFlat.length),
+          ...votingParamsAllFlat,
+        ],
+      });
 
-    //   console.log('Getting proposal info...');
-    //   const { proposal_info } = await vanillaSpace.call('get_proposal_info', {
-    //     proposal_id: proposalId,
-    //   });
+      console.log('Getting proposal info...');
+      const { proposal_info } = await vanillaSpace.call('get_proposal_info', {
+        proposal_id: proposalId,
+      });
 
-    //   const _for = SplitUint256.fromObj(proposal_info.power_for).toUint();
-    //   expect(_for).to.deep.equal(BigInt(1));
-    //   const against = SplitUint256.fromObj(proposal_info.power_against).toUint();
-    //   expect(against).to.deep.equal(BigInt(0));
-    //   const abstain = SplitUint256.fromObj(proposal_info.power_abstain).toUint();
-    //   expect(abstain).to.deep.equal(BigInt(0));
-    // }
+      const _for = SplitUint256.fromObj(proposal_info.power_for).toUint();
+      expect(_for).to.deep.equal(BigInt(1));
+      const against = SplitUint256.fromObj(proposal_info.power_against).toUint();
+      expect(against).to.deep.equal(BigInt(0));
+      const abstain = SplitUint256.fromObj(proposal_info.power_abstain).toUint();
+      expect(abstain).to.deep.equal(BigInt(0));
+    }
   }).timeout(6000000);
 });

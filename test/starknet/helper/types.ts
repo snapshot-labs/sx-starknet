@@ -18,8 +18,8 @@ export const voteTypes = {
   Vote: [
     { name: 'salt', type: 'uint256' },
     { name: 'space', type: 'bytes32' },
-    { name: 'proposal', type: 'uint32' },
-    { name: 'choice', type: 'uint32' }
+    { name: 'proposal', type: 'uint256' },
+    { name: 'choice', type: 'uint256' }
   ]
 };
 

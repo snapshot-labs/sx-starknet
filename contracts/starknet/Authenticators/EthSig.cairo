@@ -25,40 +25,16 @@ const BYTES_IN_UINT256 = 32
 
 const ETHEREUM_PREFIX = 0x1901
 
-# keccak256("Propose(uint256 nonce,bytes32 space,bytes32 executionHash,string metadataURI)")
-# 0xb165e31e54251c4e587d1ab2c6d929b2471c024bf48d00ebc9ca94777b0aa13d
-# const PROPOSAL_HASH_LOW = 0x471c024bf48d00ebc9ca94777b0aa13d
-# const PROPOSAL_HASH_HIGH = 0xb165e31e54251c4e587d1ab2c6d929b2
-
 # TYPEHASH
 # keccak256("Propose(uint256 salt,bytes32 space,bytes32 executionHash)")
 # 0x54c098ca8d69ef660ee5f92f559d202640122887e093031aaa36b4066a50c624
 const PROPOSAL_HASH_HIGH = 0x54c098ca8d69ef660ee5f92f559d2026
 const PROPOSAL_HASH_LOW = 0x40122887e093031aaa36b4066a50c624
 
-# LEFT_PADDED 1: 0xb10e2d527612073b26eecdfd717e6a320cf44b4afac2b0732d9fcbe2b7fa0cf6
-const NONCE_HASH_HIGH = 0xb10e2d527612073b26eecdfd717e6a32
-const NONCE_HASH_LOW = 0x0cf44b4afac2b0732d9fcbe2b7fa0cf6
-
-# NO_PAD 1: 0x5fe7f977e71dba2ea1a68e21057beebb9be2ac30c6410aa38d4f3fbe41dcffd2
-# const NONCE_HASH_HIGH = 0x5fe7f977e71dba2ea1a68e21057beebb
-# const NONCE_HASH_LOW = 0x9be2ac30c6410aa38d4f3fbe41dcffd2
-
-# keccak256("Vote(uint256 nonce,bytes32 space,uint256 proposal,uint256 choice)")
-# 0x5a6ef60fd4d9b84327ba5c43cada66cd075ba32fff928b67c45d391a0bfac1c0
-const VOTE_HASH_HIGH = 0x5a6ef60fd4d9b84327ba5c43cada66cd
-const VOTE_HASH_LOW = 0x75ba32fff928b67c45d391a0bfac1c0
-
-# encodedData = hexConcat([prefixWithZeroes("1"), hexPadRight(message.space), hexPadRight(message.executionHash)]);
-# keccak256(hexConcat([typehash, encodedData])
-# const DATA_HASH = 0xb520b9bdd0518376add84979bcbdf94b18e923a885a86371bce7342755eb54be
-# const DATA_HASH_HIGH = 0xb520b9bdd0518376add84979bcbdf94b
-# const DATA_HASH_LOW = 0x18e923a885a86371bce7342755eb54be
-
-# keccak256("EIP712Domain(string name,string version)")
-# 0xb03948446334eb9b2196d5eb166f69b9d49403eb4a12f36de8d3f9f3cb8e15c3
-# const DOMAIN_HASH_HIGH = 0xb03948446334eb9b2196d5eb166f69b9
-# const DOMAIN_HASH_LOW = 0xd49403eb4a12f36de8d3f9f3cb8e15c3
+# keccak256("Vote(uint256 salt,bytes32 space,uint256 proposal,uint256 choice)")
+# 0x0a2717ddf197067ae85a6f41872b66f70cfba68208c9e9e5e5121904e822fc51
+const VOTE_HASH_HIGH = 0x0a2717ddf197067ae85a6f41872b66f7
+const VOTE_HASH_LOW = 0x0cfba68208c9e9e5e5121904e822fc51
 
 # DOMAIN HASH
 # name: 'snapshot-x',
@@ -176,10 +152,10 @@ func authenticate_proposal{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range
     alloc_locals
 
     # Proposer address should be located in calldata[0]
-    let eth_address = calldata[0]
+    let proposer_address = calldata[0]
 
     # Ensure proposer has not already used this salt in a previous action
-    let (already_used) = salts.read(eth_address, salt)
+    let (already_used) = salts.read(proposer_address, salt)
 
     with_attr error_message("Salt already used"):
         assert already_used = 0
@@ -230,23 +206,84 @@ func authenticate_proposal{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range
     # Compute the hash
     let (hash) = keccak_bigend{keccak_ptr=keccak_ptr}(inputs=signable_bytes_start, n_bytes=2 * 32 + 2)
 
-    # `v` is supposed to be `yParity` and not the `v` as defined in before EIP155.
+    # `v` is supposed to be `yParity` and not the `v` usually used in the Ethereum world (pre-EIP155).
     # We substract `27` because `v` = `{0, 1} + 27`
-    verify_eth_signature_uint256{keccak_ptr=keccak_ptr}(hash, r, s, v - 27, eth_address)
+    verify_eth_signature_uint256{keccak_ptr=keccak_ptr}(hash, r, s, v - 27, proposer_address)
 
     # Verify that all the previous keccaks are correct
     finalize_keccak(keccak_ptr_start, keccak_ptr)
 
     # Write the salt to prevent replay attack
-    salts.write(eth_address, salt, 1)
+    salts.write(proposer_address, salt, 1)
 
     return ()
 end
 
-func authenticate_vote{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_ptr, bitwise_ptr: BitwiseBuiltin*}(nonce : Uint256, target : felt, calldata_len : felt, calldata : felt*):
-    with_attr error_message("Voting..."):
-        assert 1 = 0
+func authenticate_vote{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_ptr, bitwise_ptr: BitwiseBuiltin*}(msg_hash: Uint256, r: Uint256, s: Uint256, v: felt, salt : Uint256, target : felt, calldata_len : felt, calldata : felt*):
+    alloc_locals
+
+    # Voter address should be located in calldata[0]
+    let voter_address = calldata[0]
+
+    # Ensure voter has not already used this salt in a previous action
+    let (already_used) = salts.read(voter_address, salt)
+
+    with_attr error_message("Salt already used"):
+        assert already_used = 0
     end
+
+    let (space) = felt_to_uint256(target)
+    # `bytes32` types need to be right padded
+    let (padded_space) = pad_right(space)
+    let (proposal_id) = felt_to_uint256(calldata[1])
+    let (choice) = felt_to_uint256(calldata[2])
+
+    # Now construct the data hash (hashStruct)
+    let (data: Uint256*) = alloc()
+
+    assert data[0] = Uint256(VOTE_HASH_LOW, VOTE_HASH_HIGH)
+    assert data[1] = salt
+    assert data[2] = padded_space
+    assert data[3] = proposal_id
+    assert data[4] = choice
+
+    let (local keccak_ptr : felt*) = alloc() 
+    let keccak_ptr_start = keccak_ptr
+
+    let (hash_struct) = get_keccak_hash{keccak_ptr=keccak_ptr}(5, data)
+
+    # Prepare the encoded data
+    let (prepared_encoded: Uint256*) = alloc()
+    assert prepared_encoded[0] = Uint256(DOMAIN_HASH_LOW, DOMAIN_HASH_HIGH)
+    assert prepared_encoded[1] = hash_struct
+
+    # Prepend the ethereum prefix
+    let (encoded_data: Uint256*) = alloc()
+    prepend_prefix_2bytes(ETHEREUM_PREFIX, encoded_data, 2, prepared_encoded)
+
+    # Now go from Uint256s to Uint64s (required in order to call `keccak`)
+    let (signable_bytes) = alloc()
+    let signable_bytes_start = signable_bytes
+    keccak_add_uint256s{inputs=signable_bytes}(n_elements=3, elements=encoded_data, bigend=1)
+
+    # Compute the hash
+    let (hash) = keccak_bigend{keccak_ptr=keccak_ptr}(inputs=signable_bytes_start, n_bytes=2 * 32 + 2)
+
+    with_attr error_message("Incorrect hash"):
+        assert hash.low = msg_hash.low
+        assert hash.high = msg_hash.high
+    end
+
+    # `v` is supposed to be `yParity` and not the `v` usually used in the Ethereum world (pre-EIP155).
+    # We substract `27` because `v` = `{0, 1} + 27`
+    verify_eth_signature_uint256{keccak_ptr=keccak_ptr}(hash, r, s, v - 27, voter_address)
+
+    # Verify that all the previous keccaks are correct
+    finalize_keccak(keccak_ptr_start, keccak_ptr)
+
+    # Write the salt to prevent replay attack
+    salts.write(voter_address, salt, 1)
+
     return ()
 end
 
@@ -257,7 +294,7 @@ func authenticate{syscall_ptr : felt*, pedersen_ptr: HashBuiltin*, range_check_p
     if function_selector == PROPOSAL_SELECTOR:
         authenticate_proposal(msg_hash, r, s, v, salt, target, calldata_len, calldata)
     else:
-        authenticate_vote(salt, target, calldata_len, calldata)
+        authenticate_vote(msg_hash, r, s, v, salt, target, calldata_len, calldata)
     end
 
     # Call the contract
