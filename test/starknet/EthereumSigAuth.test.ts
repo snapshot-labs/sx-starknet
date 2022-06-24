@@ -12,6 +12,7 @@ import { TypedDataDomain, TypedDataField } from '@ethersproject/abstract-signer'
 import { recoverPublicKey, verifyMessage, verifyTypedData, toUtf8Bytes, computePublicKey, computeAddress, keccak256, hexConcat, hexZeroPad } from 'ethers/lib/utils';
 import { type } from 'os';
 import { keccak } from 'ethereumjs-util';
+import { Signature } from 'ethers';
 
 
 const { getSelectorFromName } = stark;
@@ -41,7 +42,7 @@ function getHash(domain: TypedDataDomain, types: Record<string, TypedDataField[]
 
   let dataHash = _TypedDataEncoder.from(types).hash(message);
 
-  const prop = "Propose(uint256 nonce,bytes32 space,bytes32 executionHash)";
+  const prop = "Propose(uint256 salt,bytes32 space,bytes32 executionHash)";
   let s = Buffer.from(prop);
   let typeHash: string = keccak256(s);
   console.log("typeHash: ", typeHash);
@@ -87,6 +88,13 @@ function hexPadRight(s: string) {
   return ('0x' + s + '0'.repeat(numZeroes))
 }
 
+function getRSVFromSig(sig: string) {
+  const r = SplitUint256.fromHex('0x' + sig.substring(0, 64));
+  const s = SplitUint256.fromHex('0x' + sig.substring(64, 64 * 2));
+  const v = BigInt('0x' + sig.substring(64 * 2));
+  return {r, s, v}
+}
+
 describe('Ethereum Sig Auth testing', () => {
   let vanillaSpace: StarknetContract;
   let starknetSigAuth: StarknetContract;
@@ -121,7 +129,7 @@ describe('Ethereum Sig Auth testing', () => {
     proposerAddress = BigInt(await accounts[0].getAddress())
 
     calldata = [
-      proposerAddress,
+      BigInt(accounts[0].address),
       executionHash.low,
       executionHash.high,
       BigInt(metadataUri.length),
@@ -137,33 +145,32 @@ describe('Ethereum Sig Auth testing', () => {
     ];
   });
 
-  // it('Should not authenticate an invalid signature', async () => {
-  //   try {
-  //     const fake_data = [...calldata];
-  //     fake_data[0] = VITALIK_ADDRESS;
+  it('Should not authenticate an invalid signature', async () => {
+    try {
+      const fake_data = [...calldata];
+      fake_data[0] = VITALIK_ADDRESS;
 
-  //     await account.invoke(starknetSigAuth, AUTHENTICATE_METHOD, {
-  //       target: spaceContract,
-  //       function_selector: BigInt(getSelectorFromName(PROPOSAL_METHOD)),
-  //       calldata: fake_data,
-  //     });
-  //     throw 'error';
-  //   } catch (err: any) {
-  //     expect(err.message).to.contain('Incorrect caller');
-  //   }
-  // });
+      await account.invoke(starknetSigAuth, AUTHENTICATE_METHOD, {
+        target: spaceContract,
+        function_selector: BigInt(getSelectorFromName(PROPOSAL_METHOD)),
+        calldata: fake_data,
+      });
+      throw 'error';
+    } catch (err: any) {
+      expect(err.message).to.contain('Incorrect caller');
+    }
+  });
 
   it('Should create a proposal and cast a vote', async () => {
     // -- Creates the proposal --
     {
-      const nonce: SplitUint256 = SplitUint256.fromUint(BigInt("1"));
+      const salt: SplitUint256 = SplitUint256.fromUint(BigInt("1"));
       const spaceStr = hexPadRight(spaceContract.toString(16));
       const executionHashStr = hexPadRight(executionHash.toHex());
       console.log("space str before: ", spaceStr);
-      const message: Propose = {nonce: 1, space: spaceStr, executionHash: executionHashStr};
+      const message: Propose = {salt: 1, space: spaceStr, executionHash: executionHashStr};
 
       const msgHash = getHash(domain, proposeTypes, message);
-      // const msg_hash = BigInt(1);
 
       const accounts = await ethers.getSigners();
       let sig = await accounts[0]._signTypedData(domain, proposeTypes, message);
@@ -172,23 +179,17 @@ describe('Ethereum Sig Auth testing', () => {
       // Remove '0x' prefix
       sig = sig.substring(2);
 
-      const r = SplitUint256.fromHex('0x' + sig.substring(0, 64));
-      const s = SplitUint256.fromHex('0x' + sig.substring(64, 64 * 2));
-      const v = BigInt('0x' + sig.substring(64 * 2));
+      const {r, s, v} = getRSVFromSig(sig)
 
       const msg_hash_uint256 = SplitUint256.fromHex(msgHash);
 
-      const key = recoverPublicKey(msgHash, "0x" + sig);
-      const address = computeAddress(key);
-
       console.log('Creating proposal...');
-      calldata[0] = BigInt(accounts[0].address)
       await account.invoke(starknetSigAuth, AUTHENTICATE_METHOD, {
         msg_hash: msg_hash_uint256,
         r: r,
         s: s,
         v: v,
-        nonce: nonce,
+        salt: salt,
         target: spaceContract,
         function_selector: BigInt(getSelectorFromName(PROPOSAL_METHOD)),
         calldata,
