@@ -230,9 +230,6 @@ func authenticate_proposal{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range
     # Compute the hash
     let (hash) = keccak_bigend{keccak_ptr=keccak_ptr}(inputs=signable_bytes_start, n_bytes=2 * 32 + 2)
 
-    assert hash.low = msg_hash.low
-    assert hash.high = msg_hash.high
-
     # `v` is supposed to be `yParity` and not the `v` as defined in before EIP155.
     # We substract `27` because `v` = `{0, 1} + 27`
     verify_eth_signature_uint256{keccak_ptr=keccak_ptr}(hash, r, s, v - 27, eth_address)

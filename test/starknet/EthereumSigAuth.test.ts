@@ -89,6 +89,9 @@ function hexPadRight(s: string) {
 }
 
 function getRSVFromSig(sig: string) {
+  if (sig.startsWith('0x')) {
+    sig = sig.substring(2);
+  }
   const r = SplitUint256.fromHex('0x' + sig.substring(0, 64));
   const s = SplitUint256.fromHex('0x' + sig.substring(64, 64 * 2));
   const v = BigInt('0x' + sig.substring(64 * 2));
@@ -147,24 +150,40 @@ describe('Ethereum Sig Auth testing', () => {
 
   it('Should not authenticate an invalid signature', async () => {
     try {
+      const salt: SplitUint256 = SplitUint256.fromHex("0x1");
+      const spaceStr = hexPadRight(spaceContract.toString(16));
+      const executionHashStr = hexPadRight(executionHash.toHex());
+      console.log("space str before: ", spaceStr);
+      const message: Propose = {salt: 1, space: spaceStr, executionHash: executionHashStr};
       const fake_data = [...calldata];
-      fake_data[0] = VITALIK_ADDRESS;
+      const accounts = await ethers.getSigners();
+
+      let sig = await accounts[0]._signTypedData(domain, proposeTypes, message);
+      const {r, s, v} = getRSVFromSig(sig)
+
+      // Data is signed with accounts[0] but the proposer is accounts[1] so it should fail
+      fake_data[0] = BigInt(accounts[1].address)
 
       await account.invoke(starknetSigAuth, AUTHENTICATE_METHOD, {
+        msg_hash: SplitUint256.fromHex("0x0"),
+        r: r,
+        s: s,
+        v: v,
+        salt: salt,
         target: spaceContract,
         function_selector: BigInt(getSelectorFromName(PROPOSAL_METHOD)),
         calldata: fake_data,
       });
       throw 'error';
     } catch (err: any) {
-      expect(err.message).to.contain('Incorrect caller');
+      expect(err.message).to.contain('Invalid signature.');
     }
   });
 
   it('Should create a proposal and cast a vote', async () => {
     // -- Creates the proposal --
     {
-      const salt: SplitUint256 = SplitUint256.fromUint(BigInt("1"));
+      const salt: SplitUint256 = SplitUint256.fromHex("0x1");
       const spaceStr = hexPadRight(spaceContract.toString(16));
       const executionHashStr = hexPadRight(executionHash.toHex());
       console.log("space str before: ", spaceStr);
@@ -175,9 +194,6 @@ describe('Ethereum Sig Auth testing', () => {
       const accounts = await ethers.getSigners();
       let sig = await accounts[0]._signTypedData(domain, proposeTypes, message);
       console.log("Sig: ", sig);
-
-      // Remove '0x' prefix
-      sig = sig.substring(2);
 
       const {r, s, v} = getRSVFromSig(sig)
 
