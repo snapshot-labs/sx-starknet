@@ -140,7 +140,6 @@ describe('Ethereum Sig Auth testing', () => {
       const salt: SplitUint256 = SplitUint256.fromHex('0x1');
       const spaceStr = hexPadRight(spaceContract.toString(16));
       const executionHashStr = hexPadRight(executionHash.toHex());
-      console.log('space str before: ', spaceStr);
       const message: Propose = { salt: 1, space: spaceStr, executionHash: executionHashStr };
       const fake_data = [...calldata];
       const accounts = await ethers.getSigners();
@@ -172,14 +171,12 @@ describe('Ethereum Sig Auth testing', () => {
       const salt: SplitUint256 = SplitUint256.fromHex('0x1');
       const spaceStr = hexPadRight(spaceContract.toString(16));
       const executionHashStr = hexPadRight(executionHash.toHex());
-      console.log('space str before: ', spaceStr);
       const message: Propose = { salt: 1, space: spaceStr, executionHash: executionHashStr };
 
       const msgHash = getHash(domain, proposeTypes, message);
 
       const accounts = await ethers.getSigners();
       const sig = await accounts[0]._signTypedData(domain, proposeTypes, message);
-      console.log('Sig: ', sig);
 
       const { r, s, v } = getRSVFromSig(sig);
 
@@ -198,6 +195,22 @@ describe('Ethereum Sig Auth testing', () => {
       const { proposal_info } = await vanillaSpace.call('get_proposal_info', {
         proposal_id: proposalId,
       });
+
+      // -- Attempts a replay attack on `propose` method --
+      try {
+        await account.invoke(starknetSigAuth, AUTHENTICATE_METHOD, {
+          r: r,
+          s: s,
+          v: v,
+          salt: salt,
+          target: spaceContract,
+          function_selector: BigInt(getSelectorFromName(PROPOSAL_METHOD)),
+          calldata,
+        });
+        throw 'replay attack worked on `propose`';
+      } catch (err: any) {
+        expect(err.message).to.contain('Salt already used');
+      }
 
       // We can't directly compare the `info` object because we don't know for sure the value of `start_block` (and hence `end_block`),
       // so we compare it element by element.
@@ -253,6 +266,30 @@ describe('Ethereum Sig Auth testing', () => {
       expect(against).to.deep.equal(BigInt(0));
       const abstain = SplitUint256.fromObj(proposal_info.power_abstain).toUint();
       expect(abstain).to.deep.equal(BigInt(0));
+
+      // -- Attempts a replay attack on `vote` method --
+      try {
+        await account.invoke(starknetSigAuth, AUTHENTICATE_METHOD, {
+          r: r,
+          s: s,
+          v: v,
+          salt: salt,
+          target: spaceContract,
+          function_selector: BigInt(getSelectorFromName(VOTE_METHOD)),
+          calldata: [
+            voter_address,
+            proposalId,
+            Choice.FOR,
+            BigInt(used_voting_strategies.length),
+            ...used_voting_strategies,
+            BigInt(votingParamsAllFlat.length),
+            ...votingParamsAllFlat,
+          ],
+        });
+        throw 'replay attack worked on `vote`';
+      } catch (err: any) {
+        expect(err.message).to.contain('Salt already used');
+      }
     }
   }).timeout(6000000);
 });

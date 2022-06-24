@@ -36,96 +36,118 @@ const BYTES_IN_UINT256 = 32
 
 const ETHEREUM_PREFIX = 0x1901
 
-# TYPEHASH
+# This is the `Proposal` typeHash, obtained by doing this:
 # keccak256("Propose(uint256 salt,bytes32 space,bytes32 executionHash)")
-# 0x54c098ca8d69ef660ee5f92f559d202640122887e093031aaa36b4066a50c624
+# Which returns: 0x54c098ca8d69ef660ee5f92f559d202640122887e093031aaa36b4066a50c624
 const PROPOSAL_HASH_HIGH = 0x54c098ca8d69ef660ee5f92f559d2026
 const PROPOSAL_HASH_LOW = 0x40122887e093031aaa36b4066a50c624
 
+# This is the `Vote` typeHash, obtained by doing this:
 # keccak256("Vote(uint256 salt,bytes32 space,uint256 proposal,uint256 choice)")
 # 0x0a2717ddf197067ae85a6f41872b66f70cfba68208c9e9e5e5121904e822fc51
 const VOTE_HASH_HIGH = 0x0a2717ddf197067ae85a6f41872b66f7
 const VOTE_HASH_LOW = 0x0cfba68208c9e9e5e5121904e822fc51
 
-# DOMAIN HASH
+# This is the domainSeparator, obtained by using those fields (see more about it in EIP712):
 # name: 'snapshot-x',
 # version: '1'
-# 0x4ea062c13aa1ccc0dde3383926ef913772c5ab51b06b74e448d6b02ce79ba93c
+# Which returns: 0x4ea062c13aa1ccc0dde3383926ef913772c5ab51b06b74e448d6b02ce79ba93c
 const DOMAIN_HASH_HIGH = 0x4ea062c13aa1ccc0dde3383926ef9137
 const DOMAIN_HASH_LOW = 0x72c5ab51b06b74e448d6b02ce79ba93c
 
+# Maps a tuple of (user, salt) to a boolean stating whether this tuple was already used or not (to prevent replay attack).
 @storage_var
 func salts(user : felt, salt : Uint256) -> (already_used : felt):
 end
 
-# value has to be a 16 byte word
-# prefix length = PREFIX_BITS
+# Adds a 2 bytes (16 bits) `prefix` to a 16 bytes (128 bits) `value`.
 func add_prefix128{range_check_ptr, bitwise_ptr : BitwiseBuiltin*}(value : felt, prefix : felt) -> (
-    result : felt, overflow
+    result : felt, carry
 ):
+    # Shift the prefix by 128 bits
     let shifted_prefix = prefix * 2 ** 128
-    # with_prefix is 18 bytes long
+    # `with_prefix` is now 18 bytes long
     let with_prefix = shifted_prefix + value
+    # Create 2 bytes mask
     let overflow_mask = 2 ** 16 - 1
-    let (overflow) = bitwise_and(with_prefix, overflow_mask)
-    let result = (with_prefix - overflow) / 2 ** 16
-    return (result, overflow)
+    # Extract the last two bytes of `with_prefix`
+    let (carry) = bitwise_and(with_prefix, overflow_mask)
+    # Compute the new number, right shift by 16
+    let result = (with_prefix - carry) / 2 ** 16
+    return (result, carry)
 end
 
+# Concatenates a 2 bytes long `prefix` and `input` to `output`.
+# `input_len` is the number of `Uint256` in `input`.
 func prepend_prefix_2bytes{range_check_ptr, bitwise_ptr : BitwiseBuiltin*}(
     prefix : felt, output : Uint256*, input_len : felt, input : Uint256*
 ):
     if input_len == 0:
+        # Done, simlpy store the prefix in the `.high` part of the last Uin256, and
+        # make sure we left shift it by 28 (32 - 4)
         assert output[0] = Uint256(0, prefix * 16 ** 28)
         return ()
     else:
         let num = input[0]
-        let (w1, prefix) = add_prefix128(num.high, prefix)
-        let (w0, prefix) = add_prefix128(num.low, prefix)
+
+        let (w1, high_carry) = add_prefix128(num.high, prefix)
+        let (w0, low_carry) = add_prefix128(num.low, high_carry)
 
         let res = Uint256(w0, w1)
         assert output[0] = res
 
-        prepend_prefix_2bytes(prefix, &output[1], input_len - 1, &input[1])
+        # Recurse, using the `low_carry` as `prefix`
+        prepend_prefix_2bytes(low_carry, &output[1], input_len - 1, &input[1])
         return ()
     end
 end
 
+# Computes the `keccak256` hash from an array of `Uint256`. Does NOT call `finalize_keccak`,
+# so the caller needs to make she calls `finalize_keccak` on the `keccak_ptr` once she's done
+# with it.
 func get_keccak_hash{range_check_ptr, bitwise_ptr : BitwiseBuiltin*, keccak_ptr : felt*}(
     uint256_words_len : felt, uint256_words : Uint256*
 ) -> (hash : Uint256):
-    alloc_locals
-
     let (hash) = keccak_uint256s_bigend{keccak_ptr=keccak_ptr}(uint256_words_len, uint256_words)
 
     return (hash)
 end
 
-# will not work for 0
-# might need to optimize this?
+# Returns the number of digits needed to represent `num` in hexadecimal.
+# Similar to doing `len(hex(num)[2:])` in Python.
+# E.g.:
+# - `0x123` will return `3`
+# - `0x1` will return `1`
+# - `0xa3b1d4` will return `6`
+# Notice: Will not work for `0x0` (will return `0` for `0x0` instead of `1`).
 func get_base16_len{range_check_ptr}(num : Uint256) -> (res : felt):
     let (is_eq) = uint256_eq(num, Uint256(0, 0))
     if is_eq == 1:
         return (0)
     else:
-        let (q, _) = uint256_unsigned_div_rem(num, Uint256(16, 0))
-        let (res) = get_base16_len(q)
-        return (res + 1)
+        # Divide by 16
+        let (divided, _) = uint256_unsigned_div_rem(num, Uint256(16, 0))
+
+        let (res_len) = get_base16_len(divided)
+        return (res_len + 1)
     end
 end
 
-func u256_pow{range_check_ptr}(base : Uint256, exp : Uint256) -> (res : Uint256):
+# Computes `base ** exp` where `base` and `exp` are both `felts` and returns the result as a `Uint256`.
+func u256_pow{range_check_ptr}(base : felt, exp : felt) -> (res : Uint256):
     alloc_locals
 
-    let zero = Uint256(0, 0)
-    let (exp_is_zero) = uint256_eq(exp, zero)
-    if exp_is_zero == 1:
+    if exp == 0:
+        # Any number to the power of 0 is 1
         return (Uint256(1, 0))
     else:
-        let (new_exp) = uint256_sub(exp, Uint256(1, 0))
-        let (recursion) = u256_pow(base, new_exp)
+        # Compute `base ** exp - 1`
+        let (recursion) = u256_pow(base, exp - 1)
 
-        let (res, overflow) = uint256_mul(base, recursion)
+        let (uint256_base) = felt_to_uint256(base)
+
+        # Multiply the result by `base`
+        let (res, overflow) = uint256_mul(recursion, uint256_base)
 
         with_attr error_message("Overflow happened"):
             let (no_overflow) = uint256_eq(overflow, Uint256(0, 0))
@@ -136,22 +158,26 @@ func u256_pow{range_check_ptr}(base : Uint256, exp : Uint256) -> (res : Uint256)
     end
 end
 
+# Right pads `num` with `0` to make it 32 bytes long.
+# E.g:
+# - right_pad(0x1)  -> (0x0100000000000000000000000000000000000000000000000000000000000000)
+# - right_pad(0xaa) -> (0xaa00000000000000000000000000000000000000000000000000000000000000)
 func pad_right{range_check_ptr}(num : Uint256) -> (res : Uint256):
-    alloc_locals
-
     let (len_base16) = get_base16_len(num)
 
     let (_, rem) = unsigned_div_rem(len_base16, 2)
     if rem == 1:
+        # Odd-length: add one (a byte is two characters long)
         tempvar len_base16 = len_base16 + 1
     else:
         tempvar len_base16 = len_base16
     end
 
-    let (base) = felt_to_uint256(16)
-    let (exp) = felt_to_uint256(64 - len_base16)
+    let base = 16
+    let exp = 64 - len_base16
     let (power_16) = u256_pow(base, exp)
 
+    # Left shift
     let (low, high) = uint256_mul(num, power_16)
 
     with_attr error_message("overflow?"):
@@ -159,9 +185,7 @@ func pad_right{range_check_ptr}(num : Uint256) -> (res : Uint256):
         assert high.high = 0
     end
 
-    let padded = low
-
-    return (padded)
+    return (low)
 end
 
 func authenticate_proposal{
