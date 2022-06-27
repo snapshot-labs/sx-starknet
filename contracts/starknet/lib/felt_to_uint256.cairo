@@ -1,6 +1,4 @@
-from starkware.cairo.common.cairo_builtins import BitwiseBuiltin
 from starkware.cairo.common.math import split_felt
-from starkware.cairo.common.bitwise import bitwise_and
 from starkware.cairo.common.uint256 import Uint256
 
 # Converts a felt to two 128 bit words returned as a Uint256.
