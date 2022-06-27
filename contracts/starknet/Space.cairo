@@ -703,11 +703,10 @@ func vote{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr : fe
 
     # Make sure voter has not already voted
     let (prev_vote) = vote_registry_store.read(proposal_id, voter_address)
-    if prev_vote.choice != 0:
-        # Voter has already voted!
-        with_attr error_message("User already voted"):
-            assert 1 = 0
-        end
+
+    with_attr error_message("User already voted"):
+        assert prev_vote.voting_power.low = 0
+        assert prev_vote.voting_power.high = 0
     end
 
     # Make sure `choice` is a valid choice
@@ -730,14 +729,16 @@ func vote{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr : fe
         0,
     )
 
+    with_attr error_message("No voting power for user"):
+        assert_not_zero(user_voting_power.low)
+        assert_not_zero(user_voting_power.high)
+    end
+
     let (previous_voting_power) = vote_power_store.read(proposal_id, choice)
     let (new_voting_power, overflow) = uint256_add(user_voting_power, previous_voting_power)
 
-    if overflow != 0:
-        # Overflow happened, throw error
-        with_attr error_message("Overflow"):
-            assert 1 = 0
-        end
+    with_attr error_message("Overflow in voting power"):
+        assert_not_zero(overflow)
     end
 
     vote_power_store.write(proposal_id, choice, new_voting_power)
@@ -802,12 +803,9 @@ func propose{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr :
 
     # Verify that the proposer has enough voting power to trigger a proposal
     let (threshold) = proposal_threshold_store.read()
-    let (is_lower) = uint256_lt(voting_power, threshold)
-    if is_lower == 1:
-        # Not enough voting power to create a proposal
-        with_attr error_message("Not enough voting power"):
-            assert 1 = 0
-        end
+    let (has_enough_vp) = uint256_lt(voting_power, threshold)
+    with_attr error_message("Not enough voting power"):
+        assert has_enough_vp = 1
     end
 
     # Hash the execution params
