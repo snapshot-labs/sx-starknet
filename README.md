@@ -10,6 +10,7 @@ contracts
 ├─ starknet
 │   ├─ Authenticators
 │   │  ├─ EthTx.cairo — "Authenticate user via an Ethereum transaction"
+│   │  ├─ EthSig.cairo — "Authenticate user via an Ethereum signature"
 │   │  ├─ StarkTx.cairo — "Authenticate user via a StarkNet  transaction"
 │   │  ├─ StarkSig.cairo — "Authenticate user via a Starknet signature"
 │   │  └─ Vanilla.cairo — "Dummy authentication"
