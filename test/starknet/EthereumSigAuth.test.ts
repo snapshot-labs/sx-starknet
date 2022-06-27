@@ -1,6 +1,6 @@
 import { hash } from 'starknet';
 import { SplitUint256, Choice } from '../shared/types';
-import { createExecutionHash, flatten2DArray } from '../shared/helpers';
+import { flatten2DArray } from '../shared/helpers';
 import { strToShortStringArr } from '@snapshot-labs/sx';
 import { expect } from 'chai';
 import { ethereumSigSetup } from '../shared/setup';
@@ -9,21 +9,7 @@ import { ethers } from 'hardhat';
 import { domain, Propose, proposeTypes, Vote, voteTypes } from './helper/types';
 import { _TypedDataEncoder } from '@ethersproject/hash';
 import { TypedDataDomain, TypedDataField } from '@ethersproject/abstract-signer';
-import {
-  recoverPublicKey,
-  verifyMessage,
-  verifyTypedData,
-  toUtf8Bytes,
-  computePublicKey,
-  computeAddress,
-  keccak256,
-  hexConcat,
-  hexZeroPad,
-  serializeTransaction,
-} from 'ethers/lib/utils';
-import { type } from 'os';
-import { keccak } from 'ethereumjs-util';
-import { Signature } from 'ethers';
+import { getProposeCalldata, getVoteCalldata, bytesToHex } from '../shared/helpers';
 
 const { getSelectorFromName } = hash;
 
@@ -86,78 +72,99 @@ function getRSVFromSig(sig: string) {
 }
 
 describe('Ethereum Sig Auth testing', () => {
-  let vanillaSpace: StarknetContract;
-  let starknetSigAuth: StarknetContract;
+  // Contracts
+  let space: StarknetContract;
+  let controller: Account;
+  let ethSigAuth: StarknetContract;
   let vanillaVotingStrategy: StarknetContract;
-  let zodiacRelayer: StarknetContract;
-  const executionHash = new SplitUint256(BigInt(3), BigInt(0)); // Dummy uint256
-  const metadataUri = strToShortStringArr(
-    'Hello and welcome to Snapshot X. This is the future of governance.'
-  );
-  let proposerAddress: bigint;
-  const proposalId = 1;
-  const votingParamsAll: bigint[][] = [[]];
-  const userVotingStrategyParams = flatten2DArray(votingParamsAll);
-  let used_voting_strategies: Array<bigint>;
-  let executionParams: Array<bigint>;
-  const ethBlockNumber = BigInt(1337);
-  const l1_zodiac_module = BigInt('0xaaaaaaaaaaaa');
-  let calldata: Array<bigint>;
-  let spaceContract: bigint;
-  let account: Account;
+  let vanillaExecutionStrategy: StarknetContract;
+
+  // Proposal creation parameters
+  let spaceAddress: bigint;
+  let executionHash: string;
+  let metadataUri: bigint[];
+  let usedVotingStrategies1: bigint[];
+  let userVotingParamsAll1: bigint[][];
+  let executionStrategy: bigint;
+  let executionParams: bigint[];
+  let proposerEthAddress: string;
+  let proposeCalldata: bigint[];
+
+  // Additional parameters for voting
+  let voterEthAddress: string;
+  let proposalId: bigint;
+  let choice: Choice;
+  let usedVotingStrategies2: bigint[];
+  let userVotingParamsAll2: bigint[][];
+  let voteCalldata: bigint[];
 
   before(async function () {
     this.timeout(800000);
 
-    ({ vanillaSpace, starknetSigAuth, vanillaVotingStrategy, zodiacRelayer, account } =
+    ({ space, controller, ethSigAuth, vanillaVotingStrategy, vanillaExecutionStrategy } =
       await ethereumSigSetup());
-    executionParams = [BigInt(l1_zodiac_module)];
-    spaceContract = BigInt(vanillaSpace.address);
-    used_voting_strategies = [BigInt(vanillaVotingStrategy.address)];
 
+    executionHash = bytesToHex(ethers.utils.randomBytes(32)); // Random 32 byte hash
     const accounts = await ethers.getSigners();
-    proposerAddress = BigInt(await accounts[0].getAddress());
+    metadataUri = strToShortStringArr(
+      'Hello and welcome to Snapshot X. This is the future of governance.'
+    );
+    spaceAddress = BigInt(space.address);
+    usedVotingStrategies1 = [BigInt(vanillaVotingStrategy.address)];
+    userVotingParamsAll1 = [[]];
+    executionStrategy = BigInt(vanillaExecutionStrategy.address);
+    executionParams = [];
+    proposerEthAddress = accounts[0].address;
+    proposeCalldata = getProposeCalldata(
+      proposerEthAddress,
+      executionHash,
+      metadataUri,
+      executionStrategy,
+      usedVotingStrategies1,
+      userVotingParamsAll1,
+      executionParams
+    );
 
-    calldata = [
-      BigInt(accounts[0].address),
-      executionHash.low,
-      executionHash.high,
-      BigInt(metadataUri.length),
-      ...metadataUri,
-      BigInt(zodiacRelayer.address),
-      BigInt(used_voting_strategies.length),
-      ...used_voting_strategies,
-      BigInt(userVotingStrategyParams.length),
-      ...userVotingStrategyParams,
-      BigInt(executionParams.length),
-      ...executionParams,
-    ];
+    voterEthAddress = accounts[0].address;
+    proposalId = BigInt(1);
+    choice = Choice.FOR;
+    usedVotingStrategies2 = [BigInt(vanillaVotingStrategy.address)];
+    userVotingParamsAll2 = [[]];
+    voteCalldata = getVoteCalldata(
+      voterEthAddress,
+      proposalId,
+      choice,
+      usedVotingStrategies2,
+      userVotingParamsAll2
+    );
   });
 
   it('Should not authenticate an invalid signature', async () => {
     try {
       const salt: SplitUint256 = SplitUint256.fromHex('0x1');
-      const spaceStr = hexPadRight(spaceContract.toString(16));
-      const executionHashStr = hexPadRight(executionHash.toHex());
+      const spaceStr = hexPadRight(space.address);
+      const executionHashStr = hexPadRight(executionHash);
       const message: Propose = { salt: 1, space: spaceStr, executionHash: executionHashStr };
-      const fake_data = [...calldata];
-      const accounts = await ethers.getSigners();
 
+      const fake_data = [...proposeCalldata];
+
+      const accounts = await ethers.getSigners();
       const sig = await accounts[0]._signTypedData(domain, proposeTypes, message);
       const { r, s, v } = getRSVFromSig(sig);
 
       // Data is signed with accounts[0] but the proposer is accounts[1] so it should fail
       fake_data[0] = BigInt(accounts[1].address);
 
-      await account.invoke(starknetSigAuth, AUTHENTICATE_METHOD, {
+      await controller.invoke(ethSigAuth, AUTHENTICATE_METHOD, {
         r: r,
         s: s,
         v: v,
         salt: salt,
-        target: spaceContract,
+        target: spaceAddress,
         function_selector: BigInt(getSelectorFromName(PROPOSAL_METHOD)),
         calldata: fake_data,
       });
+      console.log('5');
       throw 'error';
     } catch (err: any) {
       expect(err.message).to.contain('Invalid signature.');
@@ -167,44 +174,53 @@ describe('Ethereum Sig Auth testing', () => {
   it('Should create a proposal and cast a vote', async () => {
     // -- Creates the proposal --
     {
-      const salt: SplitUint256 = SplitUint256.fromHex('0x1');
-      const spaceStr = hexPadRight(spaceContract.toString(16));
-      const executionHashStr = hexPadRight(executionHash.toHex());
-      const message: Propose = { salt: 1, space: spaceStr, executionHash: executionHashStr };
-
-      const msgHash = getHash(domain, proposeTypes, message);
-
       const accounts = await ethers.getSigners();
+      const salt: SplitUint256 = SplitUint256.fromHex('0x1');
+      const spaceStr = hexPadRight(space.address);
+      const executionHashStr = hexPadRight(executionHash);
+      const message: Propose = { salt: 1, space: spaceStr, executionHash: executionHashStr };
+      const proposerEthAddress = accounts[0].address;
+      const proposeCalldata = getProposeCalldata(
+        proposerEthAddress,
+        executionHash,
+        metadataUri,
+        executionStrategy,
+        usedVotingStrategies1,
+        userVotingParamsAll1,
+        executionParams
+      );
+
       const sig = await accounts[0]._signTypedData(domain, proposeTypes, message);
 
       const { r, s, v } = getRSVFromSig(sig);
 
       console.log('Creating proposal...');
-      await account.invoke(starknetSigAuth, AUTHENTICATE_METHOD, {
+      await controller.invoke(ethSigAuth, AUTHENTICATE_METHOD, {
         r: r,
         s: s,
         v: v,
         salt: salt,
-        target: spaceContract,
+        target: spaceAddress,
         function_selector: BigInt(getSelectorFromName(PROPOSAL_METHOD)),
-        calldata,
+        calldata: proposeCalldata,
       });
 
       console.log('Getting proposal info...');
-      const { proposal_info } = await vanillaSpace.call('get_proposal_info', {
+      const { proposal_info } = await space.call('get_proposal_info', {
         proposal_id: proposalId,
       });
 
       // -- Attempts a replay attack on `propose` method --
+      // Expected to fail
       try {
-        await account.invoke(starknetSigAuth, AUTHENTICATE_METHOD, {
+        await controller.invoke(ethSigAuth, AUTHENTICATE_METHOD, {
           r: r,
           s: s,
           v: v,
           salt: salt,
-          target: spaceContract,
+          target: spaceAddress,
           function_selector: BigInt(getSelectorFromName(PROPOSAL_METHOD)),
-          calldata,
+          calldata: proposeCalldata,
         });
         throw 'replay attack worked on `propose`';
       } catch (err: any) {
@@ -214,7 +230,7 @@ describe('Ethereum Sig Auth testing', () => {
       // We can't directly compare the `info` object because we don't know for sure the value of `start_block` (and hence `end_block`),
       // so we compare it element by element.
       const _executionHash = SplitUint256.fromObj(proposal_info.proposal.execution_hash);
-      expect(_executionHash).to.deep.equal(executionHash);
+      expect(_executionHash).to.deep.equal(SplitUint256.fromHex(executionHash));
 
       const _for = SplitUint256.fromObj(proposal_info.power_for).toUint();
       expect(_for).to.deep.equal(BigInt(0));
@@ -228,34 +244,31 @@ describe('Ethereum Sig Auth testing', () => {
     {
       console.log('Casting a vote FOR...');
       const accounts = await ethers.getSigners();
-      const voter_address = BigInt(accounts[0].address);
-      const votingparams: Array<BigInt> = [];
-      const used_voting_strategies = [BigInt(vanillaVotingStrategy.address)];
-      const spaceStr = hexPadRight(spaceContract.toString(16));
-      const message: Vote = { salt: 2, space: spaceStr, proposal: proposalId, choice: Choice.FOR };
+      const spaceStr = hexPadRight(space.address);
+      const message: Vote = { salt: 2, space: spaceStr, proposal: 1, choice: Choice.FOR };
       const sig = await accounts[0]._signTypedData(domain, voteTypes, message);
+
       const { r, s, v } = getRSVFromSig(sig);
       const salt = SplitUint256.fromHex('0x02');
-      await account.invoke(starknetSigAuth, AUTHENTICATE_METHOD, {
+      const voteCalldata = getVoteCalldata(
+        voterEthAddress,
+        proposalId,
+        Choice.FOR,
+        usedVotingStrategies1,
+        userVotingParamsAll1
+      );
+      await controller.invoke(ethSigAuth, AUTHENTICATE_METHOD, {
         r: r,
         s: s,
         v: v,
         salt: salt,
-        target: spaceContract,
+        target: spaceAddress,
         function_selector: BigInt(getSelectorFromName(VOTE_METHOD)),
-        calldata: [
-          voter_address,
-          proposalId,
-          Choice.FOR,
-          BigInt(used_voting_strategies.length),
-          ...used_voting_strategies,
-          BigInt(userVotingStrategyParams.length),
-          ...userVotingStrategyParams,
-        ],
+        calldata: voteCalldata,
       });
 
       console.log('Getting proposal info...');
-      const { proposal_info } = await vanillaSpace.call('get_proposal_info', {
+      const { proposal_info } = await space.call('get_proposal_info', {
         proposal_id: proposalId,
       });
 
@@ -268,22 +281,14 @@ describe('Ethereum Sig Auth testing', () => {
 
       // -- Attempts a replay attack on `vote` method --
       try {
-        await account.invoke(starknetSigAuth, AUTHENTICATE_METHOD, {
+        await controller.invoke(ethSigAuth, AUTHENTICATE_METHOD, {
           r: r,
           s: s,
           v: v,
           salt: salt,
-          target: spaceContract,
+          target: spaceAddress,
           function_selector: BigInt(getSelectorFromName(VOTE_METHOD)),
-          calldata: [
-            voter_address,
-            proposalId,
-            Choice.FOR,
-            BigInt(used_voting_strategies.length),
-            ...used_voting_strategies,
-            BigInt(userVotingStrategyParams.length),
-            ...userVotingStrategyParams,
-          ],
+          calldata: voteCalldata,
         });
         throw 'replay attack worked on `vote`';
       } catch (err: any) {

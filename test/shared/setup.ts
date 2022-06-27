@@ -575,33 +575,33 @@ export async function starkTxAuthSetup() {
 }
 
 export async function ethereumSigSetup() {
-  const account = await starknet.deployAccount('OpenZeppelin');
+  const controller = await starknet.deployAccount('Argent');
 
   const vanillaSpaceFactory = await starknet.getContractFactory('./contracts/starknet/Space.cairo');
-  const vanillaVotingStategyFactory = await starknet.getContractFactory(
+  const vanillaVotingStrategyFactory = await starknet.getContractFactory(
     './contracts/starknet/VotingStrategies/Vanilla.cairo'
   );
-  const starknetSigAuthFactory = await starknet.getContractFactory(
+  const ethSigAuthFactory = await starknet.getContractFactory(
     './contracts/starknet/Authenticators/EthSig.cairo'
   );
-  const zodiacRelayerFactory = await starknet.getContractFactory(
-    './contracts/starknet/ExecutionStrategies/ZodiacRelayer.cairo'
+  const vanillaExecutionFactory = await starknet.getContractFactory(
+    './contracts/starknet/ExecutionStrategies/Vanilla.cairo'
   );
 
   const deployments = [
-    starknetSigAuthFactory.deploy(),
-    vanillaVotingStategyFactory.deploy(),
-    zodiacRelayerFactory.deploy(),
+    ethSigAuthFactory.deploy(),
+    vanillaVotingStrategyFactory.deploy(),
+    vanillaExecutionFactory.deploy(),
   ];
   console.log('Deploying auth, voting and zodiac relayer contracts...');
   const contracts = await Promise.all(deployments);
-  const starknetSigAuth = contracts[0] as StarknetContract;
+  const ethSigAuth = contracts[0] as StarknetContract;
   const vanillaVotingStrategy = contracts[1] as StarknetContract;
-  const zodiacRelayer = contracts[2] as StarknetContract;
+  const vanillaExecutionStrategy = contracts[2] as StarknetContract;
 
   const voting_strategy = BigInt(vanillaVotingStrategy.address);
-  const authenticator = BigInt(starknetSigAuth.address);
-  const zodiac_relayer = BigInt(zodiacRelayer.address);
+  const authenticator = BigInt(ethSigAuth.address);
+  const voting_execution = BigInt(vanillaExecutionStrategy.address);
   const quorum = SplitUint256.fromUint(BigInt(0));
 
   const voting_strategy_params: bigint[][] = [[]];
@@ -618,19 +618,19 @@ export async function ethereumSigSetup() {
     _max_voting_duration: BigInt(2000),
     _proposal_threshold: PROPOSAL_THRESHOLD,
     _quorum: quorum,
-    _controller: BigInt(account.starknetContract.address),
+    _controller: BigInt(controller.address),
     _voting_strategy_params_flat: voting_strategy_params_flat,
     _voting_strategies: [voting_strategy],
     _authenticators: [authenticator],
-    _executors: [zodiac_relayer],
+    _executors: [voting_execution],
   })) as StarknetContract;
   console.log('deployed!');
 
   return {
-    vanillaSpace,
-    starknetSigAuth,
+    space: vanillaSpace,
+    controller,
+    ethSigAuth,
     vanillaVotingStrategy,
-    zodiacRelayer,
-    account,
+    vanillaExecutionStrategy,
   };
 }
