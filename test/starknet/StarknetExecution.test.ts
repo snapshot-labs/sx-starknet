@@ -3,9 +3,15 @@ import { ethers } from 'hardhat';
 import { StarknetContract, Account } from 'hardhat/types';
 import { strToShortStringArr } from '@snapshot-labs/sx';
 import { SplitUint256, Choice } from '../shared/types';
-import { getProposeCalldata, getVoteCalldata } from '../shared/helpers';
-import { vanillaSetup } from '../shared/setup';
-import { PROPOSE_SELECTOR, VOTE_SELECTOR } from '../shared/constants';
+import {
+  getProposeCalldata,
+  getVoteCalldata,
+  bytesToHex,
+  createStarknetExecutionParams,
+  Call,
+} from '../shared/helpers';
+import { starknetExecutionSetup } from '../shared/setup';
+import { PROPOSE_SELECTOR, VOTE_SELECTOR, AUTHENTICATE_SELECTOR } from '../shared/constants';
 
 describe('Space Testing', () => {
   // Contracts
@@ -13,7 +19,7 @@ describe('Space Testing', () => {
   let controller: Account;
   let vanillaAuthenticator: StarknetContract;
   let vanillaVotingStrategy: StarknetContract;
-  let vanillaExecutionStrategy: StarknetContract;
+  let starknetExecutionStrategy: StarknetContract;
 
   // Proposal creation parameters
   let spaceAddress: bigint;
@@ -36,8 +42,8 @@ describe('Space Testing', () => {
   before(async function () {
     this.timeout(800000);
 
-    ({ space, controller, vanillaAuthenticator, vanillaVotingStrategy, vanillaExecutionStrategy } =
-      await vanillaSetup());
+    ({ space, controller, vanillaAuthenticator, vanillaVotingStrategy, starknetExecutionStrategy } =
+      await starknetExecutionSetup());
 
     metadataUri = strToShortStringArr(
       'Hello and welcome to Snapshot X. This is the future of governance.'
@@ -46,8 +52,50 @@ describe('Space Testing', () => {
     spaceAddress = BigInt(space.address);
     usedVotingStrategies1 = [BigInt(vanillaVotingStrategy.address)];
     userVotingParamsAll1 = [[]];
-    executionStrategy = BigInt(vanillaExecutionStrategy.address);
-    executionParams = [];
+    executionStrategy = BigInt(starknetExecutionStrategy.address);
+
+    // For the execution of the proposal, we create 2 new dummy proposals
+    const callCalldata1 = getProposeCalldata(
+      proposerEthAddress,
+      metadataUri,
+      BigInt(1234),
+      usedVotingStrategies1,
+      userVotingParamsAll1,
+      []
+    );
+    const callCalldata2 = getProposeCalldata(
+      proposerEthAddress,
+      metadataUri,
+      BigInt(4567),
+      usedVotingStrategies1,
+      userVotingParamsAll1,
+      []
+    );
+    const callCalldata3 = getProposeCalldata(
+      proposerEthAddress,
+      metadataUri,
+      BigInt(456789),
+      usedVotingStrategies1,
+      userVotingParamsAll1,
+      []
+    );
+    const call1: Call = {
+      to: BigInt(vanillaAuthenticator.address),
+      functionSelector: AUTHENTICATE_SELECTOR,
+      calldata: [spaceAddress, PROPOSE_SELECTOR, BigInt(callCalldata1.length), ...callCalldata1],
+    };
+    const call2: Call = {
+      to: BigInt(vanillaAuthenticator.address),
+      functionSelector: AUTHENTICATE_SELECTOR,
+      calldata: [spaceAddress, PROPOSE_SELECTOR, BigInt(callCalldata2.length), ...callCalldata2],
+    };
+    const call3: Call = {
+      to: BigInt(vanillaAuthenticator.address),
+      functionSelector: AUTHENTICATE_SELECTOR,
+      calldata: [spaceAddress, PROPOSE_SELECTOR, BigInt(callCalldata3.length), ...callCalldata3],
+    };
+    executionParams = createStarknetExecutionParams([call1, call2, call3]);
+
     proposeCalldata = getProposeCalldata(
       proposerEthAddress,
       metadataUri,
@@ -111,12 +159,30 @@ describe('Space Testing', () => {
       expect(abstain).to.deep.equal(BigInt(0));
     }
 
-    // -- Executes the proposal --
+    // -- Executes the proposal, which should create 2 new dummy proposal in the same space
     {
       await space.invoke('finalize_proposal', {
         proposal_id: proposalId,
         execution_params: executionParams,
       });
+
+      let { proposal_info } = await space.call('get_proposal_info', {
+        proposal_id: 2,
+      });
+      // We can check that the proposal was successfully created by checking the execution strategy
+      // as it will be zero if the new proposal was not created
+      expect(proposal_info.proposal.executor).to.deep.equal(BigInt(1234));
+
+      // Same for second dummy proposal
+      ({ proposal_info } = await space.call('get_proposal_info', {
+        proposal_id: 3,
+      }));
+      expect(proposal_info.proposal.executor).to.deep.equal(BigInt(4567));
+
+      ({ proposal_info } = await space.call('get_proposal_info', {
+        proposal_id: 4,
+      }));
+      expect(proposal_info.proposal.executor).to.deep.equal(BigInt(456789));
     }
   }).timeout(6000000);
 });

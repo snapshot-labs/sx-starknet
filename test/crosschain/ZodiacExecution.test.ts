@@ -94,11 +94,14 @@ describe('Create proposal, cast vote, and send execution to l1', function () {
     usedVotingStrategies1 = [BigInt(vanillaVotingStrategy.address)];
     userVotingParamsAll1 = [[]];
     executionStrategy = BigInt(zodiacRelayer.address);
-    executionParams = [BigInt(zodiacModule.address)];
+    executionParams = [
+      BigInt(zodiacModule.address),
+      SplitUint256.fromHex(executionHash).low,
+      SplitUint256.fromHex(executionHash).high,
+    ];
 
     proposeCalldata = getProposeCalldata(
       proposerEthAddress,
-      executionHash,
       metadataUri,
       executionStrategy,
       usedVotingStrategies1,

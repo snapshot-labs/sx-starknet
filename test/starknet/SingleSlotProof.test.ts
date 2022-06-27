@@ -1,11 +1,11 @@
 import fs from 'fs';
 import { expect } from 'chai';
-import { starknet, ethers } from 'hardhat';
+import { starknet } from 'hardhat';
 import { SplitUint256, Choice } from '../shared/types';
 import { ProofInputs } from '../shared/parseRPCData';
 import { singleSlotProofSetup, Fossil } from '../shared/setup';
 import { PROPOSE_SELECTOR, VOTE_SELECTOR } from '../shared/constants';
-import { getProposeCalldata, getVoteCalldata, bytesToHex } from '../shared/helpers';
+import { getProposeCalldata, getVoteCalldata } from '../shared/helpers';
 import { StarknetContract, Account } from 'hardhat/types';
 import { strToShortStringArr } from '@snapshot-labs/sx';
 
@@ -24,7 +24,6 @@ describe('Single slot proof voting strategy:', () => {
 
   // Proposal creation parameters
   let spaceAddress: bigint;
-  let executionHash: string;
   let metadataUri: bigint[];
   let proposerEthAddress: string;
   let usedVotingStrategies1: bigint[];
@@ -60,7 +59,6 @@ describe('Single slot proof voting strategy:', () => {
     } = await singleSlotProofSetup(block, proofs));
 
     proposalId = BigInt(1);
-    executionHash = bytesToHex(ethers.utils.randomBytes(32)); // Random 32 byte hash
     metadataUri = strToShortStringArr(
       'Hello and welcome to Snapshot X. This is the future of governance.'
     );
@@ -73,7 +71,6 @@ describe('Single slot proof voting strategy:', () => {
     executionParams = [];
     proposeCalldata = getProposeCalldata(
       proposerEthAddress,
-      executionHash,
       metadataUri,
       executionStrategy,
       usedVotingStrategies1,
@@ -122,8 +119,6 @@ describe('Single slot proof voting strategy:', () => {
         proposal_id: proposalId,
       });
 
-      const _executionHash = SplitUint256.fromObj(proposal_info.proposal.execution_hash).toUint();
-      expect(_executionHash).to.deep.equal(BigInt(executionHash));
       const _for = SplitUint256.fromObj(proposal_info.power_for).toUint();
       expect(_for).to.deep.equal(BigInt(0));
       const against = SplitUint256.fromObj(proposal_info.power_against).toUint();

@@ -3,6 +3,7 @@ import { Contract } from 'ethers';
 import { starknet, ethers } from 'hardhat';
 import { strToShortStringArr } from '@snapshot-labs/sx';
 import { zodiacRelayerSetup } from '../shared/setup';
+import { SplitUint256 } from '../shared/types';
 import { getProposeCalldata, bytesToHex } from '../shared/helpers';
 import { StarknetContract, Account } from 'hardhat/types';
 import { PROPOSE_SELECTOR } from '../shared/constants';
@@ -51,7 +52,7 @@ describe('Whitelist testing', () => {
     vanillaExecutionStrategy = await vanillaExecutionStrategyFactory.deploy();
 
     spaceAddress = BigInt(space.address);
-    executionHash = bytesToHex(ethers.utils.randomBytes(32)); // Random 32 byte hash
+
     metadataUri = strToShortStringArr(
       'Hello and welcome to Snapshot X. This is the future of governance.'
     );
@@ -60,10 +61,14 @@ describe('Whitelist testing', () => {
     usedVotingStrategies1 = [BigInt(vanillaVotingStrategy.address)];
     userVotingParamsAll1 = [[]];
     executionStrategy1 = BigInt(zodiacRelayer.address);
-    executionParams1 = [BigInt(zodiacModule.address)];
+    executionHash = bytesToHex(ethers.utils.randomBytes(32)); // Random 32 byte hash
+    executionParams1 = [
+      BigInt(zodiacModule.address),
+      SplitUint256.fromHex(executionHash).low,
+      SplitUint256.fromHex(executionHash).high,
+    ];
     proposeCalldata1 = getProposeCalldata(
       proposerEthAddress,
-      executionHash,
       metadataUri,
       executionStrategy1,
       usedVotingStrategies1,
@@ -75,7 +80,6 @@ describe('Whitelist testing', () => {
     executionParams2 = [];
     proposeCalldata2 = getProposeCalldata(
       proposerEthAddress,
-      executionHash,
       metadataUri,
       executionStrategy2,
       usedVotingStrategies1,
