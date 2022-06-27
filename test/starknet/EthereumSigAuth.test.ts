@@ -97,7 +97,7 @@ describe('Ethereum Sig Auth testing', () => {
   let proposerAddress: bigint;
   const proposalId = 1;
   const votingParamsAll: bigint[][] = [[]];
-  const votingParamsAllFlat = flatten2DArray(votingParamsAll);
+  const userVotingStrategyParams = flatten2DArray(votingParamsAll);
   let used_voting_strategies: Array<bigint>;
   let executionParams: Array<bigint>;
   const ethBlockNumber = BigInt(1337);
@@ -124,12 +124,11 @@ describe('Ethereum Sig Auth testing', () => {
       executionHash.high,
       BigInt(metadataUri.length),
       ...metadataUri,
-      ethBlockNumber,
       BigInt(zodiacRelayer.address),
       BigInt(used_voting_strategies.length),
       ...used_voting_strategies,
-      BigInt(votingParamsAllFlat.length),
-      ...votingParamsAllFlat,
+      BigInt(userVotingStrategyParams.length),
+      ...userVotingStrategyParams,
       BigInt(executionParams.length),
       ...executionParams,
     ];
@@ -250,8 +249,8 @@ describe('Ethereum Sig Auth testing', () => {
           Choice.FOR,
           BigInt(used_voting_strategies.length),
           ...used_voting_strategies,
-          BigInt(votingParamsAllFlat.length),
-          ...votingParamsAllFlat,
+          BigInt(userVotingStrategyParams.length),
+          ...userVotingStrategyParams,
         ],
       });
 
@@ -282,8 +281,8 @@ describe('Ethereum Sig Auth testing', () => {
             Choice.FOR,
             BigInt(used_voting_strategies.length),
             ...used_voting_strategies,
-            BigInt(votingParamsAllFlat.length),
-            ...votingParamsAllFlat,
+            BigInt(userVotingStrategyParams.length),
+            ...userVotingStrategyParams,
           ],
         });
         throw 'replay attack worked on `vote`';
