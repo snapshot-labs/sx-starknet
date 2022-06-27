@@ -368,7 +368,7 @@ export async function singleSlotProofSetup(block: any, proofs: any) {
   const minVotingDuration = BigInt(0);
   const maxVotingDuration = BigInt(2000);
   const votingStrategies: bigint[] = [BigInt(singleSlotProofStrategy.address)];
-  const votingStrategyParams: bigint[][] = [[proofInputs.ethAddressFelt, BigInt(1)]];
+  const votingStrategyParams: bigint[][] = [[proofInputs.ethAddressFelt, BigInt(0)]]; // For the aave erc20 contract, the balances mapping has a storage index of 0
   const votingStrategyParamsFlat: bigint[] = flatten2DArray(votingStrategyParams);
   const authenticators: bigint[] = [BigInt(vanillaAuthenticator.address)];
   const executors: bigint[] = [BigInt(vanillaExecutionStrategy.address)];
