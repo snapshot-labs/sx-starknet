@@ -573,3 +573,43 @@ export async function starkTxAuthSetup() {
     vanillaExecutionStrategy,
   };
 }
+
+export async function spaceFactorySetup() {
+  const controller = (await starknet.deployAccount('Argent')) as Account;
+  const spaceDeployerFactory = await starknet.getContractFactory(
+    './contracts/starknet/SpaceFactory.cairo'
+  );
+
+  const spaceFactoryClass = await starknet.getContractFactory('./contracts/starknet/Space.cairo');
+  const spaceHash = await spaceFactoryClass.declare();
+
+  const vanillaVotingStrategyFactory = await starknet.getContractFactory(
+    './contracts/starknet/VotingStrategies/Vanilla.cairo'
+  );
+  const vanillaAuthenticatorFactory = await starknet.getContractFactory(
+    './contracts/starknet/Authenticators/Vanilla.cairo'
+  );
+  const vanillaExecutionStrategyFactory = await starknet.getContractFactory(
+    './contracts/starknet/ExecutionStrategies/Vanilla.cairo'
+  );
+
+  const deployments = [
+    vanillaAuthenticatorFactory.deploy(),
+    vanillaVotingStrategyFactory.deploy(),
+    vanillaExecutionStrategyFactory.deploy(),
+    spaceDeployerFactory.deploy({ space_class_hash: spaceHash }),
+  ];
+  const contracts = await Promise.all(deployments);
+  const vanillaAuthenticator = contracts[0] as StarknetContract;
+  const vanillaVotingStrategy = contracts[1] as StarknetContract;
+  const vanillaExecutionStrategy = contracts[2] as StarknetContract;
+  const spaceDeployer = contracts[3] as StarknetContract;
+
+  return {
+    spaceDeployer,
+    controller,
+    vanillaAuthenticator,
+    vanillaVotingStrategy,
+    vanillaExecutionStrategy,
+  };
+}
