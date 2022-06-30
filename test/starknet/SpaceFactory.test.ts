@@ -6,6 +6,7 @@ import { SplitUint256, Choice } from '../shared/types';
 import { getProposeCalldata, getVoteCalldata, bytesToHex } from '../shared/helpers';
 import { spaceFactorySetup } from '../shared/setup';
 import { PROPOSE_SELECTOR, VOTE_SELECTOR } from '../shared/constants';
+import { hexToBytes, flatten2DArray } from '../shared/helpers';
 
 describe('Space Deployment Testing', () => {
   // Contracts
@@ -21,7 +22,7 @@ describe('Space Deployment Testing', () => {
   let minVotingDuration: bigint;
   let maxVotingDuration: bigint;
   let votingStrategies: bigint[];
-  let votingStrategyParams: bigint[][];
+  let votingStrategyParamsFlat: bigint[];
   let authenticators: bigint[];
   let executors: bigint[];
   let quorum: SplitUint256;
@@ -49,29 +50,37 @@ describe('Space Deployment Testing', () => {
   before(async function () {
     this.timeout(800000);
 
-    ({ spaceDeployer, controller, vanillaAuthenticator, vanillaVotingStrategy, vanillaExecutionStrategy } =
-      await spaceFactorySetup());
+    ({
+      spaceDeployer,
+      controller,
+      vanillaAuthenticator,
+      vanillaVotingStrategy,
+      vanillaExecutionStrategy,
+    } = await spaceFactorySetup());
 
-      const votingDelay = BigInt(0);
-      const minVotingDuration = BigInt(0);
-      const maxVotingDuration = BigInt(2000);
-      const votingStrategies: bigint[] = [BigInt(vanillaVotingStrategy.address)];
-      const votingStrategyParams: bigint[][] = [[]]; // No params for the vanilla voting strategy
-      const votingStrategyParamsFlat: bigint[] = flatten2DArray(votingStrategyParams);
-      const authenticators: bigint[] = [BigInt(vanillaAuthenticator.address)];
-      const executors: bigint[] = [BigInt(vanillaExecutionStrategy.address)];
-      const quorum: SplitUint256 = SplitUint256.fromUint(BigInt(1)); //  Quorum of one for the vanilla test
-      const proposalThreshold: SplitUint256 = SplitUint256.fromUint(BigInt(1)); // Proposal threshold of 1 for the vanilla test
-
+    votingDelay = BigInt(0);
+    minVotingDuration = BigInt(0);
+    maxVotingDuration = BigInt(2000);
+    votingStrategies = [BigInt(vanillaVotingStrategy.address)];
+    votingStrategyParamsFlat = flatten2DArray([[]]);
+    authenticators = [BigInt(vanillaAuthenticator.address)];
+    executors = [BigInt(vanillaExecutionStrategy.address)];
+    quorum = SplitUint256.fromUint(BigInt(1)); //  Quorum of one for the vanilla test
+    proposalThreshold = SplitUint256.fromUint(BigInt(1)); // Proposal threshold of 1 for the vanilla test
   });
 
   it('A user should be able to deploy a space contract', async () => {
-
-
-
-
-    await spaceDeployer.invoke('deploy_space', {})
-
-
+    await spaceDeployer.invoke('deploy_space', {
+      _voting_delay: votingDelay,
+      _min_voting_duration: minVotingDuration,
+      _max_voting_duration: maxVotingDuration,
+      _proposal_threshold: proposalThreshold,
+      _controller: BigInt(controller.address),
+      _quorum: quorum,
+      _voting_strategy_params_flat: votingStrategyParamsFlat,
+      _voting_strategies: votingStrategies,
+      _authenticators: authenticators,
+      _executors: executors,
+    });
   }).timeout(6000000);
 });
