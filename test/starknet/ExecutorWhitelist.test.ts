@@ -1,10 +1,8 @@
 import { expect } from 'chai';
 import { Contract } from 'ethers';
 import { starknet, ethers } from 'hardhat';
-import { strToShortStringArr } from '@snapshot-labs/sx';
+import { utils } from '@snapshot-labs/sx';
 import { zodiacRelayerSetup } from '../shared/setup';
-import { SplitUint256 } from '../shared/types';
-import { getProposeCalldata, bytesToHex } from '../shared/helpers';
 import { StarknetContract, Account } from 'hardhat/types';
 import { PROPOSE_SELECTOR } from '../shared/constants';
 
@@ -53,7 +51,7 @@ describe('Whitelist testing', () => {
 
     spaceAddress = BigInt(space.address);
 
-    metadataUri = strToShortStringArr(
+    metadataUri = utils.strings.strToShortStringArr(
       'Hello and welcome to Snapshot X. This is the future of governance.'
     );
     proposerEthAddress = ethers.Wallet.createRandom().address;
@@ -61,13 +59,13 @@ describe('Whitelist testing', () => {
     usedVotingStrategies1 = [BigInt(vanillaVotingStrategy.address)];
     userVotingParamsAll1 = [[]];
     executionStrategy1 = BigInt(zodiacRelayer.address);
-    executionHash = bytesToHex(ethers.utils.randomBytes(32)); // Random 32 byte hash
+    executionHash = utils.bytes.bytesToHex(ethers.utils.randomBytes(32)); // Random 32 byte hash
     executionParams1 = [
       BigInt(zodiacModule.address),
-      SplitUint256.fromHex(executionHash).low,
-      SplitUint256.fromHex(executionHash).high,
+      utils.splitUint256.SplitUint256.fromHex(executionHash).low,
+      utils.splitUint256.SplitUint256.fromHex(executionHash).high,
     ];
-    proposeCalldata1 = getProposeCalldata(
+    proposeCalldata1 = utils.encoding.getProposeCalldata(
       proposerEthAddress,
       metadataUri,
       executionStrategy1,
@@ -78,7 +76,7 @@ describe('Whitelist testing', () => {
 
     executionStrategy2 = BigInt(vanillaExecutionStrategy.address);
     executionParams2 = [];
-    proposeCalldata2 = getProposeCalldata(
+    proposeCalldata2 = utils.encoding.getProposeCalldata(
       proposerEthAddress,
       metadataUri,
       executionStrategy2,

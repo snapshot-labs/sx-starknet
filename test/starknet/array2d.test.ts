@@ -1,7 +1,7 @@
 import { StarknetContract } from 'hardhat/types/runtime';
 import { expect } from 'chai';
 import { starknet } from 'hardhat';
-import { flatten2DArray } from '../shared/helpers';
+import { utils } from '@snapshot-labs/sx';
 
 async function setup() {
   const testArray2dFactory = await starknet.getContractFactory(
@@ -24,7 +24,7 @@ describe('2D Arrays:', () => {
     const arr3: bigint[] = [BigInt(1), BigInt(2), BigInt(3)];
     const arr4: bigint[] = [BigInt(7), BigInt(9)];
     const arr2d: bigint[][] = [arr1, arr2, arr3, arr4];
-    const flatArray: bigint[] = flatten2DArray(arr2d);
+    const flatArray: bigint[] = utils.encoding.flatten2DArray(arr2d);
 
     const { array: array1 } = await testArray2d.call('test_array2d', {
       flat_array: flatArray,
@@ -53,7 +53,7 @@ describe('2D Arrays:', () => {
     // Sub Arrays: [[]]
     // Offsets: [0]
     const arr2d2 = [arr2];
-    const flatArray2 = flatten2DArray(arr2d2);
+    const flatArray2 = utils.encoding.flatten2DArray(arr2d2);
     const { array: array5 } = await testArray2d.call('test_array2d', {
       flat_array: flatArray2,
       index: 0,

@@ -2,7 +2,7 @@ import { expect } from 'chai';
 import { starknet } from 'hardhat';
 import { vanillaSetup } from '../shared/setup';
 import { StarknetContract, Account } from 'hardhat/types';
-import { flatten2DArray } from '../shared/helpers';
+import { utils } from '@snapshot-labs/sx';
 
 describe('Controller Actions', () => {
   let space: StarknetContract;
@@ -39,7 +39,7 @@ describe('Controller Actions', () => {
   it('The controller can add and remove voting strategies', async () => {
     const votingStrategies: bigint[] = [BigInt(1234), BigInt(4567)];
     const votingStrategyParams: bigint[][] = [[BigInt(1), BigInt(2), BigInt(0)], []];
-    const votingStrategyParamsFlat: bigint[] = flatten2DArray(votingStrategyParams);
+    const votingStrategyParamsFlat: bigint[] = utils.encoding.flatten2DArray(votingStrategyParams);
     await controller.invoke(space, 'add_voting_strategies', {
       to_add: votingStrategies,
       params_flat: votingStrategyParamsFlat,
