@@ -5,42 +5,34 @@ import { utils } from '@snapshot-labs/sx';
 import { starknetExecutionSetup } from '../shared/setup';
 import { PROPOSE_SELECTOR, VOTE_SELECTOR, AUTHENTICATE_SELECTOR } from '../shared/constants';
 
-export interface Call {
+export interface StarknetMetaTransaction {
   to: bigint;
   functionSelector: bigint;
   calldata: bigint[];
 }
 
-/**
- * For more info about the starknetExecutionParams layout, please see `contracts/starknet/execution_strategies/starknet.cairo`.
- */
-export function createStarknetExecutionParams(callArray: Call[]): bigint[] {
-  if (!callArray || callArray.length == 0) {
+export function createStarknetExecutionParams(txArray: StarknetMetaTransaction[]): bigint[] {
+  if (!txArray || txArray.length == 0) {
     return [];
   }
 
-  // 1 because we need to count data_offset
-  // 4 because there are four elements: `to`, `function_selector`, `calldata_len` and `calldata_offset`
-  const dataOffset = BigInt(1 + callArray.length * 4);
-
+  const dataOffset = BigInt(1 + txArray.length * 4);
   const executionParams = [dataOffset];
   let calldataIndex = 0;
 
-  // First, layout the calls
-  callArray.forEach((call) => {
+  txArray.forEach((tx) => {
     const subArr: bigint[] = [
-      call.to,
-      call.functionSelector,
-      BigInt(call.calldata.length),
+      tx.to,
+      tx.functionSelector,
+      BigInt(tx.calldata.length),
       BigInt(calldataIndex),
     ];
-    calldataIndex += call.calldata.length;
+    calldataIndex += tx.calldata.length;
     executionParams.push(...subArr);
   });
 
-  // Then layout the calldata
-  callArray.forEach((call) => {
-    executionParams.push(...call.calldata);
+  txArray.forEach((tx) => {
+    executionParams.push(...tx.calldata);
   });
   return executionParams;
 }
@@ -87,7 +79,7 @@ describe('Space Testing', () => {
     executionStrategy = BigInt(starknetExecutionStrategy.address);
 
     // For the execution of the proposal, we create 2 new dummy proposals
-    const callCalldata1 = utils.encoding.getProposeCalldata(
+    const txCalldata1 = utils.encoding.getProposeCalldata(
       proposerEthAddress,
       metadataUri,
       BigInt(1234),
@@ -95,7 +87,7 @@ describe('Space Testing', () => {
       userVotingParamsAll1,
       []
     );
-    const callCalldata2 = utils.encoding.getProposeCalldata(
+    const txCalldata2 = utils.encoding.getProposeCalldata(
       proposerEthAddress,
       metadataUri,
       BigInt(4567),
@@ -103,7 +95,7 @@ describe('Space Testing', () => {
       userVotingParamsAll1,
       []
     );
-    const callCalldata3 = utils.encoding.getProposeCalldata(
+    const txCalldata3 = utils.encoding.getProposeCalldata(
       proposerEthAddress,
       metadataUri,
       BigInt(456789),
@@ -111,22 +103,22 @@ describe('Space Testing', () => {
       userVotingParamsAll1,
       []
     );
-    const call1: Call = {
+    const tx1: StarknetMetaTransaction = {
       to: BigInt(vanillaAuthenticator.address),
       functionSelector: AUTHENTICATE_SELECTOR,
-      calldata: [spaceAddress, PROPOSE_SELECTOR, BigInt(callCalldata1.length), ...callCalldata1],
+      calldata: [spaceAddress, PROPOSE_SELECTOR, BigInt(txCalldata1.length), ...txCalldata1],
     };
-    const call2: Call = {
+    const tx2: StarknetMetaTransaction = {
       to: BigInt(vanillaAuthenticator.address),
       functionSelector: AUTHENTICATE_SELECTOR,
-      calldata: [spaceAddress, PROPOSE_SELECTOR, BigInt(callCalldata2.length), ...callCalldata2],
+      calldata: [spaceAddress, PROPOSE_SELECTOR, BigInt(txCalldata2.length), ...txCalldata2],
     };
-    const call3: Call = {
+    const tx3: StarknetMetaTransaction = {
       to: BigInt(vanillaAuthenticator.address),
       functionSelector: AUTHENTICATE_SELECTOR,
-      calldata: [spaceAddress, PROPOSE_SELECTOR, BigInt(callCalldata3.length), ...callCalldata3],
+      calldata: [spaceAddress, PROPOSE_SELECTOR, BigInt(txCalldata3.length), ...txCalldata3],
     };
-    executionParams = createStarknetExecutionParams([call1, call2, call3]);
+    executionParams = createStarknetExecutionParams([tx1, tx2, tx3]);
 
     proposeCalldata = utils.encoding.getProposeCalldata(
       proposerEthAddress,
