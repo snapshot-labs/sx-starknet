@@ -1105,10 +1105,20 @@
     pino "^7.11.0"
     starknet "^3.7.0"
 
-"@snapshot-labs/sx@0.1.0-beta.6":
-  version "0.1.0-beta.6"
-  resolved "https://registry.yarnpkg.com/@snapshot-labs/sx/-/sx-0.1.0-beta.6.tgz#7b4bada863b3a9bd433d9636bef66a1f0c5d062e"
-  integrity sha512-yGuXAQtIPZE4uVVsD8AMEFjSrvkCrMX1Lxcc+tY8CgwUtoli3BRxsu6OB2/LdWAVmMoXC/tyZS0yCL2m3Xdz5g==
+"@snapshot-labs/sx@^0.1.0-beta.0":
+  version "0.1.0-beta.0"
+  resolved "https://registry.yarnpkg.com/@snapshot-labs/sx/-/sx-0.1.0-beta.0.tgz#8dc6de2eaeaebd5457441820680f7873175b9c0a"
+  integrity sha512-TNiOtjpH4r395frV8FQ/Tn3jsiOBNa01xDWiWS0Sfhj/Xd3Ckuo+ded9exu/UuKQjEpiLUxH7DEpIOaYLVUtAA==
+  dependencies:
+    "@ethersproject/providers" "^5.5.3"
+    "@ethersproject/wallet" "^5.5.0"
+    cross-fetch "^3.1.5"
+    starknet "^3.2.0"
+
+"@snapshot-labs/sx@^0.1.0-beta.7":
+  version "0.1.0-beta.7"
+  resolved "https://registry.yarnpkg.com/@snapshot-labs/sx/-/sx-0.1.0-beta.7.tgz#b94574ec0fa534177b914c53f2cd542c0ca0283f"
+  integrity sha512-JfnYhPsowqPZ8UUvChHhcSO81v8kQLGoKcYXV4EzY3a5+9vjVszHLFXI9/kyThP6eGVdGJn/y8PsGjZMCrNFJQ==
   dependencies:
     "@ethereumjs/block" "^3.6.3"
     "@ethereumjs/common" "^2.6.5"
@@ -1119,15 +1129,6 @@
     "@ethersproject/wallet" "^5.6.2"
     cross-fetch "^3.1.5"
     starknet "^3.15.0"
-
-"@snapshot-labs/sx@^0.1.0-beta.0":
-  version "0.1.0-beta.0"
-  resolved "https://registry.yarnpkg.com/@snapshot-labs/sx/-/sx-0.1.0-beta.0.tgz#8dc6de2eaeaebd5457441820680f7873175b9c0a"
-  dependencies:
-    "@ethersproject/providers" "^5.5.3"
-    "@ethersproject/wallet" "^5.5.0"
-    cross-fetch "^3.1.5"
-    starknet "^3.2.0"
 
 "@solidity-parser/parser@^0.14.0", "@solidity-parser/parser@^0.14.1":
   version "0.14.1"

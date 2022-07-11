@@ -82,5 +82,26 @@ describe('Space Deployment Testing', () => {
       _authenticators: authenticators,
       _executors: executors,
     });
+
+    executionHash = bytesToHex(ethers.utils.randomBytes(32)); // Random 32 byte hash
+    metadataUri = utils.strings.strToShortStringArr(
+      'Hello and welcome to Snapshot X. This is the future of governance.'
+    );
+    proposerEthAddress = ethers.Wallet.createRandom().address;
+    spaceAddress = BigInt(space.address);
+    usedVotingStrategies1 = [BigInt(vanillaVotingStrategy.address)];
+    userVotingParamsAll1 = [[]];
+    executionStrategy = BigInt(vanillaExecutionStrategy.address);
+    executionParams = [];
+    proposeCalldata = getProposeCalldata(
+      proposerEthAddress,
+      executionHash,
+      metadataUri,
+      executionStrategy,
+      usedVotingStrategies1,
+      userVotingParamsAll1,
+      executionParams
+    );
+
   }).timeout(6000000);
 });
