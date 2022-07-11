@@ -1,7 +1,7 @@
 import { expect } from 'chai';
 import { ethers } from 'hardhat';
 import { StarknetContract, Account } from 'hardhat/types';
-import { strToShortStringArr } from '@snapshot-labs/sx';
+import { utils } from '@snapshot-labs/sx';
 import { SplitUint256, Choice } from '../shared/types';
 import { getProposeCalldata, getVoteCalldata, bytesToHex } from '../shared/helpers';
 import { spaceFactorySetup } from '../shared/setup';
