@@ -2,22 +2,15 @@ import { SignerWithAddress } from '@nomiclabs/hardhat-ethers/signers';
 import { expect } from 'chai';
 import { Contract } from 'ethers';
 import hre, { starknet, network } from 'hardhat';
-import { Choice, SplitUint256 } from '../shared/types';
 import { StarknetContract, HttpNetworkConfig, Account } from 'hardhat/types';
-import { strToShortStringArr } from '@snapshot-labs/sx';
+import { utils } from '@snapshot-labs/sx';
 import { zodiacRelayerSetup } from '../shared/setup';
-import {
-  createExecutionHash,
-  expectAddressEquality,
-  getProposeCalldata,
-  getVoteCalldata,
-} from '../shared/helpers';
 import { PROPOSE_SELECTOR, VOTE_SELECTOR } from '../shared/constants';
 
 const VITALIK_ADDRESS = 'd8da6bf26964af9d7eed9e03e53415d37aa96045'; //removed hex prefix
 
 // Dummy tx
-const tx1 = {
+const tx1: utils.encoding.MetaTransaction = {
   to: VITALIK_ADDRESS,
   value: 0,
   data: '0x11',
@@ -26,7 +19,7 @@ const tx1 = {
 };
 
 // Dummy tx 2
-const tx2 = {
+const tx2: utils.encoding.MetaTransaction = {
   to: VITALIK_ADDRESS,
   value: 0,
   data: '0x22',
@@ -62,7 +55,7 @@ describe('Create proposal, cast vote, and send execution to l1', function () {
   // Additional parameters for voting
   let voterEthAddress: string;
   let proposalId: bigint;
-  let choice: Choice;
+  let choice: utils.choice.Choice;
   let usedVotingStrategies2: bigint[];
   let userVotingParamsAll2: bigint[][];
   let voteCalldata: bigint[];
@@ -84,21 +77,28 @@ describe('Create proposal, cast vote, and send execution to l1', function () {
       mockStarknetMessaging,
     } = await zodiacRelayerSetup());
 
-    metadataUri = strToShortStringArr(
+    metadataUri = utils.strings.strToShortStringArr(
       'Hello and welcome to Snapshot X. This is the future of governance.'
     );
-    ({ executionHash, txHashes } = createExecutionHash(zodiacModule.address, tx1, tx2));
+    ({ executionHash, txHashes } = utils.encoding.createExecutionHash(
+      [tx1, tx2],
+      zodiacModule.address,
+      network.config.chainId!
+    ));
 
     proposerEthAddress = signer.address;
     spaceAddress = BigInt(space.address);
     usedVotingStrategies1 = [BigInt(vanillaVotingStrategy.address)];
     userVotingParamsAll1 = [[]];
     executionStrategy = BigInt(zodiacRelayer.address);
-    executionParams = [BigInt(zodiacModule.address)];
+    executionParams = [
+      BigInt(zodiacModule.address),
+      utils.splitUint256.SplitUint256.fromHex(executionHash).low,
+      utils.splitUint256.SplitUint256.fromHex(executionHash).high,
+    ];
 
-    proposeCalldata = getProposeCalldata(
+    proposeCalldata = utils.encoding.getProposeCalldata(
       proposerEthAddress,
-      executionHash,
       metadataUri,
       executionStrategy,
       usedVotingStrategies1,
@@ -109,10 +109,10 @@ describe('Create proposal, cast vote, and send execution to l1', function () {
     voterEthAddress = hre.ethers.Wallet.createRandom().address;
 
     proposalId = BigInt(1);
-    choice = Choice.FOR;
+    choice = utils.choice.Choice.FOR;
     usedVotingStrategies2 = [BigInt(vanillaVotingStrategy.address)];
     userVotingParamsAll2 = [[]];
-    voteCalldata = getVoteCalldata(
+    voteCalldata = utils.encoding.getVoteCalldata(
       voterEthAddress,
       proposalId,
       choice,
@@ -154,8 +154,8 @@ describe('Create proposal, cast vote, and send execution to l1', function () {
     expect(flushL2Response.consumed_messages.from_l1).to.be.empty;
     const flushL2Messages = flushL2Response.consumed_messages.from_l2;
     expect(flushL2Messages).to.have.a.lengthOf(1);
-    expectAddressEquality(flushL2Messages[0].from_address, zodiacRelayer.address);
-    expectAddressEquality(flushL2Messages[0].to_address, zodiacModule.address);
+    expect(BigInt(flushL2Messages[0].from_address)).to.equal(BigInt(zodiacRelayer.address));
+    expect(BigInt(flushL2Messages[0].to_address)).to.equal(BigInt(zodiacModule.address));
 
     // -- Check that l1 can receive the proposal correctly --
 
@@ -163,7 +163,7 @@ describe('Create proposal, cast vote, and send execution to l1', function () {
     const fakeTxHashes = txHashes.slice(0, -1);
     const callerAddress = BigInt(space.address);
     const fakeCallerAddress = BigInt(zodiacRelayer.address);
-    const splitExecutionHash = SplitUint256.fromHex(executionHash);
+    const splitExecutionHash = utils.splitUint256.SplitUint256.fromHex(executionHash);
 
     // Check that if the tx hash is incorrect, the transaction reverts.
     await expect(

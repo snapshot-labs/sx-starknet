@@ -3,28 +3,9 @@ import { expect } from 'chai';
 import { Contract } from 'ethers';
 import { starknet, network, ethers } from 'hardhat';
 import { StarknetContract, Account, HttpNetworkConfig } from 'hardhat/types';
-import { strToShortStringArr } from '@snapshot-labs/sx';
-import { createExecutionHash, getCommit, getProposeCalldata } from '../shared/helpers';
+import { utils } from '@snapshot-labs/sx';
 import { ethTxAuthSetup } from '../shared/setup';
 import { PROPOSE_SELECTOR } from '../shared/constants';
-
-// Dummy tx
-const tx1 = {
-  to: ethers.Wallet.createRandom().address,
-  value: 0,
-  data: '0x11',
-  operation: 0,
-  nonce: 0,
-};
-
-// Dummy tx 2
-const tx2 = {
-  to: ethers.Wallet.createRandom().address,
-  value: 0,
-  data: '0x22',
-  operation: 0,
-  nonce: 0,
-};
 
 describe('L1 interaction with Snapshot X', function () {
   this.timeout(5000000);
@@ -42,7 +23,6 @@ describe('L1 interaction with Snapshot X', function () {
 
   // Proposal creation parameters
   let spaceAddress: bigint;
-  let executionHash: string;
   let metadataUri: bigint[];
   let proposerEthAddress: string;
   let usedVotingStrategies: bigint[];
@@ -65,8 +45,7 @@ describe('L1 interaction with Snapshot X', function () {
       starknetCommit,
     } = await ethTxAuthSetup());
 
-    ({ executionHash } = createExecutionHash(ethers.Wallet.createRandom().address, tx1, tx2));
-    metadataUri = strToShortStringArr(
+    metadataUri = utils.strings.strToShortStringArr(
       'Hello and welcome to Snapshot X. This is the future of governance.'
     );
     proposerEthAddress = signer.address;
@@ -75,9 +54,8 @@ describe('L1 interaction with Snapshot X', function () {
     userVotingParamsAll = [[]];
     executionStrategy = BigInt(vanillaExecutionStrategy.address);
     executionParams = [];
-    proposeCalldata = getProposeCalldata(
+    proposeCalldata = utils.encoding.getProposeCalldata(
       proposerEthAddress,
-      executionHash,
       metadataUri,
       executionStrategy,
       usedVotingStrategies,
@@ -91,7 +69,7 @@ describe('L1 interaction with Snapshot X', function () {
     // Committing the hash of the payload to the StarkNet Commit L1 contract
     await starknetCommit
       .connect(signer)
-      .commit(getCommit(spaceAddress, PROPOSE_SELECTOR, proposeCalldata));
+      .commit(utils.encoding.getCommit(spaceAddress, PROPOSE_SELECTOR, proposeCalldata));
     // Checking that the L1 -> L2 message has been propogated
     expect((await starknet.devnet.flush()).consumed_messages.from_l1).to.have.a.lengthOf(1);
     // Creating proposal
@@ -106,7 +84,7 @@ describe('L1 interaction with Snapshot X', function () {
     await starknet.devnet.loadL1MessagingContract(networkUrl, mockStarknetMessaging.address);
     await starknetCommit
       .connect(signer)
-      .commit(getCommit(spaceAddress, PROPOSE_SELECTOR, proposeCalldata));
+      .commit(utils.encoding.getCommit(spaceAddress, PROPOSE_SELECTOR, proposeCalldata));
     await starknet.devnet.flush();
     await ethTxAuthenticator.invoke('authenticate', {
       target: spaceAddress,
@@ -129,7 +107,7 @@ describe('L1 interaction with Snapshot X', function () {
     await starknet.devnet.loadL1MessagingContract(networkUrl, mockStarknetMessaging.address);
     await starknetCommit
       .connect(signer)
-      .commit(getCommit(spaceAddress, PROPOSE_SELECTOR, proposeCalldata)); // Wrong selector
+      .commit(utils.encoding.getCommit(spaceAddress, PROPOSE_SELECTOR, proposeCalldata)); // Wrong selector
     await starknet.devnet.flush();
     try {
       await ethTxAuthenticator.invoke('authenticate', {
@@ -147,7 +125,7 @@ describe('L1 interaction with Snapshot X', function () {
     proposeCalldata[0] = BigInt(ethers.Wallet.createRandom().address); // Random l1 address in the calldata
     await starknetCommit
       .connect(signer)
-      .commit(getCommit(spaceAddress, PROPOSE_SELECTOR, proposeCalldata));
+      .commit(utils.encoding.getCommit(spaceAddress, PROPOSE_SELECTOR, proposeCalldata));
     await starknet.devnet.flush();
     try {
       await ethTxAuthenticator.invoke('authenticate', {

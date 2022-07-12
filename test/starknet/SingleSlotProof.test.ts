@@ -1,13 +1,11 @@
 import fs from 'fs';
 import { expect } from 'chai';
-import { starknet, ethers } from 'hardhat';
-import { SplitUint256, Choice } from '../shared/types';
-import { ProofInputs } from '../shared/parseRPCData';
+import { starknet } from 'hardhat';
 import { singleSlotProofSetup, Fossil } from '../shared/setup';
 import { PROPOSE_SELECTOR, VOTE_SELECTOR } from '../shared/constants';
-import { getProposeCalldata, getVoteCalldata, bytesToHex } from '../shared/helpers';
 import { StarknetContract, Account } from 'hardhat/types';
-import { strToShortStringArr } from '@snapshot-labs/sx';
+// import { strToShortStringArr } from '@snapshot-labs/sx';
+import { utils } from '@snapshot-labs/sx';
 
 describe('Single slot proof voting strategy:', () => {
   // Contracts
@@ -20,11 +18,10 @@ describe('Single slot proof voting strategy:', () => {
   let fossil: Fossil;
 
   // Data for account and storage proofs
-  let proofInputs: ProofInputs;
+  let proofInputs: utils.storageProofs.ProofInputs;
 
   // Proposal creation parameters
   let spaceAddress: bigint;
-  let executionHash: string;
   let metadataUri: bigint[];
   let proposerEthAddress: string;
   let usedVotingStrategies1: bigint[];
@@ -36,7 +33,7 @@ describe('Single slot proof voting strategy:', () => {
   // Additional parameters for voting
   let voterEthAddress: string;
   let proposalId: bigint;
-  let choice: Choice;
+  let choice: utils.choice.Choice;
   let usedVotingStrategies2: bigint[];
   let userVotingParamsAll2: bigint[][];
   let voteCalldata: bigint[];
@@ -60,8 +57,7 @@ describe('Single slot proof voting strategy:', () => {
     } = await singleSlotProofSetup(block, proofs));
 
     proposalId = BigInt(1);
-    executionHash = bytesToHex(ethers.utils.randomBytes(32)); // Random 32 byte hash
-    metadataUri = strToShortStringArr(
+    metadataUri = utils.strings.strToShortStringArr(
       'Hello and welcome to Snapshot X. This is the future of governance.'
     );
     // Eth address corresponding to slot with key: 0x1f209fa834e9c9c92b83d1bd04d8d1914bd212e440f88fdda8a5879962bda665
@@ -71,9 +67,8 @@ describe('Single slot proof voting strategy:', () => {
     userVotingParamsAll1 = [proofInputs.storageProofs[0]];
     executionStrategy = BigInt(vanillaExecutionStrategy.address);
     executionParams = [];
-    proposeCalldata = getProposeCalldata(
+    proposeCalldata = utils.encoding.getProposeCalldata(
       proposerEthAddress,
-      executionHash,
       metadataUri,
       executionStrategy,
       usedVotingStrategies1,
@@ -82,10 +77,10 @@ describe('Single slot proof voting strategy:', () => {
     );
     // Eth address corresponding to slot with key: 0x9dd2a912bd3f98d4e52ea66ae2fff8b73a522895d081d522fe86f592ec8467c3
     voterEthAddress = '0x3744da57184575064838bbc87a0fc791f5e39ea2';
-    choice = Choice.FOR;
+    choice = utils.choice.Choice.FOR;
     usedVotingStrategies2 = [BigInt(singleSlotProofStrategy.address)];
     userVotingParamsAll2 = [proofInputs.storageProofs[1]];
-    voteCalldata = getVoteCalldata(
+    voteCalldata = utils.encoding.getVoteCalldata(
       voterEthAddress,
       proposalId,
       choice,
@@ -122,13 +117,11 @@ describe('Single slot proof voting strategy:', () => {
         proposal_id: proposalId,
       });
 
-      const _executionHash = SplitUint256.fromObj(proposal_info.proposal.execution_hash).toUint();
-      expect(_executionHash).to.deep.equal(BigInt(executionHash));
-      const _for = SplitUint256.fromObj(proposal_info.power_for).toUint();
+      const _for = utils.splitUint256.SplitUint256.fromObj(proposal_info.power_for).toUint();
       expect(_for).to.deep.equal(BigInt(0));
-      const against = SplitUint256.fromObj(proposal_info.power_against).toUint();
+      const against = utils.splitUint256.SplitUint256.fromObj(proposal_info.power_against).toUint();
       expect(against).to.deep.equal(BigInt(0));
-      const abstain = SplitUint256.fromObj(proposal_info.power_abstain).toUint();
+      const abstain = utils.splitUint256.SplitUint256.fromObj(proposal_info.power_abstain).toUint();
       expect(abstain).to.deep.equal(BigInt(0));
       console.log('proposal created');
     }
@@ -145,11 +138,11 @@ describe('Single slot proof voting strategy:', () => {
         proposal_id: proposalId,
       });
 
-      const _for = SplitUint256.fromObj(proposal_info.power_for).toUint();
+      const _for = utils.splitUint256.SplitUint256.fromObj(proposal_info.power_for).toUint();
       expect(_for).to.deep.equal(BigInt('0x26d16aea9a19cda40000'));
-      const against = SplitUint256.fromObj(proposal_info.power_against).toUint();
+      const against = utils.splitUint256.SplitUint256.fromObj(proposal_info.power_against).toUint();
       expect(against).to.deep.equal(BigInt(0));
-      const abstain = SplitUint256.fromObj(proposal_info.power_abstain).toUint();
+      const abstain = utils.splitUint256.SplitUint256.fromObj(proposal_info.power_abstain).toUint();
       expect(abstain).to.deep.equal(BigInt(0));
     }
 

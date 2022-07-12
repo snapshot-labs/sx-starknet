@@ -1,9 +1,7 @@
 import { expect } from 'chai';
-import { starknet, ethers } from 'hardhat';
+import { starknet } from 'hardhat';
 import { StarknetContract, Account } from 'hardhat/types';
-import { strToShortStringArr } from '@snapshot-labs/sx';
-import { SplitUint256, Choice } from '../shared/types';
-import { getProposeCalldata, getVoteCalldata, bytesToHex } from '../shared/helpers';
+import { utils } from '@snapshot-labs/sx';
 import { starkTxAuthSetup } from '../shared/setup';
 import { PROPOSE_SELECTOR, VOTE_SELECTOR } from '../shared/constants';
 
@@ -19,7 +17,6 @@ describe('StarkNet Tx Auth testing', () => {
 
   // Proposal creation parameters
   let spaceAddress: bigint;
-  let executionHash: string;
   let metadataUri: bigint[];
   let proposerAccount: Account;
   let proposerAddress: string;
@@ -33,7 +30,7 @@ describe('StarkNet Tx Auth testing', () => {
   let voterAccount: Account;
   let voterAddress: string;
   let proposalId: bigint;
-  let choice: Choice;
+  let choice: utils.choice.Choice;
   let usedVotingStrategies2: bigint[];
   let userVotingParamsAll2: bigint[][];
   let voteCalldata: bigint[];
@@ -50,8 +47,7 @@ describe('StarkNet Tx Auth testing', () => {
       vanillaExecutionStrategy,
     } = await starkTxAuthSetup());
 
-    executionHash = bytesToHex(ethers.utils.randomBytes(32)); // Random 32 byte hash
-    metadataUri = strToShortStringArr(
+    metadataUri = utils.strings.strToShortStringArr(
       'Hello and welcome to Snapshot X. This is the future of governance.'
     );
     proposerAddress = proposerAccount.starknetContract.address;
@@ -60,9 +56,8 @@ describe('StarkNet Tx Auth testing', () => {
     userVotingParamsAll1 = [[]];
     executionStrategy = BigInt(vanillaExecutionStrategy.address);
     executionParams = [];
-    proposeCalldata = getProposeCalldata(
+    proposeCalldata = utils.encoding.getProposeCalldata(
       proposerAddress,
-      executionHash,
       metadataUri,
       executionStrategy,
       usedVotingStrategies1,
@@ -72,10 +67,10 @@ describe('StarkNet Tx Auth testing', () => {
 
     voterAddress = voterAccount.starknetContract.address;
     proposalId = BigInt(1);
-    choice = Choice.FOR;
+    choice = utils.choice.Choice.FOR;
     usedVotingStrategies2 = [BigInt(vanillaVotingStrategy.address)];
     userVotingParamsAll2 = [[]];
-    voteCalldata = getVoteCalldata(
+    voteCalldata = utils.encoding.getVoteCalldata(
       voterAddress,
       proposalId,
       choice,
@@ -114,14 +109,11 @@ describe('StarkNet Tx Auth testing', () => {
         proposal_id: proposalId,
       });
 
-      const _executionHash = SplitUint256.fromObj(proposal_info.proposal.execution_hash).toUint();
-      expect(_executionHash).to.deep.equal(BigInt(executionHash));
-
-      const _for = SplitUint256.fromObj(proposal_info.power_for).toUint();
+      const _for = utils.splitUint256.SplitUint256.fromObj(proposal_info.power_for).toUint();
       expect(_for).to.deep.equal(BigInt(0));
-      const against = SplitUint256.fromObj(proposal_info.power_against).toUint();
+      const against = utils.splitUint256.SplitUint256.fromObj(proposal_info.power_against).toUint();
       expect(against).to.deep.equal(BigInt(0));
-      const abstain = SplitUint256.fromObj(proposal_info.power_abstain).toUint();
+      const abstain = utils.splitUint256.SplitUint256.fromObj(proposal_info.power_abstain).toUint();
       expect(abstain).to.deep.equal(BigInt(0));
     }
 
@@ -139,11 +131,11 @@ describe('StarkNet Tx Auth testing', () => {
         proposal_id: proposalId,
       });
 
-      const _for = SplitUint256.fromObj(proposal_info.power_for).toUint();
+      const _for = utils.splitUint256.SplitUint256.fromObj(proposal_info.power_for).toUint();
       expect(_for).to.deep.equal(BigInt(1));
-      const against = SplitUint256.fromObj(proposal_info.power_against).toUint();
+      const against = utils.splitUint256.SplitUint256.fromObj(proposal_info.power_against).toUint();
       expect(against).to.deep.equal(BigInt(0));
-      const abstain = SplitUint256.fromObj(proposal_info.power_abstain).toUint();
+      const abstain = utils.splitUint256.SplitUint256.fromObj(proposal_info.power_abstain).toUint();
       expect(abstain).to.deep.equal(BigInt(0));
     }
   }).timeout(6000000);

@@ -217,6 +217,7 @@ func constructor{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_p
     unchecked_add_authenticators(_authenticators_len, _authenticators)
     unchecked_add_executors(_executors_len, _executors)
 
+    # The first proposal in a space will have a proposal ID of 1.
     next_proposal_nonce_store.write(1)
 
     return ()
@@ -264,8 +265,11 @@ func unchecked_add_voting_strategies{
         # Extract voting params for the voting strategy
         let (params_len, params) = get_sub_array(params_all, index)
 
-        # Add voting params
-        unchecked_add_voting_strategy_params(to_add[0], params_len, params, 0)
+        # We store the length of the voting strategy params array at index zero
+        voting_strategy_params_store.write(to_add[0], 0, params_len)
+
+        # The following elements are the actual params
+        unchecked_add_voting_strategy_params(to_add[0], params_len, params, 1)
 
         unchecked_add_voting_strategies(to_add_len - 1, &to_add[1], params_all, index + 1)
         return ()
@@ -281,15 +285,12 @@ func unchecked_add_voting_strategy_params{
     else:
         # Store voting parameter
         voting_strategy_params_store.write(to_add, index, params[0])
-        # Recurse
+
         unchecked_add_voting_strategy_params(to_add, params_len - 1, &params[1], index + 1)
         return ()
     end
 end
 
-# NOTE: We need to think carefully about how to handle the case where a voting strategy is removed.
-# Do we also need to remove the voting strategy params? Currently we are not.
-# Setting the voting strategy to 0 will remove it from the store, but what happens if someone re-adds the strategy but with different params?
 func unchecked_remove_voting_strategies{
     syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr : felt
 }(to_remove_len : felt, to_remove : felt*):
@@ -298,9 +299,35 @@ func unchecked_remove_voting_strategies{
     else:
         voting_strategies_store.write(to_remove[0], 0)
 
+        # The length of the voting strategy params is stored at index zero
+        let (params_len) = voting_strategy_params_store.read(to_remove[0], 0)
+
+        voting_strategy_params_store.write(to_remove[0], 0, 0)
+
+        # Removing voting strategy params
+        unchecked_remove_voting_strategy_params(to_remove[0], params_len, 1)
+
         unchecked_remove_voting_strategies(to_remove_len - 1, &to_remove[1])
         return ()
     end
+end
+
+func unchecked_remove_voting_strategy_params{
+    syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr
+}(to_remove : felt, params_len : felt, index : felt):
+    if params_len == 0:
+        # List is empty
+        return ()
+    end
+    if index == params_len + 1:
+        # All params have been removed from the array
+        return ()
+    end
+    # Remove voting parameter
+    voting_strategy_params_store.write(to_remove, index, 0)
+
+    unchecked_remove_voting_strategy_params(to_remove, params_len, index + 1)
+    return ()
 end
 
 func unchecked_add_authenticators{
@@ -381,17 +408,19 @@ func get_cumulative_voting_power{syscall_ptr : felt*, pedersen_ptr : HashBuiltin
         assert is_valid = 1
     end
 
-    # Initialize empty array to store voting params
-    let (voting_strategy_params : felt*) = alloc()
-
-    # Retrieve voting strategy params
-    let (voting_strategy_params_len) = get_voting_strategy_params(
-        voting_strategy, voting_strategy_params, 0
-    )
-
     # Extract voting params array for the voting strategy specified by the index
     let (user_voting_strategy_params_len, user_voting_strategy_params) = get_sub_array(
         user_voting_strategy_params_all, index
+    )
+
+    # Initialize empty array to store voting params
+    let (voting_strategy_params : felt*) = alloc()
+
+    # Check that voting strategy params exist by the length which is stored in the first element of the array
+    let (voting_strategy_params_len) = voting_strategy_params_store.read(voting_strategy, 0)
+
+    let (voting_strategy_params_len, voting_strategy_params) = get_voting_strategy_params(
+        voting_strategy, voting_strategy_params_len, voting_strategy_params, 1
     )
 
     let (user_voting_power) = IVotingStrategy.get_voting_power(
@@ -424,21 +453,30 @@ end
 
 # Function to reconstruct voting param array for voting strategy specified
 func get_voting_strategy_params{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr}(
-    _voting_strategy_contract : felt, _voting_strategy_params : felt*, index : felt
-) -> (voting_strategy_params_len : felt):
+    _voting_strategy_contract : felt,
+    voting_strategy_params_len : felt,
+    voting_strategy_params : felt*,
+    index : felt,
+) -> (voting_strategy_params_len : felt, voting_strategy_params : felt*):
+    # The are no parameters so we just return an empty array
+    if voting_strategy_params_len == 0:
+        return (0, voting_strategy_params)
+    end
+
     let (voting_strategy_param) = voting_strategy_params_store.read(
         _voting_strategy_contract, index
     )
-    if voting_strategy_param == 0:
-        return (index)
-    else:
-        assert _voting_strategy_params[index] = voting_strategy_param
+    assert voting_strategy_params[index - 1] = voting_strategy_param
 
-        let (voting_strategy_params_len) = get_voting_strategy_params(
-            _voting_strategy_contract, _voting_strategy_params, index + 1
-        )
-        return (voting_strategy_params_len)
+    # All parameters have been added to the array so we can return it
+    if index == voting_strategy_params_len:
+        return (voting_strategy_params_len, voting_strategy_params)
     end
+
+    let (voting_strategy_params_len, voting_strategy_params) = get_voting_strategy_params(
+        _voting_strategy_contract, voting_strategy_params_len, voting_strategy_params, index + 1
+    )
+    return (voting_strategy_params_len, voting_strategy_params)
 end
 
 #
@@ -716,7 +754,6 @@ end
 @external
 func propose{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr : felt}(
     proposer_address : Address,
-    execution_hash : Uint256,
     metadata_uri_len : felt,
     metadata_uri : felt*,
     executor : felt,
@@ -774,20 +811,20 @@ func propose{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr :
     end
 
     # Hash the execution params
-    let (hash) = hash_array(execution_params_len, execution_params)
+    # Storing arrays inside a struct is impossible so instead we just store a hash and then reconstruct the array in finalize_proposal
+    let (execution_hash) = hash_array(execution_params_len, execution_params)
 
     let (_quorum) = quorum_store.read()
 
     # Create the proposal and its proposal id
     let proposal = Proposal(
-        execution_hash,
         _quorum,
         snapshot_timestamp,
         start_timestamp,
         min_end_timestamp,
         max_end_timestamp,
-        hash,
         executor,
+        execution_hash,
     )
 
     let (proposal_id) = next_proposal_nonce_store.read()
@@ -839,10 +876,10 @@ func finalize_proposal{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_c
         assert_le(proposal.min_end_timestamp, current_timestamp)
     end
 
-    # Make sure execution params match the stored hash
+    # Make sure execution params match the ones sent at proposal creation by checking that the hashes match
     let (recovered_hash) = hash_array(execution_params_len, execution_params)
     with_attr error_message("Invalid execution parameters"):
-        assert recovered_hash = proposal.execution_params_hash
+        assert recovered_hash = proposal.execution_hash
     end
 
     # Count votes for
@@ -890,7 +927,6 @@ func finalize_proposal{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_c
     IExecutionStrategy.execute(
         contract_address=proposal.executor,
         proposal_outcome=proposal_outcome,
-        execution_hash=proposal.execution_hash,
         execution_params_len=execution_params_len,
         execution_params=execution_params,
     )
@@ -933,7 +969,6 @@ func cancel_proposal{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_che
     IExecutionStrategy.execute(
         contract_address=proposal.executor,
         proposal_outcome=proposal_outcome,
-        execution_hash=proposal.execution_hash,
         execution_params_len=execution_params_len,
         execution_params=execution_params,
     )
