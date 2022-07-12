@@ -44,8 +44,8 @@ jobs:
         run: |
           sudo apt install -y libgmp3-dev
           python -m pip install --upgrade pip
-          pip install starknet-devnet==0.2.2
-          pip install openzeppelin-cairo-contracts
+          pip install -r requirements.txt
+          pip install starknet-devnet
   
       - name: Compile Contracts
         run: yarn compile

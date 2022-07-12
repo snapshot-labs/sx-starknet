@@ -1,17 +1,41 @@
 import { expect } from 'chai';
 import { ethers } from 'hardhat';
 import { StarknetContract, Account } from 'hardhat/types';
-import { strToShortStringArr } from '@snapshot-labs/sx';
-import { SplitUint256, Choice } from '../shared/types';
-import {
-  getProposeCalldata,
-  getVoteCalldata,
-  bytesToHex,
-  createStarknetExecutionParams,
-  Call,
-} from '../shared/helpers';
+import { utils } from '@snapshot-labs/sx';
 import { starknetExecutionSetup } from '../shared/setup';
 import { PROPOSE_SELECTOR, VOTE_SELECTOR, AUTHENTICATE_SELECTOR } from '../shared/constants';
+
+export interface StarknetMetaTransaction {
+  to: bigint;
+  functionSelector: bigint;
+  calldata: bigint[];
+}
+
+export function createStarknetExecutionParams(txArray: StarknetMetaTransaction[]): bigint[] {
+  if (!txArray || txArray.length == 0) {
+    return [];
+  }
+
+  const dataOffset = BigInt(1 + txArray.length * 4);
+  const executionParams = [dataOffset];
+  let calldataIndex = 0;
+
+  txArray.forEach((tx) => {
+    const subArr: bigint[] = [
+      tx.to,
+      tx.functionSelector,
+      BigInt(tx.calldata.length),
+      BigInt(calldataIndex),
+    ];
+    calldataIndex += tx.calldata.length;
+    executionParams.push(...subArr);
+  });
+
+  txArray.forEach((tx) => {
+    executionParams.push(...tx.calldata);
+  });
+  return executionParams;
+}
 
 describe('Space Testing', () => {
   // Contracts
@@ -34,7 +58,7 @@ describe('Space Testing', () => {
   // Additional parameters for voting
   let voterEthAddress: string;
   let proposalId: bigint;
-  let choice: Choice;
+  let choice: utils.choice.Choice;
   let usedVotingStrategies2: bigint[];
   let userVotingParamsAll2: bigint[][];
   let voteCalldata: bigint[];
@@ -45,7 +69,7 @@ describe('Space Testing', () => {
     ({ space, controller, vanillaAuthenticator, vanillaVotingStrategy, starknetExecutionStrategy } =
       await starknetExecutionSetup());
 
-    metadataUri = strToShortStringArr(
+    metadataUri = utils.strings.strToShortStringArr(
       'Hello and welcome to Snapshot X. This is the future of governance.'
     );
     proposerEthAddress = ethers.Wallet.createRandom().address;
@@ -55,7 +79,7 @@ describe('Space Testing', () => {
     executionStrategy = BigInt(starknetExecutionStrategy.address);
 
     // For the execution of the proposal, we create 2 new dummy proposals
-    const callCalldata1 = getProposeCalldata(
+    const txCalldata1 = utils.encoding.getProposeCalldata(
       proposerEthAddress,
       metadataUri,
       BigInt(1234),
@@ -63,7 +87,7 @@ describe('Space Testing', () => {
       userVotingParamsAll1,
       []
     );
-    const callCalldata2 = getProposeCalldata(
+    const txCalldata2 = utils.encoding.getProposeCalldata(
       proposerEthAddress,
       metadataUri,
       BigInt(4567),
@@ -71,7 +95,7 @@ describe('Space Testing', () => {
       userVotingParamsAll1,
       []
     );
-    const callCalldata3 = getProposeCalldata(
+    const txCalldata3 = utils.encoding.getProposeCalldata(
       proposerEthAddress,
       metadataUri,
       BigInt(456789),
@@ -79,24 +103,24 @@ describe('Space Testing', () => {
       userVotingParamsAll1,
       []
     );
-    const call1: Call = {
+    const tx1: StarknetMetaTransaction = {
       to: BigInt(vanillaAuthenticator.address),
       functionSelector: AUTHENTICATE_SELECTOR,
-      calldata: [spaceAddress, PROPOSE_SELECTOR, BigInt(callCalldata1.length), ...callCalldata1],
+      calldata: [spaceAddress, PROPOSE_SELECTOR, BigInt(txCalldata1.length), ...txCalldata1],
     };
-    const call2: Call = {
+    const tx2: StarknetMetaTransaction = {
       to: BigInt(vanillaAuthenticator.address),
       functionSelector: AUTHENTICATE_SELECTOR,
-      calldata: [spaceAddress, PROPOSE_SELECTOR, BigInt(callCalldata2.length), ...callCalldata2],
+      calldata: [spaceAddress, PROPOSE_SELECTOR, BigInt(txCalldata2.length), ...txCalldata2],
     };
-    const call3: Call = {
+    const tx3: StarknetMetaTransaction = {
       to: BigInt(vanillaAuthenticator.address),
       functionSelector: AUTHENTICATE_SELECTOR,
-      calldata: [spaceAddress, PROPOSE_SELECTOR, BigInt(callCalldata3.length), ...callCalldata3],
+      calldata: [spaceAddress, PROPOSE_SELECTOR, BigInt(txCalldata3.length), ...txCalldata3],
     };
-    executionParams = createStarknetExecutionParams([call1, call2, call3]);
+    executionParams = createStarknetExecutionParams([tx1, tx2, tx3]);
 
-    proposeCalldata = getProposeCalldata(
+    proposeCalldata = utils.encoding.getProposeCalldata(
       proposerEthAddress,
       metadataUri,
       executionStrategy,
@@ -107,10 +131,10 @@ describe('Space Testing', () => {
 
     voterEthAddress = ethers.Wallet.createRandom().address;
     proposalId = BigInt(1);
-    choice = Choice.FOR;
+    choice = utils.choice.Choice.FOR;
     usedVotingStrategies2 = [BigInt(vanillaVotingStrategy.address)];
     userVotingParamsAll2 = [[]];
-    voteCalldata = getVoteCalldata(
+    voteCalldata = utils.encoding.getVoteCalldata(
       voterEthAddress,
       proposalId,
       choice,
@@ -132,11 +156,11 @@ describe('Space Testing', () => {
         proposal_id: proposalId,
       });
 
-      const _for = SplitUint256.fromObj(proposal_info.power_for).toUint();
+      const _for = utils.splitUint256.SplitUint256.fromObj(proposal_info.power_for).toUint();
       expect(_for).to.deep.equal(BigInt(0));
-      const against = SplitUint256.fromObj(proposal_info.power_against).toUint();
+      const against = utils.splitUint256.SplitUint256.fromObj(proposal_info.power_against).toUint();
       expect(against).to.deep.equal(BigInt(0));
-      const abstain = SplitUint256.fromObj(proposal_info.power_abstain).toUint();
+      const abstain = utils.splitUint256.SplitUint256.fromObj(proposal_info.power_abstain).toUint();
       expect(abstain).to.deep.equal(BigInt(0));
     }
     // -- Casts a vote FOR --
@@ -151,11 +175,11 @@ describe('Space Testing', () => {
         proposal_id: proposalId,
       });
 
-      const _for = SplitUint256.fromObj(proposal_info.power_for).toUint();
+      const _for = utils.splitUint256.SplitUint256.fromObj(proposal_info.power_for).toUint();
       expect(_for).to.deep.equal(BigInt(1));
-      const against = SplitUint256.fromObj(proposal_info.power_against).toUint();
+      const against = utils.splitUint256.SplitUint256.fromObj(proposal_info.power_against).toUint();
       expect(against).to.deep.equal(BigInt(0));
-      const abstain = SplitUint256.fromObj(proposal_info.power_abstain).toUint();
+      const abstain = utils.splitUint256.SplitUint256.fromObj(proposal_info.power_abstain).toUint();
       expect(abstain).to.deep.equal(BigInt(0));
     }
 

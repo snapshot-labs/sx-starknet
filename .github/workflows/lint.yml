@@ -43,8 +43,6 @@ jobs:
           sudo apt install -y libgmp3-dev
           python -m pip install --upgrade pip
           pip install -r requirements.txt
-          pip install werkzeug==2.0.3
-          pip install marshmallow-dataclass==8.5.3 --force
           
       - name: Run Linters
         run: yarn check-format
