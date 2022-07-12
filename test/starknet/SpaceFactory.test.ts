@@ -102,6 +102,5 @@ describe('Space Deployment Testing', () => {
       userVotingParamsAll1,
       executionParams
     );
-
   }).timeout(6000000);
 });
