@@ -1046,7 +1046,7 @@
     "@sentry/types" "5.30.0"
     tslib "^1.9.3"
 
-"@shardlabs/starknet-hardhat-plugin@^0.6.1":
+"@shardlabs/starknet-hardhat-plugin@^0.6.0":
   version "0.6.1"
   resolved "https://registry.yarnpkg.com/@shardlabs/starknet-hardhat-plugin/-/starknet-hardhat-plugin-0.6.1.tgz#a0470e1d9a98afb17c961c2f8a2b5e371ae3436a"
   integrity sha512-xyG9eqIEGWYqbfwldswki1dm+bBH1ia+pX/6qr0wV1EBX+o6ChC1OELutDf1yc9RsPTLtdKrwOMfYVxBUr36Vw==
@@ -1097,7 +1097,6 @@
 "@snapshot-labs/sx@^0.1.0-beta.0":
   version "0.1.0-beta.0"
   resolved "https://registry.yarnpkg.com/@snapshot-labs/sx/-/sx-0.1.0-beta.0.tgz#8dc6de2eaeaebd5457441820680f7873175b9c0a"
-  integrity sha512-TNiOtjpH4r395frV8FQ/Tn3jsiOBNa01xDWiWS0Sfhj/Xd3Ckuo+ded9exu/UuKQjEpiLUxH7DEpIOaYLVUtAA==
   dependencies:
     "@ethersproject/providers" "^5.5.3"
     "@ethersproject/wallet" "^5.5.0"
@@ -1118,15 +1117,6 @@
     "@ethersproject/wallet" "^5.6.2"
     cross-fetch "^3.1.5"
     starknet "^3.15.0"
-
-"@snapshot-labs/sx@^0.1.0-beta.0":
-  version "0.1.0-beta.0"
-  resolved "https://registry.yarnpkg.com/@snapshot-labs/sx/-/sx-0.1.0-beta.0.tgz#8dc6de2eaeaebd5457441820680f7873175b9c0a"
-  dependencies:
-    "@ethersproject/providers" "^5.5.3"
-    "@ethersproject/wallet" "^5.5.0"
-    cross-fetch "^3.1.5"
-    starknet "^3.2.0"
 
 "@solidity-parser/parser@^0.14.0", "@solidity-parser/parser@^0.14.1", "@solidity-parser/parser@^0.14.2":
   version "0.14.3"

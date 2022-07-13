@@ -44,7 +44,7 @@ describe('Single slot proof voting strategy:', () => {
     const block = JSON.parse(fs.readFileSync('./test/data/block.json').toString());
     const proofs = JSON.parse(fs.readFileSync('./test/data/proofs.json').toString());
 
-    account = await starknet.deployAccount('Argent');
+    account = await starknet.deployAccount('OpenZeppelin');
 
     ({
       space,
