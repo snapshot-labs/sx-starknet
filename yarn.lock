@@ -951,7 +951,7 @@
   version "4.5.2"
   resolved "https://registry.yarnpkg.com/@openzeppelin/contracts-upgradeable/-/contracts-upgradeable-4.5.2.tgz#90d9e47bacfd8693bfad0ac8a394645575528d05"
 
-"@openzeppelin/contracts@^4.3.2", "@openzeppelin/contracts@^4.7.0":
+"@openzeppelin/contracts@^4.3.2", "@openzeppelin/contracts@^4.5.0":
   version "4.7.0"
   resolved "https://registry.yarnpkg.com/@openzeppelin/contracts/-/contracts-4.7.0.tgz#3092d70ea60e3d1835466266b1d68ad47035a2d5"
   integrity sha512-52Qb+A1DdOss8QvJrijYYPSf32GUg2pGaG/yCxtaA3cu4jduouTdg4XZSMLW9op54m1jH7J8hoajhHKOPsoJFw==
@@ -1069,10 +1069,10 @@
     "@sentry/types" "5.30.0"
     tslib "^1.9.3"
 
-"@shardlabs/starknet-hardhat-plugin@^0.6.0":
-  version "0.6.0"
-  resolved "https://registry.yarnpkg.com/@shardlabs/starknet-hardhat-plugin/-/starknet-hardhat-plugin-0.6.0.tgz#94fd4ba5f7e788474ad55a5b21b7acc23b104ed6"
-  integrity sha512-rqKZqfE9uOLTMxQ44pZLVs3eAm1ylxjQGVZuHvTR292N8KwHl7IaSd2k9yORaUobFdpHxt5LQoxFPlO8+pjCoQ==
+"@shardlabs/starknet-hardhat-plugin@^0.6.1":
+  version "0.6.1"
+  resolved "https://registry.yarnpkg.com/@shardlabs/starknet-hardhat-plugin/-/starknet-hardhat-plugin-0.6.1.tgz#a0470e1d9a98afb17c961c2f8a2b5e371ae3436a"
+  integrity sha512-xyG9eqIEGWYqbfwldswki1dm+bBH1ia+pX/6qr0wV1EBX+o6ChC1OELutDf1yc9RsPTLtdKrwOMfYVxBUr36Vw==
   dependencies:
     "@nomiclabs/hardhat-docker" "^2.0.2"
     axios "^0.24.0"
@@ -1116,21 +1116,6 @@
     mysql "^2.18.1"
     pino "^7.11.0"
     starknet "^3.7.0"
-
-"@snapshot-labs/sx@0.1.0-beta.7":
-  version "0.1.0-beta.7"
-  resolved "https://registry.yarnpkg.com/@snapshot-labs/sx/-/sx-0.1.0-beta.7.tgz#b94574ec0fa534177b914c53f2cd542c0ca0283f"
-  integrity sha512-JfnYhPsowqPZ8UUvChHhcSO81v8kQLGoKcYXV4EzY3a5+9vjVszHLFXI9/kyThP6eGVdGJn/y8PsGjZMCrNFJQ==
-  dependencies:
-    "@ethereumjs/block" "^3.6.3"
-    "@ethereumjs/common" "^2.6.5"
-    "@ethersproject/abi" "^5.6.1"
-    "@ethersproject/hash" "^5.6.1"
-    "@ethersproject/keccak256" "^5.6.1"
-    "@ethersproject/providers" "^5.6.4"
-    "@ethersproject/wallet" "^5.6.2"
-    cross-fetch "^3.1.5"
-    starknet "^3.15.0"
 
 "@snapshot-labs/sx@^0.1.0-beta.0":
   version "0.1.0-beta.0"
@@ -9596,7 +9581,7 @@ starknet@^3.15.0:
     pako "^2.0.4"
     url-join "^4.0.1"
 
-starknet@^3.2.0, starknet@^3.5.1, starknet@^3.7.0, starknet@^3.9.0:
+starknet@^3.2.0, starknet@^3.7.0, starknet@^3.9.0:
   version "3.9.0"
   resolved "https://registry.yarnpkg.com/starknet/-/starknet-3.9.0.tgz#ee7a3d99effef0998b365d95dd85f9b01cdb463c"
   dependencies:

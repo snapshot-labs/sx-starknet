@@ -631,6 +631,7 @@ export async function spaceFactorySetup() {
 
   return {
     spaceDeployer,
+    spaceFactoryClass,
     controller,
     vanillaAuthenticator,
     vanillaVotingStrategy,
