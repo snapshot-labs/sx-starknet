@@ -39,7 +39,7 @@
     "json-format-cli": "^1.1.1",
     "npm": "^8.14.0",
     "prettyjson": "^1.2.5",
-    "starknet": "^3.9.0",
+    "starknet": "^3.15.0",
     "sx-api": "snapshot-labs/sx-api",
     "wait-on": "^6.0.1",
     "yargs": "^17.5.0"
