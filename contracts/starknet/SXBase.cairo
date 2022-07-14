@@ -3,9 +3,9 @@
 %lang starknet
 
 from starkware.cairo.common.cairo_builtins import HashBuiltin, SignatureBuiltin, BitwiseBuiltin
+from starkware.cairo.common.uint256 import Uint256
 
 from openzeppelin.account.library import Account, AccountCallArray
-
 from openzeppelin.introspection.ERC165 import ERC165
 
 from contracts.starknet.space_library import Space
@@ -16,10 +16,40 @@ from contracts.starknet.space_library import Space
 
 @constructor
 func constructor{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr}(
-    public_key : felt
+    public_key : felt,
+    voting_delay : felt,
+    min_voting_duration : felt,
+    max_voting_duration : felt,
+    proposal_threshold : Uint256,
+    controller : felt,
+    quorum : Uint256,
+    voting_strategy_params_flat_len : felt,
+    voting_strategy_params_flat : felt*,
+    voting_strategies_len : felt,
+    voting_strategies : felt*,
+    authenticators_len : felt,
+    authenticators : felt*,
+    executors_len : felt,
+    executors : felt*,
 ):
     Account.initializer(public_key)
-    # Initialize space
+
+    Space.initializer(
+        voting_delay,
+        min_voting_duration,
+        max_voting_duration,
+        proposal_threshold,
+        controller,
+        quorum,
+        voting_strategy_params_flat_len,
+        voting_strategy_params_flat,
+        voting_strategies_len,
+        voting_strategies,
+        authenticators_len,
+        authenticators,
+        executors_len,
+        executors,
+    )
     return ()
 end
 

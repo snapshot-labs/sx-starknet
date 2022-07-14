@@ -17,6 +17,7 @@ from starkware.cairo.common.math import (
 )
 
 from openzeppelin.access.ownable import Ownable
+from openzeppelin.account.library import Account, AccountCallArray, Account_current_nonce
 
 from contracts.starknet.Interfaces.IVotingStrategy import IVotingStrategy
 from contracts.starknet.Interfaces.IExecutionStrategy import IExecutionStrategy
@@ -666,15 +667,28 @@ namespace Space:
             # Executor has been removed from the whitelist. Cancel this execution.
             tempvar proposal_outcome = ProposalOutcome.CANCELLED
         else:
-            # Classic cairo reference hackz
+            # Preventing revoked reference
             tempvar proposal_outcome = proposal_outcome
         end
 
-        IExecutionStrategy.execute(
-            contract_address=proposal.executor,
-            proposal_outcome=proposal_outcome,
-            execution_params_len=execution_params_len,
-            execution_params=execution_params,
+        # Execute proposal Transactions
+
+        # IExecutionStrategy.execute(
+        #     contract_address=proposal.executor,
+        #     proposal_outcome=proposal_outcome,
+        #     execution_params_len=execution_params_len,
+        #     execution_params=execution_params,
+        # )
+
+        let (call_array_len, call_array, calldata_len, calldata) = decode_execution_params(
+            execution_params_len, execution_params
+        )
+        let (nonce) = Account_current_nonce()
+
+        # We use unsafe execute as no signature veri§cation is needed.
+        # _unsafe_execute begins with _ which indicates it should only be called internally to the Account library, ask OZ about this.
+        let (response_len, response) = Account._unsafe_execute(
+            call_array_len, call_array, calldata_len, calldata, nonce
         )
 
         # Flag this proposal as executed
