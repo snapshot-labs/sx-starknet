@@ -37,7 +37,7 @@
     "ethereumjs-util": "^7.1.5",
     "install": "^0.13.0",
     "json-format-cli": "^1.1.1",
-    "npm": "^8.13.2",
+    "npm": "^8.14.0",
     "prettyjson": "^1.2.5",
     "starknet": "^3.9.0",
     "sx-api": "snapshot-labs/sx-api",
@@ -74,7 +74,7 @@
     "solhint": "^3.3.6",
     "solhint-plugin-prettier": "^0.0.5",
     "solidity-coverage": "^0.7.18",
-    "ts-node": "^10.8.2",
+    "ts-node": "^10.9.1",
     "typechain": "^8.1.0",
     "typescript": "^4.7.4"
   }
