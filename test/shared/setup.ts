@@ -14,8 +14,12 @@ export interface Fossil {
 }
 
 export async function vanillaSetup() {
-  const controller = (await starknet.deployAccount('OpenZeppelin')) as Account;
-  const spaceFactory = await starknet.getContractFactory('./contracts/starknet/Space.cairo');
+  // We make the space controller public key the same as the public key of the space account itself
+  const controller = (await starknet.deployAccount('OpenZeppelin', {
+    privateKey: '0x1',
+  })) as Account;
+  console.log(controller.publicKey);
+  const spaceFactory = await starknet.getContractFactory('./contracts/starknet/SXBase.cairo');
   const vanillaVotingStrategyFactory = await starknet.getContractFactory(
     './contracts/starknet/VotingStrategies/Vanilla.cairo'
   );
@@ -52,16 +56,17 @@ export async function vanillaSetup() {
 
   console.log('Deploying space contract...');
   const space = (await spaceFactory.deploy({
-    _voting_delay: votingDelay,
-    _min_voting_duration: minVotingDuration,
-    _max_voting_duration: maxVotingDuration,
-    _proposal_threshold: proposalThreshold,
-    _controller: BigInt(controller.starknetContract.address),
-    _quorum: quorum,
-    _voting_strategy_params_flat: votingStrategyParamsFlat,
-    _voting_strategies: votingStrategies,
-    _authenticators: authenticators,
-    _executors: executors,
+    public_key: BigInt(controller.publicKey),
+    voting_delay: votingDelay,
+    min_voting_duration: minVotingDuration,
+    max_voting_duration: maxVotingDuration,
+    proposal_threshold: proposalThreshold,
+    controller: BigInt(controller.starknetContract.address),
+    quorum: quorum,
+    voting_strategy_params_flat: votingStrategyParamsFlat,
+    voting_strategies: votingStrategies,
+    authenticators: authenticators,
+    executors: executors,
   })) as StarknetContract;
   console.log('deployed!');
 

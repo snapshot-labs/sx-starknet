@@ -34,6 +34,10 @@ from openzeppelin.access.ownable import (
 )
 
 #
+# Legacy space contract - pre account model
+#
+
+#
 # Storage vars
 #
 

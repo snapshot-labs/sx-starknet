@@ -161,7 +161,7 @@ end
 func voting_strategies_removed(removed_len : felt, removed : felt*):
 end
 
-namespace Space:
+namespace Governance:
     #
     # initializer
     #

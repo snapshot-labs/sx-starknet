@@ -8,7 +8,7 @@ from starkware.cairo.common.uint256 import Uint256
 from openzeppelin.account.library import Account, AccountCallArray
 from openzeppelin.introspection.ERC165 import ERC165
 
-from contracts.starknet.space_library import Space
+from contracts.starknet.lib.governance import Governance
 
 #
 # Constructor
@@ -34,7 +34,7 @@ func constructor{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_p
 ):
     Account.initializer(public_key)
 
-    Space.initializer(
+    Governance.initializer(
         voting_delay,
         min_voting_duration,
         max_voting_duration,
