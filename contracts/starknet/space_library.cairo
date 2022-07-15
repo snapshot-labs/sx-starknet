@@ -672,31 +672,49 @@ namespace Space:
         end
 
         # Execute proposal Transactions
+        # There are 2 situations:
+        # 1) Starknet execution strategy - then txs are executed directly by this contract.
+        # 2) Other execution strategy - then tx are executed by the specified execution strategy contract.
 
-        # IExecutionStrategy.execute(
-        #     contract_address=proposal.executor,
-        #     proposal_outcome=proposal_outcome,
-        #     execution_params_len=execution_params_len,
-        #     execution_params=execution_params,
-        # )
-
-        let (call_array_len, call_array, calldata_len, calldata) = decode_execution_params(
-            execution_params_len, execution_params
-        )
-        let (nonce) = Account_current_nonce()
-
-        # We use unsafe execute as no signature veri§cation is needed.
-        # _unsafe_execute begins with _ which indicates it should only be called internally to the Account library, ask OZ about this.
-        let (response_len, response) = Account._unsafe_execute(
-            call_array_len, call_array, calldata_len, calldata, nonce
-        )
+        if proposal.executor == 1:
+            # Starknet execution strategy so we execute the proposal txs directly
+            if proposal_outcome == ProposalOutcome.ACCEPTED:
+                let nonce = Account.get_nonce()
+                # let (call_array_len, call_array, calldata_len, calldata) = decode_execution_params(
+                #     execution_params_len, execution_params
+                # )
+                # # We use unsafe execute as no signature veri§cation is needed.
+                # # _unsafe_execute begins with _ which indicates it should only be called internally to the Account library, ask OZ about this.
+                # let (response_len, response) = Account._unsafe_execute(
+                #     call_array_len, call_array, calldata_len, calldata, nonce
+                # )
+                tempvar syscall_ptr = syscall_ptr
+                tempvar pedersen_ptr = pedersen_ptr
+                tempvar range_check_ptr = range_check_ptr
+            else:
+                tempvar syscall_ptr = syscall_ptr
+                tempvar pedersen_ptr = pedersen_ptr
+                tempvar range_check_ptr = range_check_ptr
+            end
+        else:
+            # Other execution strategy, so we forward the txs to the specified execution strategy contract.
+            IExecutionStrategy.execute(
+                contract_address=proposal.executor,
+                proposal_outcome=proposal_outcome,
+                execution_params_len=execution_params_len,
+                execution_params=execution_params,
+            )
+            tempvar syscall_ptr = syscall_ptr
+            tempvar pedersen_ptr = pedersen_ptr
+            tempvar range_check_ptr = range_check_ptr
+        end
 
         # Flag this proposal as executed
         # This should not create re-entrency vulnerability because the message
         # executor is a whitelisted address. If we set this flag BEFORE the call
         # to the executor, we could have a malicious attacker sending some random
         # invalid execution_params and cancel out the vote.
-        executed_proposals_store.write(proposal_id, 1)
+        # executed_proposals_store.write(proposal_id, 1)
 
         return ()
     end
