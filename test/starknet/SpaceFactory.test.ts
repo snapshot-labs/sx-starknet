@@ -82,14 +82,13 @@ describe('Space Deployment Testing', () => {
       executors: executors,
     });
     const receipt = await starknet.getTransactionReceipt(txHash);
-    const decodedEvents = await spaceDeployer.decodeEvents(receipt.events);
-
+    // Removing first event as thats from the account contract deployment
+    const decodedEvents = await spaceDeployer.decodeEvents(receipt.events.slice(1));
     metadataUri = utils.strings.strToShortStringArr(
       'Hello and welcome to Snapshot X. This is the future of governance.'
     );
     proposerEthAddress = ethers.Wallet.createRandom().address;
-
-    spaceAddress = decodedEvents[0].data.space_address;
+    spaceAddress = BigInt(decodedEvents[0].data.space_address);
     space = spaceFactoryClass.getContractAt(`0x${spaceAddress.toString(16)}`);
     usedVotingStrategies1 = [BigInt(vanillaVotingStrategy.address)];
     userVotingParamsAll1 = [[]];
