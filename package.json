@@ -33,7 +33,7 @@
     "@openzeppelin/contracts": "^4.7.0",
     "@shardlabs/starknet-hardhat-plugin": "^0.5.5",
     "@snapshot-labs/sx": "0.1.0-beta.7",
-    "concurrently": "^7.2.2",
+    "concurrently": "^7.3.0",
     "ethereumjs-util": "^7.1.5",
     "install": "^0.13.0",
     "json-format-cli": "^1.1.1",
