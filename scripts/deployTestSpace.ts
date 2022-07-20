@@ -1,9 +1,10 @@
 import fs from 'fs';
+import fetch from 'cross-fetch';
 import { defaultProvider, json } from 'starknet';
-import { SplitUint256 } from '../test/shared/types';
-import { flatten2DArray } from '../test/shared/helpers';
+import { utils } from '@snapshot-labs/sx';
 
 async function main() {
+  global.fetch = fetch;
   const compiledVanillaAuthenticator = json.parse(
     fs
       .readFileSync(
@@ -89,7 +90,7 @@ async function main() {
     [],
     [BigInt('0x7Fc66500c84A76Ad7e9c93437bFc5Ac33E2DDaE9'), BigInt(0)],
   ]; // vanilla and Aave token voting
-  const votingStrategyParamsFlat: bigint[] = flatten2DArray(votingStrategyParams);
+  const votingStrategyParamsFlat: bigint[] = utils.encoding.flatten2DArray(votingStrategyParams);
   const authenticators: bigint[] = [
     BigInt(vanillaAuthenticatorAddress),
     BigInt(starkTxAuthenticatorAddress),
@@ -99,8 +100,11 @@ async function main() {
     BigInt(zodiacRelayerExecutionStrategyAddress),
     BigInt(starknetExecutionStrategyAddress),
   ];
-  const quorum: SplitUint256 = SplitUint256.fromUint(BigInt(1)); //  Quorum of one for the vanilla test
-  const proposalThreshold: SplitUint256 = SplitUint256.fromUint(BigInt(1)); // Proposal threshold of 1 for the vanilla test
+  const quorum: utils.splitUint256.SplitUint256 = utils.splitUint256.SplitUint256.fromUint(
+    BigInt(1)
+  ); //  Quorum of one for the vanilla test
+  const proposalThreshold: utils.splitUint256.SplitUint256 =
+    utils.splitUint256.SplitUint256.fromUint(BigInt(1)); // Proposal threshold of 1 for the vanilla test
   const controllerAddress = '0x0070d911463b2cb48de8bfec826483631cdc492a6c5798917651297769fc9d68'; // Controller address (orlando's argent x)
 
   const spaceDeploymentCalldata: bigint[] = [
@@ -126,7 +130,7 @@ async function main() {
     contract: compiledSpace,
     constructorCalldata: spaceDeploymentCalldataHex,
   });
-
+  console.log(spaceResponse);
   const spaceAddress = spaceResponse.address!;
 
   const deployments = {

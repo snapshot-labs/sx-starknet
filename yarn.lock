@@ -9551,7 +9551,24 @@ starknet@^3.15.0:
     pako "^2.0.4"
     url-join "^4.0.1"
 
-starknet@^3.2.0, starknet@^3.5.1, starknet@^3.7.0, starknet@^3.9.0:
+starknet@^3.17.0:
+  version "3.17.0"
+  resolved "https://registry.yarnpkg.com/starknet/-/starknet-3.17.0.tgz#512c92faacab63fb3aa4d76a6c9af4483754259a"
+  integrity sha512-fK7yOU2Tg+sDNfPgc6ztH2BqAbeCb+uRy9f3yufQA5ZCnOnZM74Q8W574vdZ46iD2DdwwvK8D2Iv2M3DnM1DXg==
+  dependencies:
+    "@ethersproject/bytes" "^5.6.1"
+    bn.js "^5.2.1"
+    cross-fetch "^3.1.5"
+    elliptic "^6.5.4"
+    ethereum-cryptography "^1.0.3"
+    hash.js "^1.1.7"
+    json-bigint "^1.0.0"
+    minimalistic-assert "^1.0.1"
+    pako "^2.0.4"
+    ts-custom-error "^3.2.0"
+    url-join "^4.0.1"
+
+starknet@^3.2.0, starknet@^3.5.1, starknet@^3.7.0:
   version "3.9.0"
   resolved "https://registry.yarnpkg.com/starknet/-/starknet-3.9.0.tgz#ee7a3d99effef0998b365d95dd85f9b01cdb463c"
   dependencies:
@@ -10071,6 +10088,11 @@ ts-command-line-args@^2.2.0:
     command-line-args "^5.1.1"
     command-line-usage "^6.1.0"
     string-format "^2.0.0"
+
+ts-custom-error@^3.2.0:
+  version "3.2.0"
+  resolved "https://registry.yarnpkg.com/ts-custom-error/-/ts-custom-error-3.2.0.tgz#ff8f80a3812bab9dc448536312da52dce1b720fb"
+  integrity sha512-cBvC2QjtvJ9JfWLvstVnI45Y46Y5dMxIaG1TDMGAD/R87hpvqFL+7LhvUDhnRCfOnx/xitollFWWvUKKKhbN0A==
 
 ts-essentials@^1.0.0:
   version "1.0.4"

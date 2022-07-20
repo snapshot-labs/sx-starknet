@@ -54,6 +54,10 @@ describe('Space Testing', () => {
       userVotingParamsAll1,
       executionParams
     );
+    console.log(proposeCalldata);
+
+    const proposeCalldataHex = proposeCalldata.map((x) => '0x' + x.toString(16));
+    console.log(proposeCalldataHex);
 
     voterEthAddress = ethers.Wallet.createRandom().address;
     proposalId = BigInt(1);
