@@ -9,7 +9,7 @@ async function main() {
   global.fetch = fetch;
 
   const starkKeyPair = ec.getKeyPair(
-    '637357425248906491734798339821267946913367255989714880095234737256366305691'
+    process.env.ARGENT_PRIVATE_KEY!
   );
 
   const account = new Account(
