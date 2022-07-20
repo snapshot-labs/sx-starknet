@@ -533,7 +533,7 @@ end
 func update_quorum{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr : felt}(
     new_quorum : Uint256
 ):
-    # Ownable_only_owner()
+    Ownable_only_owner()
 
     let (previous_quorum) = quorum_store.read()
 
