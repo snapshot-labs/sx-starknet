@@ -3,11 +3,19 @@
 from starkware.cairo.common.cairo_builtins import HashBuiltin, BitwiseBuiltin
 from contracts.starknet.lib.general_address import Address
 from starkware.cairo.common.uint256 import Uint256
-from contracts.starknet.VotingStrategies.single_slot_proof import single_slot_proof
+from contracts.starknet.lib.single_slot_proof import single_slot_proof
 
 #
 # Template Voting Strategy for use with the single slot proof library
 #
+
+@constructor
+func constructor{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr}(
+    fact_registry_address : felt, l1_headers_store_address : felt
+):
+    single_slot_proof.initializer(fact_registry_address, l1_headers_store_address)
+    return ()
+end
 
 @view
 func get_voting_power{

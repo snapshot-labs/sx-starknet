@@ -33,8 +33,7 @@ func fact_registry_store() -> (res : felt):
 end
 
 namespace single_slot_proof:
-    @constructor
-    func constructor{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr}(
+    func initializer{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr}(
         fact_registry_address : felt, l1_headers_store_address : felt
     ):
         fact_registry_store.write(value=fact_registry_address)
