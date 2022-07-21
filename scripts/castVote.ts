@@ -14,7 +14,7 @@ async function main() {
 
   const account = new Account(
     defaultProvider,
-    '0x0764c647e4c5f6e81c5baa1769b4554e44851a7b6319791fc6db9e25a32148bb',
+    process.env.ARGENT_ACCOUNT_ADDRESS!,
     starkKeyPair
   );
   const spaceAddress = '0x4188ccd03d5366349ed9c4a22a435f621120529ddf5db4fcfc11f5fdda92f2';

@@ -14,7 +14,7 @@ async function main() {
 
   const account = new Account(
     defaultProvider,
-    '0x0764c647e4c5f6e81c5baa1769b4554e44851a7b6319791fc6db9e25a32148bb',
+    process.env.ARGENT_ACCOUNT_ADDRESS!,
     starkKeyPair
   );
   const metadataUri = utils.strings.strToShortStringArr(
