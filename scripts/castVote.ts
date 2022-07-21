@@ -5,6 +5,8 @@ import { utils } from '@snapshot-labs/sx';
 import { ethers } from 'ethers';
 import { toBN } from 'starknet/dist/utils/number';
 
+// Using deployment at: deployments/goerli2.json
+
 async function main() {
   global.fetch = fetch;
 
