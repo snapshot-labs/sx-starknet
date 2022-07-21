@@ -10,14 +10,10 @@ import { toBN } from 'starknet/dist/utils/number';
 async function main() {
   global.fetch = fetch;
 
-  const starkKeyPair = ec.getKeyPair(
-    process.env.ARGENT_PRIVATE_KEY!
-  );
-
   const account = new Account(
     defaultProvider,
     process.env.ARGENT_ACCOUNT_ADDRESS!,
-    starkKeyPair
+    ec.getKeyPair(process.env.ARGENT_PRIVATE_KEY!)
   );
   const spaceAddress = '0x4188ccd03d5366349ed9c4a22a435f621120529ddf5db4fcfc11f5fdda92f2';
   const voterEthAddress = ethers.Wallet.createRandom().address;

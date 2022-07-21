@@ -105,7 +105,7 @@ async function main() {
   ); //  Quorum of one for the vanilla test
   const proposalThreshold: utils.splitUint256.SplitUint256 =
     utils.splitUint256.SplitUint256.fromUint(BigInt(1)); // Proposal threshold of 1 for the vanilla test
-  const controllerAddress = '0x0070d911463b2cb48de8bfec826483631cdc492a6c5798917651297769fc9d68'; // Controller address (orlando's argent x)
+  const controllerAddress = '0x0764c647e4c5f6e81c5baa1769b4554e44851a7b6319791fc6db9e25a32148bb'; // Controller address (orlando's argent x)
 
   const spaceDeploymentCalldata: bigint[] = [
     votingDelay,
