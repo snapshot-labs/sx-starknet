@@ -234,6 +234,7 @@ func constructor{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_p
     unchecked_add_authenticators(_authenticators_len, _authenticators)
     unchecked_add_executors(_executors_len, _executors)
 
+    # The first proposal in a space will have a proposal ID of 1.
     next_proposal_nonce_store.write(1)
 
     space_created.emit(
@@ -785,7 +786,6 @@ end
 @external
 func propose{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr : felt}(
     proposer_address : Address,
-    execution_hash : Uint256,
     metadata_uri_len : felt,
     metadata_uri : felt*,
     executor : felt,
@@ -843,20 +843,20 @@ func propose{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr :
     end
 
     # Hash the execution params
-    let (hash) = hash_array(execution_params_len, execution_params)
+    # Storing arrays inside a struct is impossible so instead we just store a hash and then reconstruct the array in finalize_proposal
+    let (execution_hash) = hash_array(execution_params_len, execution_params)
 
     let (_quorum) = quorum_store.read()
 
     # Create the proposal and its proposal id
     let proposal = Proposal(
-        execution_hash,
         _quorum,
         snapshot_timestamp,
         start_timestamp,
         min_end_timestamp,
         max_end_timestamp,
-        hash,
         executor,
+        execution_hash,
     )
 
     let (proposal_id) = next_proposal_nonce_store.read()
@@ -908,10 +908,10 @@ func finalize_proposal{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_c
         assert_le(proposal.min_end_timestamp, current_timestamp)
     end
 
-    # Make sure execution params match the stored hash
+    # Make sure execution params match the ones sent at proposal creation by checking that the hashes match
     let (recovered_hash) = hash_array(execution_params_len, execution_params)
     with_attr error_message("Invalid execution parameters"):
-        assert recovered_hash = proposal.execution_params_hash
+        assert recovered_hash = proposal.execution_hash
     end
 
     # Count votes for
@@ -959,7 +959,6 @@ func finalize_proposal{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_c
     IExecutionStrategy.execute(
         contract_address=proposal.executor,
         proposal_outcome=proposal_outcome,
-        execution_hash=proposal.execution_hash,
         execution_params_len=execution_params_len,
         execution_params=execution_params,
     )
@@ -1002,7 +1001,6 @@ func cancel_proposal{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_che
     IExecutionStrategy.execute(
         contract_address=proposal.executor,
         proposal_outcome=proposal_outcome,
-        execution_hash=proposal.execution_hash,
         execution_params_len=execution_params_len,
         execution_params=execution_params,
     )

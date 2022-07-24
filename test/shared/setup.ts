@@ -3,17 +3,20 @@ import { starknet, ethers } from 'hardhat';
 import { SignerWithAddress } from '@nomiclabs/hardhat-ethers/signers';
 import { StarknetContract, Account } from 'hardhat/types';
 import { Contract, ContractFactory } from 'ethers';
-import { SplitUint256, IntsSequence } from './types';
-import { hexToBytes, flatten2DArray } from './helpers';
-import {
-  ProcessBlockInputs,
-  getProcessBlockInputs,
-  ProofInputs,
-  getProofInputs,
-} from './parseRPCData';
-import { encodeParams } from './singleSlotProofStrategyEncoding';
+// import { SplitUint256, IntsSequence } from './types';
+// import { hexToBytes, flatten2DArray } from './helpers';
+// import {
+//   ProcessBlockInputs,
+//   getProcessBlockInputs,
+//   ProofInputs,
+//   getProofInputs,
+// } from './parseRPCData';
+// import { encodeParams } from './singleSlotProofStrategyEncoding';
 import { AddressZero } from '@ethersproject/constants';
 import { executeContractCallWithSigners } from './safeUtils';
+// import {SplitUint256} from 'utils.splitUint256';
+
+import { utils } from '@snapshot-labs/sx';
 
 export interface Fossil {
   factsRegistry: StarknetContract;
@@ -49,11 +52,14 @@ export async function vanillaSetup() {
   const maxVotingDuration = BigInt(2000);
   const votingStrategies: bigint[] = [BigInt(vanillaVotingStrategy.address)];
   const votingStrategyParams: bigint[][] = [[]]; // No params for the vanilla voting strategy
-  const votingStrategyParamsFlat: bigint[] = flatten2DArray(votingStrategyParams);
+  const votingStrategyParamsFlat: bigint[] = utils.encoding.flatten2DArray(votingStrategyParams);
   const authenticators: bigint[] = [BigInt(vanillaAuthenticator.address)];
   const executors: bigint[] = [BigInt(vanillaExecutionStrategy.address)];
-  const quorum: SplitUint256 = SplitUint256.fromUint(BigInt(1)); //  Quorum of one for the vanilla test
-  const proposalThreshold: SplitUint256 = SplitUint256.fromUint(BigInt(1)); // Proposal threshold of 1 for the vanilla test
+  const quorum: utils.splitUint256.SplitUint256 = utils.splitUint256.SplitUint256.fromUint(
+    BigInt(1)
+  ); //  Quorum of one for the vanilla test
+  const proposalThreshold: utils.splitUint256.SplitUint256 =
+    utils.splitUint256.SplitUint256.fromUint(BigInt(1)); // Proposal threshold of 1 for the vanilla test
 
   console.log('Deploying space contract...');
   const space = (await spaceFactory.deploy({
@@ -107,11 +113,14 @@ export async function zodiacRelayerSetup() {
   const maxVotingDuration = BigInt(2000);
   const votingStrategies: bigint[] = [BigInt(vanillaVotingStrategy.address)];
   const votingStrategyParams: bigint[][] = [[]]; // No params for the vanilla voting strategy
-  const votingStrategyParamsFlat: bigint[] = flatten2DArray(votingStrategyParams);
+  const votingStrategyParamsFlat: bigint[] = utils.encoding.flatten2DArray(votingStrategyParams);
   const authenticators: bigint[] = [BigInt(vanillaAuthenticator.address)];
   const executors: bigint[] = [BigInt(zodiacRelayer.address)];
-  const quorum: SplitUint256 = SplitUint256.fromUint(BigInt(1)); //  Quorum of one for the vanilla test
-  const proposalThreshold: SplitUint256 = SplitUint256.fromUint(BigInt(1)); // Proposal threshold of 1 for the vanilla test
+  const quorum: utils.splitUint256.SplitUint256 = utils.splitUint256.SplitUint256.fromUint(
+    BigInt(1)
+  ); //  Quorum of one for the vanilla test
+  const proposalThreshold: utils.splitUint256.SplitUint256 =
+    utils.splitUint256.SplitUint256.fromUint(BigInt(1)); // Proposal threshold of 1 for the vanilla test
 
   const space = (await spaceFactory.deploy({
     _voting_delay: votingDelay,
@@ -282,11 +291,14 @@ export async function ethTxAuthSetup() {
   const votingDelay = BigInt(0);
   const minVotingDuration = BigInt(0);
   const maxVotingDuration = BigInt(2000);
-  const quorum: SplitUint256 = SplitUint256.fromUint(BigInt(1));
-  const proposalThreshold: SplitUint256 = SplitUint256.fromUint(BigInt(1));
+  const quorum: utils.splitUint256.SplitUint256 = utils.splitUint256.SplitUint256.fromUint(
+    BigInt(1)
+  );
+  const proposalThreshold: utils.splitUint256.SplitUint256 =
+    utils.splitUint256.SplitUint256.fromUint(BigInt(1));
   const votingStrategies: bigint[] = [BigInt(vanillaVotingStrategy.address)];
   const votingStrategyParams: bigint[][] = [[]];
-  const votingStrategyParamsFlat: bigint[] = flatten2DArray(votingStrategyParams);
+  const votingStrategyParamsFlat: bigint[] = utils.encoding.flatten2DArray(votingStrategyParams);
   const authenticators: bigint[] = [BigInt(ethTxAuthenticator.address)];
   const executors: bigint[] = [BigInt(vanillaExecutionStrategy.address)];
 
@@ -320,7 +332,10 @@ export async function ethTxAuthSetup() {
 
 export async function singleSlotProofSetup(block: any, proofs: any) {
   // We pass the encode params function for the single slot proof strategy to generate the encoded data for the single slot proof strategy
-  const proofInputs: ProofInputs = getProofInputs(block.number, proofs, encodeParams);
+  const proofInputs: utils.storageProofs.ProofInputs = utils.storageProofs.getProofInputs(
+    block.number,
+    proofs
+  );
 
   const controller = (await starknet.deployAccount('Argent')) as Account;
 
@@ -350,12 +365,14 @@ export async function singleSlotProofSetup(block: any, proofs: any) {
 
   // Submit blockhash to L1 Headers Store (via dummy function rather than L1 -> L2 bridge)
   await fossil.l1RelayerAccount.invoke(fossil.l1HeadersStore, 'receive_from_l1', {
-    parent_hash: IntsSequence.fromBytes(hexToBytes(block.hash)).values,
+    parent_hash: utils.intsSequence.IntsSequence.fromBytes(utils.bytes.hexToBytes(block.hash))
+      .values,
     block_number: block.number + 1,
   });
 
   // Encode block header and then submit to L1 Headers Store
-  const processBlockInputs: ProcessBlockInputs = getProcessBlockInputs(block);
+  const processBlockInputs: utils.storageProofs.ProcessBlockInputs =
+    utils.storageProofs.getProcessBlockInputs(block);
   await fossil.l1RelayerAccount.invoke(fossil.l1HeadersStore, 'process_block', {
     options_set: processBlockInputs.blockOptions,
     block_number: processBlockInputs.blockNumber,
@@ -369,11 +386,14 @@ export async function singleSlotProofSetup(block: any, proofs: any) {
   const maxVotingDuration = BigInt(2000);
   const votingStrategies: bigint[] = [BigInt(singleSlotProofStrategy.address)];
   const votingStrategyParams: bigint[][] = [[proofInputs.ethAddressFelt, BigInt(0)]]; // For the aave erc20 contract, the balances mapping has a storage index of 0
-  const votingStrategyParamsFlat: bigint[] = flatten2DArray(votingStrategyParams);
+  const votingStrategyParamsFlat: bigint[] = utils.encoding.flatten2DArray(votingStrategyParams);
   const authenticators: bigint[] = [BigInt(vanillaAuthenticator.address)];
   const executors: bigint[] = [BigInt(vanillaExecutionStrategy.address)];
-  const quorum: SplitUint256 = SplitUint256.fromUint(BigInt(1)); //  Quorum of one for the vanilla test
-  const proposalThreshold: SplitUint256 = SplitUint256.fromUint(BigInt(1)); // Proposal threshold of 1 for the vanilla test
+  const quorum: utils.splitUint256.SplitUint256 = utils.splitUint256.SplitUint256.fromUint(
+    BigInt(1)
+  ); //  Quorum of one for the vanilla test
+  const proposalThreshold: utils.splitUint256.SplitUint256 =
+    utils.splitUint256.SplitUint256.fromUint(BigInt(1)); // Proposal threshold of 1 for the vanilla test
 
   // Deploy space with specified parameters
   const space = (await spaceFactory.deploy({
@@ -413,11 +433,13 @@ export async function singleSlotProofSetupIsolated(block: any) {
   });
   // Submit blockhash to L1 Headers Store (via dummy function rather than L1 -> L2 bridge)
   await fossil.l1RelayerAccount.invoke(fossil.l1HeadersStore, 'receive_from_l1', {
-    parent_hash: IntsSequence.fromBytes(hexToBytes(block.hash)).values,
+    parent_hash: utils.intsSequence.IntsSequence.fromBytes(utils.bytes.hexToBytes(block.hash))
+      .values,
     block_number: block.number + 1,
   });
   // Encode block header and then submit to L1 Headers Store
-  const processBlockInputs: ProcessBlockInputs = getProcessBlockInputs(block);
+  const processBlockInputs: utils.storageProofs.ProcessBlockInputs =
+    utils.storageProofs.getProcessBlockInputs(block);
   await fossil.l1RelayerAccount.invoke(fossil.l1HeadersStore, 'process_block', {
     options_set: processBlockInputs.blockOptions,
     block_number: processBlockInputs.blockNumber,
@@ -484,13 +506,13 @@ export async function starknetAccountSetup() {
   const voting_strategy = BigInt(vanillaVotingStrategy.address);
   const authenticator = BigInt(starknetAccountAuth.address);
   const zodiac_relayer = BigInt(zodiacRelayer.address);
-  const quorum = SplitUint256.fromUint(BigInt(0));
+  const quorum = utils.splitUint256.SplitUint256.fromUint(BigInt(0));
   const voting_strategy_params: bigint[][] = [[]];
-  const voting_strategy_params_flat = flatten2DArray(voting_strategy_params);
+  const voting_strategy_params_flat = utils.encoding.flatten2DArray(voting_strategy_params);
 
   // This should be declared along with the other const but doing so will make the compiler unhappy as `SplitUint256`
   // will be undefined for some reason?
-  const PROPOSAL_THRESHOLD = SplitUint256.fromUint(BigInt(1));
+  const PROPOSAL_THRESHOLD = utils.splitUint256.SplitUint256.fromUint(BigInt(1));
 
   console.log('Deploying space contract...');
   const vanillaSpace = (await vanillaSpaceFactory.deploy({
@@ -544,11 +566,14 @@ export async function starkTxAuthSetup() {
   const maxVotingDuration = BigInt(2000);
   const votingStrategies: bigint[] = [BigInt(vanillaVotingStrategy.address)];
   const votingStrategyParams: bigint[][] = [[]]; // No params for the vanilla voting strategy
-  const votingStrategyParamsFlat: bigint[] = flatten2DArray(votingStrategyParams);
+  const votingStrategyParamsFlat: bigint[] = utils.encoding.flatten2DArray(votingStrategyParams);
   const authenticators: bigint[] = [BigInt(starknetTxAuthenticator.address)];
   const executors: bigint[] = [BigInt(vanillaExecutionStrategy.address)];
-  const quorum: SplitUint256 = SplitUint256.fromUint(BigInt(1)); //  Quorum of one for the vanilla test
-  const proposalThreshold: SplitUint256 = SplitUint256.fromUint(BigInt(1)); // Proposal threshold of 1 for the vanilla test
+  const quorum: utils.splitUint256.SplitUint256 = utils.splitUint256.SplitUint256.fromUint(
+    BigInt(1)
+  ); //  Quorum of one for the vanilla test
+  const proposalThreshold: utils.splitUint256.SplitUint256 =
+    utils.splitUint256.SplitUint256.fromUint(BigInt(1)); // Proposal threshold of 1 for the vanilla test
 
   console.log('Deploying space contract...');
   const space = (await spaceFactory.deploy({
@@ -602,14 +627,14 @@ export async function ethereumSigSetup() {
   const voting_strategy = BigInt(vanillaVotingStrategy.address);
   const authenticator = BigInt(ethSigAuth.address);
   const voting_execution = BigInt(vanillaExecutionStrategy.address);
-  const quorum = SplitUint256.fromUint(BigInt(0));
+  const quorum = utils.splitUint256.SplitUint256.fromUint(BigInt(0));
 
   const voting_strategy_params: bigint[][] = [[]];
-  const voting_strategy_params_flat = flatten2DArray(voting_strategy_params);
+  const voting_strategy_params_flat = utils.encoding.flatten2DArray(voting_strategy_params);
 
   // This should be declared along with the other const but doing so will make the compiler unhappy as `SplitUint256`
   // will be undefined for some reason?
-  const PROPOSAL_THRESHOLD = SplitUint256.fromUint(BigInt(1));
+  const PROPOSAL_THRESHOLD = utils.splitUint256.SplitUint256.fromUint(BigInt(1));
 
   console.log('Deploying space contract...');
   const vanillaSpace = (await vanillaSpaceFactory.deploy({
@@ -624,6 +649,7 @@ export async function ethereumSigSetup() {
     _authenticators: [authenticator],
     _executors: [voting_execution],
   })) as StarknetContract;
+
   console.log('deployed!');
 
   return {
@@ -632,5 +658,71 @@ export async function ethereumSigSetup() {
     ethSigAuth,
     vanillaVotingStrategy,
     vanillaExecutionStrategy,
+  };
+}
+
+export async function starknetExecutionSetup() {
+  const controller = (await starknet.deployAccount('Argent')) as Account;
+  const spaceFactory = await starknet.getContractFactory('./contracts/starknet/Space.cairo');
+  const vanillaVotingStrategyFactory = await starknet.getContractFactory(
+    './contracts/starknet/VotingStrategies/Vanilla.cairo'
+  );
+  const vanillaAuthenticatorFactory = await starknet.getContractFactory(
+    './contracts/starknet/Authenticators/Vanilla.cairo'
+  );
+  const starknetExecutionStrategyFactory = await starknet.getContractFactory(
+    './contracts/starknet/ExecutionStrategies/Starknet.cairo'
+  );
+
+  const deployments = [
+    vanillaAuthenticatorFactory.deploy(),
+    vanillaVotingStrategyFactory.deploy(),
+    starknetExecutionStrategyFactory.deploy(),
+  ];
+  const contracts = await Promise.all(deployments);
+  const vanillaAuthenticator = contracts[0] as StarknetContract;
+  const vanillaVotingStrategy = contracts[1] as StarknetContract;
+  const starknetExecutionStrategy = contracts[2] as StarknetContract;
+
+  const votingDelay = BigInt(0);
+  const minVotingDuration = BigInt(0);
+  const maxVotingDuration = BigInt(2000);
+  const votingStrategies: bigint[] = [BigInt(vanillaVotingStrategy.address)];
+  const votingStrategyParams: bigint[][] = [[]]; // No params for the vanilla voting strategy
+  const votingStrategyParamsFlat: bigint[] = utils.encoding.flatten2DArray(votingStrategyParams);
+  const authenticators: bigint[] = [BigInt(vanillaAuthenticator.address)];
+  const executors: bigint[] = [
+    BigInt(starknetExecutionStrategy.address),
+    BigInt(1234),
+    BigInt(4567),
+    BigInt(456789),
+  ]; // We add dummy executors that get used in the test transactions
+  const quorum: utils.splitUint256.SplitUint256 = utils.splitUint256.SplitUint256.fromUint(
+    BigInt(1)
+  ); //  Quorum of one for the vanilla test
+  const proposalThreshold: utils.splitUint256.SplitUint256 =
+    utils.splitUint256.SplitUint256.fromUint(BigInt(1)); // Proposal threshold of 1 for the vanilla test
+
+  console.log('Deploying space contract...');
+  const space = (await spaceFactory.deploy({
+    _voting_delay: votingDelay,
+    _min_voting_duration: minVotingDuration,
+    _max_voting_duration: maxVotingDuration,
+    _proposal_threshold: proposalThreshold,
+    _controller: BigInt(controller.starknetContract.address),
+    _quorum: quorum,
+    _voting_strategy_params_flat: votingStrategyParamsFlat,
+    _voting_strategies: votingStrategies,
+    _authenticators: authenticators,
+    _executors: executors,
+  })) as StarknetContract;
+  console.log('deployed!');
+
+  return {
+    space,
+    controller,
+    vanillaAuthenticator,
+    vanillaVotingStrategy,
+    starknetExecutionStrategy,
   };
 }

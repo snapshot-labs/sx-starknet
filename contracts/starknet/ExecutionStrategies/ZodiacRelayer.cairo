@@ -7,27 +7,26 @@ from starkware.starknet.common.messages import send_message_to_l1
 
 @external
 func execute{syscall_ptr : felt*}(
-    proposal_outcome : felt,
-    execution_hash : Uint256,
-    execution_params_len : felt,
-    execution_params : felt*,
+    proposal_outcome : felt, execution_params_len : felt, execution_params : felt*
 ):
     alloc_locals
 
     let (caller_address) = get_caller_address()
 
-    # Get the l1 zodiac address
-    with_attr error_message("Invalid execution parameter"):
-        assert execution_params_len = 1
+    # For the zodiac execution strategy, the execution parameters has 3 elements
+    with_attr error_message("Invalid execution param array"):
+        assert execution_params_len = 3
     end
     let l1_zodiac_address = execution_params[0]
+    let execution_hash_low = execution_params[1]
+    let execution_hash_high = execution_params[2]
 
     # Create the payload
     let (message_payload : felt*) = alloc()
     assert message_payload[0] = caller_address
     assert message_payload[1] = proposal_outcome
-    assert message_payload[2] = execution_hash.low
-    assert message_payload[3] = execution_hash.high
+    assert message_payload[2] = execution_hash_low
+    assert message_payload[3] = execution_hash_high
 
     let payload_size = 4
 

@@ -4,10 +4,7 @@ from starkware.cairo.common.uint256 import Uint256
 
 @external
 func execute{syscall_ptr : felt*}(
-    proposal_outcome : felt,
-    execution_hash : Uint256,
-    execution_params_len : felt,
-    execution_params : felt*,
+    proposal_outcome : felt, execution_params_len : felt, execution_params : felt*
 ):
     return ()
 end
