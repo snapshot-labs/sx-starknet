@@ -98,7 +98,6 @@ func deploy_space{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_
     )
     salt.write(value=current_salt + 1)
 
-    # NOTE: We should probably remove the space creation event from the space constructor and just use this one
     space_deployed.emit(
         deployer_address,
         space_address,
