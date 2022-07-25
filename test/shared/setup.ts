@@ -590,7 +590,7 @@ export async function starkTxAuthSetup() {
 }
 
 export async function ethereumSigSetup() {
-  const controller = await starknet.deployAccount('Argent');
+  const controller = await starknet.deployAccount('OpenZeppelin');
 
   const vanillaSpaceFactory = await starknet.getContractFactory('./contracts/starknet/Space.cairo');
   const vanillaVotingStrategyFactory = await starknet.getContractFactory(
