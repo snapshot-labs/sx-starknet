@@ -36,61 +36,61 @@ from contracts.starknet.lib.slot_key import get_slot_key
 #
 
 @storage_var
-func voting_delay_store() -> (delay : felt):
+func Voting_voting_delay_store() -> (delay : felt):
 end
 
 @storage_var
-func min_voting_duration_store() -> (period : felt):
+func Voting_min_voting_duration_store() -> (period : felt):
 end
 
 @storage_var
-func max_voting_duration_store() -> (period : felt):
+func Voting_max_voting_duration_store() -> (period : felt):
 end
 
 @storage_var
-func proposal_threshold_store() -> (threshold : Uint256):
+func Voting_proposal_threshold_store() -> (threshold : Uint256):
 end
 
 @storage_var
-func quorum_store() -> (value : Uint256):
+func Voting_quorum_store() -> (value : Uint256):
 end
 
 @storage_var
-func authenticators_store(authenticator_address : felt) -> (is_valid : felt):
+func Voting_authenticators_store(authenticator_address : felt) -> (is_valid : felt):
 end
 
 @storage_var
-func executors_store(executor_address : felt) -> (is_valid : felt):
+func Voting_executors_store(executor_address : felt) -> (is_valid : felt):
 end
 
 @storage_var
-func voting_strategies_store(strategy_address : felt) -> (is_valid : felt):
+func Voting_voting_strategies_store(strategy_address : felt) -> (is_valid : felt):
 end
 
 @storage_var
-func voting_strategy_params_store(voting_strategy_contract : felt, index : felt) -> (
+func Voting_voting_strategy_params_store(voting_strategy_contract : felt, index : felt) -> (
     voting_strategy_param : felt
 ):
 end
 
 @storage_var
-func next_proposal_nonce_store() -> (nonce : felt):
+func Voting_next_proposal_nonce_store() -> (nonce : felt):
 end
 
 @storage_var
-func proposal_registry_store(proposal_id : felt) -> (proposal : Proposal):
+func Voting_proposal_registry_store(proposal_id : felt) -> (proposal : Proposal):
 end
 
 @storage_var
-func executed_proposals_store(proposal_id : felt) -> (executed : felt):
+func Voting_executed_proposals_store(proposal_id : felt) -> (executed : felt):
 end
 
 @storage_var
-func vote_registry_store(proposal_id : felt, voter_address : Address) -> (vote : Vote):
+func Voting_vote_registry_store(proposal_id : felt, voter_address : Address) -> (vote : Vote):
 end
 
 @storage_var
-func vote_power_store(proposal_id : felt, choice : felt) -> (power : Uint256):
+func Voting_vote_power_store(proposal_id : felt, choice : felt) -> (power : Uint256):
 end
 
 #
@@ -161,7 +161,7 @@ end
 func voting_strategies_removed(removed_len : felt, removed : felt*):
 end
 
-namespace Governance:
+namespace Voting:
     #
     # initializer
     #
@@ -196,12 +196,12 @@ namespace Governance:
         # TODO: maybe use uint256_signed_nn to check proposal_threshold?
 
         # Initialize the storage variables
-        voting_delay_store.write(_voting_delay)
-        min_voting_duration_store.write(_min_voting_duration)
-        max_voting_duration_store.write(_max_voting_duration)
-        proposal_threshold_store.write(_proposal_threshold)
+        Voting_voting_delay_store.write(_voting_delay)
+        Voting_min_voting_duration_store.write(_min_voting_duration)
+        Voting_max_voting_duration_store.write(_max_voting_duration)
+        Voting_proposal_threshold_store.write(_proposal_threshold)
         Ownable.initializer(_controller)
-        quorum_store.write(_quorum)
+        Voting_quorum_store.write(_quorum)
 
         # Reconstruct the voting params 2D array (1 sub array per strategy) from the flattened version.
         # Currently there is no way to pass struct types with pointers in calldata, so we must do it this way.
@@ -216,7 +216,7 @@ namespace Governance:
         unchecked_add_executors(_executors_len, _executors)
 
         # The first proposal in a space will have a proposal ID of 1.
-        next_proposal_nonce_store.write(1)
+        Voting_next_proposal_nonce_store.write(1)
 
         return ()
     end
@@ -242,9 +242,9 @@ namespace Governance:
     ):
         Ownable.assert_only_owner()
 
-        let (previous_quorum) = quorum_store.read()
+        let (previous_quorum) = Voting_quorum_store.read()
 
-        quorum_store.write(new_quorum)
+        Voting_quorum_store.write(new_quorum)
 
         quorum_updated.emit(previous_quorum, new_quorum)
         return ()
@@ -256,9 +256,9 @@ namespace Governance:
     }(new_delay : felt):
         Ownable.assert_only_owner()
 
-        let (previous_delay) = voting_delay_store.read()
+        let (previous_delay) = Voting_voting_delay_store.read()
 
-        voting_delay_store.write(new_delay)
+        Voting_voting_delay_store.write(new_delay)
 
         voting_delay_updated.emit(previous_delay, new_delay)
 
@@ -271,13 +271,13 @@ namespace Governance:
     }(new_min_duration : felt):
         Ownable.assert_only_owner()
 
-        let (previous_duration) = min_voting_duration_store.read()
+        let (previous_duration) = Voting_min_voting_duration_store.read()
 
-        let (max_duration) = max_voting_duration_store.read()
+        let (max_duration) = Voting_max_voting_duration_store.read()
 
         assert_le(new_min_duration, max_duration)
 
-        min_voting_duration_store.write(new_min_duration)
+        Voting_min_voting_duration_store.write(new_min_duration)
 
         min_voting_duration_updated.emit(previous_duration, new_min_duration)
 
@@ -294,13 +294,13 @@ namespace Governance:
     }(new_max_duration : felt):
         Ownable.assert_only_owner()
 
-        let (previous_duration) = max_voting_duration_store.read()
+        let (previous_duration) = Voting_max_voting_duration_store.read()
 
-        let (min_duration) = min_voting_duration_store.read()
+        let (min_duration) = Voting_min_voting_duration_store.read()
 
         assert_le(min_duration, new_max_duration)
 
-        max_voting_duration_store.write(new_max_duration)
+        Voting_max_voting_duration_store.write(new_max_duration)
 
         max_voting_duration_updated.emit(previous_duration, new_max_duration)
 
@@ -313,9 +313,9 @@ namespace Governance:
     }(new_threshold : Uint256):
         Ownable.assert_only_owner()
 
-        let (previous_threshold) = proposal_threshold_store.read()
+        let (previous_threshold) = Voting_proposal_threshold_store.read()
 
-        proposal_threshold_store.write(new_threshold)
+        Voting_proposal_threshold_store.write(new_threshold)
 
         proposal_threshold_updated.emit(previous_threshold, new_threshold)
 
@@ -428,11 +428,11 @@ namespace Governance:
 
         # Make sure proposal has not already been executed
         with_attr error_message("Proposal already executed"):
-            let (has_been_executed) = executed_proposals_store.read(proposal_id)
+            let (has_been_executed) = Voting_executed_proposals_store.read(proposal_id)
             assert has_been_executed = 0
         end
 
-        let (proposal) = proposal_registry_store.read(proposal_id)
+        let (proposal) = Voting_proposal_registry_store.read(proposal_id)
 
         # The snapshot timestamp at which voting power will be taken
         let snapshot_timestamp = proposal.snapshot_timestamp
@@ -449,7 +449,7 @@ namespace Governance:
         end
 
         # Make sure voter has not already voted
-        let (prev_vote) = vote_registry_store.read(proposal_id, voter_address)
+        let (prev_vote) = Voting_vote_registry_store.read(proposal_id, voter_address)
         if prev_vote.choice != 0:
             # Voter has already voted!
             with_attr error_message("User already voted"):
@@ -477,7 +477,7 @@ namespace Governance:
             0,
         )
 
-        let (previous_voting_power) = vote_power_store.read(proposal_id, choice)
+        let (previous_voting_power) = Voting_vote_power_store.read(proposal_id, choice)
         let (new_voting_power, overflow) = uint256_add(user_voting_power, previous_voting_power)
 
         if overflow != 0:
@@ -487,10 +487,10 @@ namespace Governance:
             end
         end
 
-        vote_power_store.write(proposal_id, choice, new_voting_power)
+        Voting_vote_power_store.write(proposal_id, choice, new_voting_power)
 
         let vote = Vote(choice=choice, voting_power=user_voting_power)
-        vote_registry_store.write(proposal_id, voter_address, vote)
+        Voting_vote_registry_store.write(proposal_id, voter_address, vote)
 
         # Emit event
         vote_created.emit(proposal_id, voter_address, vote)
@@ -523,10 +523,10 @@ namespace Governance:
         # We use a timestamp instead of a block number to define a snapshot so that the system can generalize to multi-chain
         # TODO: Need to consider what sort of guarantees we have on the timestamp returned being correct.
         let (snapshot_timestamp) = get_block_timestamp()
-        let (delay) = voting_delay_store.read()
+        let (delay) = Voting_voting_delay_store.read()
 
-        let (_min_voting_duration) = min_voting_duration_store.read()
-        let (_max_voting_duration) = max_voting_duration_store.read()
+        let (_min_voting_duration) = Voting_min_voting_duration_store.read()
+        let (_max_voting_duration) = Voting_max_voting_duration_store.read()
 
         # Define start_timestamp, min_end and max_end
         let start_timestamp = snapshot_timestamp + delay
@@ -548,7 +548,7 @@ namespace Governance:
         )
 
         # Verify that the proposer has enough voting power to trigger a proposal
-        let (threshold) = proposal_threshold_store.read()
+        let (threshold) = Voting_proposal_threshold_store.read()
         let (is_lower) = uint256_lt(voting_power, threshold)
         if is_lower == 1:
             # Not enough voting power to create a proposal
@@ -561,7 +561,7 @@ namespace Governance:
         # Storing arrays inside a struct is impossible so instead we just store a hash and then reconstruct the array in finalize_proposal
         let (execution_hash) = hash_array(execution_params_len, execution_params)
 
-        let (_quorum) = quorum_store.read()
+        let (_quorum) = Voting_quorum_store.read()
 
         # Create the proposal and its proposal id
         let proposal = Proposal(
@@ -574,10 +574,10 @@ namespace Governance:
             execution_hash,
         )
 
-        let (proposal_id) = next_proposal_nonce_store.read()
+        let (proposal_id) = Voting_next_proposal_nonce_store.read()
 
         # Store the proposal
-        proposal_registry_store.write(proposal_id, proposal)
+        Voting_proposal_registry_store.write(proposal_id, proposal)
 
         # Emit event
         proposal_created.emit(
@@ -591,7 +591,7 @@ namespace Governance:
         )
 
         # Increase the proposal nonce
-        next_proposal_nonce_store.write(proposal_id + 1)
+        Voting_next_proposal_nonce_store.write(proposal_id + 1)
 
         return ()
     end
@@ -603,14 +603,14 @@ namespace Governance:
     }(proposal_id : felt, execution_params_len : felt, execution_params : felt*):
         alloc_locals
 
-        let (has_been_executed) = executed_proposals_store.read(proposal_id)
+        let (has_been_executed) = Voting_executed_proposals_store.read(proposal_id)
 
         # Make sure proposal has not already been executed
         with_attr error_message("Proposal already executed"):
             assert has_been_executed = 0
         end
 
-        let (proposal) = proposal_registry_store.read(proposal_id)
+        let (proposal) = Voting_proposal_registry_store.read(proposal_id)
         with_attr error_message("Invalid proposal id"):
             # Checks that the proposal id exists. If it doesn't exist, then the whole `Proposal` struct will
             # be set to 0, hence the snapshot timestamp will be set to 0 too.
@@ -630,13 +630,13 @@ namespace Governance:
         end
 
         # Count votes for
-        let (for) = vote_power_store.read(proposal_id, Choice.FOR)
+        let (for) = Voting_vote_power_store.read(proposal_id, Choice.FOR)
 
         # Count votes against
-        let (abstain) = vote_power_store.read(proposal_id, Choice.ABSTAIN)
+        let (abstain) = Voting_vote_power_store.read(proposal_id, Choice.ABSTAIN)
 
         # Count votes against
-        let (against) = vote_power_store.read(proposal_id, Choice.AGAINST)
+        let (against) = Voting_vote_power_store.read(proposal_id, Choice.AGAINST)
 
         let (partial_power, overflow1) = uint256_add(for, abstain)
 
@@ -662,7 +662,7 @@ namespace Governance:
             tempvar proposal_outcome = ProposalOutcome.REJECTED
         end
 
-        let (is_valid) = executors_store.read(proposal.executor)
+        let (is_valid) = Voting_executors_store.read(proposal.executor)
         if is_valid == 0:
             # Executor has been removed from the whitelist. Cancel this execution.
             tempvar proposal_outcome = ProposalOutcome.CANCELLED
@@ -714,7 +714,7 @@ namespace Governance:
         # executor is a whitelisted address. If we set this flag BEFORE the call
         # to the executor, we could have a malicious attacker sending some random
         # invalid execution_params and cancel out the vote.
-        # executed_proposals_store.write(proposal_id, 1)
+        # Voting_executed_proposals_store.write(proposal_id, 1)
 
         return ()
     end
@@ -728,14 +728,14 @@ namespace Governance:
 
         Ownable.assert_only_owner()
 
-        let (has_been_executed) = executed_proposals_store.read(proposal_id)
+        let (has_been_executed) = Voting_executed_proposals_store.read(proposal_id)
 
         # Make sure proposal has not already been executed
         with_attr error_message("Proposal already executed"):
             assert has_been_executed = 0
         end
 
-        let (proposal) = proposal_registry_store.read(proposal_id)
+        let (proposal) = Voting_proposal_registry_store.read(proposal_id)
         with_attr error_message("Invalid proposal id"):
             # Checks that the proposal id exists. If it doesn't exist, then the whole `Proposal` struct will
             # be set to 0, hence the snapshot timestamp will be set to 0 too.
@@ -756,7 +756,7 @@ namespace Governance:
         # executor is a whitelisted address. If we set this flag BEFORE the call
         # to the executor, we could have a malicious attacker sending some random
         # invalid execution_params and cancel out the vote.
-        executed_proposals_store.write(proposal_id, 1)
+        Voting_executed_proposals_store.write(proposal_id, 1)
 
         return ()
     end
@@ -769,18 +769,18 @@ namespace Governance:
     func get_vote_info{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr : felt}(
         voter_address : Address, proposal_id : felt
     ) -> (vote : Vote):
-        return vote_registry_store.read(proposal_id, voter_address)
+        return Voting_vote_registry_store.read(proposal_id, voter_address)
     end
 
     @view
     func get_proposal_info{
         syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr : felt
     }(proposal_id : felt) -> (proposal_info : ProposalInfo):
-        let (proposal) = proposal_registry_store.read(proposal_id)
+        let (proposal) = Voting_proposal_registry_store.read(proposal_id)
 
-        let (_power_against) = vote_power_store.read(proposal_id, Choice.AGAINST)
-        let (_power_for) = vote_power_store.read(proposal_id, Choice.FOR)
-        let (_power_abstain) = vote_power_store.read(proposal_id, Choice.ABSTAIN)
+        let (_power_against) = Voting_vote_power_store.read(proposal_id, Choice.AGAINST)
+        let (_power_for) = Voting_vote_power_store.read(proposal_id, Choice.FOR)
+        let (_power_abstain) = Voting_vote_power_store.read(proposal_id, Choice.ABSTAIN)
         return (
             ProposalInfo(proposal=proposal, power_for=_power_for, power_against=_power_against, power_abstain=_power_abstain),
         )
@@ -797,7 +797,7 @@ func unchecked_add_executors{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, r
     if to_add_len == 0:
         return ()
     else:
-        executors_store.write(to_add[0], 1)
+        Voting_executors_store.write(to_add[0], 1)
 
         unchecked_add_executors(to_add_len - 1, &to_add[1])
         return ()
@@ -810,7 +810,7 @@ func unchecked_remove_executors{
     if to_remove_len == 0:
         return ()
     else:
-        executors_store.write(to_remove[0], 0)
+        Voting_executors_store.write(to_remove[0], 0)
 
         unchecked_remove_executors(to_remove_len - 1, &to_remove[1])
         return ()
@@ -824,13 +824,13 @@ func unchecked_add_voting_strategies{
     if to_add_len == 0:
         return ()
     else:
-        voting_strategies_store.write(to_add[0], 1)
+        Voting_voting_strategies_store.write(to_add[0], 1)
 
         # Extract voting params for the voting strategy
         let (params_len, params) = get_sub_array(params_all, index)
 
         # We store the length of the voting strategy params array at index zero
-        voting_strategy_params_store.write(to_add[0], 0, params_len)
+        Voting_voting_strategy_params_store.write(to_add[0], 0, params_len)
 
         # The following elements are the actual params
         unchecked_add_voting_strategy_params(to_add[0], params_len, params, 1)
@@ -848,7 +848,7 @@ func unchecked_add_voting_strategy_params{
         return ()
     else:
         # Store voting parameter
-        voting_strategy_params_store.write(to_add, index, params[0])
+        Voting_voting_strategy_params_store.write(to_add, index, params[0])
 
         unchecked_add_voting_strategy_params(to_add, params_len - 1, &params[1], index + 1)
         return ()
@@ -861,12 +861,12 @@ func unchecked_remove_voting_strategies{
     if to_remove_len == 0:
         return ()
     else:
-        voting_strategies_store.write(to_remove[0], 0)
+        Voting_voting_strategies_store.write(to_remove[0], 0)
 
         # The length of the voting strategy params is stored at index zero
-        let (params_len) = voting_strategy_params_store.read(to_remove[0], 0)
+        let (params_len) = Voting_voting_strategy_params_store.read(to_remove[0], 0)
 
-        voting_strategy_params_store.write(to_remove[0], 0, 0)
+        Voting_voting_strategy_params_store.write(to_remove[0], 0, 0)
 
         # Removing voting strategy params
         unchecked_remove_voting_strategy_params(to_remove[0], params_len, 1)
@@ -888,7 +888,7 @@ func unchecked_remove_voting_strategy_params{
         return ()
     end
     # Remove voting parameter
-    voting_strategy_params_store.write(to_remove, index, 0)
+    Voting_voting_strategy_params_store.write(to_remove, index, 0)
 
     unchecked_remove_voting_strategy_params(to_remove, params_len, index + 1)
     return ()
@@ -900,7 +900,7 @@ func unchecked_add_authenticators{
     if to_add_len == 0:
         return ()
     else:
-        authenticators_store.write(to_add[0], 1)
+        Voting_authenticators_store.write(to_add[0], 1)
 
         unchecked_add_authenticators(to_add_len - 1, &to_add[1])
         return ()
@@ -913,7 +913,7 @@ func unchecked_remove_authenticators{
     if to_remove_len == 0:
         return ()
     else:
-        authenticators_store.write(to_remove[0], 0)
+        Voting_authenticators_store.write(to_remove[0], 0)
 
         unchecked_remove_authenticators(to_remove_len - 1, &to_remove[1])
     end
@@ -924,7 +924,7 @@ end
 func assert_valid_authenticator{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr}(
     ):
     let (caller_address) = get_caller_address()
-    let (is_valid) = authenticators_store.read(caller_address)
+    let (is_valid) = Voting_authenticators_store.read(caller_address)
 
     # Ensure it has been initialized
     with_attr error_message("Invalid authenticator"):
@@ -938,7 +938,7 @@ end
 func assert_valid_executor{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr}(
     executor : felt
 ):
-    let (is_valid) = executors_store.read(executor)
+    let (is_valid) = Voting_executors_store.read(executor)
 
     with_attr error_message("Invalid executor"):
         assert is_valid = 1
@@ -966,7 +966,7 @@ func get_cumulative_voting_power{syscall_ptr : felt*, pedersen_ptr : HashBuiltin
 
     let voting_strategy = used_voting_strategies[0]
 
-    let (is_valid) = voting_strategies_store.read(voting_strategy)
+    let (is_valid) = Voting_voting_strategies_store.read(voting_strategy)
 
     with_attr error_message("Invalid voting strategy"):
         assert is_valid = 1
@@ -981,7 +981,7 @@ func get_cumulative_voting_power{syscall_ptr : felt*, pedersen_ptr : HashBuiltin
     let (voting_strategy_params : felt*) = alloc()
 
     # Check that voting strategy params exist by the length which is stored in the first element of the array
-    let (voting_strategy_params_len) = voting_strategy_params_store.read(voting_strategy, 0)
+    let (voting_strategy_params_len) = Voting_voting_strategy_params_store.read(voting_strategy, 0)
 
     let (voting_strategy_params_len, voting_strategy_params) = get_voting_strategy_params(
         voting_strategy, voting_strategy_params_len, voting_strategy_params, 1
@@ -1027,7 +1027,7 @@ func get_voting_strategy_params{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*
         return (0, voting_strategy_params)
     end
 
-    let (voting_strategy_param) = voting_strategy_params_store.read(
+    let (voting_strategy_param) = Voting_voting_strategy_params_store.read(
         _voting_strategy_contract, index
     )
     assert voting_strategy_params[index - 1] = voting_strategy_param
