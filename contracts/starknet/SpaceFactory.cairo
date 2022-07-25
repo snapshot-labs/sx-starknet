@@ -101,7 +101,7 @@ func deploy_space{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_
 
     space_deployed.emit(
         deployer_address,
-        1,
+        space_address,
         _voting_delay,
         _min_voting_duration,
         _max_voting_duration,
