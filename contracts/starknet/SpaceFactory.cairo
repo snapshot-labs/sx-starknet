@@ -97,6 +97,7 @@ func deploy_space{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_
         contract_address_salt=current_salt,
         constructor_calldata_size=calldata_len,
         constructor_calldata=calldata,
+        deploy_from_zero=0,
     )
     salt.write(value=current_salt + 1)
 
