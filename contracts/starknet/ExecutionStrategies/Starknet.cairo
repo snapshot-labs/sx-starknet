@@ -2,7 +2,6 @@
 
 from starkware.cairo.common.math_cmp import is_le
 from starkware.starknet.common.syscalls import call_contract
-from starkware.cairo.common.alloc import alloc
 from contracts.starknet.lib.proposal_outcome import ProposalOutcome
 
 # Starknet Execution

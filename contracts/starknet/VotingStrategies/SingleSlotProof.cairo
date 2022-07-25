@@ -1,8 +1,8 @@
 %lang starknet
 
 from starkware.cairo.common.cairo_builtins import HashBuiltin, BitwiseBuiltin
-from starkware.cairo.common.uint256 import Uint256, uint256_add
-from starkware.cairo.common.math import unsigned_div_rem, assert_nn_le
+from starkware.cairo.common.uint256 import Uint256
+from starkware.cairo.common.math import assert_nn_le
 
 from contracts.starknet.fossil.contracts.starknet.types import StorageSlot
 from contracts.starknet.lib.general_address import Address

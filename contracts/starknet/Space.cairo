@@ -4,15 +4,7 @@ from starkware.starknet.common.syscalls import get_caller_address, get_block_tim
 from starkware.cairo.common.cairo_builtins import HashBuiltin
 from starkware.cairo.common.alloc import alloc
 from starkware.cairo.common.uint256 import Uint256, uint256_add, uint256_lt, uint256_le
-from starkware.cairo.common.bool import TRUE, FALSE
-from starkware.cairo.common.hash_state import hash_init, hash_update
-from starkware.cairo.common.math import (
-    assert_lt,
-    assert_le,
-    assert_nn,
-    assert_not_zero,
-    assert_lt_felt,
-)
+from starkware.cairo.common.math import assert_lt, assert_le, assert_nn, assert_not_zero
 
 from contracts.starknet.Interfaces.IVotingStrategy import IVotingStrategy
 from contracts.starknet.Interfaces.IExecutionStrategy import IExecutionStrategy
@@ -24,7 +16,6 @@ from contracts.starknet.lib.choice import Choice
 from contracts.starknet.lib.proposal_outcome import ProposalOutcome
 from contracts.starknet.lib.hash_array import hash_array
 from contracts.starknet.lib.array2d import Immutable2DArray, construct_array2d, get_sub_array
-from contracts.starknet.lib.slot_key import get_slot_key
 
 from openzeppelin.access.ownable import (
     Ownable_only_owner,

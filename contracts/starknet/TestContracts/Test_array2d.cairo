@@ -1,5 +1,4 @@
 %lang starknet
-from starkware.cairo.common.alloc import alloc
 from starknet.lib.array2d import Immutable2DArray, construct_array2d, get_sub_array
 
 @view
