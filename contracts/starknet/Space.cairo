@@ -116,23 +116,6 @@ func vote_created(proposal_id : felt, voter_address : Address, vote : Vote):
 end
 
 @event
-func space_created(
-    _voting_delay : felt,
-    _min_voting_duration : felt,
-    _max_voting_duration : felt,
-    _proposal_threshold : Uint256,
-    _controller : felt,
-    _quorum : Uint256,
-    _voting_strategies_len : felt,
-    _voting_strategies : felt*,
-    _authenticators_len : felt,
-    _authenticators : felt*,
-    _executors_len : felt,
-    _executors : felt*,
-):
-end
-
-@event
 func controller_updated(previous : felt, new_controller : felt):
 end
 
@@ -236,21 +219,6 @@ func constructor{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_p
 
     # The first proposal in a space will have a proposal ID of 1.
     next_proposal_nonce_store.write(1)
-
-    space_created.emit(
-        _voting_delay,
-        _min_voting_duration,
-        _max_voting_duration,
-        _proposal_threshold,
-        _controller,
-        _quorum,
-        _voting_strategies_len,
-        _voting_strategies,
-        _authenticators_len,
-        _authenticators,
-        _executors_len,
-        _executors,
-    )
 
     return ()
 end

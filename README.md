@@ -41,7 +41,8 @@ contracts
 │   │  ├─ Test_array2d.cairo 
 │   │  ├─ Test_words.cairo 
 │   │  └─ Test_words_to_uint256.cairo 
-│   └─ Space.cairo - "The core contract for Snapshot X"
+│   ├─ Space.cairo - "The core contract for Snapshot X that handles the voting state for each space"
+│   └─ SpaceFactory.cairo - "Handles the deployment and tracking of Space contracts"
 └─ ethereum 
     ├─ Interfaces
     │  └─ IStarknetCore.sol — "Interface of the StarkNet core contract"

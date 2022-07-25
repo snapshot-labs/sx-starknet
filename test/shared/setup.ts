@@ -3,19 +3,8 @@ import { starknet, ethers } from 'hardhat';
 import { SignerWithAddress } from '@nomiclabs/hardhat-ethers/signers';
 import { StarknetContract, Account } from 'hardhat/types';
 import { Contract, ContractFactory } from 'ethers';
-// import { SplitUint256, IntsSequence } from './types';
-// import { hexToBytes, flatten2DArray } from './helpers';
-// import {
-//   ProcessBlockInputs,
-//   getProcessBlockInputs,
-//   ProofInputs,
-//   getProofInputs,
-// } from './parseRPCData';
-// import { encodeParams } from './singleSlotProofStrategyEncoding';
 import { AddressZero } from '@ethersproject/constants';
 import { executeContractCallWithSigners } from './safeUtils';
-// import {SplitUint256} from 'utils.splitUint256';
-
 import { utils } from '@snapshot-labs/sx';
 
 export interface Fossil {
@@ -25,7 +14,7 @@ export interface Fossil {
 }
 
 export async function vanillaSetup() {
-  const controller = (await starknet.deployAccount('Argent')) as Account;
+  const controller = (await starknet.deployAccount('OpenZeppelin')) as Account;
   const spaceFactory = await starknet.getContractFactory('./contracts/starknet/Space.cairo');
   const vanillaVotingStrategyFactory = await starknet.getContractFactory(
     './contracts/starknet/VotingStrategies/Vanilla.cairo'
@@ -86,7 +75,7 @@ export async function vanillaSetup() {
 }
 
 export async function zodiacRelayerSetup() {
-  const controller = (await starknet.deployAccount('Argent')) as Account;
+  const controller = (await starknet.deployAccount('OpenZeppelin')) as Account;
   const spaceFactory = await starknet.getContractFactory('./contracts/starknet/Space.cairo');
   const vanillaVotingStategyFactory = await starknet.getContractFactory(
     './contracts/starknet/VotingStrategies/Vanilla.cairo'
@@ -252,7 +241,7 @@ export async function safeWithZodiacSetup(
 }
 
 export async function ethTxAuthSetup() {
-  const controller = (await starknet.deployAccount('Argent')) as Account;
+  const controller = (await starknet.deployAccount('OpenZeppelin')) as Account;
   const spaceFactory = await starknet.getContractFactory('./contracts/starknet/Space.cairo');
   const vanillaVotingStrategyFactory = await starknet.getContractFactory(
     './contracts/starknet/VotingStrategies/Vanilla.cairo'
@@ -337,9 +326,10 @@ export async function singleSlotProofSetup(block: any, proofs: any) {
     proofs
   );
 
-  const controller = (await starknet.deployAccount('Argent')) as Account;
+  const controller = await starknet.deployAccount('OpenZeppelin');
 
   const fossil = await fossilSetup(controller);
+
   const spaceFactory = await starknet.getContractFactory('./contracts/starknet/Space.cairo');
   const singleSlotProofStrategyFactory = await starknet.getContractFactory(
     'contracts/starknet/VotingStrategies/SingleSlotProof.cairo'
@@ -422,7 +412,7 @@ export async function singleSlotProofSetup(block: any, proofs: any) {
 
 // Setup function to test the single slot proof strategy in isolation, ie not within context of space contract
 export async function singleSlotProofSetupIsolated(block: any) {
-  const account = await starknet.deployAccount('Argent');
+  const account = await starknet.deployAccount('OpenZeppelin');
   const fossil = await fossilSetup(account);
   const singleSlotProofStrategyFactory = await starknet.getContractFactory(
     'contracts/starknet/VotingStrategies/SingleSlotProof.cairo'
@@ -462,7 +452,7 @@ async function fossilSetup(deployer: Account): Promise<Fossil> {
   );
   const factsRegistry = await factsRegistryFactory.deploy();
   const l1HeadersStore = await l1HeadersStoreFactory.deploy();
-  const l1RelayerAccount = await starknet.deployAccount('Argent');
+  const l1RelayerAccount = await starknet.deployAccount('OpenZeppelin');
   await deployer.invoke(factsRegistry, 'initialize', {
     l1_headers_store_addr: BigInt(l1HeadersStore.address),
   });
@@ -479,7 +469,7 @@ async function fossilSetup(deployer: Account): Promise<Fossil> {
 // TODO: Ive left these functions in the old style for now as some changes are needed, but they should be refactored like the ones above soon.
 
 export async function starknetAccountSetup() {
-  const account = await starknet.deployAccount('Argent');
+  const account = await starknet.deployAccount('OpenZeppelin');
 
   const vanillaSpaceFactory = await starknet.getContractFactory('./contracts/starknet/Space.cairo');
   const vanillaVotingStrategyFactory = await starknet.getContractFactory(
@@ -539,7 +529,7 @@ export async function starknetAccountSetup() {
 }
 
 export async function starkTxAuthSetup() {
-  const controller = await starknet.deployAccount('Argent');
+  const controller = await starknet.deployAccount('OpenZeppelin');
   const spaceFactory = await starknet.getContractFactory('./contracts/starknet/Space.cairo');
   const vanillaVotingStrategyFactory = await starknet.getContractFactory(
     './contracts/starknet/VotingStrategies/Vanilla.cairo'
@@ -661,8 +651,49 @@ export async function ethereumSigSetup() {
   };
 }
 
+export async function spaceFactorySetup() {
+  const controller = (await starknet.deployAccount('OpenZeppelin')) as Account;
+  const spaceDeployerFactory = await starknet.getContractFactory(
+    './contracts/starknet/SpaceFactory.cairo'
+  );
+
+  const spaceFactoryClass = await starknet.getContractFactory('./contracts/starknet/Space.cairo');
+  const spaceHash = await spaceFactoryClass.declare();
+
+  const vanillaVotingStrategyFactory = await starknet.getContractFactory(
+    './contracts/starknet/VotingStrategies/Vanilla.cairo'
+  );
+  const vanillaAuthenticatorFactory = await starknet.getContractFactory(
+    './contracts/starknet/Authenticators/Vanilla.cairo'
+  );
+  const vanillaExecutionStrategyFactory = await starknet.getContractFactory(
+    './contracts/starknet/ExecutionStrategies/Vanilla.cairo'
+  );
+
+  const deployments = [
+    vanillaAuthenticatorFactory.deploy(),
+    vanillaVotingStrategyFactory.deploy(),
+    vanillaExecutionStrategyFactory.deploy(),
+    spaceDeployerFactory.deploy({ space_class_hash: spaceHash }),
+  ];
+  const contracts = await Promise.all(deployments);
+  const vanillaAuthenticator = contracts[0] as StarknetContract;
+  const vanillaVotingStrategy = contracts[1] as StarknetContract;
+  const vanillaExecutionStrategy = contracts[2] as StarknetContract;
+  const spaceDeployer = contracts[3] as StarknetContract;
+
+  return {
+    spaceDeployer,
+    spaceFactoryClass,
+    controller,
+    vanillaAuthenticator,
+    vanillaVotingStrategy,
+    vanillaExecutionStrategy,
+  };
+}
+
 export async function starknetExecutionSetup() {
-  const controller = (await starknet.deployAccount('Argent')) as Account;
+  const controller = (await starknet.deployAccount('OpenZeppelin')) as Account;
   const spaceFactory = await starknet.getContractFactory('./contracts/starknet/Space.cairo');
   const vanillaVotingStrategyFactory = await starknet.getContractFactory(
     './contracts/starknet/VotingStrategies/Vanilla.cairo'
