@@ -1,7 +1,5 @@
-import { hash } from 'starknet';
-import { SplitUint256, Choice } from '../shared/types';
-import { flatten2DArray } from '../shared/helpers';
-import { strToShortStringArr } from '@snapshot-labs/sx';
+import { hash, number } from 'starknet';
+import { utils } from '@snapshot-labs/sx';
 import { expect } from 'chai';
 import { ethereumSigSetup } from '../shared/setup';
 import { StarknetContract, Account } from 'hardhat/types';
@@ -9,7 +7,7 @@ import { ethers } from 'hardhat';
 import { domain, Propose, proposeTypes, Vote, voteTypes } from './helper/types';
 import { _TypedDataEncoder } from '@ethersproject/hash';
 import { TypedDataDomain, TypedDataField } from '@ethersproject/abstract-signer';
-import { getProposeCalldata, getVoteCalldata, bytesToHex } from '../shared/helpers';
+import { computeHashOnElements } from 'starknet/dist/utils/hash';
 
 const { getSelectorFromName } = hash;
 
@@ -65,8 +63,8 @@ function getRSVFromSig(sig: string) {
   if (sig.startsWith('0x')) {
     sig = sig.substring(2);
   }
-  const r = SplitUint256.fromHex('0x' + sig.substring(0, 64));
-  const s = SplitUint256.fromHex('0x' + sig.substring(64, 64 * 2));
+  const r = utils.splitUint256.SplitUint256.fromHex('0x' + sig.substring(0, 64));
+  const s = utils.splitUint256.SplitUint256.fromHex('0x' + sig.substring(64, 64 * 2));
   const v = BigInt('0x' + sig.substring(64 * 2));
   return { r, s, v };
 }
@@ -93,7 +91,7 @@ describe('Ethereum Sig Auth testing', () => {
   // Additional parameters for voting
   let voterEthAddress: string;
   let proposalId: bigint;
-  let choice: Choice;
+  let choice: utils.choice.Choice;
   let usedVotingStrategies2: bigint[];
   let userVotingParamsAll2: bigint[][];
   let voteCalldata: bigint[];
@@ -103,21 +101,24 @@ describe('Ethereum Sig Auth testing', () => {
 
     ({ space, controller, ethSigAuth, vanillaVotingStrategy, vanillaExecutionStrategy } =
       await ethereumSigSetup());
+    console.log('Space address: ', space.address);
 
-    executionHash = bytesToHex(ethers.utils.randomBytes(32)); // Random 32 byte hash
     const accounts = await ethers.getSigners();
-    metadataUri = strToShortStringArr(
+    metadataUri = utils.strings.strToShortStringArr(
       'Hello and welcome to Snapshot X. This is the future of governance.'
     );
     spaceAddress = BigInt(space.address);
     usedVotingStrategies1 = [BigInt(vanillaVotingStrategy.address)];
     userVotingParamsAll1 = [[]];
     executionStrategy = BigInt(vanillaExecutionStrategy.address);
-    executionParams = [];
+
+    executionParams = [BigInt('1')]; // Random params
+    const executionParamsStrings: string[] = executionParams.map((x) => x.toString(16));
+    executionHash = computeHashOnElements(executionParamsStrings);
+
     proposerEthAddress = accounts[0].address;
-    proposeCalldata = getProposeCalldata(
+    proposeCalldata = utils.encoding.getProposeCalldata(
       proposerEthAddress,
-      executionHash,
       metadataUri,
       executionStrategy,
       usedVotingStrategies1,
@@ -127,10 +128,10 @@ describe('Ethereum Sig Auth testing', () => {
 
     voterEthAddress = accounts[0].address;
     proposalId = BigInt(1);
-    choice = Choice.FOR;
+    choice = utils.choice.Choice.FOR;
     usedVotingStrategies2 = [BigInt(vanillaVotingStrategy.address)];
     userVotingParamsAll2 = [[]];
-    voteCalldata = getVoteCalldata(
+    voteCalldata = utils.encoding.getVoteCalldata(
       voterEthAddress,
       proposalId,
       choice,
@@ -141,7 +142,7 @@ describe('Ethereum Sig Auth testing', () => {
 
   it('Should not authenticate an invalid signature', async () => {
     try {
-      const salt: SplitUint256 = SplitUint256.fromHex('0x1');
+      const salt: utils.splitUint256.SplitUint256 = utils.splitUint256.SplitUint256.fromHex('0x1');
       const spaceStr = hexPadRight(space.address);
       const executionHashStr = hexPadRight(executionHash);
       const message: Propose = { salt: 1, space: spaceStr, executionHash: executionHashStr };
@@ -164,8 +165,7 @@ describe('Ethereum Sig Auth testing', () => {
         function_selector: BigInt(getSelectorFromName(PROPOSAL_METHOD)),
         calldata: fake_data,
       });
-      console.log('5');
-      throw 'error';
+      expect(1).to.deep.equal(2);
     } catch (err: any) {
       expect(err.message).to.contain('Invalid signature.');
     }
@@ -175,14 +175,18 @@ describe('Ethereum Sig Auth testing', () => {
     // -- Creates the proposal --
     {
       const accounts = await ethers.getSigners();
-      const salt: SplitUint256 = SplitUint256.fromHex('0x1');
+      const proposalSalt: utils.splitUint256.SplitUint256 =
+        utils.splitUint256.SplitUint256.fromHex('0x01');
       const spaceStr = hexPadRight(space.address);
       const executionHashStr = hexPadRight(executionHash);
-      const message: Propose = { salt: 1, space: spaceStr, executionHash: executionHashStr };
+      const message: Propose = {
+        salt: Number(proposalSalt.toHex()),
+        space: spaceStr,
+        executionHash: executionHashStr,
+      };
       const proposerEthAddress = accounts[0].address;
-      const proposeCalldata = getProposeCalldata(
+      const proposeCalldata = utils.encoding.getProposeCalldata(
         proposerEthAddress,
-        executionHash,
         metadataUri,
         executionStrategy,
         usedVotingStrategies1,
@@ -199,7 +203,7 @@ describe('Ethereum Sig Auth testing', () => {
         r: r,
         s: s,
         v: v,
-        salt: salt,
+        salt: proposalSalt,
         target: spaceAddress,
         function_selector: BigInt(getSelectorFromName(PROPOSAL_METHOD)),
         calldata: proposeCalldata,
@@ -213,11 +217,12 @@ describe('Ethereum Sig Auth testing', () => {
       // -- Attempts a replay attack on `propose` method --
       // Expected to fail
       try {
+        console.log('Replaying transaction...');
         await controller.invoke(ethSigAuth, AUTHENTICATE_METHOD, {
           r: r,
           s: s,
           v: v,
-          salt: salt,
+          salt: proposalSalt,
           target: spaceAddress,
           function_selector: BigInt(getSelectorFromName(PROPOSAL_METHOD)),
           calldata: proposeCalldata,
@@ -229,14 +234,14 @@ describe('Ethereum Sig Auth testing', () => {
 
       // We can't directly compare the `info` object because we don't know for sure the value of `start_block` (and hence `end_block`),
       // so we compare it element by element.
-      const _executionHash = SplitUint256.fromObj(proposal_info.proposal.execution_hash);
-      expect(_executionHash).to.deep.equal(SplitUint256.fromHex(executionHash));
+      const _executionHash = proposal_info.proposal.execution_hash;
+      expect(_executionHash).to.deep.equal(BigInt(executionHash));
 
-      const _for = SplitUint256.fromObj(proposal_info.power_for).toUint();
+      const _for = utils.splitUint256.SplitUint256.fromObj(proposal_info.power_for).toUint();
       expect(_for).to.deep.equal(BigInt(0));
-      const against = SplitUint256.fromObj(proposal_info.power_against).toUint();
+      const against = utils.splitUint256.SplitUint256.fromObj(proposal_info.power_against).toUint();
       expect(against).to.deep.equal(BigInt(0));
-      const abstain = SplitUint256.fromObj(proposal_info.power_abstain).toUint();
+      const abstain = utils.splitUint256.SplitUint256.fromObj(proposal_info.power_abstain).toUint();
       expect(abstain).to.deep.equal(BigInt(0));
     }
 
@@ -245,15 +250,20 @@ describe('Ethereum Sig Auth testing', () => {
       console.log('Casting a vote FOR...');
       const accounts = await ethers.getSigners();
       const spaceStr = hexPadRight(space.address);
-      const message: Vote = { salt: 2, space: spaceStr, proposal: 1, choice: Choice.FOR };
+      const voteSalt = utils.splitUint256.SplitUint256.fromHex('0x02');
+      const message: Vote = {
+        salt: Number(voteSalt.toHex()),
+        space: spaceStr,
+        proposal: 1,
+        choice: utils.choice.Choice.FOR,
+      };
       const sig = await accounts[0]._signTypedData(domain, voteTypes, message);
 
       const { r, s, v } = getRSVFromSig(sig);
-      const salt = SplitUint256.fromHex('0x02');
-      const voteCalldata = getVoteCalldata(
+      const voteCalldata = utils.encoding.getVoteCalldata(
         voterEthAddress,
         proposalId,
-        Choice.FOR,
+        utils.choice.Choice.FOR,
         usedVotingStrategies1,
         userVotingParamsAll1
       );
@@ -261,7 +271,7 @@ describe('Ethereum Sig Auth testing', () => {
         r: r,
         s: s,
         v: v,
-        salt: salt,
+        salt: voteSalt,
         target: spaceAddress,
         function_selector: BigInt(getSelectorFromName(VOTE_METHOD)),
         calldata: voteCalldata,
@@ -272,20 +282,21 @@ describe('Ethereum Sig Auth testing', () => {
         proposal_id: proposalId,
       });
 
-      const _for = SplitUint256.fromObj(proposal_info.power_for).toUint();
+      const _for = utils.splitUint256.SplitUint256.fromObj(proposal_info.power_for).toUint();
       expect(_for).to.deep.equal(BigInt(1));
-      const against = SplitUint256.fromObj(proposal_info.power_against).toUint();
+      const against = utils.splitUint256.SplitUint256.fromObj(proposal_info.power_against).toUint();
       expect(against).to.deep.equal(BigInt(0));
-      const abstain = SplitUint256.fromObj(proposal_info.power_abstain).toUint();
+      const abstain = utils.splitUint256.SplitUint256.fromObj(proposal_info.power_abstain).toUint();
       expect(abstain).to.deep.equal(BigInt(0));
 
       // -- Attempts a replay attack on `vote` method --
       try {
+        console.log('Replaying vote...');
         await controller.invoke(ethSigAuth, AUTHENTICATE_METHOD, {
           r: r,
           s: s,
           v: v,
-          salt: salt,
+          salt: voteSalt,
           target: spaceAddress,
           function_selector: BigInt(getSelectorFromName(VOTE_METHOD)),
           calldata: voteCalldata,

@@ -1,6 +1,7 @@
 %lang starknet
 from contracts.starknet.lib.execute import execute
 from contracts.starknet.lib.felt_to_uint256 import felt_to_uint256
+from contracts.starknet.lib.hash_array import hash_array
 from starkware.cairo.common.cairo_builtins import BitwiseBuiltin
 from starkware.cairo.common.uint256 import (
     Uint256,
@@ -209,11 +210,18 @@ func authenticate_proposal{
         assert already_used = 0
     end
 
-    # Execution_hash should be in calldata[1] and calldata[2]
-    let execution_hash = Uint256(calldata[1], calldata[2])
+    # Execution parameters should be in calldata[8] and calldata[9]
+    let metadata_len = calldata[1]
+    let used_voting_strats_len = calldata[3 + metadata_len]
+    let used_voting_strats_params_flat_len = calldata[4 + metadata_len + used_voting_strats_len]
+    let execution_params_len = calldata[5 + metadata_len + used_voting_strats_len + used_voting_strats_params_flat_len]
+    let execution_params_ptr : felt* = &calldata[6 + metadata_len + used_voting_strats_len + used_voting_strats_params_flat_len]
+
+    let (execution_hash) = hash_array(execution_params_len, execution_params_ptr)
 
     # `bytes32` types need to be right padded
-    let (padded_execution_hash) = pad_right(execution_hash)
+    let (exec_hash_u256) = felt_to_uint256(execution_hash)
+    let (padded_execution_hash) = pad_right(exec_hash_u256)
 
     let (space) = felt_to_uint256(target)
     # `bytes32` types need to be right padded
