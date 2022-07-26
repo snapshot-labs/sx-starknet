@@ -12,6 +12,7 @@ from starkware.cairo.common.math import (
     assert_lt,
     assert_le,
     assert_nn,
+    assert_nn_le,
     assert_not_zero,
     assert_lt_felt,
 )
@@ -1052,6 +1053,7 @@ func get_voting_strategy_params{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*
     return (voting_strategy_params_len, voting_strategy_params)
 end
 
+# Decodes an array into the data required to perform a set of calls according to the OZ account standard
 func decode_execution_params{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr}(
     execution_params_len : felt, execution_params : felt*
 ) -> (call_array_len : felt, call_array : AccountCallArray*, calldata_len : felt, calldata : felt*):
