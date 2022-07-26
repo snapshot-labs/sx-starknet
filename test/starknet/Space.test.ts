@@ -5,6 +5,12 @@ import { utils } from '@snapshot-labs/sx';
 import { vanillaSetup } from '../shared/setup';
 import { PROPOSE_SELECTOR, VOTE_SELECTOR } from '../shared/constants';
 
+import { hash } from 'starknet';
+const { getSelectorFromName } = hash;
+
+const P = BigInt(getSelectorFromName('__execute__'));
+console.log(P);
+
 describe('Space Testing', () => {
   // Contracts
   let space: StarknetContract;

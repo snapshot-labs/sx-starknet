@@ -648,15 +648,11 @@ export async function starknetExecutionSetup() {
   const vanillaAuthenticatorFactory = await starknet.getContractFactory(
     './contracts/starknet/Authenticators/Vanilla.cairo'
   );
-  const starknetExecutionStrategyFactory = await starknet.getContractFactory(
-    './contracts/starknet/ExecutionStrategies/Starknet.cairo'
-  );
+  // const starknetExecutionStrategyFactory = await starknet.getContractFactory(
+  //   './contracts/starknet/ExecutionStrategies/Starknet.cairo'
+  // );
 
-  const deployments = [
-    vanillaAuthenticatorFactory.deploy(),
-    vanillaVotingStrategyFactory.deploy(),
-    starknetExecutionStrategyFactory.deploy(),
-  ];
+  const deployments = [vanillaAuthenticatorFactory.deploy(), vanillaVotingStrategyFactory.deploy()];
   const contracts = await Promise.all(deployments);
   const vanillaAuthenticator = contracts[0] as StarknetContract;
   const vanillaVotingStrategy = contracts[1] as StarknetContract;
@@ -669,12 +665,7 @@ export async function starknetExecutionSetup() {
   const votingStrategyParams: bigint[][] = [[]]; // No params for the vanilla voting strategy
   const votingStrategyParamsFlat: bigint[] = utils.encoding.flatten2DArray(votingStrategyParams);
   const authenticators: bigint[] = [BigInt(vanillaAuthenticator.address)];
-  const executors: bigint[] = [
-    BigInt(starknetExecutionStrategy.address),
-    BigInt(1234),
-    BigInt(4567),
-    BigInt(456789),
-  ]; // We add dummy executors that get used in the test transactions
+  const executors: bigint[] = [BigInt(1), BigInt(1234), BigInt(4567), BigInt(456789)]; // We add dummy executors that get used in the test transactions
   const quorum: utils.splitUint256.SplitUint256 = utils.splitUint256.SplitUint256.fromUint(
     BigInt(1)
   ); //  Quorum of one for the vanilla test

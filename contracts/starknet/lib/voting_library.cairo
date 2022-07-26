@@ -3,7 +3,7 @@
 %lang starknet
 
 from starkware.starknet.common.syscalls import get_caller_address, get_block_timestamp
-from starkware.cairo.common.cairo_builtins import HashBuiltin
+from starkware.cairo.common.cairo_builtins import HashBuiltin, SignatureBuiltin, BitwiseBuiltin
 from starkware.cairo.common.alloc import alloc
 from starkware.cairo.common.uint256 import Uint256, uint256_add, uint256_lt, uint256_le
 from starkware.cairo.common.bool import TRUE, FALSE
@@ -599,7 +599,11 @@ namespace Voting:
     # Finalizes the proposal, counts the voting power, and send the corresponding result to the L1 executor contract
     @external
     func finalize_proposal{
-        syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr : felt
+        syscall_ptr : felt*,
+        pedersen_ptr : HashBuiltin*,
+        range_check_ptr,
+        ecdsa_ptr : SignatureBuiltin*,
+        bitwise_ptr : BitwiseBuiltin*,
     }(proposal_id : felt, execution_params_len : felt, execution_params : felt*):
         alloc_locals
 
@@ -679,22 +683,25 @@ namespace Voting:
         if proposal.executor == 1:
             # Starknet execution strategy so we execute the proposal txs directly
             if proposal_outcome == ProposalOutcome.ACCEPTED:
-                let nonce = Account.get_nonce()
-                # let (call_array_len, call_array, calldata_len, calldata) = decode_execution_params(
-                #     execution_params_len, execution_params
-                # )
-                # # We use unsafe execute as no signature veri§cation is needed.
-                # # _unsafe_execute begins with _ which indicates it should only be called internally to the Account library, ask OZ about this.
-                # let (response_len, response) = Account._unsafe_execute(
-                #     call_array_len, call_array, calldata_len, calldata, nonce
-                # )
+                let (nonce) = Account.get_nonce()
+                let (call_array_len, call_array, calldata_len, calldata) = decode_execution_params(
+                    execution_params_len, execution_params
+                )
+                # We use unsafe execute as no signature verification is needed.
+                let (response_len, response) = Account._unsafe_execute(
+                    call_array_len, call_array, calldata_len, calldata, nonce
+                )
                 tempvar syscall_ptr = syscall_ptr
                 tempvar pedersen_ptr = pedersen_ptr
                 tempvar range_check_ptr = range_check_ptr
+                tempvar ecdsa_ptr = ecdsa_ptr
+                tempvar bitwise_ptr = bitwise_ptr
             else:
                 tempvar syscall_ptr = syscall_ptr
                 tempvar pedersen_ptr = pedersen_ptr
                 tempvar range_check_ptr = range_check_ptr
+                tempvar ecdsa_ptr = ecdsa_ptr
+                tempvar bitwise_ptr = bitwise_ptr
             end
         else:
             # Other execution strategy, so we forward the txs to the specified execution strategy contract.
@@ -707,6 +714,8 @@ namespace Voting:
             tempvar syscall_ptr = syscall_ptr
             tempvar pedersen_ptr = pedersen_ptr
             tempvar range_check_ptr = range_check_ptr
+            tempvar ecdsa_ptr = ecdsa_ptr
+            tempvar bitwise_ptr = bitwise_ptr
         end
 
         # Flag this proposal as executed
@@ -714,7 +723,7 @@ namespace Voting:
         # executor is a whitelisted address. If we set this flag BEFORE the call
         # to the executor, we could have a malicious attacker sending some random
         # invalid execution_params and cancel out the vote.
-        # Voting_executed_proposals_store.write(proposal_id, 1)
+        Voting_executed_proposals_store.write(proposal_id, 1)
 
         return ()
     end
@@ -1041,4 +1050,15 @@ func get_voting_strategy_params{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*
         _voting_strategy_contract, voting_strategy_params_len, voting_strategy_params, index + 1
     )
     return (voting_strategy_params_len, voting_strategy_params)
+end
+
+func decode_execution_params{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr}(
+    execution_params_len : felt, execution_params : felt*
+) -> (call_array_len : felt, call_array : AccountCallArray*, calldata_len : felt, calldata : felt*):
+    assert_nn_le(4, execution_params_len)  # Min execution params length is 4 (corresponding to 1 tx with no calldata)
+    let call_array_len = (execution_params[0] - 1) / 4  # Number of calls in the proposal payload
+    let call_array = cast(&execution_params[1], AccountCallArray*)
+    let calldata_len = execution_params_len - execution_params[0]
+    let calldata = &execution_params[execution_params[0]]
+    return (call_array_len, call_array, calldata_len, calldata)
 end
