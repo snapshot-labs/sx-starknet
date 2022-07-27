@@ -5,7 +5,7 @@ from starkware.cairo.common.cairo_builtins import BitwiseBuiltin
 from starkware.cairo.common.uint256 import uint256_eq
 
 @external
-func authenticate{syscall_ptr : felt*, range_check_ptr, bitwise_ptr : BitwiseBuiltin*}(
+func authenticate{syscall_ptr : felt*, range_check_ptr}(
     target : felt, function_selector : felt, calldata_len : felt, calldata : felt*
 ) -> ():
     let (caller_address) = get_caller_address()
