@@ -5,38 +5,6 @@ import { utils } from '@snapshot-labs/sx';
 import { starknetExecutionSetup } from '../shared/setup';
 import { PROPOSE_SELECTOR, VOTE_SELECTOR, AUTHENTICATE_SELECTOR } from '../shared/constants';
 
-export interface StarknetMetaTransaction {
-  to: bigint;
-  functionSelector: bigint;
-  calldata: bigint[];
-}
-
-export function createStarknetExecutionParams(txArray: StarknetMetaTransaction[]): bigint[] {
-  if (!txArray || txArray.length == 0) {
-    return [];
-  }
-
-  const dataOffset = BigInt(1 + txArray.length * 4);
-  const executionParams = [dataOffset];
-  let calldataIndex = 0;
-
-  txArray.forEach((tx) => {
-    const subArr: bigint[] = [
-      tx.to,
-      tx.functionSelector,
-      BigInt(calldataIndex),
-      BigInt(tx.calldata.length),
-    ];
-    calldataIndex += tx.calldata.length;
-    executionParams.push(...subArr);
-  });
-
-  txArray.forEach((tx) => {
-    executionParams.push(...tx.calldata);
-  });
-  return executionParams;
-}
-
 describe('Starknet execution via account contract', () => {
   // Contracts
   let space: StarknetContract;
@@ -62,6 +30,11 @@ describe('Starknet execution via account contract', () => {
   let usedVotingStrategies2: bigint[];
   let userVotingParamsAll2: bigint[][];
   let voteCalldata: bigint[];
+
+  // Calls
+  let tx1: utils.encoding.Call;
+  let tx2: utils.encoding.Call;
+  let tx3: utils.encoding.Call;
 
   before(async function () {
     this.timeout(800000);
@@ -103,22 +76,22 @@ describe('Starknet execution via account contract', () => {
       userVotingParamsAll1,
       []
     );
-    const tx1: StarknetMetaTransaction = {
+    tx1 = {
       to: BigInt(vanillaAuthenticator.address),
       functionSelector: AUTHENTICATE_SELECTOR,
       calldata: [spaceAddress, PROPOSE_SELECTOR, BigInt(txCalldata1.length), ...txCalldata1],
     };
-    const tx2: StarknetMetaTransaction = {
+    tx2 = {
       to: BigInt(vanillaAuthenticator.address),
       functionSelector: AUTHENTICATE_SELECTOR,
       calldata: [spaceAddress, PROPOSE_SELECTOR, BigInt(txCalldata2.length), ...txCalldata2],
     };
-    const tx3: StarknetMetaTransaction = {
+    tx3 = {
       to: BigInt(vanillaAuthenticator.address),
       functionSelector: AUTHENTICATE_SELECTOR,
       calldata: [spaceAddress, PROPOSE_SELECTOR, BigInt(txCalldata3.length), ...txCalldata3],
     };
-    executionParams = createStarknetExecutionParams([tx1, tx2, tx3]);
+    executionParams = utils.encoding.createStarknetExecutionParams([tx1, tx2, tx3]);
 
     proposeCalldata = utils.encoding.getProposeCalldata(
       proposerEthAddress,
