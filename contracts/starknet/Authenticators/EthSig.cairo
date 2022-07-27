@@ -8,10 +8,8 @@ from starkware.cairo.common.uint256 import (
     uint256_eq,
     uint256_mul,
     uint256_unsigned_div_rem,
-    uint256_sub,
 )
 from starkware.cairo.common.alloc import alloc
-from starkware.cairo.common.memcpy import memcpy
 from starkware.cairo.common.cairo_keccak.keccak import (
     keccak_uint256s_bigend,
     keccak_add_uint256s,
@@ -20,10 +18,7 @@ from starkware.cairo.common.cairo_keccak.keccak import (
 )
 from starkware.cairo.common.bitwise import bitwise_and
 from starkware.cairo.common.cairo_secp.signature import verify_eth_signature_uint256
-from starkware.cairo.common.cairo_secp.bigint import uint256_to_bigint
-from starkware.cairo.common.math import unsigned_div_rem, assert_le
-from starkware.cairo.common.pow import pow
-from starkware.cairo.common.math import split_felt
+from starkware.cairo.common.math import unsigned_div_rem
 from starkware.cairo.common.cairo_builtins import HashBuiltin
 
 # TODO maybe use OZ safemath when possible?
