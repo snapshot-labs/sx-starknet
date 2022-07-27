@@ -4,7 +4,7 @@ import { expect } from 'chai';
 import { ethereumSigSetup } from '../shared/setup';
 import { StarknetContract, Account } from 'hardhat/types';
 import { ethers } from 'hardhat';
-import { domain, Propose, proposeTypes, Vote, voteTypes } from './helper/types';
+import { domain, Propose, proposeTypes, Vote, voteTypes } from '../shared/types';
 import { _TypedDataEncoder } from '@ethersproject/hash';
 import { TypedDataDomain, TypedDataField } from '@ethersproject/abstract-signer';
 import { computeHashOnElements } from 'starknet/dist/utils/hash';
