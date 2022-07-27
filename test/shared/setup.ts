@@ -596,10 +596,12 @@ export async function starkTxAuthSetup() {
   };
 }
 
-export async function ethereumSigSetup() {
+export async function ethereumSigAuthSetup() {
   const controller = await starknet.deployAccount('OpenZeppelin');
 
-  const vanillaSpaceFactory = await starknet.getContractFactory('./contracts/starknet/Space.cairo');
+  const vanillaSpaceFactory = await starknet.getContractFactory(
+    './contracts/starknet/SpaceAccount.cairo'
+  );
   const vanillaVotingStrategyFactory = await starknet.getContractFactory(
     './contracts/starknet/VotingStrategies/Vanilla.cairo'
   );
@@ -635,16 +637,17 @@ export async function ethereumSigSetup() {
 
   console.log('Deploying space contract...');
   const vanillaSpace = (await vanillaSpaceFactory.deploy({
-    _voting_delay: BigInt(0),
-    _min_voting_duration: BigInt(0),
-    _max_voting_duration: BigInt(2000),
-    _proposal_threshold: PROPOSAL_THRESHOLD,
-    _quorum: quorum,
-    _controller: BigInt(controller.address),
-    _voting_strategy_params_flat: voting_strategy_params_flat,
-    _voting_strategies: [voting_strategy],
-    _authenticators: [authenticator],
-    _executors: [voting_execution],
+    public_key: BigInt(controller.publicKey),
+    voting_delay: BigInt(0),
+    min_voting_duration: BigInt(0),
+    max_voting_duration: BigInt(2000),
+    proposal_threshold: PROPOSAL_THRESHOLD,
+    quorum: quorum,
+    controller: BigInt(controller.address),
+    voting_strategy_params_flat: voting_strategy_params_flat,
+    voting_strategies: [voting_strategy],
+    authenticators: [authenticator],
+    executors: [voting_execution],
   })) as StarknetContract;
 
   console.log('deployed!');
