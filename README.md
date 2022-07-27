@@ -10,6 +10,7 @@ contracts
 ├─ starknet
 │   ├─ Authenticators
 │   │  ├─ EthTx.cairo — "Authenticate user via an Ethereum transaction"
+│   │  ├─ EthSig.cairo — "Authenticate user via an Ethereum signature"
 │   │  ├─ StarkTx.cairo — "Authenticate user via a StarkNet  transaction"
 │   │  ├─ StarkSig.cairo — "Authenticate user via a Starknet signature"
 │   │  └─ Vanilla.cairo — "Dummy authentication"
@@ -28,6 +29,7 @@ contracts
 │   │  ├─ array2d.cairo — "For handling 2 dimensional arrays"
 │   │  ├─ choice.cairo — "The set of choices one can make for a vote"
 │   │  ├─ eth_address.cairo — "Ethereum address type"
+│   │  ├─ felto_to_uint256.cairo — "Generate a uint256 from a felt"
 │   │  ├─ hash_array.cairo — "Wrapper function for pedersen hashing arrays"
 │   │  ├─ proposal.cairo — "Proposal metadata type"
 │   │  ├─ proposal_info.cairo — "Proposal vote data type"
