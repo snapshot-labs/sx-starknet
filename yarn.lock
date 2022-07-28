@@ -931,10 +931,10 @@
   resolved "https://registry.yarnpkg.com/@openzeppelin/contracts-upgradeable/-/contracts-upgradeable-4.7.1.tgz#f63fc384255d6ac139e0a2561aa207fd7c14183c"
   integrity sha512-5EFiZld3DYFd8aTL8eeMnhnaWh1/oXLXFNuFMrgF3b1DNPshF3LCyO7VR6lc+gac2URJ0BlVcZoCfkk/3MoEfg==
 
-"@openzeppelin/contracts@^4.3.2", "@openzeppelin/contracts@^4.7.1":
-  version "4.7.1"
-  resolved "https://registry.yarnpkg.com/@openzeppelin/contracts/-/contracts-4.7.1.tgz#33d0a857b76b18d313e6bb6ed28cdaf367e90cfe"
-  integrity sha512-UXmAjKARsXORHlHZu5GCD7ZbRKm6nU8UHnbuT/QJJa2JEOEcbvV/X8w/sUk62Sl9VZuuljM1akrZLyAtzUgsxw==
+"@openzeppelin/contracts@^4.3.2", "@openzeppelin/contracts@^4.7.2":
+  version "4.7.2"
+  resolved "https://registry.yarnpkg.com/@openzeppelin/contracts/-/contracts-4.7.2.tgz#7587416fe2d35abf574193515b8971bfe9f64bc7"
+  integrity sha512-4n/JL9izql8303mPqPdubuna/DWEMbmOzWYUWyCPhjhiEr2w3nQrjE7vZz1fBF+wzzP6dZbIcsgqACk53c9FGA==
 
 "@resolver-engine/core@^0.3.3":
   version "0.3.3"
@@ -10745,23 +10745,6 @@ stacktrace-parser@^0.1.10:
     type-fest "^0.7.1"
 
 starknet@^3.15.0, starknet@^3.17.0, starknet@^3.18.2, starknet@^3.7.0:
-  version "3.18.2"
-  resolved "https://registry.yarnpkg.com/starknet/-/starknet-3.18.2.tgz#ec0c83ca97763663722f8e4b6a6872bf2cb18e05"
-  integrity sha512-w42BOws9np3C9dy4y9MOwY+KqxNhwTseci7CLVlLkui+jzQ7gGWoPVqn9OMeKy0PWIcZadCeuHvLez2xrg3zMg==
-  dependencies:
-    "@ethersproject/bytes" "^5.6.1"
-    bn.js "^5.2.1"
-    cross-fetch "^3.1.5"
-    elliptic "^6.5.4"
-    ethereum-cryptography "^1.0.3"
-    hash.js "^1.1.7"
-    json-bigint "^1.0.0"
-    minimalistic-assert "^1.0.1"
-    pako "^2.0.4"
-    ts-custom-error "^3.2.0"
-    url-join "^4.0.1"
-
-starknet@^3.18.2:
   version "3.18.2"
   resolved "https://registry.yarnpkg.com/starknet/-/starknet-3.18.2.tgz#ec0c83ca97763663722f8e4b6a6872bf2cb18e05"
   integrity sha512-w42BOws9np3C9dy4y9MOwY+KqxNhwTseci7CLVlLkui+jzQ7gGWoPVqn9OMeKy0PWIcZadCeuHvLez2xrg3zMg==
