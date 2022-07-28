@@ -8579,10 +8579,10 @@ npm-user-validate@^1.0.1:
   resolved "https://registry.yarnpkg.com/npm-user-validate/-/npm-user-validate-1.0.1.tgz#31428fc5475fe8416023f178c0ab47935ad8c561"
   integrity sha512-uQwcd/tY+h1jnEaze6cdX/LrhWhoBxfSknxentoqmIuStxUExxjWd3ULMLFPiFUrZKbOVMowH6Jq2FRWfmhcEw==
 
-npm@^8.15.0:
-  version "8.15.0"
-  resolved "https://registry.yarnpkg.com/npm/-/npm-8.15.0.tgz#d4b53cd29b13ea164f0f5767bca274dbe7d8f78d"
-  integrity sha512-sFXrMiO07eDWUb/e5ni2yNvtz2hePKqSyukUxYcQv0QHjyXCe+zKP7af/bISjcvsgRBWGyivk5V3KCZ0vg8J3Q==
+npm@^8.15.1:
+  version "8.15.1"
+  resolved "https://registry.yarnpkg.com/npm/-/npm-8.15.1.tgz#0cda5f182e6ef057c15cde5b8e443b52907ba052"
+  integrity sha512-ZjVMjEn+PqdjpZg+VLMFz5lyzh7tW+SBt+KQzvoQC986U/clE897eg7YR0PLYw6RfjTsoPTuB95xQ8ubn9go6Q==
   dependencies:
     "@isaacs/string-locale-compare" "^1.1.0"
     "@npmcli/arborist" "^5.0.4"
@@ -10745,23 +10745,6 @@ stacktrace-parser@^0.1.10:
     type-fest "^0.7.1"
 
 starknet@^3.15.0, starknet@^3.17.0, starknet@^3.18.2, starknet@^3.7.0:
-  version "3.18.2"
-  resolved "https://registry.yarnpkg.com/starknet/-/starknet-3.18.2.tgz#ec0c83ca97763663722f8e4b6a6872bf2cb18e05"
-  integrity sha512-w42BOws9np3C9dy4y9MOwY+KqxNhwTseci7CLVlLkui+jzQ7gGWoPVqn9OMeKy0PWIcZadCeuHvLez2xrg3zMg==
-  dependencies:
-    "@ethersproject/bytes" "^5.6.1"
-    bn.js "^5.2.1"
-    cross-fetch "^3.1.5"
-    elliptic "^6.5.4"
-    ethereum-cryptography "^1.0.3"
-    hash.js "^1.1.7"
-    json-bigint "^1.0.0"
-    minimalistic-assert "^1.0.1"
-    pako "^2.0.4"
-    ts-custom-error "^3.2.0"
-    url-join "^4.0.1"
-
-starknet@^3.18.2:
   version "3.18.2"
   resolved "https://registry.yarnpkg.com/starknet/-/starknet-3.18.2.tgz#ec0c83ca97763663722f8e4b6a6872bf2cb18e05"
   integrity sha512-w42BOws9np3C9dy4y9MOwY+KqxNhwTseci7CLVlLkui+jzQ7gGWoPVqn9OMeKy0PWIcZadCeuHvLez2xrg3zMg==
