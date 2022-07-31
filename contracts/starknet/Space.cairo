@@ -3,7 +3,7 @@
 from starkware.starknet.common.syscalls import get_caller_address, get_block_timestamp
 from starkware.cairo.common.cairo_builtins import HashBuiltin
 from starkware.cairo.common.alloc import alloc
-from starkware.cairo.common.uint256 import Uint256, uint256_add, uint256_lt, uint256_le
+from starkware.cairo.common.uint256 import Uint256, uint256_add, uint256_lt, uint256_le, uint256_eq
 from starkware.cairo.common.bool import TRUE, FALSE
 from starkware.cairo.common.hash_state import hash_init, hash_update
 from starkware.cairo.common.math import (
@@ -729,16 +729,16 @@ func vote{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr : fe
         0,
     )
 
+    let (is_zero) = uint256_eq(Uint256(0, 0), user_voting_power)
     with_attr error_message("No voting power for user"):
-        assert_not_zero(user_voting_power.low)
-        assert_not_zero(user_voting_power.high)
+        assert is_zero = 0
     end
 
     let (previous_voting_power) = vote_power_store.read(proposal_id, choice)
     let (new_voting_power, overflow) = uint256_add(user_voting_power, previous_voting_power)
 
     with_attr error_message("Overflow in voting power"):
-        assert_not_zero(overflow)
+        assert overflow = 0
     end
 
     vote_power_store.write(proposal_id, choice, new_voting_power)
@@ -803,7 +803,7 @@ func propose{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr :
 
     # Verify that the proposer has enough voting power to trigger a proposal
     let (threshold) = proposal_threshold_store.read()
-    let (has_enough_vp) = uint256_lt(threshold, voting_power)
+    let (has_enough_vp) = uint256_le(threshold, voting_power)
     with_attr error_message("Not enough voting power"):
         assert has_enough_vp = 1
     end
