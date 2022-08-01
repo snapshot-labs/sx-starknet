@@ -23,7 +23,7 @@
     "check-format:l2": "cairo-format -c --one_item_per_line contracts/starknet/**/*.cairo && cairo-format -c --one_item_per_line contracts/starknet/*.cairo",
     "format:ts": "eslint . --ext .ts --fix",
     "check-format:ts": "eslint . --ext .ts",
-    "format:json": "json-format ./deployments/*.json",
+    "format:json": "json-format ./deployments/*.json && json-format ./test/data/*.json",
     "format": "yarn format:l1 && yarn format:l2 && yarn format:ts && yarn format:json",
     "check-format": "yarn check-format:l1 && yarn check-format:l2 && yarn check-format:ts"
   },
@@ -42,6 +42,7 @@
     "starknet": "^3.18.2",
     "sx-api": "snapshot-labs/sx-api",
     "wait-on": "^6.0.1",
+    "web3": "^1.7.4",
     "yargs": "^17.5.0"
   },
   "devDependencies": {

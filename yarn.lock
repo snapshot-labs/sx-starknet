@@ -10996,23 +10996,23 @@ sx-api@snapshot-labs/sx-api:
   version "0.1.0"
   resolved "https://codeload.github.com/snapshot-labs/sx-api/tar.gz/fcc9c510c1d68e9ef986319f70185b7313eeb892"
   dependencies:
-    "@ethersproject/address" "^5.6.1"
+    "@ethersproject/address" "^5.6.0"
     "@ethersproject/bignumber" "^5.6.1"
-    "@snapshot-labs/checkpoint" "^0.1.0-beta.4"
-    "@snapshot-labs/sx" "^0.1.0-beta.8"
+    "@snapshot-labs/checkpoint" "^0.1.0-beta.0"
+    "@snapshot-labs/sx" "^0.1.0-beta.0"
     "@types/bn.js" "^5.1.0"
     "@types/express" "^4.17.11"
     "@types/jest" "^27.5.0"
     "@types/mysql" "^2.15.21"
-    "@types/node" "^18.0.6"
+    "@types/node" "^17.0.24"
     cors "^2.8.5"
     dotenv "^16.0.1"
-    eslint "8.17.0"
+    eslint "8.15.0"
     express "^4.18.1"
-    nodemon "^2.0.19"
-    starknet "^3.17.0"
-    ts-node "^10.8.1"
-    typescript "^4.7.3"
+    nodemon "^2.0.16"
+    starknet "^3.7.0"
+    ts-node "^10.7.0"
+    typescript "^4.6.4"
 
 sync-request@^6.0.0:
   version "6.1.0"
@@ -12312,7 +12312,7 @@ web3@1.2.11:
     web3-shh "1.2.11"
     web3-utils "1.2.11"
 
-web3@1.7.4:
+web3@1.7.4, web3@^1.7.4:
   version "1.7.4"
   resolved "https://registry.yarnpkg.com/web3/-/web3-1.7.4.tgz#00c9aef8e13ade92fd773d845fff250535828e93"
   integrity sha512-iFGK5jO32vnXM/ASaJBaI0+gVR6uHozvYdxkdhaeOCD6HIQ4iIXadbO2atVpE9oc/H8l2MovJ4LtPhG7lIBN8A==

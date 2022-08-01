@@ -54,7 +54,7 @@ describe('Single slot proof voting strategy:', () => {
       vanillaExecutionStrategy,
       fossil,
       proofInputs,
-    } = await singleSlotProofSetup(block, proofs));
+    } = await singleSlotProofSetup(block, proofs, BigInt(0)));
 
     proposalId = BigInt(1);
     metadataUri = utils.strings.strToShortStringArr(

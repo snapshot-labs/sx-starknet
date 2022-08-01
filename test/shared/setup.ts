@@ -319,7 +319,7 @@ export async function ethTxAuthSetup() {
   };
 }
 
-export async function singleSlotProofSetup(block: any, proofs: any) {
+export async function singleSlotProofSetup(block: any, proofs: any, slotIndex: bigint) {
   // We pass the encode params function for the single slot proof strategy to generate the encoded data for the single slot proof strategy
   const proofInputs: utils.storageProofs.ProofInputs = utils.storageProofs.getProofInputs(
     block.number,
@@ -363,6 +363,7 @@ export async function singleSlotProofSetup(block: any, proofs: any) {
   // Encode block header and then submit to L1 Headers Store
   const processBlockInputs: utils.storageProofs.ProcessBlockInputs =
     utils.storageProofs.getProcessBlockInputs(block);
+
   await fossil.l1RelayerAccount.invoke(fossil.l1HeadersStore, 'process_block', {
     options_set: processBlockInputs.blockOptions,
     block_number: processBlockInputs.blockNumber,
@@ -375,7 +376,7 @@ export async function singleSlotProofSetup(block: any, proofs: any) {
   const minVotingDuration = BigInt(0);
   const maxVotingDuration = BigInt(2000);
   const votingStrategies: bigint[] = [BigInt(singleSlotProofStrategy.address)];
-  const votingStrategyParams: bigint[][] = [[proofInputs.ethAddressFelt, BigInt(0)]]; // For the aave erc20 contract, the balances mapping has a storage index of 0
+  const votingStrategyParams: bigint[][] = [[proofInputs.ethAddressFelt, slotIndex]]; // For the aave erc20 contract, the balances mapping has a storage index of 0
   const votingStrategyParamsFlat: bigint[] = utils.encoding.flatten2DArray(votingStrategyParams);
   const authenticators: bigint[] = [BigInt(vanillaAuthenticator.address)];
   const executors: bigint[] = [BigInt(vanillaExecutionStrategy.address)];

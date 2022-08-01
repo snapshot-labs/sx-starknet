@@ -1,7 +1,6 @@
 import fs from 'fs';
 import { defaultProvider, json } from 'starknet';
-import { SplitUint256 } from '../test/shared/types';
-import { flatten2DArray } from '../test/shared/helpers';
+import { utils } from '@snapshot-labs/sx';
 
 async function main() {
   const compiledVanillaAuthenticator = json.parse(
@@ -11,10 +10,10 @@ async function main() {
       )
       .toString('ascii')
   );
-  const compiledStarkTxAuthenticator = json.parse(
+  const compiledEthSigAuthenticator = json.parse(
     fs
       .readFileSync(
-        './starknet-artifacts/contracts/starknet/Authenticators/StarkTx.cairo/StarkTx.json'
+        './starknet-artifacts/contracts/starknet/Authenticators/EthSig.cairo/EthSig.json'
       )
       .toString('ascii')
   );
@@ -39,18 +38,9 @@ async function main() {
       )
       .toString('ascii')
   );
-  const compiledZodiacRelayerExecutionStrategy = json.parse(
+  const compiledSpaceFactory = json.parse(
     fs
-      .readFileSync(
-        './starknet-artifacts/contracts/starknet/ExecutionStrategies/ZodiacRelayer.cairo/ZodiacRelayer.json'
-      )
-      .toString('ascii')
-  );
-  const compiledStarknetExecutionStrategy = json.parse(
-    fs
-      .readFileSync(
-        './starknet-artifacts/contracts/starknet/ExecutionStrategies/Starknet.cairo/Starknet.json'
-      )
+      .readFileSync('./starknet-artifacts/contracts/starknet/SpaceFactory.cairo/SpaceFactory.json')
       .toString('ascii')
   );
   const compiledSpace = json.parse(
@@ -61,47 +51,43 @@ async function main() {
 
   const deployTxs = [
     defaultProvider.deployContract({ contract: compiledVanillaAuthenticator }),
-    defaultProvider.deployContract({ contract: compiledStarkTxAuthenticator }),
+    defaultProvider.deployContract({ contract: compiledEthSigAuthenticator }),
     defaultProvider.deployContract({ contract: compiledVanillaVotingStrategy }),
     defaultProvider.deployContract({ contract: compiledSingleSlotProofVotingStrategy }),
     defaultProvider.deployContract({ contract: compiledVanillaExecutionStrategy }),
-    defaultProvider.deployContract({ contract: compiledZodiacRelayerExecutionStrategy }),
-    defaultProvider.deployContract({ contract: compiledStarknetExecutionStrategy }),
   ];
   const responses = await Promise.all(deployTxs);
   const vanillaAuthenticatorAddress = responses[0].address!;
-  const starkTxAuthenticatorAddress = responses[1].address!;
+  const ethSigAuthenticatorAddress = responses[1].address!;
   const vanillaVotingStrategyAddress = responses[2].address!;
   const singleSlotProofVotingStrategyAddress = responses[3].address!;
   const vanillaExecutionStrategyAddress = responses[4].address!;
-  const zodiacRelayerExecutionStrategyAddress = responses[5].address!;
-  const starknetExecutionStrategyAddress = responses[6].address!;
+
   console.log(responses);
 
   const votingDelay = BigInt(0);
   const minVotingDuration = BigInt(0);
-  const maxVotingDuration = BigInt(2000);
+  const maxVotingDuration = BigInt(200000);
   const votingStrategies: bigint[] = [
     BigInt(vanillaVotingStrategyAddress),
     BigInt(singleSlotProofVotingStrategyAddress),
   ];
   const votingStrategyParams: bigint[][] = [
     [],
-    [BigInt('0x7Fc66500c84A76Ad7e9c93437bFc5Ac33E2DDaE9'), BigInt(0)],
-  ]; // vanilla and Aave token voting
-  const votingStrategyParamsFlat: bigint[] = flatten2DArray(votingStrategyParams);
+    [BigInt('0xB4FBF271143F4FBf7B91A5ded31805e42b2208d6'), BigInt(3)],
+  ]; // WETH erc20 balance voting
+  const votingStrategyParamsFlat: bigint[] = utils.encoding.flatten2DArray(votingStrategyParams);
   const authenticators: bigint[] = [
+    BigInt(ethSigAuthenticatorAddress),
     BigInt(vanillaAuthenticatorAddress),
-    BigInt(starkTxAuthenticatorAddress),
   ];
-  const executors: bigint[] = [
-    BigInt(vanillaExecutionStrategyAddress),
-    BigInt(zodiacRelayerExecutionStrategyAddress),
-    BigInt(starknetExecutionStrategyAddress),
-  ];
-  const quorum: SplitUint256 = SplitUint256.fromUint(BigInt(1)); //  Quorum of one for the vanilla test
-  const proposalThreshold: SplitUint256 = SplitUint256.fromUint(BigInt(1)); // Proposal threshold of 1 for the vanilla test
-  const controllerAddress = '0x0070d911463b2cb48de8bfec826483631cdc492a6c5798917651297769fc9d68'; // Controller address (orlando's argent x)
+  const executors: bigint[] = [BigInt(vanillaExecutionStrategyAddress)];
+  const quorum: utils.splitUint256.SplitUint256 = utils.splitUint256.SplitUint256.fromUint(
+    BigInt(1)
+  ); //  Quorum of one for the vanilla test
+  const proposalThreshold: utils.splitUint256.SplitUint256 =
+    utils.splitUint256.SplitUint256.fromUint(BigInt(1));
+  const controllerAddress = '0x0764c647e4c5f6e81c5baa1769b4554e44851a7b6319791fc6db9e25a32148bb'; // Controller address (orlando's argent x)
 
   const spaceDeploymentCalldata: bigint[] = [
     votingDelay,
@@ -131,7 +117,7 @@ async function main() {
 
   const deployments = {
     space: {
-      name: 'Test space',
+      name: 'Ethereum DAO test space',
       address: spaceAddress,
       controller: controllerAddress,
       minVotingDuration: '0x' + minVotingDuration.toString(16),
@@ -139,28 +125,26 @@ async function main() {
       proposalThreshold: proposalThreshold.toHex(),
       quorum: quorum.toHex(),
       authenticators: {
+        EthSig: ethSigAuthenticatorAddress,
         Vanilla: vanillaAuthenticatorAddress,
-        StarkTx: starkTxAuthenticatorAddress,
       },
       votingStrategies: {
+        SingleSlotProof: {
+          address: singleSlotProofVotingStrategyAddress,
+          parameters: ['0xB4FBF271143F4FBf7B91A5ded31805e42b2208d6', '0x3'],
+        },
         Vanilla: {
           address: vanillaVotingStrategyAddress,
           parameters: [],
         },
-        SingleSlotProof: {
-          address: singleSlotProofVotingStrategyAddress,
-          parameters: ['0x7Fc66500c84A76Ad7e9c93437bFc5Ac33E2DDaE9', '0x0'],
-        },
       },
       executionStrategies: {
         Vanilla: vanillaExecutionStrategyAddress,
-        zodiacRelayer: zodiacRelayerExecutionStrategyAddress,
-        Starknet: starknetExecutionStrategyAddress,
       },
     },
   };
 
-  fs.writeFileSync('./deployments/goerli2.json', JSON.stringify(deployments));
+  fs.writeFileSync('./deployments/goerli3.json', JSON.stringify(deployments));
 }
 
 main()
