@@ -304,7 +304,7 @@ namespace Voting:
         with_attr error_message("Max voting duration must be greater than min voting duration"):
             assert_le(min_duration, new_max_duration)
         end
-        
+
         Voting_max_voting_duration_store.write(new_max_duration)
 
         max_voting_duration_updated.emit(previous_duration, new_max_duration)
