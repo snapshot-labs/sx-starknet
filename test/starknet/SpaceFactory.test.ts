@@ -82,7 +82,7 @@ describe('Space Deployment Testing', () => {
       executors: executors,
     });
     const receipt = await starknet.getTransactionReceipt(txHash);
-    // Removing first event as thats from the account contract deployment
+    // Removing first event as that's from the account contract deployment
     const decodedEvents = await spaceDeployer.decodeEvents(receipt.events.slice(1));
     metadataUri = utils.strings.strToShortStringArr(
       'Hello and welcome to Snapshot X. This is the future of governance.'

@@ -168,53 +168,53 @@ namespace Voting:
     #
 
     func initializer{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr : felt}(
-        _voting_delay : felt,
-        _min_voting_duration : felt,
-        _max_voting_duration : felt,
-        _proposal_threshold : Uint256,
-        _controller : felt,
-        _quorum : Uint256,
-        _voting_strategy_params_flat_len : felt,
-        _voting_strategy_params_flat : felt*,
-        _voting_strategies_len : felt,
-        _voting_strategies : felt*,
-        _authenticators_len : felt,
-        _authenticators : felt*,
-        _executors_len : felt,
-        _executors : felt*,
+        voting_delay : felt,
+        min_voting_duration : felt,
+        max_voting_duration : felt,
+        proposal_threshold : Uint256,
+        controller : felt,
+        quorum : Uint256,
+        voting_strategy_params_flat_len : felt,
+        voting_strategy_params_flat : felt*,
+        voting_strategies_len : felt,
+        voting_strategies : felt*,
+        authenticators_len : felt,
+        authenticators : felt*,
+        executors_len : felt,
+        executors : felt*,
     ):
         alloc_locals
 
         # Sanity checks
         with_attr error_message("Invalid constructor parameters"):
-            assert_nn(_voting_delay)
-            assert_le(_min_voting_duration, _max_voting_duration)
-            assert_not_zero(_controller)
-            assert_not_zero(_voting_strategies_len)
-            assert_not_zero(_authenticators_len)
-            assert_not_zero(_executors_len)
+            assert_nn(voting_delay)
+            assert_le(min_voting_duration, max_voting_duration)
+            assert_not_zero(controller)
+            assert_not_zero(voting_strategies_len)
+            assert_not_zero(authenticators_len)
+            assert_not_zero(executors_len)
         end
         # TODO: maybe use uint256_signed_nn to check proposal_threshold?
 
         # Initialize the storage variables
-        Voting_voting_delay_store.write(_voting_delay)
-        Voting_min_voting_duration_store.write(_min_voting_duration)
-        Voting_max_voting_duration_store.write(_max_voting_duration)
-        Voting_proposal_threshold_store.write(_proposal_threshold)
-        Ownable.initializer(_controller)
-        Voting_quorum_store.write(_quorum)
+        Voting_voting_delay_store.write(voting_delay)
+        Voting_min_voting_duration_store.write(min_voting_duration)
+        Voting_max_voting_duration_store.write(max_voting_duration)
+        Voting_proposal_threshold_store.write(proposal_threshold)
+        Ownable.initializer(controller)
+        Voting_quorum_store.write(quorum)
 
         # Reconstruct the voting params 2D array (1 sub array per strategy) from the flattened version.
         # Currently there is no way to pass struct types with pointers in calldata, so we must do it this way.
         let (voting_strategy_params_all : Immutable2DArray) = construct_array2d(
-            _voting_strategy_params_flat_len, _voting_strategy_params_flat
+            voting_strategy_params_flat_len, voting_strategy_params_flat
         )
 
         unchecked_add_voting_strategies(
-            _voting_strategies_len, _voting_strategies, voting_strategy_params_all, 0
+            voting_strategies_len, voting_strategies, voting_strategy_params_all, 0
         )
-        unchecked_add_authenticators(_authenticators_len, _authenticators)
-        unchecked_add_executors(_executors_len, _executors)
+        unchecked_add_authenticators(authenticators_len, authenticators)
+        unchecked_add_executors(executors_len, executors)
 
         # The first proposal in a space will have a proposal ID of 1.
         Voting_next_proposal_nonce_store.write(1)
@@ -276,7 +276,9 @@ namespace Voting:
 
         let (max_duration) = Voting_max_voting_duration_store.read()
 
-        assert_le(new_min_duration, max_duration)
+        with_attr error_message("Min voting duration must be less than max voting duration"):
+            assert_le(new_min_duration, max_duration)
+        end
 
         Voting_min_voting_duration_store.write(new_min_duration)
 
@@ -299,8 +301,10 @@ namespace Voting:
 
         let (min_duration) = Voting_min_voting_duration_store.read()
 
-        assert_le(min_duration, new_max_duration)
-
+        with_attr error_message("Max voting duration must be greater than min voting duration"):
+            assert_le(min_duration, new_max_duration)
+        end
+        
         Voting_max_voting_duration_store.write(new_max_duration)
 
         max_voting_duration_updated.emit(previous_duration, new_max_duration)
@@ -720,10 +724,6 @@ namespace Voting:
         end
 
         # Flag this proposal as executed
-        # This should not create re-entrency vulnerability because the message
-        # executor is a whitelisted address. If we set this flag BEFORE the call
-        # to the executor, we could have a malicious attacker sending some random
-        # invalid execution_params and cancel out the vote.
         Voting_executed_proposals_store.write(proposal_id, 1)
 
         return ()
@@ -762,10 +762,6 @@ namespace Voting:
         )
 
         # Flag this proposal as executed
-        # This should not create re-entrency vulnerability because the message
-        # executor is a whitelisted address. If we set this flag BEFORE the call
-        # to the executor, we could have a malicious attacker sending some random
-        # invalid execution_params and cancel out the vote.
         Voting_executed_proposals_store.write(proposal_id, 1)
 
         return ()

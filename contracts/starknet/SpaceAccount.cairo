@@ -8,7 +8,7 @@ from starkware.cairo.common.uint256 import Uint256
 from openzeppelin.account.library import Account, AccountCallArray
 from openzeppelin.introspection.ERC165 import ERC165
 
-from contracts.starknet.lib.voting_library import Voting
+from contracts.starknet.lib.voting import Voting
 
 #
 # Constructor
