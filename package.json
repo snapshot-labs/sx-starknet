@@ -5,7 +5,7 @@
   "license": "MIT",
   "scripts": {
     "compile:l1": "hardhat compile",
-    "compile:l2": "hardhat starknet-compile",
+    "compile:l2": "hardhat starknet-compile ./contracts/starknet/SpaceAccount.cairo --account-contract && hardhat starknet-compile ./contracts/starknet/SpaceFactory.cairo && hardhat starknet-compile ./contracts/starknet/**/",
     "compile": "yarn compile:l1 && yarn compile:l2",
     "deploy": "sh deploy.sh",
     "test:l1": "yarn hardhat test test/ethereum/*.ts",

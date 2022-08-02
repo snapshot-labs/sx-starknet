@@ -1116,8 +1116,8 @@
     pino "^8.0.0"
     pino-pretty "^7.6.1"
     starknet "^3.7.0"
-
-"@snapshot-labs/sx@0.1.0-beta.9", "@snapshot-labs/sx@^0.1.0-beta.8":
+    
+"@snapshot-labs/sx@0.1.0-beta.9":
   version "0.1.0-beta.9"
   resolved "https://registry.yarnpkg.com/@snapshot-labs/sx/-/sx-0.1.0-beta.9.tgz#cd38acdd37eea7a50f8c7e8601d9a6d74800b641"
   integrity sha512-ilIIOUXJeSVKj6l0Yn5CfgQ/shpmbWly5RUcpRepR/+Yyzs/fOGay+f0hoc9DhQ5uvxEfCkHXfLMi06q5Hw/kA==
