@@ -17,9 +17,9 @@ async function main() {
   );
   const ethAccount = new ethers.Wallet(process.env.ETH_PK_1!);
 
-  const spaceAddress = BigInt('0x5a1f0ec4b0c98eb8306b30aa2ec124381757ad80bbf5c6ebfe411b7a17a54b4');
+  const spaceAddress = BigInt('0x047d4a40e6f80d3b28de7f09677a21681f0ff5f11633dd7ec8e86e48c7fe1ee0');
   const votingStrategies = [
-    BigInt('0x563633cb3ddcfd92651470d6f954ae9e03cca5a9d1a9c31ff24cc58331d4e1'),
+    BigInt('0x663aa290f8d650117bd0faa9d14bfc6cd9626b5210b21d2524ccabb751b0bc7'),
   ];
   const userVotingStrategyParams: bigint[][] = [[]];
 
@@ -34,7 +34,7 @@ async function main() {
   //   utils.storageProofs.getProcessBlockInputs(block);
 
   const voterEthAddress = ethAccount.address;
-  const proposalId = BigInt(2);
+  const proposalId = BigInt(1);
   const choice = utils.choice.Choice.FOR;
   const voteCalldata = utils.encoding.getVoteCalldata(
     voterEthAddress,
@@ -70,10 +70,10 @@ async function main() {
     ...voteCalldata,
   ];
   const calldataHex = calldata.map((x) => '0x' + x.toString(16));
-
+  const authenticatorAddress = '0x4886e6e13e4af4e65149a1528c3ee0833ae22cf2764a493bad89061c72c8da6';
   const { transaction_hash: txHash } = await starkAccount.execute(
     {
-      contractAddress: '0x2e9bba3766cd43886605fcb0e1273c6c74a34e1cb0855f1138e6998e24c9220',
+      contractAddress: authenticatorAddress,
       entrypoint: 'authenticate',
       calldata: calldataHex,
     },

@@ -2,7 +2,7 @@ import fetch from 'cross-fetch';
 import { _TypedDataEncoder } from '@ethersproject/hash';
 import { ethers } from 'ethers';
 import { utils } from '@snapshot-labs/sx';
-import {  defaultProvider, Account, ec, hash } from 'starknet';
+import { defaultProvider, Account, ec, hash } from 'starknet';
 import { domain, Propose, proposeTypes } from '../test/shared/types';
 import { hexPadRight, getRSVFromSig } from '../test/shared/ethSigUtils';
 import { PROPOSE_SELECTOR } from '../test/shared/constants';
@@ -17,9 +17,11 @@ async function main() {
   );
   const ethAccount = new ethers.Wallet(process.env.ETH_PK_1!);
 
-  const spaceAddress = BigInt('0x5a1f0ec4b0c98eb8306b30aa2ec124381757ad80bbf5c6ebfe411b7a17a54b4');
+  const spaceAddress = BigInt('0x047d4a40e6f80d3b28de7f09677a21681f0ff5f11633dd7ec8e86e48c7fe1ee0');
   const votingStrategies = [
-    BigInt('0x563633cb3ddcfd92651470d6f954ae9e03cca5a9d1a9c31ff24cc58331d4e1'),
+    BigInt(
+      '0x663aa290f8d650117bd0faa9d14bfc6cd9626b5210b21d2524ccabb751b0bc7'
+    ),
   ];
   const userVotingStrategyParams: bigint[][] = [[]];
   const metadataUri = utils.strings.strToShortStringArr(
@@ -38,7 +40,7 @@ async function main() {
 
   const userVotingParamsAll1 = [[]];
   const executionStrategy = BigInt(
-    '0x651fd70ebed45e2433d2db741806a354e9b977bfc12fa6f17369ce2bd8f58e2'
+    '0x79ef63495a9249d8c1174415c3c236d49dde3f1e8b6ef63cf9a0fd24c39934'
   );
   const executionParams = [BigInt(1)]; // Random params
   const executionParamsStrings: string[] = executionParams.map((x) => x.toString(16));
@@ -52,10 +54,10 @@ async function main() {
     userVotingStrategyParams,
     executionParams
   );
-
   const salt = utils.splitUint256.SplitUint256.fromHex(
     utils.bytes.bytesToHex(ethers.utils.randomBytes(4))
-  );  const executionHashStr = hexPadRight(executionHash);
+  );
+  const executionHashStr = hexPadRight(executionHash);
   const message: Propose = {
     salt: Number(salt.toHex()),
     space: hexPadRight('0x' + spaceAddress.toString(16)),
@@ -63,7 +65,6 @@ async function main() {
   };
   const sig = await ethAccount._signTypedData(domain, proposeTypes, message);
   const { r, s, v } = getRSVFromSig(sig);
-
   const calldata = [
     r.low,
     r.high,
@@ -78,10 +79,10 @@ async function main() {
     ...proposeCalldata,
   ];
   const calldataHex = calldata.map((x) => '0x' + x.toString(16));
-
+  const authenticatorAddress = '0x4886e6e13e4af4e65149a1528c3ee0833ae22cf2764a493bad89061c72c8da6';
   const { transaction_hash: txHash } = await starkAccount.execute(
     {
-      contractAddress: '0x2e9bba3766cd43886605fcb0e1273c6c74a34e1cb0855f1138e6998e24c9220',
+      contractAddress: authenticatorAddress,
       entrypoint: 'authenticate',
       calldata: calldataHex,
     },
