@@ -35,13 +35,14 @@ contracts
 │   │  ├─ proposal_info.cairo — "Proposal vote data type"
 │   │  ├─ proposal_outcome.cairo — "The set of proposal outcomes"
 │   │  ├─ slot_key.cairo — "Function to find the slot key for a slot in the Ethereum state"
+│   │  ├─ voting.cairo — "Core library that implements the logic for voting in Snapshot X"
 │   │  ├─ vote.cairo.cairo — "User vote data type"
 │   │  └─ words.cairo — "Small 64 bit word library"
 │   ├─ TestContracts
 │   │  ├─ Test_array2d.cairo 
 │   │  ├─ Test_words.cairo 
 │   │  └─ Test_words_to_uint256.cairo 
-│   ├─ Space.cairo - "The core contract for Snapshot X that handles the voting state for each space"
+│   ├─ SpaceAccount.cairo - "The base account contract for each Snapshot X space"
 │   └─ SpaceFactory.cairo - "Handles the deployment and tracking of Space contracts"
 └─ ethereum 
     ├─ Interfaces

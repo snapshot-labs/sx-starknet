@@ -14,8 +14,9 @@ export interface Fossil {
 }
 
 export async function vanillaSetup() {
+  // We make the space controller public key the same as the public key of the space account itself
   const controller = (await starknet.deployAccount('OpenZeppelin')) as Account;
-  const spaceFactory = await starknet.getContractFactory('./contracts/starknet/Space.cairo');
+  const spaceFactory = await starknet.getContractFactory('./contracts/starknet/SpaceAccount.cairo');
   const vanillaVotingStrategyFactory = await starknet.getContractFactory(
     './contracts/starknet/VotingStrategies/Vanilla.cairo'
   );
@@ -52,16 +53,17 @@ export async function vanillaSetup() {
 
   console.log('Deploying space contract...');
   const space = (await spaceFactory.deploy({
-    _voting_delay: votingDelay,
-    _min_voting_duration: minVotingDuration,
-    _max_voting_duration: maxVotingDuration,
-    _proposal_threshold: proposalThreshold,
-    _controller: BigInt(controller.starknetContract.address),
-    _quorum: quorum,
-    _voting_strategy_params_flat: votingStrategyParamsFlat,
-    _voting_strategies: votingStrategies,
-    _authenticators: authenticators,
-    _executors: executors,
+    public_key: BigInt(controller.publicKey),
+    voting_delay: votingDelay,
+    min_voting_duration: minVotingDuration,
+    max_voting_duration: maxVotingDuration,
+    proposal_threshold: proposalThreshold,
+    controller: BigInt(controller.starknetContract.address),
+    quorum: quorum,
+    voting_strategy_params_flat: votingStrategyParamsFlat,
+    voting_strategies: votingStrategies,
+    authenticators: authenticators,
+    executors: executors,
   })) as StarknetContract;
   console.log('deployed!');
 
@@ -76,7 +78,7 @@ export async function vanillaSetup() {
 
 export async function zodiacRelayerSetup() {
   const controller = (await starknet.deployAccount('OpenZeppelin')) as Account;
-  const spaceFactory = await starknet.getContractFactory('./contracts/starknet/Space.cairo');
+  const spaceFactory = await starknet.getContractFactory('./contracts/starknet/SpaceAccount.cairo');
   const vanillaVotingStategyFactory = await starknet.getContractFactory(
     './contracts/starknet/VotingStrategies/Vanilla.cairo'
   );
@@ -112,16 +114,17 @@ export async function zodiacRelayerSetup() {
     utils.splitUint256.SplitUint256.fromUint(BigInt(1)); // Proposal threshold of 1 for the vanilla test
 
   const space = (await spaceFactory.deploy({
-    _voting_delay: votingDelay,
-    _min_voting_duration: minVotingDuration,
-    _max_voting_duration: maxVotingDuration,
-    _proposal_threshold: proposalThreshold,
-    _controller: BigInt(controller.starknetContract.address),
-    _quorum: quorum,
-    _voting_strategy_params_flat: votingStrategyParamsFlat,
-    _voting_strategies: votingStrategies,
-    _authenticators: authenticators,
-    _executors: executors,
+    public_key: BigInt(controller.publicKey),
+    voting_delay: votingDelay,
+    min_voting_duration: minVotingDuration,
+    max_voting_duration: maxVotingDuration,
+    proposal_threshold: proposalThreshold,
+    controller: BigInt(controller.starknetContract.address),
+    quorum: quorum,
+    voting_strategy_params_flat: votingStrategyParamsFlat,
+    voting_strategies: votingStrategies,
+    authenticators: authenticators,
+    executors: executors,
   })) as StarknetContract;
 
   // Deploying StarkNet core instance required for L2 -> L1 message passing
@@ -242,7 +245,7 @@ export async function safeWithZodiacSetup(
 
 export async function ethTxAuthSetup() {
   const controller = (await starknet.deployAccount('OpenZeppelin')) as Account;
-  const spaceFactory = await starknet.getContractFactory('./contracts/starknet/Space.cairo');
+  const spaceFactory = await starknet.getContractFactory('./contracts/starknet/SpaceAccount.cairo');
   const vanillaVotingStrategyFactory = await starknet.getContractFactory(
     './contracts/starknet/VotingStrategies/Vanilla.cairo'
   );
@@ -293,16 +296,17 @@ export async function ethTxAuthSetup() {
 
   console.log('Deploying space contract...');
   const space = (await spaceFactory.deploy({
-    _voting_delay: votingDelay,
-    _min_voting_duration: minVotingDuration,
-    _max_voting_duration: maxVotingDuration,
-    _proposal_threshold: proposalThreshold,
-    _controller: BigInt(controller.starknetContract.address),
-    _quorum: quorum,
-    _voting_strategy_params_flat: votingStrategyParamsFlat,
-    _voting_strategies: votingStrategies,
-    _authenticators: authenticators,
-    _executors: executors,
+    public_key: BigInt(controller.publicKey),
+    voting_delay: votingDelay,
+    min_voting_duration: minVotingDuration,
+    max_voting_duration: maxVotingDuration,
+    proposal_threshold: proposalThreshold,
+    controller: BigInt(controller.starknetContract.address),
+    quorum: quorum,
+    voting_strategy_params_flat: votingStrategyParamsFlat,
+    voting_strategies: votingStrategies,
+    authenticators: authenticators,
+    executors: executors,
   })) as StarknetContract;
 
   // Setting the L1 tx authenticator address in the StarkNet commit contract
@@ -330,7 +334,7 @@ export async function singleSlotProofSetup(block: any, proofs: any) {
 
   const fossil = await fossilSetup(controller);
 
-  const spaceFactory = await starknet.getContractFactory('./contracts/starknet/Space.cairo');
+  const spaceFactory = await starknet.getContractFactory('./contracts/starknet/SpaceAccount.cairo');
   const singleSlotProofStrategyFactory = await starknet.getContractFactory(
     'contracts/starknet/VotingStrategies/SingleSlotProof.cairo'
   );
@@ -387,16 +391,17 @@ export async function singleSlotProofSetup(block: any, proofs: any) {
 
   // Deploy space with specified parameters
   const space = (await spaceFactory.deploy({
-    _voting_delay: votingDelay,
-    _min_voting_duration: minVotingDuration,
-    _max_voting_duration: maxVotingDuration,
-    _proposal_threshold: proposalThreshold,
-    _controller: controllerAddress,
-    _quorum: quorum,
-    _voting_strategy_params_flat: votingStrategyParamsFlat,
-    _voting_strategies: votingStrategies,
-    _authenticators: authenticators,
-    _executors: executors,
+    public_key: BigInt(controller.publicKey),
+    voting_delay: votingDelay,
+    min_voting_duration: minVotingDuration,
+    max_voting_duration: maxVotingDuration,
+    proposal_threshold: proposalThreshold,
+    controller: controllerAddress,
+    quorum: quorum,
+    voting_strategy_params_flat: votingStrategyParamsFlat,
+    voting_strategies: votingStrategies,
+    authenticators: authenticators,
+    executors: executors,
   })) as StarknetContract;
 
   return {
@@ -466,12 +471,12 @@ async function fossilSetup(deployer: Account): Promise<Fossil> {
   };
 }
 
-// TODO: Ive left these functions in the old style for now as some changes are needed, but they should be refactored like the ones above soon.
-
 export async function starknetAccountSetup() {
-  const account = await starknet.deployAccount('OpenZeppelin');
+  const controller = await starknet.deployAccount('OpenZeppelin');
 
-  const vanillaSpaceFactory = await starknet.getContractFactory('./contracts/starknet/Space.cairo');
+  const vanillaSpaceFactory = await starknet.getContractFactory(
+    './contracts/starknet/SpaceAccount.cairo'
+  );
   const vanillaVotingStrategyFactory = await starknet.getContractFactory(
     './contracts/starknet/VotingStrategies/Vanilla.cairo'
   );
@@ -506,16 +511,17 @@ export async function starknetAccountSetup() {
 
   console.log('Deploying space contract...');
   const vanillaSpace = (await vanillaSpaceFactory.deploy({
-    _voting_delay: BigInt(0),
-    _min_voting_duration: BigInt(0),
-    _max_voting_duration: BigInt(2000),
-    _proposal_threshold: PROPOSAL_THRESHOLD,
-    _quorum: quorum,
-    _controller: BigInt(account.starknetContract.address),
-    _voting_strategy_params_flat: voting_strategy_params_flat,
-    _voting_strategies: [voting_strategy],
-    _authenticators: [authenticator],
-    _executors: [zodiac_relayer],
+    public_key: BigInt(controller.publicKey),
+    voting_delay: BigInt(0),
+    min_voting_duration: BigInt(0),
+    max_voting_duration: BigInt(2000),
+    proposal_threshold: PROPOSAL_THRESHOLD,
+    quorum: quorum,
+    controller: BigInt(controller.starknetContract.address),
+    voting_strategy_params_flat: voting_strategy_params_flat,
+    voting_strategies: [voting_strategy],
+    authenticators: [authenticator],
+    executors: [zodiac_relayer],
   })) as StarknetContract;
   console.log('deployed!');
 
@@ -524,13 +530,13 @@ export async function starknetAccountSetup() {
     starknetAccountAuth,
     vanillaVotingStrategy,
     zodiacRelayer,
-    account,
+    controller,
   };
 }
 
 export async function starkTxAuthSetup() {
   const controller = await starknet.deployAccount('OpenZeppelin');
-  const spaceFactory = await starknet.getContractFactory('./contracts/starknet/Space.cairo');
+  const spaceFactory = await starknet.getContractFactory('./contracts/starknet/SpaceAccount.cairo');
   const vanillaVotingStrategyFactory = await starknet.getContractFactory(
     './contracts/starknet/VotingStrategies/Vanilla.cairo'
   );
@@ -567,16 +573,17 @@ export async function starkTxAuthSetup() {
 
   console.log('Deploying space contract...');
   const space = (await spaceFactory.deploy({
-    _voting_delay: votingDelay,
-    _min_voting_duration: minVotingDuration,
-    _max_voting_duration: maxVotingDuration,
-    _proposal_threshold: proposalThreshold,
-    _controller: BigInt(controller.starknetContract.address),
-    _quorum: quorum,
-    _voting_strategy_params_flat: votingStrategyParamsFlat,
-    _voting_strategies: votingStrategies,
-    _authenticators: authenticators,
-    _executors: executors,
+    public_key: BigInt(controller.publicKey),
+    voting_delay: votingDelay,
+    min_voting_duration: minVotingDuration,
+    max_voting_duration: maxVotingDuration,
+    proposal_threshold: proposalThreshold,
+    controller: BigInt(controller.starknetContract.address),
+    quorum: quorum,
+    voting_strategy_params_flat: votingStrategyParamsFlat,
+    voting_strategies: votingStrategies,
+    authenticators: authenticators,
+    executors: executors,
   })) as StarknetContract;
   console.log('deployed!');
 
@@ -589,10 +596,12 @@ export async function starkTxAuthSetup() {
   };
 }
 
-export async function ethereumSigSetup() {
+export async function ethereumSigAuthSetup() {
   const controller = await starknet.deployAccount('OpenZeppelin');
 
-  const vanillaSpaceFactory = await starknet.getContractFactory('./contracts/starknet/Space.cairo');
+  const vanillaSpaceFactory = await starknet.getContractFactory(
+    './contracts/starknet/SpaceAccount.cairo'
+  );
   const vanillaVotingStrategyFactory = await starknet.getContractFactory(
     './contracts/starknet/VotingStrategies/Vanilla.cairo'
   );
@@ -628,16 +637,17 @@ export async function ethereumSigSetup() {
 
   console.log('Deploying space contract...');
   const vanillaSpace = (await vanillaSpaceFactory.deploy({
-    _voting_delay: BigInt(0),
-    _min_voting_duration: BigInt(0),
-    _max_voting_duration: BigInt(2000),
-    _proposal_threshold: PROPOSAL_THRESHOLD,
-    _quorum: quorum,
-    _controller: BigInt(controller.address),
-    _voting_strategy_params_flat: voting_strategy_params_flat,
-    _voting_strategies: [voting_strategy],
-    _authenticators: [authenticator],
-    _executors: [voting_execution],
+    public_key: BigInt(controller.publicKey),
+    voting_delay: BigInt(0),
+    min_voting_duration: BigInt(0),
+    max_voting_duration: BigInt(2000),
+    proposal_threshold: PROPOSAL_THRESHOLD,
+    quorum: quorum,
+    controller: BigInt(controller.address),
+    voting_strategy_params_flat: voting_strategy_params_flat,
+    voting_strategies: [voting_strategy],
+    authenticators: [authenticator],
+    executors: [voting_execution],
   })) as StarknetContract;
 
   console.log('deployed!');
@@ -657,7 +667,9 @@ export async function spaceFactorySetup() {
     './contracts/starknet/SpaceFactory.cairo'
   );
 
-  const spaceFactoryClass = await starknet.getContractFactory('./contracts/starknet/Space.cairo');
+  const spaceFactoryClass = await starknet.getContractFactory(
+    './contracts/starknet/SpaceAccount.cairo'
+  );
   const spaceHash = await spaceFactoryClass.declare();
 
   const vanillaVotingStrategyFactory = await starknet.getContractFactory(
@@ -694,22 +706,18 @@ export async function spaceFactorySetup() {
 
 export async function starknetExecutionSetup() {
   const controller = (await starknet.deployAccount('OpenZeppelin')) as Account;
-  const spaceFactory = await starknet.getContractFactory('./contracts/starknet/Space.cairo');
+  const spaceFactory = await starknet.getContractFactory('./contracts/starknet/SpaceAccount.cairo');
   const vanillaVotingStrategyFactory = await starknet.getContractFactory(
     './contracts/starknet/VotingStrategies/Vanilla.cairo'
   );
   const vanillaAuthenticatorFactory = await starknet.getContractFactory(
     './contracts/starknet/Authenticators/Vanilla.cairo'
   );
-  const starknetExecutionStrategyFactory = await starknet.getContractFactory(
-    './contracts/starknet/ExecutionStrategies/Starknet.cairo'
-  );
+  // const starknetExecutionStrategyFactory = await starknet.getContractFactory(
+  //   './contracts/starknet/ExecutionStrategies/Starknet.cairo'
+  // );
 
-  const deployments = [
-    vanillaAuthenticatorFactory.deploy(),
-    vanillaVotingStrategyFactory.deploy(),
-    starknetExecutionStrategyFactory.deploy(),
-  ];
+  const deployments = [vanillaAuthenticatorFactory.deploy(), vanillaVotingStrategyFactory.deploy()];
   const contracts = await Promise.all(deployments);
   const vanillaAuthenticator = contracts[0] as StarknetContract;
   const vanillaVotingStrategy = contracts[1] as StarknetContract;
@@ -722,12 +730,7 @@ export async function starknetExecutionSetup() {
   const votingStrategyParams: bigint[][] = [[]]; // No params for the vanilla voting strategy
   const votingStrategyParamsFlat: bigint[] = utils.encoding.flatten2DArray(votingStrategyParams);
   const authenticators: bigint[] = [BigInt(vanillaAuthenticator.address)];
-  const executors: bigint[] = [
-    BigInt(starknetExecutionStrategy.address),
-    BigInt(1234),
-    BigInt(4567),
-    BigInt(456789),
-  ]; // We add dummy executors that get used in the test transactions
+  const executors: bigint[] = [BigInt(1), BigInt(1234), BigInt(4567), BigInt(456789)]; // We add dummy executors that get used in the test transactions
   const quorum: utils.splitUint256.SplitUint256 = utils.splitUint256.SplitUint256.fromUint(
     BigInt(1)
   ); //  Quorum of one for the vanilla test
@@ -736,16 +739,17 @@ export async function starknetExecutionSetup() {
 
   console.log('Deploying space contract...');
   const space = (await spaceFactory.deploy({
-    _voting_delay: votingDelay,
-    _min_voting_duration: minVotingDuration,
-    _max_voting_duration: maxVotingDuration,
-    _proposal_threshold: proposalThreshold,
-    _controller: BigInt(controller.starknetContract.address),
-    _quorum: quorum,
-    _voting_strategy_params_flat: votingStrategyParamsFlat,
-    _voting_strategies: votingStrategies,
-    _authenticators: authenticators,
-    _executors: executors,
+    public_key: BigInt(controller.publicKey),
+    voting_delay: votingDelay,
+    min_voting_duration: minVotingDuration,
+    max_voting_duration: maxVotingDuration,
+    proposal_threshold: proposalThreshold,
+    controller: BigInt(controller.starknetContract.address),
+    quorum: quorum,
+    voting_strategy_params_flat: votingStrategyParamsFlat,
+    voting_strategies: votingStrategies,
+    authenticators: authenticators,
+    executors: executors,
   })) as StarknetContract;
   console.log('deployed!');
 

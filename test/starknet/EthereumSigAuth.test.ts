@@ -1,7 +1,7 @@
 import { hash, number } from 'starknet';
 import { utils } from '@snapshot-labs/sx';
 import { expect } from 'chai';
-import { ethereumSigSetup } from '../shared/setup';
+import { ethereumSigAuthSetup } from '../shared/setup';
 import { StarknetContract, Account } from 'hardhat/types';
 import { ethers } from 'hardhat';
 import { domain, Propose, proposeTypes, Vote, voteTypes } from '../shared/types';
@@ -100,7 +100,7 @@ describe('Ethereum Sig Auth testing', () => {
     this.timeout(800000);
 
     ({ space, controller, ethSigAuth, vanillaVotingStrategy, vanillaExecutionStrategy } =
-      await ethereumSigSetup());
+      await ethereumSigAuthSetup());
     console.log('Space address: ', space.address);
 
     const accounts = await ethers.getSigners();

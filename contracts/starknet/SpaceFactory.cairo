@@ -18,18 +18,18 @@ end
 func space_deployed(
     deployer_address : felt,
     space_address : felt,
-    _voting_delay : felt,
-    _min_voting_duration : felt,
-    _max_voting_duration : felt,
-    _proposal_threshold : Uint256,
-    _controller : felt,
-    _quorum : Uint256,
-    _voting_strategies_len : felt,
-    _voting_strategies : felt*,
-    _authenticators_len : felt,
-    _authenticators : felt*,
-    _executors_len : felt,
-    _executors : felt*,
+    voting_delay : felt,
+    min_voting_duration : felt,
+    max_voting_duration : felt,
+    proposal_threshold : Uint256,
+    controller : felt,
+    quorum : Uint256,
+    voting_strategies_len : felt,
+    voting_strategies : felt*,
+    authenticators_len : felt,
+    authenticators : felt*,
+    executors_len : felt,
+    executors : felt*,
 ):
 end
 
@@ -43,51 +43,53 @@ end
 
 @external
 func deploy_space{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr : felt}(
-    _voting_delay : felt,
-    _min_voting_duration : felt,
-    _max_voting_duration : felt,
-    _proposal_threshold : Uint256,
-    _controller : felt,
-    _quorum : Uint256,
-    _voting_strategy_params_flat_len : felt,
-    _voting_strategy_params_flat : felt*,
-    _voting_strategies_len : felt,
-    _voting_strategies : felt*,
-    _authenticators_len : felt,
-    _authenticators : felt*,
-    _executors_len : felt,
-    _executors : felt*,
+    public_key : felt,
+    voting_delay : felt,
+    min_voting_duration : felt,
+    max_voting_duration : felt,
+    proposal_threshold : Uint256,
+    controller : felt,
+    quorum : Uint256,
+    voting_strategy_params_flat_len : felt,
+    voting_strategy_params_flat : felt*,
+    voting_strategies_len : felt,
+    voting_strategies : felt*,
+    authenticators_len : felt,
+    authenticators : felt*,
+    executors_len : felt,
+    executors : felt*,
 ):
     alloc_locals
     let (calldata : felt*) = alloc()
-    assert calldata[0] = _voting_delay
-    assert calldata[1] = _min_voting_duration
-    assert calldata[2] = _max_voting_duration
-    assert calldata[3] = _proposal_threshold.low
-    assert calldata[4] = _proposal_threshold.high
-    assert calldata[5] = _controller
-    assert calldata[6] = _quorum.low
-    assert calldata[7] = _quorum.high
-    assert calldata[8] = _voting_strategy_params_flat_len
-    memcpy(calldata + 9, _voting_strategy_params_flat, _voting_strategy_params_flat_len)
-    assert calldata[9 + _voting_strategy_params_flat_len] = _voting_strategies_len
+    assert calldata[0] = public_key
+    assert calldata[1] = voting_delay
+    assert calldata[2] = min_voting_duration
+    assert calldata[3] = max_voting_duration
+    assert calldata[4] = proposal_threshold.low
+    assert calldata[5] = proposal_threshold.high
+    assert calldata[6] = controller
+    assert calldata[7] = quorum.low
+    assert calldata[8] = quorum.high
+    assert calldata[9] = voting_strategy_params_flat_len
+    memcpy(calldata + 10, voting_strategy_params_flat, voting_strategy_params_flat_len)
+    assert calldata[10 + voting_strategy_params_flat_len] = voting_strategies_len
     memcpy(
-        calldata + 10 + _voting_strategy_params_flat_len, _voting_strategies, _voting_strategies_len
+        calldata + 11 + voting_strategy_params_flat_len, voting_strategies, voting_strategies_len
     )
-    assert calldata[10 + _voting_strategies_len + _voting_strategy_params_flat_len] = _authenticators_len
+    assert calldata[11 + voting_strategies_len + voting_strategy_params_flat_len] = authenticators_len
     memcpy(
-        calldata + 11 + _voting_strategies_len + _voting_strategy_params_flat_len,
-        _authenticators,
-        _authenticators_len,
+        calldata + 12 + voting_strategies_len + voting_strategy_params_flat_len,
+        authenticators,
+        authenticators_len,
     )
-    assert calldata[11 + _voting_strategies_len + _voting_strategy_params_flat_len + _authenticators_len] = _executors_len
+    assert calldata[12 + voting_strategies_len + voting_strategy_params_flat_len + authenticators_len] = executors_len
     memcpy(
-        calldata + 12 + _voting_strategies_len + _voting_strategy_params_flat_len + _authenticators_len,
-        _executors,
-        _executors_len,
+        calldata + 13 + voting_strategies_len + voting_strategy_params_flat_len + authenticators_len,
+        executors,
+        executors_len,
     )
     let (deployer_address) = get_caller_address()
-    let calldata_len = 12 + _voting_strategies_len + _voting_strategy_params_flat_len + _authenticators_len + _executors_len
+    let calldata_len = 13 + voting_strategies_len + voting_strategy_params_flat_len + authenticators_len + executors_len
     let (current_salt) = salt.read()
     let (space_class_hash) = space_class_hash_store.read()
     let (space_address) = deploy(
@@ -102,18 +104,18 @@ func deploy_space{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_
     space_deployed.emit(
         deployer_address,
         space_address,
-        _voting_delay,
-        _min_voting_duration,
-        _max_voting_duration,
-        _proposal_threshold,
-        _controller,
-        _quorum,
-        _voting_strategies_len,
-        _voting_strategies,
-        _authenticators_len,
-        _authenticators,
-        _executors_len,
-        _executors,
+        voting_delay,
+        min_voting_duration,
+        max_voting_duration,
+        proposal_threshold,
+        controller,
+        quorum,
+        voting_strategies_len,
+        voting_strategies,
+        authenticators_len,
+        authenticators,
+        executors_len,
+        executors,
     )
     return ()
 end
