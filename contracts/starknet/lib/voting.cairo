@@ -754,12 +754,24 @@ namespace Voting:
 
         let proposal_outcome = ProposalOutcome.CANCELLED
 
-        IExecutionStrategy.execute(
-            contract_address=proposal.executor,
-            proposal_outcome=proposal_outcome,
-            execution_params_len=execution_params_len,
-            execution_params=execution_params,
-        )
+        if proposal.executor != 1:
+            # Custom execution strategies may have different processes to follow when a proposal is cancelled.
+            # Therefore, we still forward the execution payload to the specified strategy contract.
+            IExecutionStrategy.execute(
+                contract_address=proposal.executor,
+                proposal_outcome=proposal_outcome,
+                execution_params_len=execution_params_len,
+                execution_params=execution_params,
+            )
+            tempvar syscall_ptr = syscall_ptr
+            tempvar pedersen_ptr = pedersen_ptr
+            tempvar range_check_ptr = range_check_ptr
+        else:
+            # In the case of starknet execution we do nothing if the proposal is cancelled.
+            tempvar syscall_ptr = syscall_ptr
+            tempvar pedersen_ptr = pedersen_ptr
+            tempvar range_check_ptr = range_check_ptr
+        end
 
         # Flag this proposal as executed
         Voting_executed_proposals_store.write(proposal_id, 1)
