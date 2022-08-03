@@ -19,9 +19,7 @@ async function main() {
 
   const spaceAddress = BigInt('0x047d4a40e6f80d3b28de7f09677a21681f0ff5f11633dd7ec8e86e48c7fe1ee0');
   const votingStrategies = [
-    BigInt(
-      '0x663aa290f8d650117bd0faa9d14bfc6cd9626b5210b21d2524ccabb751b0bc7'
-    ),
+    BigInt('0x663aa290f8d650117bd0faa9d14bfc6cd9626b5210b21d2524ccabb751b0bc7'),
   ];
   const userVotingStrategyParams: bigint[][] = [[]];
   const metadataUri = utils.strings.strToShortStringArr(
