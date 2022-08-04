@@ -8,6 +8,7 @@ import { domain, Propose, proposeTypes, Vote, voteTypes } from '../shared/types'
 import { _TypedDataEncoder } from '@ethersproject/hash';
 import { TypedDataDomain, TypedDataField } from '@ethersproject/abstract-signer';
 import { computeHashOnElements } from 'starknet/dist/utils/hash';
+import { keccak256 } from 'ethers/lib/utils';
 
 const { getSelectorFromName } = hash;
 
@@ -25,10 +26,11 @@ function getHash(
   const msgHash = _TypedDataEncoder.hash(domain, types, message);
 
   // Stub code to generate and print the type hash
-  // const vote = "Propose(uint256 salt,bytes32 space,bytes32 executionHash,string metadataURI)";
-  // let s = Buffer.from(vote);
-  // let typeHash: string = keccak256(s);
-  // console.log("typeHash: ", typeHash);
+  // const str = "Propose(bytes32 space,bytes32 executionHash,string metadataURI,uint256 salt)";
+  const str = 'Vote(bytes32 space,uint256 proposal,uint256 choice,uint256 salt)';
+  const s = Buffer.from(str);
+  const typeHash: string = keccak256(s);
+  console.log('typeHash: ', typeHash);
 
   return msgHash;
 }
@@ -135,10 +137,10 @@ describe('Ethereum Sig Auth testing', () => {
       const spaceStr = hexPadRight(space.address);
       const executionHashStr = hexPadRight(executionHash);
       const message: Propose = {
-        salt: 1,
         space: spaceStr,
         executionHash: executionHashStr,
         metadataURI: METADATA_URI,
+        salt: Number(salt.toHex()),
       };
 
       const fake_data = [...proposeCalldata];
@@ -174,10 +176,10 @@ describe('Ethereum Sig Auth testing', () => {
       const spaceStr = hexPadRight(space.address);
       const executionHashStr = hexPadRight(executionHash);
       const message: Propose = {
-        salt: Number(proposalSalt.toHex()),
         space: spaceStr,
         executionHash: executionHashStr,
         metadataURI: METADATA_URI,
+        salt: Number(proposalSalt.toHex()),
       };
       const proposerEthAddress = accounts[0].address;
       const proposeCalldata = utils.encoding.getProposeCalldata(
@@ -247,10 +249,10 @@ describe('Ethereum Sig Auth testing', () => {
       const spaceStr = hexPadRight(space.address);
       const voteSalt = utils.splitUint256.SplitUint256.fromHex('0x02');
       const message: Vote = {
-        salt: Number(voteSalt.toHex()),
         space: spaceStr,
         proposal: 1,
         choice: utils.choice.Choice.FOR,
+        salt: Number(voteSalt.toHex()),
       };
       const sig = await accounts[0]._signTypedData(domain, voteTypes, message);
 

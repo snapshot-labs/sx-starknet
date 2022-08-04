@@ -33,14 +33,14 @@ const ETHEREUM_PREFIX = 0x1901
 # This is the `Proposal` typeHash, obtained by doing this:
 # keccak256("Propose(uint256 salt,bytes32 space,bytes32 executionHash,string metadataURI)")
 # Which returns: 0x2fe0a3cc9ff14c2d2480207f2d3a511f117a077337f1c2638b71be1f2d719ca0
-const PROPOSAL_HASH_HIGH = 0x2fe0a3cc9ff14c2d2480207f2d3a511f
-const PROPOSAL_HASH_LOW = 0x117a077337f1c2638b71be1f2d719ca0
+const PROPOSAL_HASH_HIGH = 0x4ee04a1ce2698772c67572749b444819
+const PROPOSAL_HASH_LOW = 0x7e7d5347059c4bbc8d9f71fb8deced25
 
 # This is the `Vote` typeHash, obtained by doing this:
 # keccak256("Vote(uint256 salt,bytes32 space,uint256 proposal,uint256 choice)")
 # 0x0a2717ddf197067ae85a6f41872b66f70cfba68208c9e9e5e5121904e822fc51
-const VOTE_HASH_HIGH = 0x0a2717ddf197067ae85a6f41872b66f7
-const VOTE_HASH_LOW = 0x0cfba68208c9e9e5e5121904e822fc51
+const VOTE_HASH_HIGH = 0x1a3c7d8e1135d4dcd9ecccd1a7e8d4af
+const VOTE_HASH_LOW = 0xb66c839f5604c958d655f241b9041ded
 
 # This is the domainSeparator, obtained by using those fields (see more about it in EIP712):
 # name: 'snapshot-x',
@@ -241,10 +241,10 @@ func authenticate_proposal{
     let (data : Uint256*) = alloc()
 
     assert data[0] = Uint256(PROPOSAL_HASH_LOW, PROPOSAL_HASH_HIGH)
-    assert data[1] = salt
-    assert data[2] = padded_space
-    assert data[3] = padded_execution_hash
-    assert data[4] = metadata_uri_hash
+    assert data[1] = padded_space
+    assert data[2] = padded_execution_hash
+    assert data[3] = metadata_uri_hash
+    assert data[4] = salt
 
     let (hash_struct) = get_keccak_hash{keccak_ptr=keccak_ptr}(5, data)
 
@@ -313,10 +313,10 @@ func authenticate_vote{
     let (data : Uint256*) = alloc()
 
     assert data[0] = Uint256(VOTE_HASH_LOW, VOTE_HASH_HIGH)
-    assert data[1] = salt
-    assert data[2] = padded_space
-    assert data[3] = proposal_id
-    assert data[4] = choice
+    assert data[1] = padded_space
+    assert data[2] = proposal_id
+    assert data[3] = choice
+    assert data[4] = salt
 
     let (local keccak_ptr : felt*) = alloc()
     let keccak_ptr_start = keccak_ptr
