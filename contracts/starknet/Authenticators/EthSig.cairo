@@ -183,9 +183,9 @@ func pad_right{range_check_ptr}(num : Uint256) -> (res : Uint256):
 end
 
 func keccak_ints_sequence{range_check_ptr, bitwise_ptr : BitwiseBuiltin*, keccak_ptr : felt*}(
-    nbytes : felt, sequence_len : felt, sequence : felt*
+    nb_bytes : felt, sequence_len : felt, sequence : felt*
 ) -> (res : Uint256):
-    return keccak_bigend(inputs=sequence, n_bytes=nbytes)
+    return keccak_bigend(inputs=sequence, n_bytes=nb_bytes)
 end
 
 @external
@@ -217,18 +217,19 @@ func authenticate_proposal{
 
     # Execution parameters should be in calldata[8] and calldata[9]
     let metadata_uri_string_len = calldata[1]
-    let metadata_len = calldata[2]
+    let metadata_uri_len = calldata[2]
     let metadata_uri : felt* = &calldata[3]
 
-    let used_voting_strats_len = calldata[4 + metadata_len]
-    let used_voting_strats_params_flat_len = calldata[5 + metadata_len + used_voting_strats_len]
-    let execution_params_len = calldata[6 + metadata_len + used_voting_strats_len + used_voting_strats_params_flat_len]
-    let execution_params_ptr : felt* = &calldata[7 + metadata_len + used_voting_strats_len + used_voting_strats_params_flat_len]
+    let (metadata_uri_hash) = keccak_ints_sequence{keccak_ptr=keccak_ptr}(
+        metadata_uri_string_len, metadata_uri_len, metadata_uri
+    )
+
+    let used_voting_strats_len = calldata[4 + metadata_uri_len]
+    let used_voting_strats_params_flat_len = calldata[5 + metadata_uri_len + used_voting_strats_len]
+    let execution_params_len = calldata[6 + metadata_uri_len + used_voting_strats_len + used_voting_strats_params_flat_len]
+    let execution_params_ptr : felt* = &calldata[7 + metadata_uri_len + used_voting_strats_len + used_voting_strats_params_flat_len]
 
     let (execution_hash) = hash_array(execution_params_len, execution_params_ptr)
-    let (metadata_uri_hash) = keccak_ints_sequence{keccak_ptr=keccak_ptr}(
-        metadata_uri_string_len, metadata_len, metadata_uri
-    )
 
     # `bytes32` types need to be right padded
     let (exec_hash_u256) = felt_to_uint256(execution_hash)
