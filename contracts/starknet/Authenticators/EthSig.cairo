@@ -188,6 +188,7 @@ func keccak_ints_sequence{range_check_ptr, bitwise_ptr : BitwiseBuiltin*, keccak
     return keccak_bigend(inputs=sequence, n_bytes=nbytes)
 end
 
+@external
 func authenticate_proposal{
     syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr, bitwise_ptr : BitwiseBuiltin*
 }(
@@ -280,6 +281,7 @@ func authenticate_proposal{
     return ()
 end
 
+@external
 func authenticate_vote{
     syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr, bitwise_ptr : BitwiseBuiltin*
 }(
