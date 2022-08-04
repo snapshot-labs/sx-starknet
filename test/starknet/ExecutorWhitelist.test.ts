@@ -19,7 +19,7 @@ describe('Whitelist testing', () => {
   // Proposal creation parameters
   let spaceAddress: bigint;
   let executionHash: string;
-  let metadataUri: bigint[];
+  let metadataUri: utils.intsSequence.IntsSequence;
   let proposerEthAddress: string;
   let usedVotingStrategies1: bigint[];
   let userVotingParamsAll1: bigint[][];
@@ -51,7 +51,7 @@ describe('Whitelist testing', () => {
 
     spaceAddress = BigInt(space.address);
 
-    metadataUri = utils.strings.strToShortStringArr(
+    metadataUri = utils.intsSequence.IntsSequence.LEFromString(
       'Hello and welcome to Snapshot X. This is the future of governance.'
     );
     proposerEthAddress = ethers.Wallet.createRandom().address;

@@ -44,7 +44,7 @@ describe('Create proposal, cast vote, and send execution to l1', function () {
   // Proposal creation parameters
   let spaceAddress: bigint;
   let executionHash: string;
-  let metadataUri: bigint[];
+  let metadataUri: utils.intsSequence.IntsSequence;
   let proposerEthAddress: string;
   let usedVotingStrategies1: bigint[];
   let userVotingParamsAll1: bigint[][];
@@ -77,7 +77,7 @@ describe('Create proposal, cast vote, and send execution to l1', function () {
       mockStarknetMessaging,
     } = await zodiacRelayerSetup());
 
-    metadataUri = utils.strings.strToShortStringArr(
+    metadataUri = utils.intsSequence.IntsSequence.LEFromString(
       'Hello and welcome to Snapshot X. This is the future of governance.'
     );
     ({ executionHash, txHashes } = utils.encoding.createExecutionHash(

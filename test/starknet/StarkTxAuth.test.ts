@@ -17,7 +17,7 @@ describe('StarkNet Tx Auth testing', () => {
 
   // Proposal creation parameters
   let spaceAddress: bigint;
-  let metadataUri: bigint[];
+  let metadataUri: utils.intsSequence.IntsSequence;
   let proposerAccount: Account;
   let proposerAddress: string;
   let usedVotingStrategies1: bigint[];
@@ -47,7 +47,7 @@ describe('StarkNet Tx Auth testing', () => {
       vanillaExecutionStrategy,
     } = await starkTxAuthSetup());
 
-    metadataUri = utils.strings.strToShortStringArr(
+    metadataUri = utils.intsSequence.IntsSequence.LEFromString(
       'Hello and welcome to Snapshot X. This is the future of governance.'
     );
     proposerAddress = proposerAccount.starknetContract.address;
