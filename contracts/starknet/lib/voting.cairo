@@ -506,6 +506,7 @@ namespace Voting:
     @external
     func propose{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr : felt}(
         proposer_address : Address,
+        metadata_uri_string_len : felt,
         metadata_uri_len : felt,
         metadata_uri : felt*,
         executor : felt,

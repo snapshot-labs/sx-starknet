@@ -11,7 +11,7 @@ export const proposeTypes = {
     { name: 'salt', type: 'uint256' },
     { name: 'space', type: 'bytes32' },
     { name: 'executionHash', type: 'bytes32' },
-    // { name: 'metadataURI', type: 'string' }, TODO: Support `string` type in the future
+    { name: 'metadataURI', type: 'string' },
   ],
 };
 
@@ -28,7 +28,7 @@ export interface Propose {
   salt: number;
   space: string;
   executionHash: string;
-  // metadataURI: string;
+  metadataURI: string;
 }
 
 export interface Vote {
