@@ -31,14 +31,12 @@ const VOTE_SELECTOR = 0x132bdf85fc8aa10ac3c22f02317f8f53d4b4f52235ed1eabb3a4cbbe
 const ETHEREUM_PREFIX = 0x1901
 
 # This is the `Proposal` typeHash, obtained by doing this:
-# keccak256("Propose(uint256 salt,bytes32 space,bytes32 executionHash,string metadataURI)")
-# Which returns: 0x2fe0a3cc9ff14c2d2480207f2d3a511f117a077337f1c2638b71be1f2d719ca0
+# keccak256("Propose(bytes32 space,bytes32 executionHash,string metadataURI,uint256 salt)")
 const PROPOSAL_HASH_HIGH = 0x4ee04a1ce2698772c67572749b444819
 const PROPOSAL_HASH_LOW = 0x7e7d5347059c4bbc8d9f71fb8deced25
 
 # This is the `Vote` typeHash, obtained by doing this:
-# keccak256("Vote(uint256 salt,bytes32 space,uint256 proposal,uint256 choice)")
-# 0x0a2717ddf197067ae85a6f41872b66f70cfba68208c9e9e5e5121904e822fc51
+# keccak256("Vote(bytes32 space,uint256 proposal,uint256 choice,uint256 salt)")
 const VOTE_HASH_HIGH = 0x1a3c7d8e1135d4dcd9ecccd1a7e8d4af
 const VOTE_HASH_LOW = 0xb66c839f5604c958d655f241b9041ded
 
