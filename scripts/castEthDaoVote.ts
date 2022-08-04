@@ -1,4 +1,5 @@
 import fetch from 'cross-fetch';
+import fs from 'fs';
 import { _TypedDataEncoder } from '@ethersproject/hash';
 import { ethers } from 'ethers';
 import { utils } from '@snapshot-labs/sx';
@@ -17,22 +18,22 @@ async function main() {
   );
   const ethAccount = new ethers.Wallet(process.env.ETH_PK_1!);
 
-  const spaceAddress = BigInt('0x047d4a40e6f80d3b28de7f09677a21681f0ff5f11633dd7ec8e86e48c7fe1ee0');
+  const spaceAddress = BigInt('0x06e9ac13ee6328edc1f37da546432a3942f6153ccd4e9f0b253e0ba7687c96ce');
   const votingStrategies = [
-    BigInt('0x663aa290f8d650117bd0faa9d14bfc6cd9626b5210b21d2524ccabb751b0bc7'),
+    BigInt('0x21958c45533894dbf59801c9f4058fae7cd71156c8aa9b56d59d2542da3a9f1'),
   ];
-  const userVotingStrategyParams: bigint[][] = [[]];
+
 
   // Single slot proof stuff, removed for now. Instead we use vanilla voting strategy
-  // const block = JSON.parse(fs.readFileSync('./test/data/blockGoerli.json').toString());
-  // const proofs = JSON.parse(fs.readFileSync('./test/data/proofsGoerli.json').toString());
-  // const proofInputs: utils.storageProofs.ProofInputs = utils.storageProofs.getProofInputs(
-  //   block.number,
-  //   proofs
-  // );
-  // const processBlockInputs: utils.storageProofs.ProcessBlockInputs =
-  //   utils.storageProofs.getProcessBlockInputs(block);
-
+  const block = JSON.parse(fs.readFileSync('./test/data/blockGoerli.json').toString());
+  const proofs = JSON.parse(fs.readFileSync('./test/data/proofsGoerli.json').toString());
+  const proofInputs: utils.storageProofs.ProofInputs = utils.storageProofs.getProofInputs(
+    block.number,
+    proofs
+  );
+  const processBlockInputs: utils.storageProofs.ProcessBlockInputs =
+    utils.storageProofs.getProcessBlockInputs(block);
+  const userVotingStrategyParams = [proofInputs.storageProofs[0]];
   const voterEthAddress = ethAccount.address;
   const proposalId = BigInt(1);
   const choice = utils.choice.Choice.FOR;
@@ -70,7 +71,7 @@ async function main() {
     ...voteCalldata,
   ];
   const calldataHex = calldata.map((x) => '0x' + x.toString(16));
-  const authenticatorAddress = '0x4886e6e13e4af4e65149a1528c3ee0833ae22cf2764a493bad89061c72c8da6';
+  const authenticatorAddress = '0x316b283007bdbbca6c8b8b1a145a04457c16c6de506582667436cc5a3335bc';
   const { transaction_hash: txHash } = await starkAccount.execute(
     {
       contractAddress: authenticatorAddress,

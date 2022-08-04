@@ -3,8 +3,9 @@ const Web3 = require('web3');
 import fs from 'fs';
 
 async function main() {
+  console.log(process.env.BLOCK_NUMBER);
   const web3 = new Web3(process.env.GOERLI_NODE_URL!);
-  const block = await web3.eth.getBlock('7339099');
+  const block = await web3.eth.getBlock(process.env.BLOCK_NUMBER);
   fs.writeFileSync('./test/data/blockGoerli.json', JSON.stringify(block));
 
   const accessList = await web3.eth.createAccessList({
@@ -24,7 +25,7 @@ async function main() {
   const proof = await web3.eth.getProof(
     '0xB4FBF271143F4FBf7B91A5ded31805e42b2208d6',
     [accessList.accessList[0].storageKeys[0], accessList2.accessList[0].storageKeys[0]],
-    '7339099'
+    process.env.BLOCK_NUMBER
   );
   fs.writeFileSync('./test/data/proofsGoerli.json', JSON.stringify(proof));
 }

@@ -56,11 +56,18 @@ async function main() {
   );
 
   const spaceClassHash = '0x2dcd7a8d2faabb84ab406cb5a1ecae51c1072f47a846f53b6284081e6d3eae5';
+  const fossilFactRegistryAddress =
+    '0x363108ac1521a47b4f7d82f8ba868199bc1535216bbedfc1b071ae93cc406fd';
+  const fossilL1HeadersStoreAddress =
+    '0x6ca3d25e901ce1fff2a7dd4079a24ff63ca6bbf8ba956efc71c1467975ab78f';
   const deployTxs = [
     defaultProvider.deployContract({ contract: compiledVanillaAuthenticator }),
     defaultProvider.deployContract({ contract: compiledEthSigAuthenticator }),
     defaultProvider.deployContract({ contract: compiledVanillaVotingStrategy }),
-    defaultProvider.deployContract({ contract: compiledSingleSlotProofVotingStrategy }),
+    defaultProvider.deployContract({
+      contract: compiledSingleSlotProofVotingStrategy,
+      constructorCalldata: [fossilFactRegistryAddress, fossilL1HeadersStoreAddress],
+    }),
     defaultProvider.deployContract({ contract: compiledVanillaExecutionStrategy }),
     defaultProvider.deployContract({
       contract: compiledSpaceFactory,
@@ -133,6 +140,10 @@ async function main() {
   const spaceAddress = spaceResponse.address!;
 
   const deployments = {
+    spaceFactory: {
+      address: spaceFactoryAddress,
+      spaceClassHash: spaceClassHash,
+    },
     space: {
       name: 'Ethereum DAO test space',
       address: '0x1234',

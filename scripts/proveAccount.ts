@@ -12,9 +12,9 @@ async function main() {
   global.fetch = fetch;
 
   const fossilFactRegistryAddress =
-    '0x2171a8c3d7f2fab006d22105f7fb161398c61ee2990348f2355f0debebbaf35';
+    '0x363108ac1521a47b4f7d82f8ba868199bc1535216bbedfc1b071ae93cc406fd';
   const fossilL1HeadersStoreAddress =
-    '0x1d9ffeeb6ad59f2286d3311d9ffe5593149c69ccc8c2fef59f3ef5c1a937365';
+    '0x6ca3d25e901ce1fff2a7dd4079a24ff63ca6bbf8ba956efc71c1467975ab78f';
 
   const starkAccount = new Account(
     defaultProvider,
@@ -33,24 +33,24 @@ async function main() {
   const processBlockInputs: utils.storageProofs.ProcessBlockInputs =
     utils.storageProofs.getProcessBlockInputs(block);
 
-  //   const calldata = [
-  //     processBlockInputs.blockOptions,
-  //     processBlockInputs.blockNumber,
-  //     processBlockInputs.headerInts.bytesLength,
-  //     processBlockInputs.headerInts.values.length,
-  //     ...processBlockInputs.headerInts.values,
-  //   ];
-  //   const calldataHex = calldata.map((x) => '0x' + x.toString(16));
-  //   const { transaction_hash: txHash } = await starkAccount.execute(
-  //     {
-  //       contractAddress: fossilL1HeadersStoreAddress,
-  //       entrypoint: 'process_block',
-  //       calldata: calldataHex,
-  //     },
-  //     undefined,
-  //     { maxFee: '857400005301800' }
-  //   );
-  //   console.log(txHash);
+  // const calldata = [
+  //   processBlockInputs.blockOptions,
+  //   processBlockInputs.blockNumber,
+  //   processBlockInputs.headerInts.bytesLength,
+  //   processBlockInputs.headerInts.values.length,
+  //   ...processBlockInputs.headerInts.values,
+  // ];
+  // const calldataHex = calldata.map((x) => '0x' + x.toString(16));
+  // const { transaction_hash: txHash } = await starkAccount.execute(
+  //   {
+  //     contractAddress: fossilL1HeadersStoreAddress,
+  //     entrypoint: 'process_block',
+  //     calldata: calldataHex,
+  //   },
+  //   undefined,
+  //   { maxFee: '857400005301800' }
+  // );
+  // console.log(txHash);
 
   const calldata = [
     proofInputs.accountOptions,
