@@ -17,7 +17,7 @@ from starkware.cairo.common.math import (
     assert_lt_felt,
 )
 
-from openzeppelin.access.ownable import Ownable
+from openzeppelin.access.ownable.library import Ownable
 from openzeppelin.account.library import Account, AccountCallArray, Account_current_nonce
 
 from contracts.starknet.Interfaces.IVotingStrategy import IVotingStrategy
