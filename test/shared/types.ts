@@ -25,15 +25,15 @@ export const voteTypes = {
 };
 
 export interface Propose {
-  salt: number;
   space: string;
   executionHash: string;
   metadataURI: string;
+  salt: number;
 }
 
 export interface Vote {
-  salt: number;
   space: string;
   proposal: number;
   choice: number;
+  salt: number;
 }
