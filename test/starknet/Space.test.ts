@@ -15,7 +15,7 @@ describe('Space Testing', () => {
 
   // Proposal creation parameters
   let spaceAddress: bigint;
-  let metadataUri: bigint[];
+  let metadataUri: utils.intsSequence.IntsSequence;
   let proposerEthAddress: string;
   let usedVotingStrategies1: bigint[];
   let userVotingParamsAll1: bigint[][];
@@ -37,7 +37,7 @@ describe('Space Testing', () => {
     ({ space, controller, vanillaAuthenticator, vanillaVotingStrategy, vanillaExecutionStrategy } =
       await vanillaSetup());
 
-    metadataUri = utils.strings.strToShortStringArr(
+    metadataUri = utils.intsSequence.IntsSequence.LEFromString(
       'Hello and welcome to Snapshot X. This is the future of governance.'
     );
     proposerEthAddress = ethers.Wallet.createRandom().address;

@@ -8,6 +8,7 @@ import { domain, Propose, proposeTypes, Vote, voteTypes } from '../shared/types'
 import { _TypedDataEncoder } from '@ethersproject/hash';
 import { TypedDataDomain, TypedDataField } from '@ethersproject/abstract-signer';
 import { computeHashOnElements } from 'starknet/dist/utils/hash';
+import { keccak256 } from 'ethers/lib/utils';
 
 const { getSelectorFromName } = hash;
 
@@ -15,6 +16,7 @@ export const VITALIK_ADDRESS = BigInt('0xd8da6bf26964af9d7eed9e03e53415d37aa9604
 export const AUTHENTICATE_METHOD = 'authenticate';
 export const PROPOSAL_METHOD = 'propose';
 export const VOTE_METHOD = 'vote';
+export const METADATA_URI = 'Hello and welcome to Snapshot X. This is the future of governance.';
 
 function getHash(
   domain: TypedDataDomain,
@@ -24,22 +26,13 @@ function getHash(
   const msgHash = _TypedDataEncoder.hash(domain, types, message);
 
   // Stub code to generate and print the type hash
-  // const vote = "Vote(uint256 salt,bytes32 space,uint256 proposal,uint256 choice)";
-  // let s = Buffer.from(vote);
-  // let typeHash: string = keccak256(s);
-  // console.log("typeHash: ", typeHash);
+  // const str = "Propose(bytes32 space,bytes32 executionHash,string metadataURI,uint256 salt)";
+  const str = 'Vote(bytes32 space,uint256 proposal,uint256 choice,uint256 salt)';
+  const s = Buffer.from(str);
+  const typeHash: string = keccak256(s);
+  console.log('typeHash: ', typeHash);
 
   return msgHash;
-}
-
-function prefixWithZeroes(s: string) {
-  // Remove prefix
-  if (s.startsWith('0x')) {
-    s = s.substring(2);
-  }
-
-  const numZeroes = 64 - s.length;
-  return '0x' + '0'.repeat(numZeroes) + s;
 }
 
 function hexPadRight(s: string) {
@@ -80,7 +73,7 @@ describe('Ethereum Sig Auth testing', () => {
   // Proposal creation parameters
   let spaceAddress: bigint;
   let executionHash: string;
-  let metadataUri: bigint[];
+  let metadataUri: utils.intsSequence.IntsSequence;
   let usedVotingStrategies1: bigint[];
   let userVotingParamsAll1: bigint[][];
   let executionStrategy: bigint;
@@ -104,9 +97,7 @@ describe('Ethereum Sig Auth testing', () => {
     console.log('Space address: ', space.address);
 
     const accounts = await ethers.getSigners();
-    metadataUri = utils.strings.strToShortStringArr(
-      'Hello and welcome to Snapshot X. This is the future of governance.'
-    );
+    metadataUri = utils.intsSequence.IntsSequence.LEFromString(METADATA_URI);
     spaceAddress = BigInt(space.address);
     usedVotingStrategies1 = [BigInt(vanillaVotingStrategy.address)];
     userVotingParamsAll1 = [[]];
@@ -145,7 +136,12 @@ describe('Ethereum Sig Auth testing', () => {
       const salt: utils.splitUint256.SplitUint256 = utils.splitUint256.SplitUint256.fromHex('0x1');
       const spaceStr = hexPadRight(space.address);
       const executionHashStr = hexPadRight(executionHash);
-      const message: Propose = { salt: 1, space: spaceStr, executionHash: executionHashStr };
+      const message: Propose = {
+        space: spaceStr,
+        executionHash: executionHashStr,
+        metadataURI: METADATA_URI,
+        salt: Number(salt.toHex()),
+      };
 
       const fake_data = [...proposeCalldata];
 
@@ -180,9 +176,10 @@ describe('Ethereum Sig Auth testing', () => {
       const spaceStr = hexPadRight(space.address);
       const executionHashStr = hexPadRight(executionHash);
       const message: Propose = {
-        salt: Number(proposalSalt.toHex()),
         space: spaceStr,
         executionHash: executionHashStr,
+        metadataURI: METADATA_URI,
+        salt: Number(proposalSalt.toHex()),
       };
       const proposerEthAddress = accounts[0].address;
       const proposeCalldata = utils.encoding.getProposeCalldata(
@@ -252,10 +249,10 @@ describe('Ethereum Sig Auth testing', () => {
       const spaceStr = hexPadRight(space.address);
       const voteSalt = utils.splitUint256.SplitUint256.fromHex('0x02');
       const message: Vote = {
-        salt: Number(voteSalt.toHex()),
         space: spaceStr,
         proposal: 1,
         choice: utils.choice.Choice.FOR,
+        salt: Number(voteSalt.toHex()),
       };
       const sig = await accounts[0]._signTypedData(domain, voteTypes, message);
 

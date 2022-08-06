@@ -22,7 +22,7 @@ describe('Single slot proof voting strategy:', () => {
 
   // Proposal creation parameters
   let spaceAddress: bigint;
-  let metadataUri: bigint[];
+  let metadataUri: utils.intsSequence.IntsSequence;
   let proposerEthAddress: string;
   let usedVotingStrategies1: bigint[];
   let userVotingParamsAll1: bigint[][];
@@ -57,7 +57,7 @@ describe('Single slot proof voting strategy:', () => {
     } = await singleSlotProofSetup(block, proofs));
 
     proposalId = BigInt(1);
-    metadataUri = utils.strings.strToShortStringArr(
+    metadataUri = utils.intsSequence.IntsSequence.LEFromString(
       'Hello and welcome to Snapshot X. This is the future of governance.'
     );
     // Eth address corresponding to slot with key: 0x1f209fa834e9c9c92b83d1bd04d8d1914bd212e440f88fdda8a5879962bda665

@@ -23,7 +23,7 @@ describe('L1 interaction with Snapshot X', function () {
 
   // Proposal creation parameters
   let spaceAddress: bigint;
-  let metadataUri: bigint[];
+  let metadataUri: utils.intsSequence.IntsSequence;
   let proposerEthAddress: string;
   let usedVotingStrategies: bigint[];
   let userVotingParamsAll: bigint[][];
@@ -45,7 +45,7 @@ describe('L1 interaction with Snapshot X', function () {
       starknetCommit,
     } = await ethTxAuthSetup());
 
-    metadataUri = utils.strings.strToShortStringArr(
+    metadataUri = utils.intsSequence.IntsSequence.LEFromString(
       'Hello and welcome to Snapshot X. This is the future of governance.'
     );
     proposerEthAddress = signer.address;
