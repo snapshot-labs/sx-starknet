@@ -561,7 +561,7 @@ namespace Voting:
 
         # Verify that the proposer has enough voting power to trigger a proposal
         let (threshold) = Voting_proposal_threshold_store.read()
-        let (has_enough_vp) = uint256_lt(voting_power, threshold)
+        let (has_enough_vp) = uint256_le(threshold, voting_power)
         with_attr error_message("Not enough voting power"):
             assert has_enough_vp = 1
         end
