@@ -438,6 +438,11 @@ namespace Voting:
         end
 
         let (proposal) = Voting_proposal_registry_store.read(proposal_id)
+        with_attr error_message("Proposal does not exist"):
+            # Asserting start timestamp is not zero because start timestamp
+            # is necessarily > 0 when creating a new proposal.
+            assert_not_zero(proposal.start_timestamp)
+        end
 
         # The snapshot timestamp at which voting power will be taken
         let snapshot_timestamp = proposal.snapshot_timestamp
