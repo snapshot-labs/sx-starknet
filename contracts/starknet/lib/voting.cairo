@@ -5,7 +5,7 @@
 from starkware.starknet.common.syscalls import get_caller_address, get_block_timestamp
 from starkware.cairo.common.cairo_builtins import HashBuiltin, SignatureBuiltin, BitwiseBuiltin
 from starkware.cairo.common.alloc import alloc
-from starkware.cairo.common.uint256 import Uint256, uint256_add, uint256_lt, uint256_le
+from starkware.cairo.common.uint256 import Uint256, uint256_add, uint256_lt, uint256_le, uint256_eq
 from starkware.cairo.common.bool import TRUE, FALSE
 from starkware.cairo.common.hash_state import hash_init, hash_update
 from starkware.cairo.common.math import (
@@ -438,6 +438,11 @@ namespace Voting:
         end
 
         let (proposal) = Voting_proposal_registry_store.read(proposal_id)
+        with_attr error_message("Proposal does not exist"):
+            # Asserting start timestamp is not zero because start timestamp
+            # is necessarily > 0 when creating a new proposal.
+            assert_not_zero(proposal.start_timestamp)
+        end
 
         # The snapshot timestamp at which voting power will be taken
         let snapshot_timestamp = proposal.snapshot_timestamp
@@ -455,11 +460,9 @@ namespace Voting:
 
         # Make sure voter has not already voted
         let (prev_vote) = Voting_vote_registry_store.read(proposal_id, voter_address)
-        if prev_vote.choice != 0:
-            # Voter has already voted!
-            with_attr error_message("User already voted"):
-                assert 1 = 0
-            end
+
+        with_attr error_message("User already voted"):
+            assert prev_vote.choice = 0
         end
 
         # Make sure `choice` is a valid choice
@@ -482,14 +485,17 @@ namespace Voting:
             0,
         )
 
+        let (no_voting_power) = uint256_eq(Uint256(0, 0), user_voting_power)
+
+        with_attr error_message("No voting power for user"):
+            assert no_voting_power = 0
+        end
+
         let (previous_voting_power) = Voting_vote_power_store.read(proposal_id, choice)
         let (new_voting_power, overflow) = uint256_add(user_voting_power, previous_voting_power)
 
-        if overflow != 0:
-            # Overflow happened, throw error
-            with_attr error_message("Overflow"):
-                assert 1 = 0
-            end
+        with_attr error_message("Overflow in voting power"):
+            assert overflow = 0
         end
 
         Voting_vote_power_store.write(proposal_id, choice, new_voting_power)
@@ -555,12 +561,9 @@ namespace Voting:
 
         # Verify that the proposer has enough voting power to trigger a proposal
         let (threshold) = Voting_proposal_threshold_store.read()
-        let (is_lower) = uint256_lt(voting_power, threshold)
-        if is_lower == 1:
-            # Not enough voting power to create a proposal
-            with_attr error_message("Not enough voting power"):
-                assert 1 = 0
-            end
+        let (has_enough_vp) = uint256_le(threshold, voting_power)
+        with_attr error_message("Not enough voting power"):
+            assert has_enough_vp = 1
         end
 
         # Hash the execution params
