@@ -26,7 +26,6 @@ async function main() {
     BigInt('0x21958c45533894dbf59801c9f4058fae7cd71156c8aa9b56d59d2542da3a9f1'),
   ];
 
-
   const metadataUri = utils.strings.strToShortStringArr(
     'Hello and welcome to Snapshot X. This is the future of governance.'
   );

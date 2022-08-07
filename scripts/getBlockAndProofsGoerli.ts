@@ -1,9 +1,10 @@
 // eslint-disable-next-line
 const Web3 = require('web3');
 import fs from 'fs';
+import ethers from 'ethers';
+import http from 'http';
 
 async function main() {
-  console.log(process.env.BLOCK_NUMBER);
   const web3 = new Web3(process.env.GOERLI_NODE_URL!);
   const block = await web3.eth.getBlock(process.env.BLOCK_NUMBER);
   fs.writeFileSync('./test/data/blockGoerli.json', JSON.stringify(block));
@@ -27,6 +28,23 @@ async function main() {
     [accessList.accessList[0].storageKeys[0], accessList2.accessList[0].storageKeys[0]],
     process.env.BLOCK_NUMBER
   );
+  // // const provider = new ethers.providers.JsonRpcProvider(process.env.GOERLI_NODE_URL!);
+	// const provider = new ethers.providers.AlchemyProvider("homestead", "OAHlljqbWeNIlLGh1noXrhkf7sHHYPmx");
+
+  // const proof2 = await provider.getProof({
+  //   address: '0x7e5814a',
+  // keys: ["0x56e81f,0x283s34"],
+  // tag: 'latest',
+  // });
+  //   console.log(proof2);
+
+  const options = {
+    host: 'https://eth-mainnet.alchemyapi.io',
+    path: '/v2/OAHlljqbWeNIlLGh1noXrhkf7sHHYPmx',
+    method: 'POST',
+    headers: { Content-Type: "application/json" },
+    data: 
+  };
   fs.writeFileSync('./test/data/proofsGoerli.json', JSON.stringify(proof));
 }
 

@@ -23,7 +23,6 @@ async function main() {
     BigInt('0x21958c45533894dbf59801c9f4058fae7cd71156c8aa9b56d59d2542da3a9f1'),
   ];
 
-
   // Single slot proof stuff, removed for now. Instead we use vanilla voting strategy
   const block = JSON.parse(fs.readFileSync('./test/data/blockGoerli.json').toString());
   const proofs = JSON.parse(fs.readFileSync('./test/data/proofsGoerli.json').toString());
