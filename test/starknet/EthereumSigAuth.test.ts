@@ -7,8 +7,6 @@ import { utils } from '@snapshot-labs/sx';
 import { ethereumSigAuthSetup } from '../shared/setup';
 import { PROPOSE_SELECTOR, VOTE_SELECTOR } from '../shared/constants';
 
-
-
 describe('Ethereum Sig Auth testing', () => {
   // Contracts
   let space: StarknetContract;
