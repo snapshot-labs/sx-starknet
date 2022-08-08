@@ -156,7 +156,9 @@ describe('Ethereum Sig Auth testing', () => {
       const spaceStr = hexPadRight(space.address);
       const executionHashPadded = hexPadRight(executionHash);
       const usedVotingStrategiesHashPadded1 = hexPadRight(usedVotingStrategiesHash1);
-      const userVotingStrategyParamsFlatHashPadded1 = hexPadRight(userVotingStrategyParamsFlatHash1);
+      const userVotingStrategyParamsFlatHashPadded1 = hexPadRight(
+        userVotingStrategyParamsFlatHash1
+      );
       const paddedProposerAddress = hexPadRight(proposerEthAddress);
       const paddedExecutor = hexPadRight(vanillaExecutionStrategy.address);
       const message: Propose = {
