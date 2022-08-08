@@ -26,8 +26,9 @@ function getHash(
   const msgHash = _TypedDataEncoder.hash(domain, types, message);
 
   // Stub code to generate and print the type hash
-  // const str = "Propose(bytes32 space,bytes32 executionHash,string metadataURI,uint256 salt)";
-  const str = 'Vote(bytes32 space,uint256 proposal,uint256 choice,uint256 salt)';
+  // const str = "Propose(bytes32 space,bytes32 proposerAddress,string metadataUri,bytes32 executor,bytes32 executionParamsHash,bytes32 usedVotingStrategiesHash,bytes32 userVotingStrategyParamsFlatHash,uint256 salt)";
+  const str =
+    'Vote(bytes32 space,bytes32 voterAddress,uint256 proposal,uint256 choice,bytes32 usedVotingStrategiesHash,bytes32 userVotingStrategyParamsFlatHash,uint256 salt)';
   const s = Buffer.from(str);
   const typeHash: string = keccak256(s);
   console.log('typeHash: ', typeHash);
@@ -75,7 +76,9 @@ describe('Ethereum Sig Auth testing', () => {
   let executionHash: string;
   let metadataUri: utils.intsSequence.IntsSequence;
   let usedVotingStrategies1: bigint[];
+  let usedVotingStrategiesHash1: string;
   let userVotingParamsAll1: bigint[][];
+  let userVotingStrategyParamsFlatHash1: string;
   let executionStrategy: bigint;
   let executionParams: bigint[];
   let proposerEthAddress: string;
@@ -86,7 +89,9 @@ describe('Ethereum Sig Auth testing', () => {
   let proposalId: bigint;
   let choice: utils.choice.Choice;
   let usedVotingStrategies2: bigint[];
+  let usedVotingStrategiesHash2: string;
   let userVotingParamsAll2: bigint[][];
+  let userVotingStrategyParamsFlatHash2: string;
   let voteCalldata: bigint[];
 
   before(async function () {
@@ -94,7 +99,6 @@ describe('Ethereum Sig Auth testing', () => {
 
     ({ space, controller, ethSigAuth, vanillaVotingStrategy, vanillaExecutionStrategy } =
       await ethereumSigAuthSetup());
-    console.log('Space address: ', space.address);
 
     const accounts = await ethers.getSigners();
     metadataUri = utils.intsSequence.IntsSequence.LEFromString(METADATA_URI);
@@ -104,8 +108,15 @@ describe('Ethereum Sig Auth testing', () => {
     executionStrategy = BigInt(vanillaExecutionStrategy.address);
 
     executionParams = [BigInt('1')]; // Random params
-    const executionParamsStrings: string[] = executionParams.map((x) => x.toString(16));
+    const executionParamsStrings: string[] = executionParams.map((x) => '0x' + x.toString(16));
     executionHash = computeHashOnElements(executionParamsStrings);
+    usedVotingStrategiesHash1 = computeHashOnElements(
+      usedVotingStrategies1.map((x) => '0x' + x.toString(16))
+    );
+    const userVotingStrategyParamsFlat1 = utils.encoding
+      .flatten2DArray(userVotingParamsAll1)
+      .map((x) => '0x' + x.toString(16));
+    userVotingStrategyParamsFlatHash1 = computeHashOnElements(userVotingStrategyParamsFlat1);
 
     proposerEthAddress = accounts[0].address;
     proposeCalldata = utils.encoding.getProposeCalldata(
@@ -122,6 +133,13 @@ describe('Ethereum Sig Auth testing', () => {
     choice = utils.choice.Choice.FOR;
     usedVotingStrategies2 = [BigInt(vanillaVotingStrategy.address)];
     userVotingParamsAll2 = [[]];
+    usedVotingStrategiesHash2 = computeHashOnElements(
+      usedVotingStrategies2.map((x) => '0x' + x.toString(16))
+    );
+    const userVotingStrategyParamsFlat2 = utils.encoding
+      .flatten2DArray(userVotingParamsAll2)
+      .map((x) => '0x' + x.toString(16));
+    userVotingStrategyParamsFlatHash2 = computeHashOnElements(userVotingStrategyParamsFlat2);
     voteCalldata = utils.encoding.getVoteCalldata(
       voterEthAddress,
       proposalId,
@@ -133,19 +151,27 @@ describe('Ethereum Sig Auth testing', () => {
 
   it('Should not authenticate an invalid signature', async () => {
     try {
+      const accounts = await ethers.getSigners();
       const salt: utils.splitUint256.SplitUint256 = utils.splitUint256.SplitUint256.fromHex('0x1');
       const spaceStr = hexPadRight(space.address);
-      const executionHashStr = hexPadRight(executionHash);
+      const executionHashPadded = hexPadRight(executionHash);
+      const usedVotingStrategiesHashPadded1 = hexPadRight(usedVotingStrategiesHash1);
+      const userVotingStrategyParamsFlatHashPadded1 = hexPadRight(userVotingStrategyParamsFlatHash1);
+      const paddedProposerAddress = hexPadRight(proposerEthAddress);
+      const paddedExecutor = hexPadRight(vanillaExecutionStrategy.address);
       const message: Propose = {
         space: spaceStr,
-        executionHash: executionHashStr,
-        metadataURI: METADATA_URI,
-        salt: Number(salt.toHex()),
+        proposerAddress: paddedProposerAddress,
+        metadataUri: METADATA_URI,
+        executor: paddedExecutor,
+        executionParamsHash: executionHashPadded,
+        usedVotingStrategiesHash: usedVotingStrategiesHashPadded1,
+        userVotingStrategyParamsFlatHash: userVotingStrategyParamsFlatHashPadded1,
+        salt: salt.toHex(),
       };
 
       const fake_data = [...proposeCalldata];
 
-      const accounts = await ethers.getSigners();
       const sig = await accounts[0]._signTypedData(domain, proposeTypes, message);
       const { r, s, v } = getRSVFromSig(sig);
 
@@ -173,23 +199,26 @@ describe('Ethereum Sig Auth testing', () => {
       const accounts = await ethers.getSigners();
       const proposalSalt: utils.splitUint256.SplitUint256 =
         utils.splitUint256.SplitUint256.fromHex('0x01');
+
       const spaceStr = hexPadRight(space.address);
-      const executionHashStr = hexPadRight(executionHash);
+      const executionHashPadded = hexPadRight(executionHash);
+      const usedVotingStrategiesHashPadded1 = hexPadRight(usedVotingStrategiesHash1);
+      const userVotingStrategyParamsFlatHashPadded1 = hexPadRight(
+        userVotingStrategyParamsFlatHash1
+      );
+      const paddedProposerAddress = hexPadRight(proposerEthAddress);
+      const paddedExecutor = hexPadRight(vanillaExecutionStrategy.address);
+
       const message: Propose = {
         space: spaceStr,
-        executionHash: executionHashStr,
-        metadataURI: METADATA_URI,
-        salt: Number(proposalSalt.toHex()),
+        proposerAddress: paddedProposerAddress,
+        metadataUri: METADATA_URI,
+        executor: paddedExecutor,
+        executionParamsHash: executionHashPadded,
+        usedVotingStrategiesHash: usedVotingStrategiesHashPadded1,
+        userVotingStrategyParamsFlatHash: userVotingStrategyParamsFlatHashPadded1,
+        salt: proposalSalt.toHex(),
       };
-      const proposerEthAddress = accounts[0].address;
-      const proposeCalldata = utils.encoding.getProposeCalldata(
-        proposerEthAddress,
-        metadataUri,
-        executionStrategy,
-        usedVotingStrategies1,
-        userVotingParamsAll1,
-        executionParams
-      );
 
       const sig = await accounts[0]._signTypedData(domain, proposeTypes, message);
 
@@ -248,22 +277,25 @@ describe('Ethereum Sig Auth testing', () => {
       const accounts = await ethers.getSigners();
       const spaceStr = hexPadRight(space.address);
       const voteSalt = utils.splitUint256.SplitUint256.fromHex('0x02');
+      const usedVotingStrategiesHashPadded2 = hexPadRight(usedVotingStrategiesHash2);
+      const userVotingStrategyParamsFlatHashPadded2 = hexPadRight(
+        userVotingStrategyParamsFlatHash2
+      );
+      const voterEthAddressPadded = hexPadRight(voterEthAddress);
+
       const message: Vote = {
         space: spaceStr,
-        proposal: 1,
+        voterAddress: voterEthAddressPadded,
+        proposal: BigInt(proposalId).toString(16),
         choice: utils.choice.Choice.FOR,
-        salt: Number(voteSalt.toHex()),
+        usedVotingStrategiesHash: usedVotingStrategiesHashPadded2,
+        userVotingStrategyParamsFlatHash: userVotingStrategyParamsFlatHashPadded2,
+        salt: voteSalt.toHex(),
       };
       const sig = await accounts[0]._signTypedData(domain, voteTypes, message);
 
       const { r, s, v } = getRSVFromSig(sig);
-      const voteCalldata = utils.encoding.getVoteCalldata(
-        voterEthAddress,
-        proposalId,
-        utils.choice.Choice.FOR,
-        usedVotingStrategies1,
-        userVotingParamsAll1
-      );
+
       await controller.invoke(ethSigAuth, AUTHENTICATE_METHOD, {
         r: r,
         s: s,
