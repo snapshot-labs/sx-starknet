@@ -33,7 +33,6 @@
     "@shardlabs/starknet-hardhat-plugin": "^0.6.2",
     "@snapshot-labs/sx": "0.1.0-beta.10",
     "concurrently": "^7.3.0",
-    "ethereumjs-util": "^7.1.5",
     "starknet": "^3.18.2"
   },
   "devDependencies": {
