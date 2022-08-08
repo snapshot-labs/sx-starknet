@@ -28,6 +28,7 @@
     "check-format": "yarn check-format:l1 && yarn check-format:l2 && yarn check-format:ts"
   },
   "dependencies": {
+    "@gnosis.pm/safe-contracts": "^1.3.0",
     "@gnosis.pm/zodiac": "^1.1.4",
     "@openzeppelin/contracts": "^4.7.2",
     "@shardlabs/starknet-hardhat-plugin": "^0.6.2",
