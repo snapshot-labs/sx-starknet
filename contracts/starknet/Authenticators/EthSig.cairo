@@ -186,7 +186,9 @@ func keccak_ints_sequence{range_check_ptr, bitwise_ptr : BitwiseBuiltin*, keccak
     return keccak_bigend(inputs=sequence, n_bytes=nb_bytes)
 end
 
-func get_padded_hash{range_check_ptr, pedersen_ptr : HashBuiltin*}(input_len: felt, input: felt*) -> (res: Uint256):
+func get_padded_hash{range_check_ptr, pedersen_ptr : HashBuiltin*}(
+    input_len : felt, input : felt*
+) -> (res : Uint256):
     alloc_locals
 
     let (hash) = hash_array(input_len, input)
@@ -247,29 +249,19 @@ func authenticate_proposal{
     # Used voting strategies
     let used_voting_strats_len = calldata[4 + metadata_uri_len]
     let used_voting_strats = &calldata[5 + metadata_uri_len]
-    let (used_voting_strategies_hash) = hash_array(used_voting_strats_len, used_voting_strats)
-    let (used_voting_strategies_hash_u256) = felt_to_uint256(used_voting_strategies_hash)
-    let (padded_used_voting_strategies_hash) = pad_right(used_voting_strategies_hash_u256)
+    let (used_voting_strategies_hash) = get_padded_hash(used_voting_strats_len, used_voting_strats)
 
     # User voting strategy params flat
     let user_voting_strat_params_flat_len = calldata[5 + metadata_uri_len + used_voting_strats_len]
     let user_voting_strat_params_flat = &calldata[6 + metadata_uri_len + used_voting_strats_len]
-    let (user_voting_strat_params_flat_hash) = hash_array(
+    let (user_voting_strategy_params_flat_hash) = get_padded_hash(
         user_voting_strat_params_flat_len, user_voting_strat_params_flat
-    )
-    let (user_voting_strat_params_flat_hash_u256) = felt_to_uint256(
-        user_voting_strat_params_flat_hash
-    )
-    let (padded_user_voting_strategy_params_flat_hash) = pad_right(
-        user_voting_strat_params_flat_hash_u256
     )
 
     # Execution hash
     let execution_params_len = calldata[6 + metadata_uri_len + used_voting_strats_len + user_voting_strat_params_flat_len]
     let execution_params_ptr : felt* = &calldata[7 + metadata_uri_len + used_voting_strats_len + user_voting_strat_params_flat_len]
-    let (execution_hash) = hash_array(execution_params_len, execution_params_ptr)
-    let (exec_hash_u256) = felt_to_uint256(execution_hash)
-    let (padded_execution_hash) = pad_right(exec_hash_u256)
+    let (execution_hash) = get_padded_hash(execution_params_len, execution_params_ptr)
 
     # Now construct the data hash (hashStruct)
     let (data : Uint256*) = alloc()
@@ -279,9 +271,9 @@ func authenticate_proposal{
     assert data[2] = padded_proposer_address
     assert data[3] = metadata_uri_hash
     assert data[4] = padded_executor
-    assert data[5] = padded_execution_hash
-    assert data[6] = padded_used_voting_strategies_hash
-    assert data[7] = padded_user_voting_strategy_params_flat_hash
+    assert data[5] = execution_hash
+    assert data[6] = used_voting_strategies_hash
+    assert data[7] = user_voting_strategy_params_flat_hash
     assert data[8] = salt
 
     let (hash_struct) = get_keccak_hash{keccak_ptr=keccak_ptr}(9, data)
@@ -352,22 +344,14 @@ func authenticate_vote{
 
     let used_voting_strategies_len = calldata[3]
     let used_voting_strategies = &calldata[4]
-    let (used_voting_strategies_hash) = hash_array(
+    let (used_voting_strategies_hash) = get_padded_hash(
         used_voting_strategies_len, used_voting_strategies
     )
-    let (used_voting_strategies_hash_u256) = felt_to_uint256(used_voting_strategies_hash)
-    let (padded_used_voting_strategies_hash) = pad_right(used_voting_strategies_hash_u256)
 
     let user_voting_strategy_params_flat_len = calldata[4 + used_voting_strategies_len]
     let user_voting_strategy_params_flat = &calldata[5 + used_voting_strategies_len]
-    let (user_voting_strategy_params_flat_hash) = hash_array(
+    let (user_voting_strategy_params_flat_hash) = get_padded_hash(
         user_voting_strategy_params_flat_len, user_voting_strategy_params_flat
-    )
-    let (user_voting_strategy_params_flat_hash_u256) = felt_to_uint256(
-        user_voting_strategy_params_flat_hash
-    )
-    let (padded_user_voting_strategy_params_flat_hash) = pad_right(
-        user_voting_strategy_params_flat_hash_u256
     )
 
     # Now construct the data hash (hashStruct)
@@ -377,8 +361,8 @@ func authenticate_vote{
     assert data[2] = padded_voter_address
     assert data[3] = proposal_id
     assert data[4] = choice
-    assert data[5] = padded_used_voting_strategies_hash
-    assert data[6] = padded_user_voting_strategy_params_flat_hash
+    assert data[5] = used_voting_strategies_hash
+    assert data[6] = user_voting_strategy_params_flat_hash
     assert data[7] = salt
 
     let (local keccak_ptr : felt*) = alloc()
