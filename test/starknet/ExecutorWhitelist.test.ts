@@ -17,20 +17,20 @@ describe('Whitelist testing', () => {
   let vanillaExecutionStrategy: StarknetContract;
 
   // Proposal creation parameters
-  let spaceAddress: bigint;
+  let spaceAddress: string;
   let executionHash: string;
   let metadataUri: utils.intsSequence.IntsSequence;
   let proposerEthAddress: string;
-  let usedVotingStrategies1: bigint[];
-  let userVotingParamsAll1: bigint[][];
-  let executionStrategy1: bigint;
-  let executionParams1: bigint[];
-  let proposeCalldata1: bigint[];
+  let usedVotingStrategies1: string[];
+  let userVotingParamsAll1: string[][];
+  let executionStrategy1: string;
+  let executionParams1: string[];
+  let proposeCalldata1: string[];
 
   // Alternative execution strategy parameters
-  let executionStrategy2: bigint;
-  let executionParams2: bigint[];
-  let proposeCalldata2: bigint[];
+  let executionStrategy2: string;
+  let executionParams2: string[];
+  let proposeCalldata2: string[];
 
   before(async function () {
     this.timeout(800000);
@@ -49,19 +49,17 @@ describe('Whitelist testing', () => {
     );
     vanillaExecutionStrategy = await vanillaExecutionStrategyFactory.deploy();
 
-    spaceAddress = BigInt(space.address);
-
+    spaceAddress = space.address;
     metadataUri = utils.intsSequence.IntsSequence.LEFromString(
       'Hello and welcome to Snapshot X. This is the future of governance.'
     );
     proposerEthAddress = ethers.Wallet.createRandom().address;
-    spaceAddress = BigInt(space.address);
-    usedVotingStrategies1 = [BigInt(vanillaVotingStrategy.address)];
+    usedVotingStrategies1 = [vanillaVotingStrategy.address];
     userVotingParamsAll1 = [[]];
-    executionStrategy1 = BigInt(zodiacRelayer.address);
+    executionStrategy1 = zodiacRelayer.address;
     executionHash = utils.bytes.bytesToHex(ethers.utils.randomBytes(32)); // Random 32 byte hash
     executionParams1 = [
-      BigInt(zodiacModule.address),
+      zodiacModule.address,
       utils.splitUint256.SplitUint256.fromHex(executionHash).low,
       utils.splitUint256.SplitUint256.fromHex(executionHash).high,
     ];
@@ -74,7 +72,7 @@ describe('Whitelist testing', () => {
       executionParams1
     );
 
-    executionStrategy2 = BigInt(vanillaExecutionStrategy.address);
+    executionStrategy2 = vanillaExecutionStrategy.address;
     executionParams2 = [];
     proposeCalldata2 = utils.encoding.getProposeCalldata(
       proposerEthAddress,

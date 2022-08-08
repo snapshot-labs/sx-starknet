@@ -37,9 +37,9 @@ describe('Controller Actions', () => {
   }).timeout(600000);
 
   it('The controller can add and remove voting strategies', async () => {
-    const votingStrategies: bigint[] = [BigInt(1234), BigInt(4567)];
-    const votingStrategyParams: bigint[][] = [[BigInt(1), BigInt(2), BigInt(0)], []];
-    const votingStrategyParamsFlat: bigint[] = utils.encoding.flatten2DArray(votingStrategyParams);
+    const votingStrategies: string[] = ['0x1234', '0x4567'];
+    const votingStrategyParams: string[][] = [['0x1', '0x2', '0x0'], []];
+    const votingStrategyParamsFlat: string[] = utils.encoding.flatten2DArray(votingStrategyParams);
     await controller.invoke(space, 'add_voting_strategies', {
       to_add: votingStrategies,
       params_flat: votingStrategyParamsFlat,
