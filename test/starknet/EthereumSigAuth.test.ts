@@ -78,8 +78,8 @@ describe('Ethereum Sig Auth testing', () => {
   it('Should not authenticate an invalid signature', async () => {
     try {
       const salt: utils.splitUint256.SplitUint256 = utils.splitUint256.SplitUint256.fromHex('0x1');
-      const spaceStr = hexPadRight(space.address);
-      const executionHashStr = hexPadRight(executionHash);
+      const spaceStr = utils.encoding.hexPadRight(space.address);
+      const executionHashStr = utils.encoding.hexPadRight(executionHash);
       const message: Propose = {
         space: spaceStr,
         executionHash: executionHashStr,
@@ -91,7 +91,7 @@ describe('Ethereum Sig Auth testing', () => {
 
       const accounts = await ethers.getSigners();
       const sig = await accounts[0]._signTypedData(domain, proposeTypes, message);
-      const { r, s, v } = getRSVFromSig(sig);
+      const { r, s, v } = utils.encoding.getRSVFromSig(sig);
 
       // Data is signed with accounts[0] but the proposer is accounts[1] so it should fail
       fakeData[0] = accounts[1].address;
@@ -117,8 +117,8 @@ describe('Ethereum Sig Auth testing', () => {
       const accounts = await ethers.getSigners();
       const proposalSalt: utils.splitUint256.SplitUint256 =
         utils.splitUint256.SplitUint256.fromHex('0x01');
-      const spaceStr = hexPadRight(space.address);
-      const executionHashStr = hexPadRight(executionHash);
+      const spaceStr = utils.encoding.hexPadRight(space.address);
+      const executionHashStr = utils.encoding.hexPadRight(executionHash);
       const message: Propose = {
         space: spaceStr,
         executionHash: executionHashStr,
@@ -137,7 +137,7 @@ describe('Ethereum Sig Auth testing', () => {
 
       const sig = await accounts[0]._signTypedData(domain, proposeTypes, message);
 
-      const { r, s, v } = getRSVFromSig(sig);
+      const { r, s, v } = utils.encoding.getRSVFromSig(sig);
 
       console.log('Creating proposal...');
       await controller.invoke(ethSigAuth, 'authenticate', {
@@ -190,7 +190,7 @@ describe('Ethereum Sig Auth testing', () => {
     {
       console.log('Casting a vote FOR...');
       const accounts = await ethers.getSigners();
-      const spaceStr = hexPadRight(space.address);
+      const spaceStr = utils.encoding.hexPadRight(space.address);
       const voteSalt = utils.splitUint256.SplitUint256.fromHex('0x02');
       const message: Vote = {
         space: spaceStr,
@@ -200,7 +200,7 @@ describe('Ethereum Sig Auth testing', () => {
       };
       const sig = await accounts[0]._signTypedData(domain, voteTypes, message);
 
-      const { r, s, v } = getRSVFromSig(sig);
+      const { r, s, v } = utils.encoding.getRSVFromSig(sig);
       const voteCalldata = utils.encoding.getVoteCalldata(
         voterEthAddress,
         proposalId,
