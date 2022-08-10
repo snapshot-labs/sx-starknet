@@ -19,30 +19,22 @@ describe('Space Deployment Testing', () => {
   let votingDelay: bigint;
   let minVotingDuration: bigint;
   let maxVotingDuration: bigint;
-  let votingStrategies: bigint[];
-  let votingStrategyParamsFlat: bigint[];
-  let authenticators: bigint[];
-  let executors: bigint[];
+  let votingStrategies: string[];
+  let votingStrategyParamsFlat: string[];
+  let authenticators: string[];
+  let executors: string[];
   let quorum: utils.splitUint256.SplitUint256;
   let proposalThreshold: utils.splitUint256.SplitUint256;
 
   // Proposal creation parameters
   let spaceAddress: bigint;
-  let metadataUri: bigint[];
+  let metadataUri: utils.intsSequence.IntsSequence;
   let proposerEthAddress: string;
-  let usedVotingStrategies1: bigint[];
-  let userVotingParamsAll1: bigint[][];
-  let executionStrategy: bigint;
-  let executionParams: bigint[];
-  let proposeCalldata: bigint[];
-
-  // Additional parameters for voting
-  let voterEthAddress: string;
-  let proposalId: bigint;
-  let choice: utils.choice.Choice;
-  let usedVotingStrategies2: bigint[];
-  let userVotingParamsAll2: bigint[][];
-  let voteCalldata: bigint[];
+  let usedVotingStrategies1: string[];
+  let userVotingParamsAll1: string[][];
+  let executionStrategy: string;
+  let executionParams: string[];
+  let proposeCalldata: string[];
 
   before(async function () {
     this.timeout(800000);
@@ -59,10 +51,10 @@ describe('Space Deployment Testing', () => {
     votingDelay = BigInt(0);
     minVotingDuration = BigInt(0);
     maxVotingDuration = BigInt(2000);
-    votingStrategies = [BigInt(vanillaVotingStrategy.address)];
+    votingStrategies = [vanillaVotingStrategy.address];
     votingStrategyParamsFlat = utils.encoding.flatten2DArray([[]]);
-    authenticators = [BigInt(vanillaAuthenticator.address)];
-    executors = [BigInt(vanillaExecutionStrategy.address)];
+    authenticators = [vanillaAuthenticator.address];
+    executors = [vanillaExecutionStrategy.address];
     quorum = utils.splitUint256.SplitUint256.fromUint(BigInt(1)); //  Quorum of one for the vanilla test
     proposalThreshold = utils.splitUint256.SplitUint256.fromUint(BigInt(1)); // Proposal threshold of 1 for the vanilla test
   });
@@ -84,17 +76,16 @@ describe('Space Deployment Testing', () => {
     const receipt = await starknet.getTransactionReceipt(txHash);
     // Removing first event as that's from the account contract deployment
     const decodedEvents = await spaceDeployer.decodeEvents(receipt.events.slice(1));
-    metadataUri = utils.strings.strToShortStringArr(
+    metadataUri = utils.intsSequence.IntsSequence.LEFromString(
       'Hello and welcome to Snapshot X. This is the future of governance.'
     );
     proposerEthAddress = ethers.Wallet.createRandom().address;
-    spaceAddress = BigInt(decodedEvents[0].data.space_address);
+    spaceAddress = decodedEvents[0].data.space_address;
     space = spaceFactoryClass.getContractAt(`0x${spaceAddress.toString(16)}`);
-    usedVotingStrategies1 = [BigInt(vanillaVotingStrategy.address)];
+    usedVotingStrategies1 = [vanillaVotingStrategy.address];
     userVotingParamsAll1 = [[]];
-    executionStrategy = BigInt(vanillaExecutionStrategy.address);
+    executionStrategy = vanillaExecutionStrategy.address;
     executionParams = [];
-    proposalId = BigInt(0);
     proposeCalldata = utils.encoding.getProposeCalldata(
       proposerEthAddress,
       metadataUri,
@@ -113,7 +104,7 @@ describe('Space Deployment Testing', () => {
       });
 
       const { proposal_info } = await space.call('get_proposal_info', {
-        proposal_id: proposalId,
+        proposal_id: '0x1',
       });
 
       const _for = utils.splitUint256.SplitUint256.fromObj(proposal_info.power_for).toUint();

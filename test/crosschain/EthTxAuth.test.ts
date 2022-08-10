@@ -22,14 +22,14 @@ describe('L1 interaction with Snapshot X', function () {
   let starknetCommit: Contract;
 
   // Proposal creation parameters
-  let spaceAddress: bigint;
-  let metadataUri: bigint[];
+  let spaceAddress: string;
+  let metadataUri: utils.intsSequence.IntsSequence;
   let proposerEthAddress: string;
-  let usedVotingStrategies: bigint[];
-  let userVotingParamsAll: bigint[][];
-  let executionStrategy: bigint;
-  let executionParams: bigint[];
-  let proposeCalldata: bigint[];
+  let usedVotingStrategies: string[];
+  let userVotingParamsAll: string[][];
+  let executionStrategy: string;
+  let executionParams: string[];
+  let proposeCalldata: string[];
 
   before(async function () {
     const signers = await ethers.getSigners();
@@ -45,14 +45,14 @@ describe('L1 interaction with Snapshot X', function () {
       starknetCommit,
     } = await ethTxAuthSetup());
 
-    metadataUri = utils.strings.strToShortStringArr(
+    metadataUri = utils.intsSequence.IntsSequence.LEFromString(
       'Hello and welcome to Snapshot X. This is the future of governance.'
     );
     proposerEthAddress = signer.address;
-    spaceAddress = BigInt(space.address);
-    usedVotingStrategies = [BigInt(vanillaVotingStrategy.address)];
+    spaceAddress = space.address;
+    usedVotingStrategies = [vanillaVotingStrategy.address];
     userVotingParamsAll = [[]];
-    executionStrategy = BigInt(vanillaExecutionStrategy.address);
+    executionStrategy = vanillaExecutionStrategy.address;
     executionParams = [];
     proposeCalldata = utils.encoding.getProposeCalldata(
       proposerEthAddress,
@@ -122,7 +122,7 @@ describe('L1 interaction with Snapshot X', function () {
 
   it('Authentication should fail if the commit sender address is not equal to the address in the payload', async () => {
     await starknet.devnet.loadL1MessagingContract(networkUrl, mockStarknetMessaging.address);
-    proposeCalldata[0] = BigInt(ethers.Wallet.createRandom().address); // Random l1 address in the calldata
+    proposeCalldata[0] = ethers.Wallet.createRandom().address; // Random l1 address in the calldata
     await starknetCommit
       .connect(signer)
       .commit(utils.encoding.getCommit(spaceAddress, PROPOSE_SELECTOR, proposeCalldata));

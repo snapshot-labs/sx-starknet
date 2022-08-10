@@ -22,8 +22,8 @@ describe('Snapshot X Vanilla Voting Strategy:', () => {
       params: [],
       user_params: [],
     });
-    expect(new utils.splitUint256.SplitUint256(vp.low, vp.high)).to.deep.equal(
-      utils.splitUint256.SplitUint256.fromUint(BigInt(1))
-    );
+    expect(
+      new utils.splitUint256.SplitUint256(`0x${vp.low.toString(16)}`, `0x${vp.high.toString(16)}`)
+    ).to.deep.equal(utils.splitUint256.SplitUint256.fromUint(BigInt(1)));
   }).timeout(600000);
 });

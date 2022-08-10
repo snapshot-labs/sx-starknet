@@ -1,8 +1,16 @@
+<<<<<<< HEAD
 import { _TypedDataEncoder } from '@ethersproject/hash';
 import { TypedDataDomain, TypedDataField } from '@ethersproject/abstract-signer';
 import { utils } from '@snapshot-labs/sx';
 
 export function getHash(
+=======
+import { ethers } from 'hardhat';
+import { TypedDataDomain, TypedDataField } from '@ethersproject/abstract-signer';
+import { _TypedDataEncoder } from '@ethersproject/hash';
+
+function getHash(
+>>>>>>> develop
   domain: TypedDataDomain,
   types: Record<string, TypedDataField[]>,
   message: Record<string, any>
@@ -10,6 +18,7 @@ export function getHash(
   const msgHash = _TypedDataEncoder.hash(domain, types, message);
 
   // Stub code to generate and print the type hash
+<<<<<<< HEAD
   // const vote = "Vote(uint256 salt,bytes32 space,uint256 proposal,uint256 choice)";
   // let s = Buffer.from(vote);
   // let typeHash: string = keccak256(s);
@@ -54,3 +63,13 @@ export function getRSVFromSig(sig: string) {
   const v = BigInt('0x' + sig.substring(64 * 2));
   return { r, s, v };
 }
+=======
+  // const str = "Propose(bytes32 space,bytes32 executionHash,string metadataURI,uint256 salt)";
+  const str = 'Vote(bytes32 space,uint256 proposal,uint256 choice,uint256 salt)';
+  const s = Buffer.from(str);
+  const typeHash: string = ethers.utils.keccak256(s);
+  console.log('typeHash: ', typeHash);
+
+  return msgHash;
+}
+>>>>>>> develop
