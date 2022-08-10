@@ -17,11 +17,7 @@ from starkware.cairo.common.math import (
     assert_lt_felt,
 )
 
-<<<<<<< HEAD
-from openzeppelin.access.ownable import Ownable
-=======
 from openzeppelin.access.ownable.library import Ownable
->>>>>>> develop
 from openzeppelin.account.library import Account, AccountCallArray, Account_current_nonce
 
 from contracts.starknet.Interfaces.IVotingStrategy import IVotingStrategy
@@ -442,14 +438,12 @@ namespace Voting:
         end
 
         let (proposal) = Voting_proposal_registry_store.read(proposal_id)
-<<<<<<< HEAD
-=======
+
         with_attr error_message("Proposal does not exist"):
             # Asserting start timestamp is not zero because start timestamp
             # is necessarily > 0 when creating a new proposal.
             assert_not_zero(proposal.start_timestamp)
         end
->>>>>>> develop
 
         # The snapshot timestamp at which voting power will be taken
         let snapshot_timestamp = proposal.snapshot_timestamp
@@ -467,17 +461,9 @@ namespace Voting:
 
         # Make sure voter has not already voted
         let (prev_vote) = Voting_vote_registry_store.read(proposal_id, voter_address)
-<<<<<<< HEAD
-        if prev_vote.choice != 0:
-            # Voter has already voted!
-            with_attr error_message("User already voted"):
-                assert 1 = 0
-            end
-=======
 
         with_attr error_message("User already voted"):
             assert prev_vote.choice = 0
->>>>>>> develop
         end
 
         # Make sure `choice` is a valid choice
@@ -500,16 +486,6 @@ namespace Voting:
             0,
         )
 
-<<<<<<< HEAD
-        let (previous_voting_power) = Voting_vote_power_store.read(proposal_id, choice)
-        let (new_voting_power, overflow) = uint256_add(user_voting_power, previous_voting_power)
-
-        if overflow != 0:
-            # Overflow happened, throw error
-            with_attr error_message("Overflow"):
-                assert 1 = 0
-            end
-=======
         let (no_voting_power) = uint256_eq(Uint256(0, 0), user_voting_power)
 
         with_attr error_message("No voting power for user"):
@@ -521,7 +497,6 @@ namespace Voting:
 
         with_attr error_message("Overflow in voting power"):
             assert overflow = 0
->>>>>>> develop
         end
 
         Voting_vote_power_store.write(proposal_id, choice, new_voting_power)
@@ -538,10 +513,7 @@ namespace Voting:
     @external
     func propose{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr : felt}(
         proposer_address : Address,
-<<<<<<< HEAD
-=======
         metadata_uri_string_len : felt,
->>>>>>> develop
         metadata_uri_len : felt,
         metadata_uri : felt*,
         executor : felt,
@@ -590,18 +562,9 @@ namespace Voting:
 
         # Verify that the proposer has enough voting power to trigger a proposal
         let (threshold) = Voting_proposal_threshold_store.read()
-<<<<<<< HEAD
-        let (is_lower) = uint256_lt(voting_power, threshold)
-        if is_lower == 1:
-            # Not enough voting power to create a proposal
-            with_attr error_message("Not enough voting power"):
-                assert 1 = 0
-            end
-=======
         let (has_enough_vp) = uint256_le(threshold, voting_power)
         with_attr error_message("Not enough voting power"):
             assert has_enough_vp = 1
->>>>>>> develop
         end
 
         # Hash the execution params
@@ -796,14 +759,6 @@ namespace Voting:
 
         let proposal_outcome = ProposalOutcome.CANCELLED
 
-<<<<<<< HEAD
-        IExecutionStrategy.execute(
-            contract_address=proposal.executor,
-            proposal_outcome=proposal_outcome,
-            execution_params_len=execution_params_len,
-            execution_params=execution_params,
-        )
-=======
         if proposal.executor != 1:
             # Custom execution strategies may have different processes to follow when a proposal is cancelled.
             # Therefore, we still forward the execution payload to the specified strategy contract.
@@ -822,7 +777,6 @@ namespace Voting:
             tempvar pedersen_ptr = pedersen_ptr
             tempvar range_check_ptr = range_check_ptr
         end
->>>>>>> develop
 
         # Flag this proposal as executed
         Voting_executed_proposals_store.write(proposal_id, 1)

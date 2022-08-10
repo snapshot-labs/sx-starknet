@@ -40,11 +40,6 @@ describe('Ethereum Sig Auth testing', () => {
     const accounts = await ethers.getSigners();
     ({ space, controller, ethSigAuth, vanillaVotingStrategy, vanillaExecutionStrategy } =
       await ethereumSigAuthSetup());
-<<<<<<< HEAD
-    console.log('Space address: ', space.address);
-=======
->>>>>>> develop
-
     metadataUri = 'Hello and welcome to Snapshot X. This is the future of governance.';
     metadataUriInts = utils.intsSequence.IntsSequence.LEFromString(metadataUri);
     spaceAddress = space.address;
