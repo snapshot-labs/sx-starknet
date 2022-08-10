@@ -708,15 +708,8 @@ export async function starknetExecutionSetup() {
   const vanillaAuthenticatorFactory = await starknet.getContractFactory(
     './contracts/starknet/Authenticators/Vanilla.cairo'
   );
-  const starknetExecutionStrategyFactory = await starknet.getContractFactory(
-    './contracts/starknet/ExecutionStrategies/Starknet.cairo'
-  );
 
-  const deployments = [
-    vanillaAuthenticatorFactory.deploy(),
-    vanillaVotingStrategyFactory.deploy(),
-    starknetExecutionStrategyFactory.deploy(),
-  ];
+  const deployments = [vanillaAuthenticatorFactory.deploy(), vanillaVotingStrategyFactory.deploy()];
   const contracts = await Promise.all(deployments);
   const vanillaAuthenticator = contracts[0] as StarknetContract;
   const vanillaVotingStrategy = contracts[1] as StarknetContract;
