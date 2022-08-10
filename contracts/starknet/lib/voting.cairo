@@ -335,6 +335,8 @@ namespace Voting:
 
         Ownable.assert_only_owner()
 
+        assert_no_active_proposal()
+
         unchecked_add_executors(to_add_len, to_add)
 
         executors_added.emit(to_add_len, to_add)
@@ -349,6 +351,8 @@ namespace Voting:
 
         Ownable.assert_only_owner()
 
+        assert_no_active_proposal()
+
         unchecked_remove_executors(to_remove_len, to_remove)
 
         executors_removed.emit(to_remove_len, to_remove)
@@ -362,6 +366,8 @@ namespace Voting:
         alloc_locals
 
         Ownable.assert_only_owner()
+
+        assert_no_active_proposal()
 
         let (params_all : Immutable2DArray) = construct_array2d(params_flat_len, params_flat)
 
@@ -379,6 +385,8 @@ namespace Voting:
 
         Ownable.assert_only_owner()
 
+        assert_no_active_proposal()
+
         unchecked_remove_voting_strategies(to_remove_len, to_remove)
         voting_strategies_removed.emit(to_remove_len, to_remove)
         return ()
@@ -391,6 +399,8 @@ namespace Voting:
         alloc_locals
 
         Ownable.assert_only_owner()
+
+        assert_no_active_proposal()
 
         unchecked_add_authenticators(to_add_len, to_add)
 
@@ -405,6 +415,8 @@ namespace Voting:
         alloc_locals
 
         Ownable.assert_only_owner()
+
+        assert_no_active_proposal()
 
         unchecked_remove_authenticators(to_remove_len, to_remove)
 
@@ -966,6 +978,36 @@ func assert_valid_executor{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, ran
         assert is_valid = 1
     end
 
+    return ()
+end
+
+func assert_no_active_proposal_recurse{
+    syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr
+}(proposal_id : felt):
+    if proposal_id == 0:
+        return ()
+    else:
+        # Ensure the proposal has been executed
+        let (has_been_executed) = Voting_executed_proposals_store.read(proposal_id)
+        assert has_been_executed = 1
+
+        # Recurse
+        assert_no_active_proposal_recurse(proposal_id - 1)
+        return ()
+    end
+end
+
+func assert_no_active_proposal{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr}():
+    let (next_proposal) = Voting_next_proposal_nonce_store.read()
+
+    # Using `next_proposal - 1` because `next_proposal` corresponds to the *next* nonce
+    # so we need to substract one. This is safe because latest_proposal is at least 1 because
+    # the constructor initializes the nonce to 1.
+    let latest_proposal = next_proposal - 1
+
+    with_attr error_message("Some proposals are still active"):
+        assert_no_active_proposal_recurse(latest_proposal)
+    end
     return ()
 end
 
