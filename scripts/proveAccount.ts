@@ -25,11 +25,11 @@ async function main() {
 
   //   Single slot proof stuff, removed for now. Instead we use vanilla voting strategy
   const block = JSON.parse(fs.readFileSync('./test/data/blockGoerli.json').toString());
-  const proofs = JSON.parse(fs.readFileSync('./test/data/proofsGoerli.json').toString());
-  const proofInputs: utils.storageProofs.ProofInputs = utils.storageProofs.getProofInputs(
-    block.number,
-    proofs
-  );
+  // const proofs = JSON.parse(fs.readFileSync('./test/data/proofsGoerli.json').toString());
+  // const proofInputs: utils.storageProofs.ProofInputs = utils.storageProofs.getProofInputs(
+  //   block.number,
+  //   proofs
+  // );
   const processBlockInputs: utils.storageProofs.ProcessBlockInputs =
     utils.storageProofs.getProcessBlockInputs(block);
 
@@ -52,31 +52,31 @@ async function main() {
   // );
   // console.log(txHash);
 
-  const calldata = [
-    proofInputs.accountOptions,
-    proofInputs.blockNumber,
-    proofInputs.ethAddress.values[0],
-    proofInputs.ethAddress.values[1],
-    proofInputs.ethAddress.values[2],
-    proofInputs.accountProofSizesBytes.length,
-    ...proofInputs.accountProofSizesBytes,
-    proofInputs.accountProofSizesWords.length,
-    ...proofInputs.accountProofSizesWords,
-    proofInputs.accountProof.length,
-    ...proofInputs.accountProof,
-  ];
-  const calldataHex = calldata.map((x) => '0x' + x.toString(16));
-  console.log(calldataHex);
-  const { transaction_hash: txHash } = await starkAccount.execute(
-    {
-      contractAddress: fossilFactRegistryAddress,
-      entrypoint: 'prove_account',
-      calldata: calldataHex,
-    },
-    undefined,
-    { maxFee: '857400005301800' }
-  );
-  console.log(txHash);
+  // const calldata = [
+  //   proofInputs.accountOptions,
+  //   proofInputs.blockNumber,
+  //   proofInputs.ethAddress.values[0],
+  //   proofInputs.ethAddress.values[1],
+  //   proofInputs.ethAddress.values[2],
+  //   proofInputs.accountProofSizesBytes.length,
+  //   ...proofInputs.accountProofSizesBytes,
+  //   proofInputs.accountProofSizesWords.length,
+  //   ...proofInputs.accountProofSizesWords,
+  //   proofInputs.accountProof.length,
+  //   ...proofInputs.accountProof,
+  // ];
+  // const calldataHex = calldata.map((x) => '0x' + x.toString(16));
+  // console.log(calldataHex);
+  // const { transaction_hash: txHash } = await starkAccount.execute(
+  //   {
+  //     contractAddress: fossilFactRegistryAddress,
+  //     entrypoint: 'prove_account',
+  //     calldata: calldataHex,
+  //   },
+  //   undefined,
+  //   { maxFee: '857400005301800' }
+  // );
+  // console.log(txHash);
 }
 
 main()

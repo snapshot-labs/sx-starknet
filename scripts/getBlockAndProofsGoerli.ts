@@ -1,53 +1,54 @@
-// eslint-disable-next-line
-const Web3 = require('web3');
 import fs from 'fs';
-import ethers from 'ethers';
-import http from 'http';
+import axios from 'axios';
+import { utils } from '@snapshot-labs/sx';
 
 async function main() {
-  const web3 = new Web3(process.env.GOERLI_NODE_URL!);
-  const block = await web3.eth.getBlock(process.env.BLOCK_NUMBER);
-  fs.writeFileSync('./test/data/blockGoerli.json', JSON.stringify(block));
+  // The target block number.
+  const blockNumber = '0x70033A';
 
-  const accessList = await web3.eth.createAccessList({
-    from: '0x2842c82E20ab600F443646e1BC8550B44a513D82',
-    data: '0x70a082310000000000000000000000002842c82E20ab600F443646e1BC8550B44a513D82',
-    gas: '0x3d0900',
-    gasPrice: '0x0',
-    to: '0xB4FBF271143F4FBf7B91A5ded31805e42b2208d6',
+  // The address of the contract we are proving storage values from.
+  // This example is the Goerli WETH ERC20 contract address.
+  const contractAddress = '0xB4FBF271143F4FBf7B91A5ded31805e42b2208d6';
+
+  // Voter/Proposer addresses that we need to generate storage proofs for.
+  const addresses = [
+    '0x2842c82E20ab600F443646e1BC8550B44a513D82',
+    '0x6015a04aFab2C317Aa02557cc35852e4C9B62c40',
+  ];
+
+  // The index of the mapping in then contract that we are proving storage values from.
+  // This example is the index of the balances[] mapping in the Goerli WETH ERC20 contract.
+  const slotIndex = '0x3';
+
+  // Generating the slot keys from the addresses and slot index.
+  const slotKeys = addresses.map(function (address) {
+    return utils.encoding.getSlotKey(address, slotIndex);
   });
-  const accessList2 = await web3.eth.createAccessList({
-    from: '0x2842c82E20ab600F443646e1BC8550B44a513D82',
-    data: '0x70a082310000000000000000000000006015a04aFab2C317Aa02557cc35852e4C9B62c40',
-    gas: '0x3d0900',
-    gasPrice: '0x0',
-    to: '0xB4FBF271143F4FBf7B91A5ded31805e42b2208d6',
-  });
-  const proof = await web3.eth.getProof(
-    '0xB4FBF271143F4FBf7B91A5ded31805e42b2208d6',
-    [accessList.accessList[0].storageKeys[0], accessList2.accessList[0].storageKeys[0]],
-    process.env.BLOCK_NUMBER
-  );
-  // // const provider = new ethers.providers.JsonRpcProvider(process.env.GOERLI_NODE_URL!);
-	// const provider = new ethers.providers.AlchemyProvider("homestead", "OAHlljqbWeNIlLGh1noXrhkf7sHHYPmx");
 
-  // const proof2 = await provider.getProof({
-  //   address: '0x7e5814a',
-  // keys: ["0x56e81f,0x283s34"],
-  // tag: 'latest',
-  // });
-  //   console.log(proof2);
-
-  const options = {
-    host: 'https://eth-mainnet.alchemyapi.io',
-    path: '/v2/OAHlljqbWeNIlLGh1noXrhkf7sHHYPmx',
+  // Retreiving the block data for the target block number.
+  const block = await axios({
+    url: process.env.GOERLI_NODE_URL!,
     method: 'POST',
-    headers: { Content-Type: "application/json" },
-    data: 
-  };
-  fs.writeFileSync('./test/data/proofsGoerli.json', JSON.stringify(proof));
-}
+    data: { jsonrpc: '2.0', method: 'eth_getBlockByNumber', params: [blockNumber, false], id: 1 },
+  }).then(function (response) {
+    fs.writeFileSync('./test/data/blockGoerli.json', JSON.stringify(response.data.result));
+  });
 
+  // Retreiving the account and storage proofs for the contract and slot keys specified at the target block number.
+  const proof = await axios({
+    url: process.env.GOERLI_NODE_URL!,
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    data: {
+      jsonrpc: '2.0',
+      method: 'eth_getProof',
+      params: [contractAddress, slotKeys, blockNumber],
+      id: 1,
+    },
+  }).then(function (response) {
+    fs.writeFileSync('./test/data/proofsGoerli.json', JSON.stringify(response.data.result));
+  });
+}
 main()
   .then(() => process.exit(0))
   .catch((error) => {
