@@ -54,7 +54,7 @@ describe('Single slot proof voting strategy:', () => {
       vanillaExecutionStrategy,
       fossil,
       proofInputs,
-    } = await singleSlotProofSetup(block, proofs, BigInt(0)));
+    } = await singleSlotProofSetup(block, proofs, '0x0'));
 
     proposalId = '0x1';
     metadataUri = utils.intsSequence.IntsSequence.LEFromString(

@@ -323,7 +323,7 @@ export async function ethTxAuthSetup() {
   };
 }
 
-export async function singleSlotProofSetup(block: any, proofs: any) {
+export async function singleSlotProofSetup(block: any, proofs: any, slotIndex: string) {
   // We pass the encode params function for the single slot proof strategy to generate the encoded data for the single slot proof strategy
   const proofInputs: utils.storageProofs.ProofInputs = utils.storageProofs.getProofInputs(
     block.number,
@@ -379,7 +379,7 @@ export async function singleSlotProofSetup(block: any, proofs: any) {
   const minVotingDuration = BigInt(0);
   const maxVotingDuration = BigInt(2000);
   const votingStrategies: string[] = [singleSlotProofStrategy.address];
-  const votingStrategyParams: string[][] = [[proofInputs.ethAddressFelt, '0x0']]; // For the aave erc20 contract, the balances mapping has a storage index of 0
+  const votingStrategyParams: string[][] = [[proofInputs.ethAddressFelt, slotIndex]]; // For the aave erc20 contract, the balances mapping has a storage index of 0
   const votingStrategyParamsFlat: string[] = utils.encoding.flatten2DArray(votingStrategyParams);
   const authenticators: string[] = [vanillaAuthenticator.address];
   const executors: string[] = [vanillaExecutionStrategy.address];
