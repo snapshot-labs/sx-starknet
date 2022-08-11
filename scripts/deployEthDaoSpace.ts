@@ -124,14 +124,14 @@ async function main() {
     undefined,
     { maxFee: '857400005301800' }
   );
-  console.log('waiting for space to be deployed...');
+  console.log('waiting for space to be deployed, transaction hash: ', txHash);
   await defaultProvider.waitForTransaction(txHash);
 
   // Extracting space address from the event emitted by the space factory.
   const receipt = (await defaultProvider.getTransactionReceipt(txHash)) as any;
   const spaceAddress = receipt.events[1].data[1];
 
-  // Storing deployment config
+  // Storing deployment config.
   const deployments = {
     spaceFactory: {
       address: spaceFactoryAddress,

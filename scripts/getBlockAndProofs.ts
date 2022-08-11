@@ -1,5 +1,4 @@
 import fs from 'fs';
-import axios from 'axios';
 import { utils } from '@snapshot-labs/sx';
 import fetch from 'node-fetch';
 
