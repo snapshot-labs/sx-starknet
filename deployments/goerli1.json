@@ -1,42 +1,36 @@
 {
     "space": {
-        "address": "0x534cb88aaf827aa8eed3ae6255774de317df2b0cac3a9fd3dae65fca9ef5437",
+        "address": "0x5ad4bd1ca422953ac845ac7915ddfa93fe3fecec0ed8c86db5e294b0e18c9bd",
         "authenticators": {
-            "EthSig": "0x274005d25fda59e7d6e497a7316e6ebee09e581264dcad7b8eda1ac40eb7e68",
-            "Vanilla": "0x499a92e4b1963c04fa86802941452e953d0445be13c8771dc036ae0d4b5ba13"
+            "EthSig": "0x77e6ce69756aec5994314726b71a7ae95ffb15180711e481d71b5595b70a468",
+            "Vanilla": "0x1574bf879d7f62ce07d40eee018ed471613637ba1c7c9231363fa2b75cd386f"
         },
         "controller": "0x0764c647e4c5f6e81c5baa1769b4554e44851a7b6319791fc6db9e25a32148bb",
         "executionStrategies": {
-            "Vanilla": "0x7a28acb303b2a8a12ea344a2b96dba2b6d8f85977771c73b992694605dc5fe6"
+            "Vanilla": "0x56aabaa21efea14289fdc1df7d76d3b5df179d94dc8e9f937b9a9dd75eb101a"
         },
         "maxVotingDuration": 200000,
         "minVotingDuration": 0,
         "name": "Ethereum DAO test space",
-        "proposalThreshold": {
-            "high": "0x0",
-            "low": "0x1"
-        },
-        "quorum": {
-            "high": "0x0",
-            "low": "0x1"
-        },
+        "proposalThreshold": "0x1",
+        "quorum": "0x1",
         "votingStrategies": {
             "SingleSlotProof": {
-                "address": "0x542fb0378f1b4cb0b90f85e0bfc2b137edd59149ba7e47f8a70e08ef9a226fe",
+                "address": "0x59b3695eb816a55f8251b6f7dd254798f58e95119e031caed8e02cdbacbca84",
                 "parameters": [
                     "0xB4FBF271143F4FBf7B91A5ded31805e42b2208d6",
                     "0x3"
                 ]
             },
             "Vanilla": {
-                "address": "0x758cc54bdb856393b7b5bfc42e1c967735bfb008e84fd34498cbe6d29c09eac",
+                "address": "0x184f7df02cfeef5307c93a602206ff8708560cb20b185226be93089f2740f36",
                 "parameters": [
                 ]
             }
         }
     },
     "spaceFactory": {
-        "address": "0x6dfa5b3d1efd137f75ed44a119abf4767664d41b17a8388a0c1085a548fe48f",
+        "address": "0x19c1ec91cb8d7b76d0550bde4dde2f4e54b420969b393b28af2045486cd23df",
         "spaceClassHash": "0x75fe4cc03bb9bf2252455199b5ee6757800ea02719b3f1b7d968a46b3ddaa78"
     }
 }

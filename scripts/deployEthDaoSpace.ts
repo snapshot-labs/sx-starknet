@@ -1,5 +1,5 @@
 import fs from 'fs';
-import { defaultProvider, Account, ec, json, SuccessfulTransactionReceiptResponse } from 'starknet';
+import { defaultProvider, Account, ec, json } from 'starknet';
 import { utils } from '@snapshot-labs/sx';
 
 async function main() {

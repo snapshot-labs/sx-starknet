@@ -1,10 +1,11 @@
 import fs from 'fs';
 import axios from 'axios';
 import { utils } from '@snapshot-labs/sx';
+import fetch from 'node-fetch';
 
 async function main() {
   // The target block number.
-  const blockNumber = '0x709C42';
+  const blockNumber = 7380034;
 
   // The address of the contract we are proving storage values from.
   // This example is the Goerli WETH ERC20 contract address.
@@ -26,27 +27,33 @@ async function main() {
   });
 
   // Retreiving the block data for the target block number.
-  const block = await axios({
-    url: process.env.GOERLI_NODE_URL!,
+  let response = await fetch(process.env.GOERLI_NODE_URL!, {
     method: 'POST',
-    data: { jsonrpc: '2.0', method: 'eth_getBlockByNumber', params: [blockNumber, false], id: 1 },
-  }).then(function (response) {
-    fs.writeFileSync('./test/data/blockGoerli.json', JSON.stringify(response.data.result));
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({
+      jsonrpc: '2.0',
+      method: 'eth_getBlockByNumber',
+      params: [`0x${blockNumber.toString(16)}`, false],
+      id: 1,
+    }),
+  });
+  await response.json().then(function (data) {
+    fs.writeFileSync('./test/data/blockGoerli.json', JSON.stringify(data.result));
   });
 
   // Retreiving the account and storage proofs for the contract and slot keys specified at the target block number.
-  const proof = await axios({
-    url: process.env.GOERLI_NODE_URL!,
+  response = await fetch(process.env.GOERLI_NODE_URL!, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
-    data: {
+    body: JSON.stringify({
       jsonrpc: '2.0',
       method: 'eth_getProof',
-      params: [contractAddress, slotKeys, blockNumber],
+      params: [contractAddress, slotKeys, `0x${blockNumber.toString(16)}`],
       id: 1,
-    },
-  }).then(function (response) {
-    fs.writeFileSync('./test/data/proofsGoerli.json', JSON.stringify(response.data.result));
+    }),
+  });
+  await response.json().then(function (data) {
+    fs.writeFileSync('./test/data/proofsGoerli.json', JSON.stringify(data.result));
   });
 }
 main()
