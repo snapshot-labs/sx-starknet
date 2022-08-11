@@ -1,36 +1,42 @@
 {
     "space": {
-        "address": "0x06e9ac13ee6328edc1f37da546432a3942f6153ccd4e9f0b253e0ba7687c96ce",
+        "address": "0x534cb88aaf827aa8eed3ae6255774de317df2b0cac3a9fd3dae65fca9ef5437",
         "authenticators": {
-            "EthSig": "0x316b283007bdbbca6c8b8b1a145a04457c16c6de506582667436cc5a3335bc",
-            "Vanilla": "0x4d9158dd049a3593b9b72000fe2b3a500669653dbf7e72dbd3ae5cd1aef8744"
+            "EthSig": "0x274005d25fda59e7d6e497a7316e6ebee09e581264dcad7b8eda1ac40eb7e68",
+            "Vanilla": "0x499a92e4b1963c04fa86802941452e953d0445be13c8771dc036ae0d4b5ba13"
         },
         "controller": "0x0764c647e4c5f6e81c5baa1769b4554e44851a7b6319791fc6db9e25a32148bb",
         "executionStrategies": {
-            "Vanilla": "0x32d59883bd6ead06c599e8e4a0f0fbe6fdab4e3f9d08cff252966d82461be89"
+            "Vanilla": "0x7a28acb303b2a8a12ea344a2b96dba2b6d8f85977771c73b992694605dc5fe6"
         },
-        "maxVotingDuration": "0x30d40",
-        "minVotingDuration": "0x0",
+        "maxVotingDuration": 200000,
+        "minVotingDuration": 0,
         "name": "Ethereum DAO test space",
-        "proposalThreshold": "0x1",
-        "quorum": "0x1",
+        "proposalThreshold": {
+            "high": "0x0",
+            "low": "0x1"
+        },
+        "quorum": {
+            "high": "0x0",
+            "low": "0x1"
+        },
         "votingStrategies": {
             "SingleSlotProof": {
-                "address": "0x21958c45533894dbf59801c9f4058fae7cd71156c8aa9b56d59d2542da3a9f1",
+                "address": "0x542fb0378f1b4cb0b90f85e0bfc2b137edd59149ba7e47f8a70e08ef9a226fe",
                 "parameters": [
                     "0xB4FBF271143F4FBf7B91A5ded31805e42b2208d6",
                     "0x3"
                 ]
             },
             "Vanilla": {
-                "address": "0x534490783bfcc7f55302a3afdb404988a9e5ec360688533b425a15da7018396",
+                "address": "0x758cc54bdb856393b7b5bfc42e1c967735bfb008e84fd34498cbe6d29c09eac",
                 "parameters": [
                 ]
             }
         }
     },
     "spaceFactory": {
-        "address": "0x53fa692b13da0641ef768c8c7fbe85a7034e72b1f43188315664c107a5f1c47",
-        "spaceClassHash": "0x2dcd7a8d2faabb84ab406cb5a1ecae51c1072f47a846f53b6284081e6d3eae5"
+        "address": "0x6dfa5b3d1efd137f75ed44a119abf4767664d41b17a8388a0c1085a548fe48f",
+        "spaceClassHash": "0x75fe4cc03bb9bf2252455199b5ee6757800ea02719b3f1b7d968a46b3ddaa78"
     }
 }

@@ -4,7 +4,7 @@ import { utils } from '@snapshot-labs/sx';
 
 async function main() {
   // The target block number.
-  const blockNumber = '0x70033A';
+  const blockNumber = '0x709C42';
 
   // The address of the contract we are proving storage values from.
   // This example is the Goerli WETH ERC20 contract address.

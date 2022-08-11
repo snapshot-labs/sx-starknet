@@ -3,16 +3,18 @@ import fs from 'fs';
 import { _TypedDataEncoder } from '@ethersproject/hash';
 import { ethers } from 'ethers';
 import { utils } from '@snapshot-labs/sx';
-import { defaultProvider, Account, ec, Call, RawCalldata } from 'starknet';
+import { defaultProvider, Account, ec } from 'starknet';
 
 async function main() {
   global.fetch = fetch;
 
+  // Fossil Goerli Addresses
   const fossilFactRegistryAddress =
     '0x363108ac1521a47b4f7d82f8ba868199bc1535216bbedfc1b071ae93cc406fd';
   const fossilL1HeadersStoreAddress =
     '0x6ca3d25e901ce1fff2a7dd4079a24ff63ca6bbf8ba956efc71c1467975ab78f';
 
+  // Argent X wallet used to submit transactions to SX
   const starkAccount = new Account(
     defaultProvider,
     process.env.ARGENT_X_ADDRESS!,
@@ -20,15 +22,16 @@ async function main() {
   );
   const ethAccount = new ethers.Wallet(process.env.ETH_PK_1!);
 
+  // Encoding block and proof data from JSON files.
   const block = JSON.parse(fs.readFileSync('./test/data/blockGoerli.json').toString());
   const processBlockInputs: utils.storageProofs.ProcessBlockInputs =
     utils.storageProofs.getProcessBlockInputs(block);
-  const proofs = JSON.parse(fs.readFileSync('./test/data/proofsGoerli.json').toString());
   const proofInputs: utils.storageProofs.ProofInputs = utils.storageProofs.getProofInputs(
     block.number,
-    proofs
+    JSON.parse(fs.readFileSync('./test/data/proofsGoerli.json').toString())
   );
 
+  // Submitting process block and account proof transactions as a multicall through the wallet
   const { transaction_hash: txHash } = await starkAccount.execute(
     [
       {

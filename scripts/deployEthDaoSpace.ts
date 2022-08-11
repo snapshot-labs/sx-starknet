@@ -1,5 +1,5 @@
 import fs from 'fs';
-import { defaultProvider, Account, ec, json } from 'starknet';
+import { defaultProvider, Account, ec, json, SuccessfulTransactionReceiptResponse } from 'starknet';
 import { utils } from '@snapshot-labs/sx';
 
 async function main() {
@@ -54,12 +54,12 @@ async function main() {
       .readFileSync('./starknet-artifacts/contracts/starknet/SpaceAccount.cairo/SpaceAccount.json')
       .toString('ascii')
   );
-
-  const spaceClassHash = '0x2dcd7a8d2faabb84ab406cb5a1ecae51c1072f47a846f53b6284081e6d3eae5';
+  const spaceClassHash = '0x75fe4cc03bb9bf2252455199b5ee6757800ea02719b3f1b7d968a46b3ddaa78';
   const fossilFactRegistryAddress =
     '0x363108ac1521a47b4f7d82f8ba868199bc1535216bbedfc1b071ae93cc406fd';
   const fossilL1HeadersStoreAddress =
     '0x6ca3d25e901ce1fff2a7dd4079a24ff63ca6bbf8ba956efc71c1467975ab78f';
+
   const deployTxs = [
     defaultProvider.deployContract({ contract: compiledVanillaAuthenticator }),
     defaultProvider.deployContract({ contract: compiledEthSigAuthenticator }),
@@ -82,63 +82,56 @@ async function main() {
   const vanillaExecutionStrategyAddress = responses[4].address!;
   const spaceFactoryAddress = responses[5].address!;
 
-  const votingDelay = BigInt(0);
-  const minVotingDuration = BigInt(0);
-  const maxVotingDuration = BigInt(200000);
-  const votingStrategies: bigint[] = [
-    BigInt(vanillaVotingStrategyAddress),
-    BigInt(singleSlotProofVotingStrategyAddress),
-  ];
-  const votingStrategyParams: bigint[][] = [
-    [],
-    [BigInt('0xB4FBF271143F4FBf7B91A5ded31805e42b2208d6'), BigInt(3)],
-  ]; // WETH erc20 balance voting
-  const votingStrategyParamsFlat: bigint[] = utils.encoding.flatten2DArray(votingStrategyParams);
-  const authenticators: bigint[] = [
-    BigInt(ethSigAuthenticatorAddress),
-    BigInt(vanillaAuthenticatorAddress),
-  ];
-  const executors: bigint[] = [BigInt(vanillaExecutionStrategyAddress)];
-  const quorum: utils.splitUint256.SplitUint256 = utils.splitUint256.SplitUint256.fromUint(
-    BigInt(1)
-  );
-  const proposalThreshold: utils.splitUint256.SplitUint256 =
-    utils.splitUint256.SplitUint256.fromUint(BigInt(1));
-  const controllerAddress = '0x0764c647e4c5f6e81c5baa1769b4554e44851a7b6319791fc6db9e25a32148bb'; // Controller address (orlando's argent x)
+  const votingDelay = 0;
+  const minVotingDuration = 0;
+  const maxVotingDuration = 200000;
+  const votingStrategies = [vanillaVotingStrategyAddress, singleSlotProofVotingStrategyAddress];
+  // First voting strategy is vanilla which has zero paramaters.
+  // Second voting strategy is single slot proof which has two parameters, the contract address and the slot index.
+  const votingStrategyParams = [[], ['0xB4FBF271143F4FBf7B91A5ded31805e42b2208d6', '0x3']];
+  const votingStrategyParamsFlat = utils.encoding.flatten2DArray(votingStrategyParams);
+  const authenticators = [ethSigAuthenticatorAddress, vanillaAuthenticatorAddress];
+  const executors = [vanillaExecutionStrategyAddress];
+  const quorum = utils.splitUint256.SplitUint256.fromUint(BigInt(1));
+  const proposalThreshold = utils.splitUint256.SplitUint256.fromUint(BigInt(1));
+  const controllerAddress = '0x0764c647e4c5f6e81c5baa1769b4554e44851a7b6319791fc6db9e25a32148bb'; // Controller address is orlando's argent x)
 
-  const spaceDeploymentCalldata: bigint[] = [
-    BigInt(controllerAddress),
-    votingDelay,
-    minVotingDuration,
-    maxVotingDuration,
-    proposalThreshold.low,
-    proposalThreshold.high,
-    BigInt(controllerAddress),
-    quorum.low,
-    quorum.high,
-    BigInt(votingStrategyParamsFlat.length),
-    ...votingStrategyParamsFlat,
-    BigInt(votingStrategies.length),
-    ...votingStrategies,
-    BigInt(authenticators.length),
-    ...authenticators,
-    BigInt(executors.length),
-    ...executors,
-  ];
-  const spaceDeploymentCalldataHex = spaceDeploymentCalldata.map((x) => '0x' + x.toString(16));
-
-  const spaceResponse = await starkAccount.execute(
+  // Deploy space contract through space factory.
+  const { transaction_hash: txHash } = await starkAccount.execute(
     {
       contractAddress: spaceFactoryAddress,
       entrypoint: 'deploy_space',
-      calldata: spaceDeploymentCalldataHex,
+      calldata: [
+        controllerAddress,
+        votingDelay,
+        minVotingDuration,
+        maxVotingDuration,
+        proposalThreshold.low,
+        proposalThreshold.high,
+        controllerAddress,
+        quorum.low,
+        quorum.high,
+        votingStrategyParamsFlat.length,
+        ...votingStrategyParamsFlat,
+        votingStrategies.length,
+        ...votingStrategies,
+        authenticators.length,
+        ...authenticators,
+        executors.length,
+        ...executors,
+      ],
     },
     undefined,
     { maxFee: '857400005301800' }
   );
-  console.log(spaceResponse);
-  const spaceAddress = spaceResponse.address!;
+  console.log('waiting for space to be deployed...');
+  await defaultProvider.waitForTransaction(txHash);
 
+  // Extracting space address from the event emitted by the space factory.
+  const receipt = (await defaultProvider.getTransactionReceipt(txHash)) as any;
+  const spaceAddress = receipt.events[1].data[1];
+
+  // Storing deployment config
   const deployments = {
     spaceFactory: {
       address: spaceFactoryAddress,
@@ -146,10 +139,10 @@ async function main() {
     },
     space: {
       name: 'Ethereum DAO test space',
-      address: '0x1234',
+      address: spaceAddress,
       controller: controllerAddress,
-      minVotingDuration: '0x' + minVotingDuration.toString(16),
-      maxVotingDuration: '0x' + maxVotingDuration.toString(16),
+      minVotingDuration: minVotingDuration,
+      maxVotingDuration: maxVotingDuration,
       proposalThreshold: proposalThreshold.toHex(),
       quorum: quorum.toHex(),
       authenticators: {
@@ -171,8 +164,8 @@ async function main() {
       },
     },
   };
-
   fs.writeFileSync('./deployments/goerli1.json', JSON.stringify(deployments));
+  console.log('---- DEPLOYMENT COMPLETE ----');
 }
 
 main()
