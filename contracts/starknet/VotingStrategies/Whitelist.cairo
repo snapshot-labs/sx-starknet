@@ -12,6 +12,29 @@ end
 func whitelisted(address : Address, voting_power : Uint256):
 end
 
+@constructor
+func constructor{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr : felt}(
+    _whitelist_len : felt, _whitelist : felt*
+):
+    register_whitelist(_whitelist_len, _whitelist)
+    return ()
+end
+
+@view
+func get_voting_power{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr : felt}(
+    timestamp : felt,
+    voter_address : Address,
+    params_len : felt,
+    params : felt*,
+    user_params_len : felt,
+    user_params : felt*,
+) -> (voting_power : Uint256):
+    let (power) = whitelist.read(voter_address)
+
+    # `power` will be set to 0 if other is not whitelisted
+    return (power)
+end
+
 func register_whitelist{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr : felt}(
     _whitelist_len : felt, _whitelist : felt*
 ):
@@ -34,27 +57,4 @@ func register_whitelist{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_
         register_whitelist(_whitelist_len - 3, &_whitelist[3])
         return ()
     end
-end
-
-@constructor
-func constructor{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr : felt}(
-    _whitelist_len : felt, _whitelist : felt*
-):
-    register_whitelist(_whitelist_len, _whitelist)
-    return ()
-end
-
-@view
-func get_voting_power{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr : felt}(
-    timestamp : felt,
-    voter_address : Address,
-    params_len : felt,
-    params : felt*,
-    user_params_len : felt,
-    user_params : felt*,
-) -> (voting_power : Uint256):
-    let (power) = whitelist.read(voter_address)
-
-    # `power` will be set to 0 if other is not whitelisted
-    return (power)
 end
