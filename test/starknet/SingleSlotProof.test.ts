@@ -1,7 +1,7 @@
 import fs from 'fs';
 import { expect } from 'chai';
 import { starknet } from 'hardhat';
-import { singleSlotProofSetup, Fossil } from '../shared/setup';
+import { ethBalanceOfSetup, Fossil } from '../shared/setup';
 import { PROPOSE_SELECTOR, VOTE_SELECTOR } from '../shared/constants';
 import { StarknetContract, Account } from 'hardhat/types';
 // import { strToShortStringArr } from '@snapshot-labs/sx';
@@ -13,7 +13,7 @@ describe('Single slot proof voting strategy:', () => {
   let controller: Account;
   let account: Account;
   let vanillaAuthenticator: StarknetContract;
-  let singleSlotProofStrategy: StarknetContract;
+  let ethBalanceOfVotingStrategy: StarknetContract;
   let vanillaExecutionStrategy: StarknetContract;
   let fossil: Fossil;
 
@@ -50,11 +50,11 @@ describe('Single slot proof voting strategy:', () => {
       space,
       controller,
       vanillaAuthenticator,
-      singleSlotProofStrategy,
+      ethBalanceOfVotingStrategy,
       vanillaExecutionStrategy,
       fossil,
       proofInputs,
-    } = await singleSlotProofSetup(block, proofs));
+    } = await ethBalanceOfSetup(block, proofs));
 
     proposalId = '0x1';
     metadataUri = utils.intsSequence.IntsSequence.LEFromString(
@@ -63,7 +63,7 @@ describe('Single slot proof voting strategy:', () => {
     // Eth address corresponding to slot with key: 0x1f209fa834e9c9c92b83d1bd04d8d1914bd212e440f88fdda8a5879962bda665
     proposerEthAddress = '0x4048c47b546b68ad226ea20b5f0acac49b086a21';
     spaceAddress = space.address;
-    usedVotingStrategies1 = [singleSlotProofStrategy.address];
+    usedVotingStrategies1 = [ethBalanceOfVotingStrategy.address];
     userVotingParamsAll1 = [proofInputs.storageProofs[0]];
     executionStrategy = vanillaExecutionStrategy.address;
     executionParams = [];
@@ -78,7 +78,7 @@ describe('Single slot proof voting strategy:', () => {
     // Eth address corresponding to slot with key: 0x9dd2a912bd3f98d4e52ea66ae2fff8b73a522895d081d522fe86f592ec8467c3
     voterEthAddress = '0x3744da57184575064838bbc87a0fc791f5e39ea2';
     choice = utils.choice.Choice.FOR;
-    usedVotingStrategies2 = [singleSlotProofStrategy.address];
+    usedVotingStrategies2 = [ethBalanceOfVotingStrategy.address];
     userVotingParamsAll2 = [proofInputs.storageProofs[1]];
     voteCalldata = utils.encoding.getVoteCalldata(
       voterEthAddress,
