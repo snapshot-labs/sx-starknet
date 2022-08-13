@@ -1,5 +1,5 @@
 import { expect } from 'chai';
-import { starknet } from 'hardhat';
+import { starknet, ethers } from 'hardhat';
 import { vanillaSetup } from '../shared/setup';
 import { StarknetContract, Account } from 'hardhat/types';
 import { utils } from '@snapshot-labs/sx';
