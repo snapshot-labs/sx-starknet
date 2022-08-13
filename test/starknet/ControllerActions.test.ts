@@ -5,7 +5,6 @@ import { StarknetContract, Account } from 'hardhat/types';
 import { utils } from '@snapshot-labs/sx';
 import { getProposeCalldata, getVoteCalldata } from '@snapshot-labs/sx/dist/utils/encoding';
 import { PROPOSE_SELECTOR, VOTE_SELECTOR } from '../shared/constants';
-import { StarkNetSig } from '@snapshot-labs/sx/dist/clients';
 
 describe('Controller Actions', () => {
   let space: StarknetContract;
@@ -34,6 +33,7 @@ describe('Controller Actions', () => {
       await controller.invoke(space, 'update_controller', {
         new_controller: user.starknetContract.address,
       });
+      throw { message: 'updated controller`' };
     } catch (error: any) {
       expect(error.message).to.contain('Ownable: caller is not the owner');
     }
@@ -84,6 +84,7 @@ describe('Controller Actions', () => {
         function_selector: PROPOSE_SELECTOR,
         calldata: wrongProposeCalldata,
       });
+      throw { message: "voting strategy wasn't removed" };
     } catch (error: any) {
       expect(error.message).to.contain('Invalid voting strategy');
     }
@@ -159,6 +160,7 @@ describe('Controller Actions', () => {
         function_selector: PROPOSE_SELECTOR,
         calldata: proposeCalldata,
       });
+      throw { message: "authenticator wasn't removed" };
     } catch (error: any) {
       expect(error.message).to.contain('Invalid authenticator');
     }
@@ -218,6 +220,7 @@ describe('Controller Actions', () => {
         function_selector: PROPOSE_SELECTOR,
         calldata: incorrectProposeCalldata,
       });
+      throw { message: "execution strategy wasn't removed" };
     } catch (error: any) {
       expect(error.message).to.contain('Invalid executor');
     }
@@ -295,6 +298,7 @@ describe('Controller Actions', () => {
         proposal_id: proposalId,
         execution_params: [],
       });
+      throw { message: 'quorum has not been updated' };
     } catch (error: any) {
       expect(error.message).to.contain('Quorum has not been reached');
     }
@@ -362,6 +366,7 @@ describe('Controller Actions', () => {
         function_selector: VOTE_SELECTOR,
         calldata: userVoteCalldata,
       });
+      throw { message: 'voting delay has not been updated' };
     } catch (error: any) {
       expect(error.message).to.contain('Voting has not started yet');
     }
@@ -439,6 +444,7 @@ describe('Controller Actions', () => {
         proposal_id: proposalId,
         execution_params: [],
       });
+      throw { message: 'min voting duration has not been updated' };
     } catch (error: any) {
       expect(error.message).to.contain('Min voting period has not elapsed');
     }
@@ -526,6 +532,7 @@ describe('Controller Actions', () => {
         function_selector: VOTE_SELECTOR,
         calldata: spaceVoteCalldata,
       });
+      throw { message: 'max voting duration has not been updated' };
     } catch (error: any) {
       expect(error.message).to.contain('Voting period has ended');
     }
@@ -588,6 +595,7 @@ describe('Controller Actions', () => {
         function_selector: PROPOSE_SELECTOR,
         calldata: spaceProposeCalldata,
       });
+      throw { message: 'proposal threshold not checked properly' };
     } catch (error: any) {
       expect(error.message).to.contain('Not enough voting power');
     }

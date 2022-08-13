@@ -88,7 +88,7 @@ describe('StarkNet Tx Auth testing', () => {
         function_selector: PROPOSE_SELECTOR,
         calldata: fakeData,
       });
-      throw 'error';
+      throw { message: 'error' };
     } catch (err: any) {
       expect(err.message).to.contain('Incorrect caller');
     }

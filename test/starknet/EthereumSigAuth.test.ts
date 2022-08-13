@@ -168,7 +168,7 @@ describe('Ethereum Sig Auth testing', () => {
           function_selector: PROPOSE_SELECTOR,
           calldata: proposeCalldata,
         });
-        throw 'replay attack worked on `propose`';
+        throw { message: 'replay attack worked on `propose`' };
       } catch (err: any) {
         expect(err.message).to.contain('Salt already used');
       }
@@ -242,7 +242,7 @@ describe('Ethereum Sig Auth testing', () => {
           function_selector: VOTE_SELECTOR,
           calldata: voteCalldata,
         });
-        throw 'replay attack worked on `vote`';
+        throw { message: 'replay attack worked on `vote`' };
       } catch (err: any) {
         expect(err.message).to.contain('Salt already used');
       }
