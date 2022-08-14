@@ -76,8 +76,7 @@ describe('Ethereum Sig Auth testing', () => {
     executionParams = ['0x01']; // Random params
     executionHash = computeHashOnElements(executionParams);
     usedVotingStrategiesHash1 = computeHashOnElements(usedVotingStrategies1);
-    const userVotingStrategyParamsFlat1 = utils.encoding
-      .flatten2DArray(userVotingParamsAll1);
+    const userVotingStrategyParamsFlat1 = utils.encoding.flatten2DArray(userVotingParamsAll1);
     userVotingStrategyParamsFlatHash1 = computeHashOnElements(userVotingStrategyParamsFlat1);
 
     proposerEthAddress = accounts[0].address;
@@ -95,11 +94,8 @@ describe('Ethereum Sig Auth testing', () => {
     choice = utils.choice.Choice.FOR;
     usedVotingStrategies2 = [vanillaVotingStrategy.address];
     userVotingParamsAll2 = [[]];
-    usedVotingStrategiesHash2 = computeHashOnElements(
-      usedVotingStrategies2
-    );
-    const userVotingStrategyParamsFlat2 = utils.encoding
-      .flatten2DArray(userVotingParamsAll2)
+    usedVotingStrategiesHash2 = computeHashOnElements(usedVotingStrategies2);
+    const userVotingStrategyParamsFlat2 = utils.encoding.flatten2DArray(userVotingParamsAll2);
     userVotingStrategyParamsFlatHash2 = computeHashOnElements(userVotingStrategyParamsFlat2);
     voteCalldata = utils.encoding.getVoteCalldata(
       voterEthAddress,
