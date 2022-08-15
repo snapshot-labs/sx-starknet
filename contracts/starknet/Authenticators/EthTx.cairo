@@ -5,8 +5,8 @@ from starkware.cairo.common.registers import get_fp_and_pc
 from starkware.cairo.common.alloc import alloc
 from starkware.cairo.common.memcpy import memcpy
 from starkware.cairo.common.math import assert_not_equal
-from contracts.starknet.lib.eth_address import EthAddress
-from contracts.starknet.lib.hash_array import hash_array
+from contracts.starknet.lib.general_address import Address
+from contracts.starknet.lib.hash_array import HashArray
 from contracts.starknet.lib.execute import execute
 
 # Address of the StarkNet Commit L1 contract which acts as the origin address of the messages sent to this contract.
@@ -16,7 +16,7 @@ end
 
 # Mapping between a commit and the L1 address of the sender.
 @storage_var
-func commit_store(hash : felt) -> (address : EthAddress):
+func commit_store(hash : felt) -> (address : Address):
 end
 
 @constructor
@@ -30,7 +30,7 @@ end
 # Receives hash from StarkNet commit contract and stores it in state.
 @l1_handler
 func commit{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr : felt}(
-    from_address : felt, sender : EthAddress, hash : felt
+    from_address : felt, sender : Address, hash : felt
 ):
     # Check L1 message origin is equal to the StarkNet commit address.
     let (origin) = starknet_commit_address_store.read()
@@ -53,7 +53,7 @@ func authenticate{syscall_ptr : felt*, range_check_ptr, pedersen_ptr : HashBuilt
     assert input_array[1] = function_selector
     memcpy(input_array + 2, calldata, calldata_len)
     # Hash array
-    let (hash) = hash_array(calldata_len + 2, input_array)
+    let (hash) = HashArray.hash_array(calldata_len + 2, input_array)
     # Check that the hash has been received by the contract from the StarkNet Commit contract
     let (address) = commit_store.read(hash)
     with_attr error_message("Hash not yet committed or already executed"):
@@ -64,7 +64,7 @@ func authenticate{syscall_ptr : felt*, range_check_ptr, pedersen_ptr : HashBuilt
         assert calldata[0] = address.value
     end
     # Clear the hash from the contract by writing the zero address to the mapping.
-    commit_store.write(hash, EthAddress(0))
+    commit_store.write(hash, Address(0))
     # Execute the function call with calldata supplied.
     execute(target, function_selector, calldata_len, calldata)
     return ()

@@ -8,7 +8,7 @@ from starkware.cairo.common.math import unsigned_div_rem, assert_nn_le
 
 from contracts.starknet.fossil.contracts.starknet.types import StorageSlot
 from contracts.starknet.lib.general_address import Address
-from contracts.starknet.lib.words import words_to_uint256
+from contracts.starknet.lib.felt_utils import FeltUtils
 from contracts.starknet.lib.timestamp import Timestamp
 from contracts.starknet.lib.slot_key import SlotKey
 
@@ -86,7 +86,9 @@ namespace SingleSlotProof:
 
         # Checking slot proof is for the correct slot
         let (valid_slot) = SlotKey.get_slot_key(slot_index, voter_address.value)
-        let (slot_uint256) = words_to_uint256(slot.word_1, slot.word_2, slot.word_3, slot.word_4)
+        let (slot_uint256) = FeltUtils.words_to_uint256(
+            slot.word_1, slot.word_2, slot.word_3, slot.word_4
+        )
         with_attr error_message("Invalid slot proof provided"):
             assert valid_slot = slot_uint256
         end

@@ -1,6 +1,6 @@
 %lang starknet
 from contracts.starknet.lib.execute import execute
-from contracts.starknet.lib.felt_to_uint256 import felt_to_uint256
+from contracts.starknet.lib.felt_utils import FeltUtils
 from contracts.starknet.lib.hash_array import HashArray
 from starkware.cairo.common.cairo_builtins import BitwiseBuiltin
 from starkware.cairo.common.uint256 import (
@@ -136,7 +136,7 @@ func u256_pow{range_check_ptr}(base : felt, exp : felt) -> (res : Uint256):
         # Compute `base ** exp - 1`
         let (recursion) = u256_pow(base, exp - 1)
 
-        let (uint256_base) = felt_to_uint256(base)
+        let (uint256_base) = FeltUtils.felt_to_uint256(base)
 
         # Multiply the result by `base`
         let (res, overflow) = uint256_mul(recursion, uint256_base)
@@ -230,10 +230,10 @@ func authenticate_proposal{
     let (execution_hash) = HashArray.hash_array(execution_params_len, execution_params_ptr)
 
     # `bytes32` types need to be right padded
-    let (exec_hash_u256) = felt_to_uint256(execution_hash)
+    let (exec_hash_u256) = FeltUtils.felt_to_uint256(execution_hash)
     let (padded_execution_hash) = pad_right(exec_hash_u256)
 
-    let (space) = felt_to_uint256(target)
+    let (space) = FeltUtils.felt_to_uint256(target)
     # `bytes32` types need to be right padded
     let (padded_space) = pad_right(space)
 
@@ -304,11 +304,11 @@ func authenticate_vote{
         assert already_used = 0
     end
 
-    let (space) = felt_to_uint256(target)
+    let (space) = FeltUtils.felt_to_uint256(target)
     # `bytes32` types need to be right padded
     let (padded_space) = pad_right(space)
-    let (proposal_id) = felt_to_uint256(calldata[1])
-    let (choice) = felt_to_uint256(calldata[2])
+    let (proposal_id) = FeltUtils.felt_to_uint256(calldata[1])
+    let (choice) = FeltUtils.felt_to_uint256(calldata[2])
 
     # Now construct the data hash (hashStruct)
     let (data : Uint256*) = alloc()
