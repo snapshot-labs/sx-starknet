@@ -35,7 +35,7 @@ from contracts.starknet.lib.choice import Choice
 from contracts.starknet.lib.proposal_outcome import ProposalOutcome
 
 # Libraries
-from contracts.starknet.lib.hash_array import hash_array
+from contracts.starknet.lib.hash_array import HashArray
 from contracts.starknet.lib.array2d import Array2D, Immutable2DArray
 
 #
@@ -576,7 +576,7 @@ namespace Voting:
 
         # Hash the execution params
         # Storing arrays inside a struct is impossible so instead we just store a hash and then reconstruct the array in finalize_proposal
-        let (execution_hash) = hash_array(execution_params_len, execution_params)
+        let (execution_hash) = HashArray.hash_array(execution_params_len, execution_params)
 
         let (_quorum) = Voting_quorum_store.read()
 
@@ -645,7 +645,7 @@ namespace Voting:
         end
 
         # Make sure execution params match the ones sent at proposal creation by checking that the hashes match
-        let (recovered_hash) = hash_array(execution_params_len, execution_params)
+        let (recovered_hash) = HashArray.hash_array(execution_params_len, execution_params)
         with_attr error_message("Invalid execution parameters"):
             assert recovered_hash = proposal.execution_hash
         end
