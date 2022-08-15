@@ -13,8 +13,8 @@ async function setup() {
   };
 }
 
-describe('Words 64 to Uint256:', () => {
-  it('The contract should covert 4 64 bit words to a Uint256', async () => {
+describe('Felt Utils:', () => {
+  it('The library should covert 4 64 bit words to a Uint256', async () => {
     const { testWords } = await setup();
     const word1 = BigInt(utils.bytes.bytesToHex(ethers.utils.randomBytes(2)));
     const word2 = BigInt(utils.bytes.bytesToHex(ethers.utils.randomBytes(2)));
@@ -36,7 +36,7 @@ describe('Words 64 to Uint256:', () => {
     ).to.deep.equal(utils.splitUint256.SplitUint256.fromUint(uint));
   }).timeout(600000);
 
-  it('The contract should covert a felt into 4 words', async () => {
+  it('The library should covert a felt into 4 words', async () => {
     const { testWords } = await setup();
     const input = BigInt(utils.bytes.bytesToHex(ethers.utils.randomBytes(31)));
     const { words: words } = await testWords.call('test_felt_to_words', {
