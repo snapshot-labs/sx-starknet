@@ -191,7 +191,7 @@ func get_padded_hash{range_check_ptr, pedersen_ptr : HashBuiltin*}(
 ) -> (res : Uint256):
     alloc_locals
 
-    let (hash) = hash_array(input_len, input)
+    let (hash) = HashArray.hash_array(input_len, input)
     let (hash_u256) = felt_to_uint256(hash)
     let (padded_hash) = pad_right(hash_u256)
 
