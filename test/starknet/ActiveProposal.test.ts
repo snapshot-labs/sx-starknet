@@ -3,7 +3,6 @@ import { starknet, ethers } from 'hardhat';
 import { vanillaSetup } from '../shared/setup';
 import { StarknetContract, Account } from 'hardhat/types';
 import { utils } from '@snapshot-labs/sx';
-import { getProposeCalldata } from '@snapshot-labs/sx/dist/utils/encoding';
 import { PROPOSE_SELECTOR } from '../shared/constants';
 
 describe('Controller Actions', () => {
@@ -21,7 +20,7 @@ describe('Controller Actions', () => {
       await vanillaSetup());
     user = await starknet.deployAccount('OpenZeppelin');
     proposalId = BigInt(1);
-    const proposalCallData = getProposeCalldata(
+    const proposalCallData = utils.encoding.getProposeCalldata(
       user.address,
       utils.intsSequence.IntsSequence.LEFromString(''),
       vanillaExecutionStrategy.address,
