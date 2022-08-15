@@ -31,14 +31,14 @@ const VOTE_SELECTOR = 0x132bdf85fc8aa10ac3c22f02317f8f53d4b4f52235ed1eabb3a4cbbe
 const ETHEREUM_PREFIX = 0x1901
 
 # This is the `Proposal` typeHash, obtained by doing this:
-# keccak256("Propose(bytes32 space,bytes32 executionHash,string metadataURI,uint256 salt)")
-const PROPOSAL_HASH_HIGH = 0x4ee04a1ce2698772c67572749b444819
-const PROPOSAL_HASH_LOW = 0x7e7d5347059c4bbc8d9f71fb8deced25
+# keccak256("Propose(bytes32 space,bytes32 proposerAddress,string metadataUri,bytes32 executor,bytes32 executionParamsHash,bytes32 usedVotingStrategiesHash,bytes32 userVotingStrategyParamsFlatHash,uint256 salt)")
+const PROPOSAL_HASH_HIGH = 0xa1a96273f272324c66f87ba1a951949d
+const PROPOSAL_HASH_LOW = 0xa34effccf1463302bc6e241f37fe5ef7
 
 # This is the `Vote` typeHash, obtained by doing this:
-# keccak256("Vote(bytes32 space,uint256 proposal,uint256 choice,uint256 salt)")
-const VOTE_HASH_HIGH = 0x1a3c7d8e1135d4dcd9ecccd1a7e8d4af
-const VOTE_HASH_LOW = 0xb66c839f5604c958d655f241b9041ded
+# keccak256("Vote(bytes32 space,bytes32 voterAddress,uint256 proposal,uint256 choice,bytes32 usedVotingStrategiesHash,bytes32 userVotingStrategyParamsFlatHash,uint256 salt)")
+const VOTE_HASH_HIGH = 0x0f76587b41b5c7810a4c8591d4d84385
+const VOTE_HASH_LOW = 0x85dba41961e8886710ef5d5cbe72713d
 
 # This is the domainSeparator, obtained by using those fields (see more about it in EIP712):
 # name: 'snapshot-x',
@@ -75,7 +75,7 @@ func prepend_prefix_2bytes{range_check_ptr, bitwise_ptr : BitwiseBuiltin*}(
     prefix : felt, output : Uint256*, input_len : felt, input : Uint256*
 ):
     if input_len == 0:
-        # Done, simlpy store the prefix in the `.high` part of the last Uin256, and
+        # Done, simlpy store the prefix in the `.high` part of the last Uint256, and
         # make sure we left shift it by 28 (32 - 4)
         assert output[0] = Uint256(0, prefix * 16 ** 28)
         return ()
@@ -186,6 +186,18 @@ func keccak_ints_sequence{range_check_ptr, bitwise_ptr : BitwiseBuiltin*, keccak
     return keccak_bigend(inputs=sequence, n_bytes=nb_bytes)
 end
 
+func get_padded_hash{range_check_ptr, pedersen_ptr : HashBuiltin*}(
+    input_len : felt, input : felt*
+) -> (res : Uint256):
+    alloc_locals
+
+    let (hash) = hash_array(input_len, input)
+    let (hash_u256) = felt_to_uint256(hash)
+    let (padded_hash) = pad_right(hash_u256)
+
+    return (res=padded_hash)
+end
+
 @external
 func authenticate_proposal{
     syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr, bitwise_ptr : BitwiseBuiltin*
@@ -213,40 +225,58 @@ func authenticate_proposal{
     let (local keccak_ptr : felt*) = alloc()
     let keccak_ptr_start = keccak_ptr
 
-    # Execution parameters should be in calldata[8] and calldata[9]
+    # Space address
+    let (space) = felt_to_uint256(target)
+    let (padded_space) = pad_right(space)
+
+    # Proposer address
+    let (proposer_address_u256) = felt_to_uint256(proposer_address)
+    let (padded_proposer_address) = pad_right(proposer_address_u256)
+
+    # Metadata URI
     let metadata_uri_string_len = calldata[1]
     let metadata_uri_len = calldata[2]
     let metadata_uri : felt* = &calldata[3]
-
     let (metadata_uri_hash) = keccak_ints_sequence{keccak_ptr=keccak_ptr}(
         metadata_uri_string_len, metadata_uri_len, metadata_uri
     )
 
+    # Executor
+    let executor = calldata[3 + metadata_uri_len]
+    let (executor_u256) = felt_to_uint256(executor)
+    let (padded_executor) = pad_right(executor_u256)
+
+    # Used voting strategies
     let used_voting_strats_len = calldata[4 + metadata_uri_len]
-    let used_voting_strats_params_flat_len = calldata[5 + metadata_uri_len + used_voting_strats_len]
-    let execution_params_len = calldata[6 + metadata_uri_len + used_voting_strats_len + used_voting_strats_params_flat_len]
-    let execution_params_ptr : felt* = &calldata[7 + metadata_uri_len + used_voting_strats_len + used_voting_strats_params_flat_len]
+    let used_voting_strats = &calldata[5 + metadata_uri_len]
+    let (used_voting_strategies_hash) = get_padded_hash(used_voting_strats_len, used_voting_strats)
 
-    let (execution_hash) = HashArray.hash_array(execution_params_len, execution_params_ptr)
+    # User voting strategy params flat
+    let user_voting_strat_params_flat_len = calldata[5 + metadata_uri_len + used_voting_strats_len]
+    let user_voting_strat_params_flat = &calldata[6 + metadata_uri_len + used_voting_strats_len]
+    let (user_voting_strategy_params_flat_hash) = get_padded_hash(
+        user_voting_strat_params_flat_len, user_voting_strat_params_flat
+    )
 
-    # `bytes32` types need to be right padded
-    let (exec_hash_u256) = FeltUtils.felt_to_uint256(execution_hash)
-    let (padded_execution_hash) = pad_right(exec_hash_u256)
-
-    let (space) = FeltUtils.felt_to_uint256(target)
-    # `bytes32` types need to be right padded
-    let (padded_space) = pad_right(space)
+    # Execution hash
+    let execution_params_len = calldata[6 + metadata_uri_len + used_voting_strats_len + user_voting_strat_params_flat_len]
+    let execution_params_ptr : felt* = &calldata[7 + metadata_uri_len + used_voting_strats_len + user_voting_strat_params_flat_len]
+    let (execution_hash) = get_padded_hash(execution_params_len, execution_params_ptr)
 
     # Now construct the data hash (hashStruct)
     let (data : Uint256*) = alloc()
 
     assert data[0] = Uint256(PROPOSAL_HASH_LOW, PROPOSAL_HASH_HIGH)
     assert data[1] = padded_space
-    assert data[2] = padded_execution_hash
+    assert data[2] = padded_proposer_address
     assert data[3] = metadata_uri_hash
-    assert data[4] = salt
+    assert data[4] = padded_executor
+    assert data[5] = execution_hash
+    assert data[6] = used_voting_strategies_hash
+    assert data[7] = user_voting_strategy_params_flat_hash
+    assert data[8] = salt
 
-    let (hash_struct) = get_keccak_hash{keccak_ptr=keccak_ptr}(5, data)
+    let (hash_struct) = get_keccak_hash{keccak_ptr=keccak_ptr}(9, data)
 
     # Prepare the encoded data
     let (prepared_encoded : Uint256*) = alloc()
@@ -294,7 +324,6 @@ func authenticate_vote{
 ):
     alloc_locals
 
-    # Voter address should be located in calldata[0]
     let voter_address = calldata[0]
 
     # Ensure voter has not already used this salt in a previous action
@@ -305,24 +334,41 @@ func authenticate_vote{
     end
 
     let (space) = FeltUtils.felt_to_uint256(target)
-    # `bytes32` types need to be right padded
     let (padded_space) = pad_right(space)
+
+    let (voter_address_u256) = FeltUtils.felt_to_uint256(voter_address)
+    let (padded_voter_address) = pad_right(voter_address_u256)
+
     let (proposal_id) = FeltUtils.felt_to_uint256(calldata[1])
     let (choice) = FeltUtils.felt_to_uint256(calldata[2])
 
+    let used_voting_strategies_len = calldata[3]
+    let used_voting_strategies = &calldata[4]
+    let (used_voting_strategies_hash) = get_padded_hash(
+        used_voting_strategies_len, used_voting_strategies
+    )
+
+    let user_voting_strategy_params_flat_len = calldata[4 + used_voting_strategies_len]
+    let user_voting_strategy_params_flat = &calldata[5 + used_voting_strategies_len]
+    let (user_voting_strategy_params_flat_hash) = get_padded_hash(
+        user_voting_strategy_params_flat_len, user_voting_strategy_params_flat
+    )
+
     # Now construct the data hash (hashStruct)
     let (data : Uint256*) = alloc()
-
     assert data[0] = Uint256(VOTE_HASH_LOW, VOTE_HASH_HIGH)
     assert data[1] = padded_space
-    assert data[2] = proposal_id
-    assert data[3] = choice
-    assert data[4] = salt
+    assert data[2] = padded_voter_address
+    assert data[3] = proposal_id
+    assert data[4] = choice
+    assert data[5] = used_voting_strategies_hash
+    assert data[6] = user_voting_strategy_params_flat_hash
+    assert data[7] = salt
 
     let (local keccak_ptr : felt*) = alloc()
     let keccak_ptr_start = keccak_ptr
 
-    let (hash_struct) = get_keccak_hash{keccak_ptr=keccak_ptr}(5, data)
+    let (hash_struct) = get_keccak_hash{keccak_ptr=keccak_ptr}(8, data)
 
     # Prepare the encoded data
     let (prepared_encoded : Uint256*) = alloc()
@@ -372,7 +418,12 @@ func authenticate{
     if function_selector == PROPOSAL_SELECTOR:
         authenticate_proposal(r, s, v, salt, target, calldata_len, calldata)
     else:
-        authenticate_vote(r, s, v, salt, target, calldata_len, calldata)
+        if function_selector == VOTE_SELECTOR:
+            authenticate_vote(r, s, v, salt, target, calldata_len, calldata)
+        else:
+            # Invalid selector
+            return ()
+        end
     end
 
     # Call the contract

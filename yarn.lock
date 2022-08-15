@@ -839,10 +839,10 @@
     "@sentry/types" "5.30.0"
     tslib "^1.9.3"
 
-"@shardlabs/starknet-hardhat-plugin@^0.6.2":
-  version "0.6.2"
-  resolved "https://registry.yarnpkg.com/@shardlabs/starknet-hardhat-plugin/-/starknet-hardhat-plugin-0.6.2.tgz#63b183b7a44074b116a0ab5a2f56a8e85d31b427"
-  integrity sha512-TGfAa2koy1Yhlpi5ENufcZqT4OVHL4hVKMnAcCcE/h4fIJGTdj5kIqJX1PT4ZZ5hyr//EwyqkiQqReEjEpzyVw==
+"@shardlabs/starknet-hardhat-plugin@^0.6.3":
+  version "0.6.3"
+  resolved "https://registry.yarnpkg.com/@shardlabs/starknet-hardhat-plugin/-/starknet-hardhat-plugin-0.6.3.tgz#1fea5672a4b4d58943b56631e0271399c1a5225f"
+  integrity sha512-c8utit5fvJbzY2e8qym7L9gWlMCLrmdLhZoLkmPA5NsExXSuIJZEWmQe6DsLv/yWLjyMAfb2ny3uGZ8cjGAcbQ==
   dependencies:
     "@nomiclabs/hardhat-docker" "^2.0.2"
     axios "^0.24.0"
@@ -1070,10 +1070,10 @@
     "@types/node" "*"
     form-data "^3.0.0"
 
-"@types/node@*", "@types/node@^18.7.1":
-  version "18.7.1"
-  resolved "https://registry.yarnpkg.com/@types/node/-/node-18.7.1.tgz#352bee64f93117d867d05f7406642a52685cbca6"
-  integrity sha512-GKX1Qnqxo4S+Z/+Z8KKPLpH282LD7jLHWJcVryOflnsnH+BtSDfieR6ObwBMwpnNws0bUK8GI7z0unQf9bARNQ==
+"@types/node@*", "@types/node@^18.7.3":
+  version "18.7.3"
+  resolved "https://registry.yarnpkg.com/@types/node/-/node-18.7.3.tgz#432c89796eab539b7a30b7b8801a727b585238a4"
+  integrity sha512-LJgzOEwWuMTBxHzgBR/fhhBOWrvBjvO+zPteUgbbuQi80rYIZHrk1mNbRUqPZqSLP2H7Rwt1EFLL/tNLD1Xx/w==
 
 "@types/node@^10.0.3":
   version "10.17.60"

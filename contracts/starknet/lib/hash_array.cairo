@@ -1,5 +1,6 @@
 from starkware.cairo.common.cairo_builtins import HashBuiltin
 from starkware.cairo.common.hash_state import hash_init, hash_update
+from starkware.cairo.lang.compiler.lib.registers import get_fp_and_pc
 
 namespace HashArray:
     # Internal utility function to hash felt arrays.
@@ -14,4 +15,3 @@ namespace HashArray:
         )
         return (hash_state_ptr.current_hash)
     end
-end
