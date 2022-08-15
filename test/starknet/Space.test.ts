@@ -117,4 +117,14 @@ describe('Space Testing', () => {
       });
     }
   }).timeout(6000000);
+
+  it('Reverts when querying an invalid proposal id', async () => {
+    try {
+      await space.call('get_proposal_info', {
+        proposal_id: 4242,
+      });
+    } catch (error: any) {
+      expect(error.message).to.contain('Proposal does not exist');
+    }
+  }).timeout(6000000);
 });

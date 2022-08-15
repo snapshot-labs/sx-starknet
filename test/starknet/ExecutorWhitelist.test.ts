@@ -85,13 +85,17 @@ describe('Whitelist testing', () => {
   });
 
   it('Should create a proposal for a whitelisted executor', async () => {
-    {
-      await vanillaAuthenticator.invoke('authenticate', {
-        target: spaceAddress,
-        function_selector: PROPOSE_SELECTOR,
-        calldata: proposeCalldata1,
-      });
-    }
+    await vanillaAuthenticator.invoke('authenticate', {
+      target: spaceAddress,
+      function_selector: PROPOSE_SELECTOR,
+      calldata: proposeCalldata1,
+    });
+
+    // Cancel the proposal to be able to add / remove executors later on
+    await controller.invoke(space, 'cancel_proposal', {
+      proposal_id: 1,
+      execution_params: executionParams1,
+    });
   }).timeout(1000000);
 
   it('Should not be able to create a proposal with a non whitelisted executor', async () => {
@@ -107,7 +111,7 @@ describe('Whitelist testing', () => {
     }
   }).timeout(1000000);
 
-  it('The Controller can whitelist an executor', async () => {
+  it('The controller can whitelist an executor', async () => {
     await controller.invoke(space, 'add_executors', {
       to_add: [BigInt(vanillaExecutionStrategy.address)],
     });
@@ -116,6 +120,12 @@ describe('Whitelist testing', () => {
       target: spaceAddress,
       function_selector: PROPOSE_SELECTOR,
       calldata: proposeCalldata2,
+    });
+
+    // Cancel the proposal to be able to add / remove executors later on
+    await controller.invoke(space, 'cancel_proposal', {
+      proposal_id: 2,
+      execution_params: executionParams2,
     });
   }).timeout(1000000);
 
