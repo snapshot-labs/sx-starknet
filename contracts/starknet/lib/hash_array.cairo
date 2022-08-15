@@ -15,3 +15,4 @@ namespace HashArray:
         )
         return (hash_state_ptr.current_hash)
     end
+end

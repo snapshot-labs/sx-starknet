@@ -36,7 +36,7 @@ from contracts.starknet.lib.proposal_outcome import ProposalOutcome
 
 # Libraries
 from contracts.starknet.lib.hash_array import HashArray
-from contracts.starknet.lib.array2d import Array2D, Immutable2DArray
+from contracts.starknet.lib.array_2d import Array2D, Immutable2DArray
 
 #
 # Storage
@@ -371,7 +371,9 @@ namespace Voting:
 
         assert_no_active_proposal()
 
-        let (params_all : Immutable2DArray) = Array2D.construct_array2d(params_flat_len, params_flat)
+        let (params_all : Immutable2DArray) = Array2D.construct_array2d(
+            params_flat_len, params_flat
+        )
 
         unchecked_add_voting_strategies(to_add_len, to_add, params_all, 0)
 

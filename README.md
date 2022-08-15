@@ -26,7 +26,7 @@ contracts
 │   │  ├─ IExecutionStrategy.cairo — "Interface for all execution strategies"
 │   │  └─ IVotingStrategy.cairo — "Interface for all voting strategies"
 │   ├─ lib
-│   │  ├─ array2d.cairo — "For handling 2 dimensional arrays"
+│   │  ├─ array_2d.cairo — "For handling 2 dimensional arrays"
 │   │  ├─ choice.cairo — "The set of choices one can make for a vote"
 │   │  ├─ general_address.cairo — "Generic address type"
 │   │  ├─ felto_to_uint256.cairo — "Generate a uint256 from a felt"

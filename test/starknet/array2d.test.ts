@@ -5,7 +5,7 @@ import { utils } from '@snapshot-labs/sx';
 
 async function setup() {
   const testArray2dFactory = await starknet.getContractFactory(
-    './contracts/starknet/TestContracts/Test_array2d.cairo'
+    './contracts/starknet/TestContracts/Test_Array2D.cairo'
   );
   const testArray2d = await testArray2dFactory.deploy();
   return {
