@@ -335,8 +335,6 @@ namespace Voting:
 
         Ownable.assert_only_owner()
 
-        assert_no_active_proposal()
-
         unchecked_add_executors(to_add_len, to_add)
 
         executors_added.emit(to_add_len, to_add)
@@ -350,8 +348,6 @@ namespace Voting:
         alloc_locals
 
         Ownable.assert_only_owner()
-
-        assert_no_active_proposal()
 
         unchecked_remove_executors(to_remove_len, to_remove)
 

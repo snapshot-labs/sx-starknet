@@ -37,28 +37,6 @@ describe('Controller Actions', () => {
     });
   });
 
-  it('Fails to add an executor if a proposal is active', async () => {
-    try {
-      await controller.invoke(space, 'add_executors', {
-        to_add: [vanillaExecutionStrategy.address],
-      });
-      throw { message: 'should not add an executor' };
-    } catch (error: any) {
-      expect(error.message).to.contain('Some proposals are still active');
-    }
-  });
-
-  it('Fails to remove an executor if a proposal is active', async () => {
-    try {
-      await controller.invoke(space, 'remove_executors', {
-        to_remove: [vanillaExecutionStrategy.address],
-      });
-      throw { message: 'should not remove an executor' };
-    } catch (error: any) {
-      expect(error.message).to.contain('Some proposals are still active');
-    }
-  });
-
   it('Fails to add a voting strategy if a proposal is active', async () => {
     try {
       await controller.invoke(space, 'add_voting_strategies', {
