@@ -192,7 +192,7 @@ func get_padded_hash{range_check_ptr, pedersen_ptr : HashBuiltin*}(
     alloc_locals
 
     let (hash) = HashArray.hash_array(input_len, input)
-    let (hash_u256) = felt_to_uint256(hash)
+    let (hash_u256) = FeltUtils.felt_to_uint256(hash)
     let (padded_hash) = pad_right(hash_u256)
 
     return (res=padded_hash)
@@ -226,11 +226,11 @@ func authenticate_proposal{
     let keccak_ptr_start = keccak_ptr
 
     # Space address
-    let (space) = felt_to_uint256(target)
+    let (space) = FeltUtils.felt_to_uint256(target)
     let (padded_space) = pad_right(space)
 
     # Proposer address
-    let (proposer_address_u256) = felt_to_uint256(proposer_address)
+    let (proposer_address_u256) = FeltUtils.felt_to_uint256(proposer_address)
     let (padded_proposer_address) = pad_right(proposer_address_u256)
 
     # Metadata URI
@@ -243,7 +243,7 @@ func authenticate_proposal{
 
     # Executor
     let executor = calldata[3 + metadata_uri_len]
-    let (executor_u256) = felt_to_uint256(executor)
+    let (executor_u256) = FeltUtils.felt_to_uint256(executor)
     let (padded_executor) = pad_right(executor_u256)
 
     # Used voting strategies
