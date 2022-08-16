@@ -66,7 +66,9 @@ async function main() {
     undefined,
     { maxFee: '857400005301800' }
   );
-  console.log(txHash);
+  console.log('Waiting for confirmation, transaction hash: ', txHash);
+  await defaultProvider.waitForTransaction(txHash);
+  console.log('---- BLOCK PROCESSED AND ACCOUNT PROVED ----');
 }
 
 main()

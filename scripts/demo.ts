@@ -15,11 +15,11 @@ async function main() {
     process.env.ARGENT_X_ADDRESS!,
     ec.getKeyPair(process.env.ARGENT_X_PK!)
   );
-  const ethAccount = new ethers.Wallet(process.env.ETH_PK_1!);
+  const ethAccount = new ethers.Wallet(process.env.ETH_PK_2!);
 
   const spaceAddress = '0x5ad4bd1ca422953ac845ac7915ddfa93fe3fecec0ed8c86db5e294b0e18c9bd';
-  const proposalId = '0x1';
-  const choice = utils.choice.Choice.AGAINST;
+  const proposalId = '0x2';
+  const choice = utils.choice.Choice.FOR;
   const authenticatorAddress = '0x77e6ce69756aec5994314726b71a7ae95ffb15180711e481d71b5595b70a468';
   const votingStrategies = ['0x59b3695eb816a55f8251b6f7dd254798f58e95119e031caed8e02cdbacbca84'];
   const block = JSON.parse(fs.readFileSync('./test/data/blockGoerli.json').toString());
@@ -28,7 +28,7 @@ async function main() {
     block.number,
     proofs
   );
-  const userVotingStrategyParams = [proofInputs.storageProofs[0]];
+  const userVotingStrategyParams = [proofInputs.storageProofs[1]];
   const voterEthAddress = ethAccount.address;
   const voteCalldata = utils.encoding.getVoteCalldata(
     voterEthAddress,
@@ -49,6 +49,8 @@ async function main() {
   };
   const sig = await ethAccount._signTypedData(domain, voteTypes, message);
   const { r, s, v } = utils.encoding.getRSVFromSig(sig);
+
+
 
   // const { transaction_hash: txHash } = await starkAccount.execute(
   //   {
@@ -75,7 +77,7 @@ async function main() {
   // await defaultProvider.waitForTransaction(txHash);
   // console.log('---- VOTE CAST ----');
 
-  const out = await starkAccount.execute(
+  const out = await starkAccount.estimateFee(
     {
       contractAddress: authenticatorAddress,
       entrypoint: 'authenticate',
