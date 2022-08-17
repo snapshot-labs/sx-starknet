@@ -1,9 +1,7 @@
 import { expect } from 'chai';
 import { ethers } from 'hardhat';
 import { StarknetContract, Account } from 'hardhat/types';
-import { strToShortStringArr } from '@snapshot-labs/sx';
-import { SplitUint256, Choice } from '../shared/types';
-import { getProposeCalldata, getVoteCalldata } from '../shared/helpers';
+import { utils } from '@snapshot-labs/sx';
 import { vanillaSetup } from '../shared/setup';
 import { PROPOSE_SELECTOR, VOTE_SELECTOR } from '../shared/constants';
 
@@ -16,22 +14,22 @@ describe('Space Testing', () => {
   let vanillaExecutionStrategy: StarknetContract;
 
   // Proposal creation parameters
-  let spaceAddress: bigint;
-  let metadataUri: bigint[];
+  let spaceAddress: string;
+  let metadataUri: utils.intsSequence.IntsSequence;
   let proposerEthAddress: string;
-  let usedVotingStrategies1: bigint[];
-  let userVotingParamsAll1: bigint[][];
-  let executionStrategy: bigint;
-  let executionParams: bigint[];
-  let proposeCalldata: bigint[];
+  let usedVotingStrategies1: string[];
+  let userVotingParamsAll1: string[][];
+  let executionStrategy: string;
+  let executionParams: string[];
+  let proposeCalldata: string[];
 
   // Additional parameters for voting
   let voterEthAddress: string;
-  let proposalId: bigint;
-  let choice: Choice;
-  let usedVotingStrategies2: bigint[];
-  let userVotingParamsAll2: bigint[][];
-  let voteCalldata: bigint[];
+  let proposalId: string;
+  let choice: utils.choice.Choice;
+  let usedVotingStrategies2: string[];
+  let userVotingParamsAll2: string[][];
+  let voteCalldata: string[];
 
   before(async function () {
     this.timeout(800000);
@@ -39,16 +37,16 @@ describe('Space Testing', () => {
     ({ space, controller, vanillaAuthenticator, vanillaVotingStrategy, vanillaExecutionStrategy } =
       await vanillaSetup());
 
-    metadataUri = strToShortStringArr(
+    metadataUri = utils.intsSequence.IntsSequence.LEFromString(
       'Hello and welcome to Snapshot X. This is the future of governance.'
     );
     proposerEthAddress = ethers.Wallet.createRandom().address;
-    spaceAddress = BigInt(space.address);
-    usedVotingStrategies1 = [BigInt(vanillaVotingStrategy.address)];
+    spaceAddress = space.address;
+    usedVotingStrategies1 = ['0x0'];
     userVotingParamsAll1 = [[]];
-    executionStrategy = BigInt(vanillaExecutionStrategy.address);
+    executionStrategy = vanillaExecutionStrategy.address;
     executionParams = [];
-    proposeCalldata = getProposeCalldata(
+    proposeCalldata = utils.encoding.getProposeCalldata(
       proposerEthAddress,
       metadataUri,
       executionStrategy,
@@ -58,11 +56,11 @@ describe('Space Testing', () => {
     );
 
     voterEthAddress = ethers.Wallet.createRandom().address;
-    proposalId = BigInt(1);
-    choice = Choice.FOR;
-    usedVotingStrategies2 = [BigInt(vanillaVotingStrategy.address)];
+    proposalId = '0x1';
+    choice = utils.choice.Choice.FOR;
+    usedVotingStrategies2 = ['0x0']; // The vanilla voting strategy corresponds to index 0 in the space contract
     userVotingParamsAll2 = [[]];
-    voteCalldata = getVoteCalldata(
+    voteCalldata = utils.encoding.getVoteCalldata(
       voterEthAddress,
       proposalId,
       choice,
@@ -84,11 +82,11 @@ describe('Space Testing', () => {
         proposal_id: proposalId,
       });
 
-      const _for = SplitUint256.fromObj(proposal_info.power_for).toUint();
+      const _for = utils.splitUint256.SplitUint256.fromObj(proposal_info.power_for).toUint();
       expect(_for).to.deep.equal(BigInt(0));
-      const against = SplitUint256.fromObj(proposal_info.power_against).toUint();
+      const against = utils.splitUint256.SplitUint256.fromObj(proposal_info.power_against).toUint();
       expect(against).to.deep.equal(BigInt(0));
-      const abstain = SplitUint256.fromObj(proposal_info.power_abstain).toUint();
+      const abstain = utils.splitUint256.SplitUint256.fromObj(proposal_info.power_abstain).toUint();
       expect(abstain).to.deep.equal(BigInt(0));
     }
     // -- Casts a vote FOR --
@@ -103,11 +101,11 @@ describe('Space Testing', () => {
         proposal_id: proposalId,
       });
 
-      const _for = SplitUint256.fromObj(proposal_info.power_for).toUint();
+      const _for = utils.splitUint256.SplitUint256.fromObj(proposal_info.power_for).toUint();
       expect(_for).to.deep.equal(BigInt(1));
-      const against = SplitUint256.fromObj(proposal_info.power_against).toUint();
+      const against = utils.splitUint256.SplitUint256.fromObj(proposal_info.power_against).toUint();
       expect(against).to.deep.equal(BigInt(0));
-      const abstain = SplitUint256.fromObj(proposal_info.power_abstain).toUint();
+      const abstain = utils.splitUint256.SplitUint256.fromObj(proposal_info.power_abstain).toUint();
       expect(abstain).to.deep.equal(BigInt(0));
     }
 
@@ -117,6 +115,16 @@ describe('Space Testing', () => {
         proposal_id: proposalId,
         execution_params: executionParams,
       });
+    }
+  }).timeout(6000000);
+
+  it('Reverts when querying an invalid proposal id', async () => {
+    try {
+      await space.call('get_proposal_info', {
+        proposal_id: 4242,
+      });
+    } catch (error: any) {
+      expect(error.message).to.contain('Proposal does not exist');
     }
   }).timeout(6000000);
 });

@@ -55,7 +55,7 @@ async function main() {
   );
   const compiledSpace = json.parse(
     fs
-      .readFileSync('./starknet-artifacts/contracts/starknet/Space.cairo/Space.json')
+      .readFileSync('./starknet-artifacts/contracts/starknet/SpaceAccount.cairo/SpaceAccount.json')
       .toString('ascii')
   );
 

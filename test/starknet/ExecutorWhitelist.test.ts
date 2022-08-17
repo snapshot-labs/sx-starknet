@@ -1,10 +1,8 @@
 import { expect } from 'chai';
 import { Contract } from 'ethers';
 import { starknet, ethers } from 'hardhat';
-import { strToShortStringArr } from '@snapshot-labs/sx';
+import { utils } from '@snapshot-labs/sx';
 import { zodiacRelayerSetup } from '../shared/setup';
-import { SplitUint256 } from '../shared/types';
-import { getProposeCalldata, bytesToHex } from '../shared/helpers';
 import { StarknetContract, Account } from 'hardhat/types';
 import { PROPOSE_SELECTOR } from '../shared/constants';
 
@@ -19,20 +17,20 @@ describe('Whitelist testing', () => {
   let vanillaExecutionStrategy: StarknetContract;
 
   // Proposal creation parameters
-  let spaceAddress: bigint;
+  let spaceAddress: string;
   let executionHash: string;
-  let metadataUri: bigint[];
+  let metadataUri: utils.intsSequence.IntsSequence;
   let proposerEthAddress: string;
-  let usedVotingStrategies1: bigint[];
-  let userVotingParamsAll1: bigint[][];
-  let executionStrategy1: bigint;
-  let executionParams1: bigint[];
-  let proposeCalldata1: bigint[];
+  let usedVotingStrategies1: string[];
+  let userVotingParamsAll1: string[][];
+  let executionStrategy1: string;
+  let executionParams1: string[];
+  let proposeCalldata1: string[];
 
   // Alternative execution strategy parameters
-  let executionStrategy2: bigint;
-  let executionParams2: bigint[];
-  let proposeCalldata2: bigint[];
+  let executionStrategy2: string;
+  let executionParams2: string[];
+  let proposeCalldata2: string[];
 
   before(async function () {
     this.timeout(800000);
@@ -51,23 +49,21 @@ describe('Whitelist testing', () => {
     );
     vanillaExecutionStrategy = await vanillaExecutionStrategyFactory.deploy();
 
-    spaceAddress = BigInt(space.address);
-
-    metadataUri = strToShortStringArr(
+    spaceAddress = space.address;
+    metadataUri = utils.intsSequence.IntsSequence.LEFromString(
       'Hello and welcome to Snapshot X. This is the future of governance.'
     );
     proposerEthAddress = ethers.Wallet.createRandom().address;
-    spaceAddress = BigInt(space.address);
-    usedVotingStrategies1 = [BigInt(vanillaVotingStrategy.address)];
+    usedVotingStrategies1 = ['0x0'];
     userVotingParamsAll1 = [[]];
-    executionStrategy1 = BigInt(zodiacRelayer.address);
-    executionHash = bytesToHex(ethers.utils.randomBytes(32)); // Random 32 byte hash
+    executionStrategy1 = zodiacRelayer.address;
+    executionHash = utils.bytes.bytesToHex(ethers.utils.randomBytes(32)); // Random 32 byte hash
     executionParams1 = [
-      BigInt(zodiacModule.address),
-      SplitUint256.fromHex(executionHash).low,
-      SplitUint256.fromHex(executionHash).high,
+      zodiacModule.address,
+      utils.splitUint256.SplitUint256.fromHex(executionHash).low,
+      utils.splitUint256.SplitUint256.fromHex(executionHash).high,
     ];
-    proposeCalldata1 = getProposeCalldata(
+    proposeCalldata1 = utils.encoding.getProposeCalldata(
       proposerEthAddress,
       metadataUri,
       executionStrategy1,
@@ -76,9 +72,9 @@ describe('Whitelist testing', () => {
       executionParams1
     );
 
-    executionStrategy2 = BigInt(vanillaExecutionStrategy.address);
+    executionStrategy2 = vanillaExecutionStrategy.address;
     executionParams2 = [];
-    proposeCalldata2 = getProposeCalldata(
+    proposeCalldata2 = utils.encoding.getProposeCalldata(
       proposerEthAddress,
       metadataUri,
       executionStrategy2,
@@ -89,13 +85,17 @@ describe('Whitelist testing', () => {
   });
 
   it('Should create a proposal for a whitelisted executor', async () => {
-    {
-      await vanillaAuthenticator.invoke('authenticate', {
-        target: spaceAddress,
-        function_selector: PROPOSE_SELECTOR,
-        calldata: proposeCalldata1,
-      });
-    }
+    await vanillaAuthenticator.invoke('authenticate', {
+      target: spaceAddress,
+      function_selector: PROPOSE_SELECTOR,
+      calldata: proposeCalldata1,
+    });
+
+    // Cancel the proposal to be able to add / remove executors later on
+    await controller.invoke(space, 'cancel_proposal', {
+      proposal_id: 1,
+      execution_params: executionParams1,
+    });
   }).timeout(1000000);
 
   it('Should not be able to create a proposal with a non whitelisted executor', async () => {
@@ -111,7 +111,7 @@ describe('Whitelist testing', () => {
     }
   }).timeout(1000000);
 
-  it('The Controller can whitelist an executor', async () => {
+  it('The controller can whitelist an executor', async () => {
     await controller.invoke(space, 'add_executors', {
       to_add: [BigInt(vanillaExecutionStrategy.address)],
     });
@@ -120,6 +120,12 @@ describe('Whitelist testing', () => {
       target: spaceAddress,
       function_selector: PROPOSE_SELECTOR,
       calldata: proposeCalldata2,
+    });
+
+    // Cancel the proposal to be able to add / remove executors later on
+    await controller.invoke(space, 'cancel_proposal', {
+      proposal_id: 2,
+      execution_params: executionParams2,
     });
   }).timeout(1000000);
 

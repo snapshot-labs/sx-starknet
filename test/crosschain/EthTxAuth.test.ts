@@ -3,8 +3,7 @@ import { expect } from 'chai';
 import { Contract } from 'ethers';
 import { starknet, network, ethers } from 'hardhat';
 import { StarknetContract, Account, HttpNetworkConfig } from 'hardhat/types';
-import { strToShortStringArr } from '@snapshot-labs/sx';
-import { getCommit, getProposeCalldata } from '../shared/helpers';
+import { utils } from '@snapshot-labs/sx';
 import { ethTxAuthSetup } from '../shared/setup';
 import { PROPOSE_SELECTOR } from '../shared/constants';
 
@@ -23,14 +22,14 @@ describe('L1 interaction with Snapshot X', function () {
   let starknetCommit: Contract;
 
   // Proposal creation parameters
-  let spaceAddress: bigint;
-  let metadataUri: bigint[];
+  let spaceAddress: string;
+  let metadataUri: utils.intsSequence.IntsSequence;
   let proposerEthAddress: string;
-  let usedVotingStrategies: bigint[];
-  let userVotingParamsAll: bigint[][];
-  let executionStrategy: bigint;
-  let executionParams: bigint[];
-  let proposeCalldata: bigint[];
+  let usedVotingStrategies: string[];
+  let userVotingParamsAll: string[][];
+  let executionStrategy: string;
+  let executionParams: string[];
+  let proposeCalldata: string[];
 
   before(async function () {
     const signers = await ethers.getSigners();
@@ -46,16 +45,16 @@ describe('L1 interaction with Snapshot X', function () {
       starknetCommit,
     } = await ethTxAuthSetup());
 
-    metadataUri = strToShortStringArr(
+    metadataUri = utils.intsSequence.IntsSequence.LEFromString(
       'Hello and welcome to Snapshot X. This is the future of governance.'
     );
     proposerEthAddress = signer.address;
-    spaceAddress = BigInt(space.address);
-    usedVotingStrategies = [BigInt(vanillaVotingStrategy.address)];
+    spaceAddress = space.address;
+    usedVotingStrategies = [vanillaVotingStrategy.address];
     userVotingParamsAll = [[]];
-    executionStrategy = BigInt(vanillaExecutionStrategy.address);
+    executionStrategy = vanillaExecutionStrategy.address;
     executionParams = [];
-    proposeCalldata = getProposeCalldata(
+    proposeCalldata = utils.encoding.getProposeCalldata(
       proposerEthAddress,
       metadataUri,
       executionStrategy,
@@ -70,7 +69,7 @@ describe('L1 interaction with Snapshot X', function () {
     // Committing the hash of the payload to the StarkNet Commit L1 contract
     await starknetCommit
       .connect(signer)
-      .commit(getCommit(spaceAddress, PROPOSE_SELECTOR, proposeCalldata));
+      .commit(utils.encoding.getCommit(spaceAddress, PROPOSE_SELECTOR, proposeCalldata));
     // Checking that the L1 -> L2 message has been propogated
     expect((await starknet.devnet.flush()).consumed_messages.from_l1).to.have.a.lengthOf(1);
     // Creating proposal
@@ -85,7 +84,7 @@ describe('L1 interaction with Snapshot X', function () {
     await starknet.devnet.loadL1MessagingContract(networkUrl, mockStarknetMessaging.address);
     await starknetCommit
       .connect(signer)
-      .commit(getCommit(spaceAddress, PROPOSE_SELECTOR, proposeCalldata));
+      .commit(utils.encoding.getCommit(spaceAddress, PROPOSE_SELECTOR, proposeCalldata));
     await starknet.devnet.flush();
     await ethTxAuthenticator.invoke('authenticate', {
       target: spaceAddress,
@@ -108,7 +107,7 @@ describe('L1 interaction with Snapshot X', function () {
     await starknet.devnet.loadL1MessagingContract(networkUrl, mockStarknetMessaging.address);
     await starknetCommit
       .connect(signer)
-      .commit(getCommit(spaceAddress, PROPOSE_SELECTOR, proposeCalldata)); // Wrong selector
+      .commit(utils.encoding.getCommit(spaceAddress, PROPOSE_SELECTOR, proposeCalldata)); // Wrong selector
     await starknet.devnet.flush();
     try {
       await ethTxAuthenticator.invoke('authenticate', {
@@ -123,10 +122,10 @@ describe('L1 interaction with Snapshot X', function () {
 
   it('Authentication should fail if the commit sender address is not equal to the address in the payload', async () => {
     await starknet.devnet.loadL1MessagingContract(networkUrl, mockStarknetMessaging.address);
-    proposeCalldata[0] = BigInt(ethers.Wallet.createRandom().address); // Random l1 address in the calldata
+    proposeCalldata[0] = ethers.Wallet.createRandom().address; // Random l1 address in the calldata
     await starknetCommit
       .connect(signer)
-      .commit(getCommit(spaceAddress, PROPOSE_SELECTOR, proposeCalldata));
+      .commit(utils.encoding.getCommit(spaceAddress, PROPOSE_SELECTOR, proposeCalldata));
     await starknet.devnet.flush();
     try {
       await ethTxAuthenticator.invoke('authenticate', {

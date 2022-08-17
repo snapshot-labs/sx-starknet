@@ -2,22 +2,15 @@ import { SignerWithAddress } from '@nomiclabs/hardhat-ethers/signers';
 import { expect } from 'chai';
 import { Contract } from 'ethers';
 import hre, { starknet, network } from 'hardhat';
-import { Choice, SplitUint256 } from '../shared/types';
 import { StarknetContract, HttpNetworkConfig, Account } from 'hardhat/types';
-import { strToShortStringArr } from '@snapshot-labs/sx';
+import { utils } from '@snapshot-labs/sx';
 import { zodiacRelayerSetup } from '../shared/setup';
-import {
-  createExecutionHash,
-  expectAddressEquality,
-  getProposeCalldata,
-  getVoteCalldata,
-} from '../shared/helpers';
 import { PROPOSE_SELECTOR, VOTE_SELECTOR } from '../shared/constants';
 
 const VITALIK_ADDRESS = 'd8da6bf26964af9d7eed9e03e53415d37aa96045'; //removed hex prefix
 
 // Dummy tx
-const tx1 = {
+const tx1: utils.encoding.MetaTransaction = {
   to: VITALIK_ADDRESS,
   value: 0,
   data: '0x11',
@@ -26,7 +19,7 @@ const tx1 = {
 };
 
 // Dummy tx 2
-const tx2 = {
+const tx2: utils.encoding.MetaTransaction = {
   to: VITALIK_ADDRESS,
   value: 0,
   data: '0x22',
@@ -51,21 +44,21 @@ describe('Create proposal, cast vote, and send execution to l1', function () {
   // Proposal creation parameters
   let spaceAddress: bigint;
   let executionHash: string;
-  let metadataUri: bigint[];
+  let metadataUri: utils.intsSequence.IntsSequence;
   let proposerEthAddress: string;
-  let usedVotingStrategies1: bigint[];
-  let userVotingParamsAll1: bigint[][];
-  let executionStrategy: bigint;
-  let executionParams: bigint[];
-  let proposeCalldata: bigint[];
+  let usedVotingStrategies1: string[];
+  let userVotingParamsAll1: string[][];
+  let executionStrategy: string;
+  let executionParams: string[];
+  let proposeCalldata: string[];
 
   // Additional parameters for voting
   let voterEthAddress: string;
-  let proposalId: bigint;
-  let choice: Choice;
-  let usedVotingStrategies2: bigint[];
-  let userVotingParamsAll2: bigint[][];
-  let voteCalldata: bigint[];
+  let proposalId: string;
+  let choice: utils.choice.Choice;
+  let usedVotingStrategies2: string[];
+  let userVotingParamsAll2: string[][];
+  let voteCalldata: string[];
 
   let txHashes: any;
 
@@ -84,23 +77,27 @@ describe('Create proposal, cast vote, and send execution to l1', function () {
       mockStarknetMessaging,
     } = await zodiacRelayerSetup());
 
-    metadataUri = strToShortStringArr(
+    metadataUri = utils.intsSequence.IntsSequence.LEFromString(
       'Hello and welcome to Snapshot X. This is the future of governance.'
     );
-    ({ executionHash, txHashes } = createExecutionHash(zodiacModule.address, tx1, tx2));
+    ({ executionHash, txHashes } = utils.encoding.createExecutionHash(
+      [tx1, tx2],
+      zodiacModule.address,
+      network.config.chainId!
+    ));
 
     proposerEthAddress = signer.address;
     spaceAddress = BigInt(space.address);
-    usedVotingStrategies1 = [BigInt(vanillaVotingStrategy.address)];
+    usedVotingStrategies1 = [vanillaVotingStrategy.address];
     userVotingParamsAll1 = [[]];
-    executionStrategy = BigInt(zodiacRelayer.address);
+    executionStrategy = zodiacRelayer.address;
     executionParams = [
-      BigInt(zodiacModule.address),
-      SplitUint256.fromHex(executionHash).low,
-      SplitUint256.fromHex(executionHash).high,
+      zodiacModule.address,
+      utils.splitUint256.SplitUint256.fromHex(executionHash).low,
+      utils.splitUint256.SplitUint256.fromHex(executionHash).high,
     ];
 
-    proposeCalldata = getProposeCalldata(
+    proposeCalldata = utils.encoding.getProposeCalldata(
       proposerEthAddress,
       metadataUri,
       executionStrategy,
@@ -111,11 +108,11 @@ describe('Create proposal, cast vote, and send execution to l1', function () {
 
     voterEthAddress = hre.ethers.Wallet.createRandom().address;
 
-    proposalId = BigInt(1);
-    choice = Choice.FOR;
-    usedVotingStrategies2 = [BigInt(vanillaVotingStrategy.address)];
+    proposalId = '0x1';
+    choice = utils.choice.Choice.FOR;
+    usedVotingStrategies2 = [vanillaVotingStrategy.address];
     userVotingParamsAll2 = [[]];
-    voteCalldata = getVoteCalldata(
+    voteCalldata = utils.encoding.getVoteCalldata(
       voterEthAddress,
       proposalId,
       choice,
@@ -157,8 +154,8 @@ describe('Create proposal, cast vote, and send execution to l1', function () {
     expect(flushL2Response.consumed_messages.from_l1).to.be.empty;
     const flushL2Messages = flushL2Response.consumed_messages.from_l2;
     expect(flushL2Messages).to.have.a.lengthOf(1);
-    expectAddressEquality(flushL2Messages[0].from_address, zodiacRelayer.address);
-    expectAddressEquality(flushL2Messages[0].to_address, zodiacModule.address);
+    expect(BigInt(flushL2Messages[0].from_address)).to.equal(BigInt(zodiacRelayer.address));
+    expect(BigInt(flushL2Messages[0].to_address)).to.equal(BigInt(zodiacModule.address));
 
     // -- Check that l1 can receive the proposal correctly --
 
@@ -166,7 +163,7 @@ describe('Create proposal, cast vote, and send execution to l1', function () {
     const fakeTxHashes = txHashes.slice(0, -1);
     const callerAddress = BigInt(space.address);
     const fakeCallerAddress = BigInt(zodiacRelayer.address);
-    const splitExecutionHash = SplitUint256.fromHex(executionHash);
+    const splitExecutionHash = utils.splitUint256.SplitUint256.fromHex(executionHash);
 
     // Check that if the tx hash is incorrect, the transaction reverts.
     await expect(

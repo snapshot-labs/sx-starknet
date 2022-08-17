@@ -10,6 +10,7 @@ contracts
 ├─ starknet
 │   ├─ Authenticators
 │   │  ├─ EthTx.cairo — "Authenticate user via an Ethereum transaction"
+│   │  ├─ EthSig.cairo — "Authenticate user via an Ethereum signature"
 │   │  ├─ StarkTx.cairo — "Authenticate user via a StarkNet  transaction"
 │   │  ├─ StarkSig.cairo — "Authenticate user via a Starknet signature"
 │   │  └─ Vanilla.cairo — "Dummy authentication"
@@ -28,18 +29,21 @@ contracts
 │   │  ├─ array2d.cairo — "For handling 2 dimensional arrays"
 │   │  ├─ choice.cairo — "The set of choices one can make for a vote"
 │   │  ├─ eth_address.cairo — "Ethereum address type"
+│   │  ├─ felto_to_uint256.cairo — "Generate a uint256 from a felt"
 │   │  ├─ hash_array.cairo — "Wrapper function for pedersen hashing arrays"
 │   │  ├─ proposal.cairo — "Proposal metadata type"
 │   │  ├─ proposal_info.cairo — "Proposal vote data type"
 │   │  ├─ proposal_outcome.cairo — "The set of proposal outcomes"
 │   │  ├─ slot_key.cairo — "Function to find the slot key for a slot in the Ethereum state"
+│   │  ├─ voting.cairo — "Core library that implements the logic for voting in Snapshot X"
 │   │  ├─ vote.cairo.cairo — "User vote data type"
 │   │  └─ words.cairo — "Small 64 bit word library"
 │   ├─ TestContracts
 │   │  ├─ Test_array2d.cairo 
 │   │  ├─ Test_words.cairo 
 │   │  └─ Test_words_to_uint256.cairo 
-│   └─ Space.cairo - "The core contract for Snapshot X"
+│   ├─ SpaceAccount.cairo - "The base account contract for each Snapshot X space"
+│   └─ SpaceFactory.cairo - "Handles the deployment and tracking of Space contracts"
 └─ ethereum 
     ├─ Interfaces
     │  └─ IStarknetCore.sol — "Interface of the StarkNet core contract"

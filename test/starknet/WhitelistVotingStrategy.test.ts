@@ -1,34 +1,34 @@
-import { SplitUint256 } from '../shared/types';
 import { expect } from 'chai';
 import { starknet, ethers } from 'hardhat';
 import { StarknetContract } from 'hardhat/types';
+import { utils } from '@snapshot-labs/sx';
 
 describe('Whitelist testing', () => {
   let whitelist: StarknetContract;
   let emptyWhitelist: StarknetContract;
   let repeatWhitelist: StarknetContract;
 
-  let address1: bigint;
-  let address2: bigint;
-  let address3: bigint;
-  let address4: bigint;
+  let address1: string;
+  let address2: string;
+  let address3: string;
+  let address4: string;
 
-  let power1: SplitUint256;
-  let power2: SplitUint256;
-  let power3: SplitUint256;
-  let power4: SplitUint256;
+  let power1: utils.splitUint256.SplitUint256;
+  let power2: utils.splitUint256.SplitUint256;
+  let power3: utils.splitUint256.SplitUint256;
+  let power4: utils.splitUint256.SplitUint256;
 
   before(async function () {
     this.timeout(800000);
-    address1 = BigInt(ethers.Wallet.createRandom().address);
-    address2 = BigInt(ethers.Wallet.createRandom().address);
-    address3 = BigInt(ethers.Wallet.createRandom().address);
-    address4 = BigInt(ethers.Wallet.createRandom().address);
+    address1 = ethers.Wallet.createRandom().address;
+    address2 = ethers.Wallet.createRandom().address;
+    address3 = ethers.Wallet.createRandom().address;
+    address4 = ethers.Wallet.createRandom().address;
 
-    power1 = SplitUint256.fromUint(BigInt('1000'));
-    power2 = SplitUint256.fromUint(BigInt('1'));
-    power3 = SplitUint256.fromUint(BigInt('2'));
-    power4 = SplitUint256.fromUint(BigInt('3'));
+    power1 = utils.splitUint256.SplitUint256.fromUint(BigInt('1000'));
+    power2 = utils.splitUint256.SplitUint256.fromUint(BigInt('1'));
+    power3 = utils.splitUint256.SplitUint256.fromUint(BigInt('2'));
+    power4 = utils.splitUint256.SplitUint256.fromUint(BigInt('3'));
 
     const whitelistFactory = await starknet.getContractFactory(
       './contracts/starknet/VotingStrategies/Whitelist.cairo'
@@ -90,10 +90,18 @@ describe('Whitelist testing', () => {
       params: [],
       user_params: [],
     });
-    expect(SplitUint256.fromObj(vp1)).to.deep.equal(power1);
-    expect(SplitUint256.fromObj(vp2)).to.deep.equal(power2);
-    expect(SplitUint256.fromObj(vp3)).to.deep.equal(power3);
-    expect(SplitUint256.fromObj(vp4)).to.deep.equal(power4);
+    expect(
+      new utils.splitUint256.SplitUint256(`0x${vp1.low.toString(16)}`, `0x${vp1.high.toString(16)}`)
+    ).to.deep.equal(power1);
+    expect(
+      new utils.splitUint256.SplitUint256(`0x${vp2.low.toString(16)}`, `0x${vp2.high.toString(16)}`)
+    ).to.deep.equal(power2);
+    expect(
+      new utils.splitUint256.SplitUint256(`0x${vp3.low.toString(16)}`, `0x${vp3.high.toString(16)}`)
+    ).to.deep.equal(power3);
+    expect(
+      new utils.splitUint256.SplitUint256(`0x${vp4.low.toString(16)}`, `0x${vp4.high.toString(16)}`)
+    ).to.deep.equal(power4);
   }).timeout(1000000);
 
   it('returns 0 voting power for non-whitelisted addresses', async () => {
@@ -103,7 +111,9 @@ describe('Whitelist testing', () => {
       params: [],
       user_params: [],
     });
-    expect(SplitUint256.fromObj(vp)).to.deep.equal(SplitUint256.fromUint(BigInt(0)));
+    expect(
+      new utils.splitUint256.SplitUint256(`0x${vp.low.toString(16)}`, `0x${vp.high.toString(16)}`)
+    ).to.deep.equal(utils.splitUint256.SplitUint256.fromUint(BigInt(0)));
   }).timeout(1000000);
 
   it('returns 0 for an empty whitelist', async () => {
@@ -113,7 +123,9 @@ describe('Whitelist testing', () => {
       params: [],
       user_params: [],
     });
-    expect(SplitUint256.fromObj(vp)).to.deep.equal(SplitUint256.fromUint(BigInt(0)));
+    expect(
+      new utils.splitUint256.SplitUint256(`0x${vp.low.toString(16)}`, `0x${vp.high.toString(16)}`)
+    ).to.deep.equal(utils.splitUint256.SplitUint256.fromUint(BigInt(0)));
   }).timeout(1000000);
 
   it('returns the correct voting power even if address is repeated', async () => {
@@ -123,6 +135,8 @@ describe('Whitelist testing', () => {
       params: [],
       user_params: [],
     });
-    expect(SplitUint256.fromObj(vp)).to.deep.equal(power1);
+    expect(
+      new utils.splitUint256.SplitUint256(`0x${vp.low.toString(16)}`, `0x${vp.high.toString(16)}`)
+    ).to.deep.equal(power1);
   }).timeout(1000000);
 });

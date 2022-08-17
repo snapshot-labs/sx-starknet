@@ -1,13 +1,11 @@
 import { expect } from 'chai';
 import { starknet } from 'hardhat';
 import { StarknetContract, Account } from 'hardhat/types';
-import { strToShortStringArr } from '@snapshot-labs/sx';
-import { SplitUint256, Choice } from '../shared/types';
-import { getProposeCalldata, getVoteCalldata } from '../shared/helpers';
+import { utils } from '@snapshot-labs/sx';
 import { starkTxAuthSetup } from '../shared/setup';
 import { PROPOSE_SELECTOR, VOTE_SELECTOR } from '../shared/constants';
 
-const VITALIK_ADDRESS = BigInt('0xd8da6bf26964af9d7eed9e03e53415d37aa96045');
+const VITALIK_ADDRESS = '0xd8da6bf26964af9d7eed9e03e53415d37aa96045';
 
 describe('StarkNet Tx Auth testing', () => {
   // Contracts
@@ -18,24 +16,24 @@ describe('StarkNet Tx Auth testing', () => {
   let vanillaExecutionStrategy: StarknetContract;
 
   // Proposal creation parameters
-  let spaceAddress: bigint;
-  let metadataUri: bigint[];
+  let spaceAddress: string;
+  let metadataUri: utils.intsSequence.IntsSequence;
   let proposerAccount: Account;
   let proposerAddress: string;
-  let usedVotingStrategies1: bigint[];
-  let userVotingParamsAll1: bigint[][];
-  let executionStrategy: bigint;
-  let executionParams: bigint[];
-  let proposeCalldata: bigint[];
+  let usedVotingStrategies1: string[];
+  let userVotingParamsAll1: string[][];
+  let executionStrategy: string;
+  let executionParams: string[];
+  let proposeCalldata: string[];
 
   // Additional parameters for voting
   let voterAccount: Account;
   let voterAddress: string;
-  let proposalId: bigint;
-  let choice: Choice;
-  let usedVotingStrategies2: bigint[];
-  let userVotingParamsAll2: bigint[][];
-  let voteCalldata: bigint[];
+  let proposalId: string;
+  let choice: utils.choice.Choice;
+  let usedVotingStrategies2: string[];
+  let userVotingParamsAll2: string[][];
+  let voteCalldata: string[];
 
   before(async function () {
     this.timeout(800000);
@@ -49,16 +47,16 @@ describe('StarkNet Tx Auth testing', () => {
       vanillaExecutionStrategy,
     } = await starkTxAuthSetup());
 
-    metadataUri = strToShortStringArr(
+    metadataUri = utils.intsSequence.IntsSequence.LEFromString(
       'Hello and welcome to Snapshot X. This is the future of governance.'
     );
     proposerAddress = proposerAccount.starknetContract.address;
-    spaceAddress = BigInt(space.address);
-    usedVotingStrategies1 = [BigInt(vanillaVotingStrategy.address)];
+    spaceAddress = space.address;
+    usedVotingStrategies1 = ['0x0'];
     userVotingParamsAll1 = [[]];
-    executionStrategy = BigInt(vanillaExecutionStrategy.address);
+    executionStrategy = vanillaExecutionStrategy.address;
     executionParams = [];
-    proposeCalldata = getProposeCalldata(
+    proposeCalldata = utils.encoding.getProposeCalldata(
       proposerAddress,
       metadataUri,
       executionStrategy,
@@ -68,11 +66,11 @@ describe('StarkNet Tx Auth testing', () => {
     );
 
     voterAddress = voterAccount.starknetContract.address;
-    proposalId = BigInt(1);
-    choice = Choice.FOR;
-    usedVotingStrategies2 = [BigInt(vanillaVotingStrategy.address)];
+    proposalId = '0x1';
+    choice = utils.choice.Choice.FOR;
+    usedVotingStrategies2 = ['0x0'];
     userVotingParamsAll2 = [[]];
-    voteCalldata = getVoteCalldata(
+    voteCalldata = utils.encoding.getVoteCalldata(
       voterAddress,
       proposalId,
       choice,
@@ -90,7 +88,7 @@ describe('StarkNet Tx Auth testing', () => {
         function_selector: PROPOSE_SELECTOR,
         calldata: fakeData,
       });
-      throw 'error';
+      throw { message: 'error' };
     } catch (err: any) {
       expect(err.message).to.contain('Incorrect caller');
     }
@@ -111,11 +109,11 @@ describe('StarkNet Tx Auth testing', () => {
         proposal_id: proposalId,
       });
 
-      const _for = SplitUint256.fromObj(proposal_info.power_for).toUint();
+      const _for = utils.splitUint256.SplitUint256.fromObj(proposal_info.power_for).toUint();
       expect(_for).to.deep.equal(BigInt(0));
-      const against = SplitUint256.fromObj(proposal_info.power_against).toUint();
+      const against = utils.splitUint256.SplitUint256.fromObj(proposal_info.power_against).toUint();
       expect(against).to.deep.equal(BigInt(0));
-      const abstain = SplitUint256.fromObj(proposal_info.power_abstain).toUint();
+      const abstain = utils.splitUint256.SplitUint256.fromObj(proposal_info.power_abstain).toUint();
       expect(abstain).to.deep.equal(BigInt(0));
     }
 
@@ -133,11 +131,11 @@ describe('StarkNet Tx Auth testing', () => {
         proposal_id: proposalId,
       });
 
-      const _for = SplitUint256.fromObj(proposal_info.power_for).toUint();
+      const _for = utils.splitUint256.SplitUint256.fromObj(proposal_info.power_for).toUint();
       expect(_for).to.deep.equal(BigInt(1));
-      const against = SplitUint256.fromObj(proposal_info.power_against).toUint();
+      const against = utils.splitUint256.SplitUint256.fromObj(proposal_info.power_against).toUint();
       expect(against).to.deep.equal(BigInt(0));
-      const abstain = SplitUint256.fromObj(proposal_info.power_abstain).toUint();
+      const abstain = utils.splitUint256.SplitUint256.fromObj(proposal_info.power_abstain).toUint();
       expect(abstain).to.deep.equal(BigInt(0));
     }
   }).timeout(6000000);
