@@ -5,7 +5,7 @@ import { StarknetContract, Account } from 'hardhat/types';
 import { utils } from '@snapshot-labs/sx';
 import { PROPOSE_SELECTOR } from '../shared/constants';
 
-describe('Controller Actions', () => {
+describe('Active Proposal', () => {
   let space: StarknetContract;
   let controller: Account;
   let user: Account;
@@ -24,7 +24,7 @@ describe('Controller Actions', () => {
       user.address,
       utils.intsSequence.IntsSequence.LEFromString(''),
       vanillaExecutionStrategy.address,
-      [vanillaVotingStrategy.address],
+      ['0x0'],
       [[]],
       []
     );
@@ -40,7 +40,7 @@ describe('Controller Actions', () => {
   it('Fails to add a voting strategy if a proposal is active', async () => {
     try {
       await controller.invoke(space, 'add_voting_strategies', {
-        to_add: [vanillaVotingStrategy.address],
+        addresses: [vanillaVotingStrategy.address],
         params_flat: [],
       });
       throw { message: 'should not add a voting strategy' };
@@ -52,7 +52,7 @@ describe('Controller Actions', () => {
   it('Fails to remove a voting strategy if a proposal is active', async () => {
     try {
       await controller.invoke(space, 'remove_voting_strategies', {
-        to_remove: [vanillaVotingStrategy.address],
+        indexes: ['0x0'],
       });
       throw { message: 'should not remove a voting strategy' };
     } catch (error: any) {
