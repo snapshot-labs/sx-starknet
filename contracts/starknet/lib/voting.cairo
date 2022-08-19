@@ -2,6 +2,7 @@
 
 %lang starknet
 
+# Standard Library
 from starkware.starknet.common.syscalls import get_caller_address, get_block_timestamp
 from starkware.cairo.common.cairo_builtins import HashBuiltin, SignatureBuiltin, BitwiseBuiltin
 from starkware.cairo.common.alloc import alloc
@@ -17,20 +18,25 @@ from starkware.cairo.common.math import (
     assert_lt_felt,
 )
 
+# OpenZeppelin
 from openzeppelin.access.ownable.library import Ownable
 from openzeppelin.account.library import Account, AccountCallArray, Account_current_nonce
 
+# Interfaces
 from contracts.starknet.Interfaces.IVotingStrategy import IVotingStrategy
 from contracts.starknet.Interfaces.IExecutionStrategy import IExecutionStrategy
+
+# Types
 from contracts.starknet.lib.general_address import Address
 from contracts.starknet.lib.proposal import Proposal
 from contracts.starknet.lib.proposal_info import ProposalInfo
 from contracts.starknet.lib.vote import Vote
 from contracts.starknet.lib.choice import Choice
 from contracts.starknet.lib.proposal_outcome import ProposalOutcome
-from contracts.starknet.lib.hash_array import hash_array
-from contracts.starknet.lib.array2d import Immutable2DArray, construct_array2d, get_sub_array
-from contracts.starknet.lib.slot_key import get_slot_key
+
+# Libraries
+from contracts.starknet.lib.hash_array import HashArray
+from contracts.starknet.lib.array_2d import Array2D, Immutable2DArray
 
 #
 # Storage
@@ -206,7 +212,7 @@ namespace Voting:
 
         # Reconstruct the voting params 2D array (1 sub array per strategy) from the flattened version.
         # Currently there is no way to pass struct types with pointers in calldata, so we must do it this way.
-        let (voting_strategy_params_all : Immutable2DArray) = construct_array2d(
+        let (voting_strategy_params_all : Immutable2DArray) = Array2D.construct_array2d(
             voting_strategy_params_flat_len, voting_strategy_params_flat
         )
 
@@ -365,7 +371,9 @@ namespace Voting:
 
         assert_no_active_proposal()
 
-        let (params_all : Immutable2DArray) = construct_array2d(params_flat_len, params_flat)
+        let (params_all : Immutable2DArray) = Array2D.construct_array2d(
+            params_flat_len, params_flat
+        )
 
         unchecked_add_voting_strategies(to_add_len, to_add, params_all, 0)
 
@@ -480,7 +488,7 @@ namespace Voting:
         end
 
         # Reconstruct the voting params 2D array (1 sub array per strategy) from the flattened version.
-        let (user_voting_strategy_params_all : Immutable2DArray) = construct_array2d(
+        let (user_voting_strategy_params_all : Immutable2DArray) = Array2D.construct_array2d(
             user_voting_strategy_params_flat_len, user_voting_strategy_params_flat
         )
 
@@ -554,7 +562,7 @@ namespace Voting:
         let max_end_timestamp = start_timestamp + _max_voting_duration
 
         # Reconstruct the voting params 2D array (1 sub array per strategy) from the flattened version.
-        let (user_voting_strategy_params_all : Immutable2DArray) = construct_array2d(
+        let (user_voting_strategy_params_all : Immutable2DArray) = Array2D.construct_array2d(
             user_voting_strategy_params_flat_len, user_voting_strategy_params_flat
         )
 
@@ -576,7 +584,7 @@ namespace Voting:
 
         # Hash the execution params
         # Storing arrays inside a struct is impossible so instead we just store a hash and then reconstruct the array in finalize_proposal
-        let (execution_hash) = hash_array(execution_params_len, execution_params)
+        let (execution_hash) = HashArray.hash_array(execution_params_len, execution_params)
 
         let (_quorum) = Voting_quorum_store.read()
 
@@ -645,7 +653,7 @@ namespace Voting:
         end
 
         # Make sure execution params match the ones sent at proposal creation by checking that the hashes match
-        let (recovered_hash) = hash_array(execution_params_len, execution_params)
+        let (recovered_hash) = HashArray.hash_array(execution_params_len, execution_params)
         with_attr error_message("Invalid execution parameters"):
             assert recovered_hash = proposal.execution_hash
         end
@@ -857,7 +865,7 @@ func unchecked_add_voting_strategies{
         Voting_voting_strategies_store.write(to_add[0], 1)
 
         # Extract voting params for the voting strategy
-        let (params_len, params) = get_sub_array(params_all, index)
+        let (params_len, params) = Array2D.get_sub_array(params_all, index)
 
         # We store the length of the voting strategy params array at index zero
         Voting_voting_strategy_params_store.write(to_add[0], 0, params_len)
@@ -1033,7 +1041,7 @@ func get_cumulative_voting_power{syscall_ptr : felt*, pedersen_ptr : HashBuiltin
     end
 
     # Extract voting params array for the voting strategy specified by the index
-    let (user_voting_strategy_params_len, user_voting_strategy_params) = get_sub_array(
+    let (user_voting_strategy_params_len, user_voting_strategy_params) = Array2D.get_sub_array(
         user_voting_strategy_params_all, index
     )
 
