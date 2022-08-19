@@ -1,11 +1,19 @@
 %lang starknet
-from starkware.cairo.common.cairo_builtins import HashBuiltin
-from starkware.cairo.common.alloc import alloc
-from starkware.cairo.common.memcpy import memcpy
-from starkware.cairo.common.math import assert_not_equal
-from contracts.starknet.lib.general_address import Address
-from contracts.starknet.lib.hash_array import HashArray
 from contracts.starknet.lib.execute import execute
+from contracts.starknet.lib.felt_utils import FeltUtils
+from starkware.cairo.common.cairo_builtins import BitwiseBuiltin
+from starkware.cairo.common.uint256 import Uint256
+from starkware.cairo.common.alloc import alloc
+from starkware.cairo.common.cairo_secp.signature import verify_eth_signature_uint256
+from starkware.cairo.common.cairo_builtins import HashBuiltin
+from starkware.cairo.common.math import split_felt
+from starkware.cairo.common.cairo_keccak.keccak import (
+    keccak_add_uint256s,
+    keccak_bigend,
+    finalize_keccak,
+)
+
+from contracts.starknet.lib.eth_sig_utils import EthSigUtils
 
 const ETHEREUM_PREFIX = 0x1901
 
@@ -26,22 +34,22 @@ const DOMAIN_HASH_LOW = 0x72c5ab51b06b74e448d6b02ce79ba93c
 func salts(ethAddress : felt, salt : Uint256) -> (already_used : felt):
 end
 
-# Returns session key if it exists and hasn't expired
-func get_session_key(eth_address : felt) -> (key : felt):
-end
+# # Returns session key if it exists and hasn't expired
+# func get_session_key(eth_address : felt) -> (key : felt):
+# end
 
-# Performs EC recover on the Ethereum signature and stores the session key in a
-# mapping indexed by the recovered Ethereum address
-@external
-func generate_session_key_from_sig(
-    r : Uint256, s : Uint256, v : felt, salt : Uint256, session_public_key : felt
-):
-end
+# # Performs EC recover on the Ethereum signature and stores the session key in a
+# # mapping indexed by the recovered Ethereum address
+# @external
+# func generate_session_key_from_sig(
+#     r : Uint256, s : Uint256, v : felt, salt : Uint256, session_public_key : felt
+# ):
+# end
 
-# Checks signature is valid and if so, removes session key for user
-@external
-func revoke_session_key(sig_len : felt, sig : felt*):
-end
+# # Checks signature is valid and if so, removes session key for user
+# @external
+# func revoke_session_key(sig_len : felt, sig : felt*):
+# end
 
 # Calls get_session_key with the ethereum address (calldata[0]) to check that a session is active.
 # If so, perfoms stark signature verification to check the sig is valid. If so calls execute with the payload.
@@ -61,18 +69,31 @@ func is_valid_eth_signature{
     session_duration : felt,
 ) -> (is_valid : felt):
     alloc_locals
-    let (_public_key) = get_public_key()
-    let (__fp__, _) = get_fp_and_pc()
+
+    let (local keccak_ptr : felt*) = alloc()
+    let keccak_ptr_start = keccak_ptr
+
+    # Eth address
+    let (eth_address_u256) = FeltUtils.felt_to_uint256(eth_address)
+    let (padded_eth_address) = EthSigUtils.pad_right(eth_address_u256)
+
+    # Session public key
+    let (session_public_key_u256) = FeltUtils.felt_to_uint256(session_public_key)
+    let (padded_session_public_key) = EthSigUtils.pad_right(session_public_key_u256)
+
+    # Session duration
+    let (session_duration_u256) = FeltUtils.felt_to_uint256(session_duration)
+    let (padded_session_duration) = EthSigUtils.pad_right(session_duration_u256)
 
     # Now construct the data hash (hashStruct)
     let (data : Uint256*) = alloc()
     assert data[0] = Uint256(SESSION_TYPE_HASH_LOW, SESSION_TYPE_HASH_HIGH)
-    assert data[1] = ethAddress
-    assert data[2] = session_public_key
-    assert data[3] = session_duration
+    assert data[1] = eth_address_u256
+    assert data[2] = session_public_key_u256
+    assert data[3] = session_duration_u256
     assert data[4] = salt
 
-    let (hash_struct) = get_keccak_hash{keccak_ptr=keccak_ptr}(5, data)
+    let (hash_struct) = EthSigUtils.get_keccak_hash{keccak_ptr=keccak_ptr}(5, data)
 
     # Prepare the encoded data
     let (prepared_encoded : Uint256*) = alloc()
@@ -81,7 +102,7 @@ func is_valid_eth_signature{
 
     # Prepend the ethereum prefix
     let (encoded_data : Uint256*) = alloc()
-    prepend_prefix_2bytes(ETHEREUM_PREFIX, encoded_data, 2, prepared_encoded)
+    EthSigUtils.prepend_prefix_2bytes(ETHEREUM_PREFIX, encoded_data, 2, prepared_encoded)
 
     # Now go from Uint256s to Uint64s (required in order to call `keccak`)
     let (signable_bytes) = alloc()
@@ -89,27 +110,13 @@ func is_valid_eth_signature{
     keccak_add_uint256s{inputs=signable_bytes}(n_elements=3, elements=encoded_data, bigend=1)
 
     # Compute the hash
-    let (hash) = keccak_bigend{keccak_ptr=keccak_ptr}(
+    let (msg_hash) = keccak_bigend{keccak_ptr=keccak_ptr}(
         inputs=signable_bytes_start, n_bytes=2 * 32 + 2
     )
 
-    # This interface expects a signature pointer and length to make
-    # no assumption about signature validation schemes.
-    # But this implementation does, and it expects a the sig_v, sig_r,
-    # sig_s, and hash elements.
-    let sig_v : felt = signature[0]
-    let sig_r : Uint256 = Uint256(low=signature[1], high=signature[2])
-    let sig_s : Uint256 = Uint256(low=signature[3], high=signature[4])
-    let (high, low) = split_felt(hash)
-    let msg_hash : Uint256 = Uint256(low=low, high=high)
+    # `v` is supposed to be `yParity` and not the `v` usually used in the Ethereum world (pre-EIP155).
+    # We substract `27` because `v` = `{0, 1} + 27`
+    verify_eth_signature_uint256{keccak_ptr=keccak_ptr}(msg_hash, r, s, v - 27, eth_address)
 
-    let (local keccak_ptr : felt*) = alloc()
-
-    with keccak_ptr:
-        verify_eth_signature_uint256(
-            msg_hash=msg_hash, r=sig_r, s=sig_s, v=sig_v, eth_address=_public_key
-        )
-    end
-
-    return (is_valid=TRUE)
+    return (is_valid=1)
 end
