@@ -43,7 +43,7 @@ export interface Vote {
   space: string;
   voterAddress: string;
   proposal: string;
-  choice: number;
+  choice: string;
   usedVotingStrategiesHash: string;
   userVotingStrategyParamsFlatHash: string;
   salt: string;
