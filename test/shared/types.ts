@@ -28,6 +28,15 @@ export const voteTypes = {
   ],
 };
 
+export const sessionKeyTypes = {
+  SessionKey: [
+    { name: 'address', type: 'bytes32' },
+    { name: 'sessionPublicKey', type: 'bytes32' },
+    { name: 'sessionDuration', type: 'uint256' },
+    { name: 'salt', type: 'uint256' },
+  ],
+};
+
 export interface Propose {
   space: string;
   proposerAddress: string;
@@ -46,5 +55,12 @@ export interface Vote {
   choice: number;
   usedVotingStrategiesHash: string;
   userVotingStrategyParamsFlatHash: string;
+  salt: string;
+}
+
+export interface SessionKey {
+  address: string;
+  sessionPublicKey: string;
+  sessionDuration: string;
   salt: string;
 }

@@ -31,20 +31,20 @@ const DOMAIN_HASH_HIGH = 0x4ea062c13aa1ccc0dde3383926ef9137
 const DOMAIN_HASH_LOW = 0x72c5ab51b06b74e448d6b02ce79ba93c
 
 @storage_var
-func salts(ethAddress : felt, salt : Uint256) -> (already_used : felt):
+func salts(eth_address : felt, salt : Uint256) -> (already_used : felt):
 end
 
-# # Returns session key if it exists and hasn't expired
-# func get_session_key(eth_address : felt) -> (key : felt):
-# end
+@storage_var
+func session_key_owner(session_public_key : felt) -> (eth_address):
+end
 
-# # Performs EC recover on the Ethereum signature and stores the session key in a
-# # mapping indexed by the recovered Ethereum address
-# @external
-# func generate_session_key_from_sig(
-#     r : Uint256, s : Uint256, v : felt, salt : Uint256, session_public_key : felt
-# ):
-# end
+# Returns owner of a session key if it exists, otherwise returns 0
+func get_session_key{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr}(
+    session_public_key : felt
+) -> (eth_address : felt):
+    let (eth_address) = session_key_owner.read(session_public_key)
+    return (eth_address)
+end
 
 # # Checks signature is valid and if so, removes session key for user
 # @external
@@ -57,7 +57,10 @@ end
 # func authenticate(sig_len: felt, sig: felt*, target: felt, function_selector: felt, calldata_len: felt, calldata: felt*):
 # end
 
-func is_valid_eth_signature{
+# Performs EC recover on the Ethereum signature and stores the session key in a
+# mapping indexed by the recovered Ethereum address
+@external
+func generate_session_key_from_sig{
     syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, bitwise_ptr : BitwiseBuiltin*, range_check_ptr
 }(
     r : Uint256,
@@ -67,11 +70,31 @@ func is_valid_eth_signature{
     eth_address : felt,
     session_public_key : felt,
     session_duration : felt,
-) -> (is_valid : felt):
+):
+    check_eth_signature(r, s, v, salt, eth_address, session_public_key, session_duration)
+    session_key_owner.write(session_public_key, eth_address)
+    return ()
+end
+
+func check_eth_signature{
+    syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, bitwise_ptr : BitwiseBuiltin*, range_check_ptr
+}(
+    r : Uint256,
+    s : Uint256,
+    v : felt,
+    salt : Uint256,
+    eth_address : felt,
+    session_public_key : felt,
+    session_duration : felt,
+) -> ():
     alloc_locals
 
-    let (local keccak_ptr : felt*) = alloc()
-    let keccak_ptr_start = keccak_ptr
+    # Ensure voter has not already used this salt in a previous action
+    let (already_used) = salts.read(eth_address, salt)
+
+    with_attr error_message("Salt already used"):
+        assert already_used = 0
+    end
 
     # Eth address
     let (eth_address_u256) = FeltUtils.felt_to_uint256(eth_address)
@@ -92,6 +115,9 @@ func is_valid_eth_signature{
     assert data[2] = session_public_key_u256
     assert data[3] = session_duration_u256
     assert data[4] = salt
+
+    let (local keccak_ptr : felt*) = alloc()
+    let keccak_ptr_start = keccak_ptr
 
     let (hash_struct) = EthSigUtils.get_keccak_hash{keccak_ptr=keccak_ptr}(5, data)
 
@@ -118,5 +144,11 @@ func is_valid_eth_signature{
     # We substract `27` because `v` = `{0, 1} + 27`
     verify_eth_signature_uint256{keccak_ptr=keccak_ptr}(msg_hash, r, s, v - 27, eth_address)
 
-    return (is_valid=1)
+    # Verify that all the previous keccaks are correct
+    finalize_keccak(keccak_ptr_start, keccak_ptr)
+
+    # Write the salt to prevent replay attack
+    salts.write(eth_address, salt, 1)
+
+    return ()
 end
