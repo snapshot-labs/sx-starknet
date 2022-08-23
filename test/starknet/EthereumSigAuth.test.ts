@@ -72,6 +72,7 @@ describe('Ethereum Sig Auth testing', () => {
     usedVotingStrategies1 = [vanillaVotingStrategy.address];
     userVotingParamsAll1 = [[]];
     executionStrategy = vanillaExecutionStrategy.address;
+    spaceAddress = space.address;
 
     executionParams = ['0x01']; // Random params
     executionHash = computeHashOnElements(executionParams);
@@ -159,7 +160,6 @@ describe('Ethereum Sig Auth testing', () => {
       const proposalSalt: utils.splitUint256.SplitUint256 =
         utils.splitUint256.SplitUint256.fromHex('0x01');
 
-      const spaceStr = hexPadRight(space.address);
       const executionHashPadded = hexPadRight(executionHash);
       const usedVotingStrategiesHashPadded1 = hexPadRight(usedVotingStrategiesHash1);
       const userVotingStrategyParamsFlatHashPadded1 = hexPadRight(
@@ -169,7 +169,7 @@ describe('Ethereum Sig Auth testing', () => {
       const paddedExecutor = hexPadRight(executionStrategy);
 
       const message: Propose = {
-        space: spaceStr,
+        space: spaceAddress,
         proposerAddress: paddedProposerAddress,
         metadataUri: METADATA_URI,
         executor: paddedExecutor,
@@ -189,7 +189,7 @@ describe('Ethereum Sig Auth testing', () => {
         s: s,
         v: v,
         salt: proposalSalt,
-        target: spaceStr,
+        target: spaceAddress,
         function_selector: PROPOSE_SELECTOR,
         calldata: proposeCalldata,
       });
