@@ -246,7 +246,7 @@ describe('Ethereum Sig Auth testing', () => {
         space: spaceStr,
         voterAddress: voterEthAddressPadded,
         proposal: BigInt(proposalId).toString(16),
-        choice: utils.choice.Choice.FOR.toString(16),
+        choice: utils.choice.Choice.FOR,
         usedVotingStrategiesHash: usedVotingStrategiesHashPadded2,
         userVotingStrategyParamsFlatHash: userVotingStrategyParamsFlatHashPadded2,
         salt: voteSalt.toHex(),
