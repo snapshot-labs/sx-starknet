@@ -72,9 +72,9 @@ func authenticate_proposal{
     let (local keccak_ptr : felt*) = alloc()
     let keccak_ptr_start = keccak_ptr
 
-    # Space address
+    # We don't need to pad because calling `.address` with starknet.js
+    # already left pads the address with 0s
     let (space) = FeltUtils.felt_to_uint256(target)
-    let (padded_space) = EthSigUtils.pad_right(space)
 
     # Proposer address
     let (proposer_address_u256) = FeltUtils.felt_to_uint256(proposer_address)
@@ -91,7 +91,6 @@ func authenticate_proposal{
     # Executor
     let executor = calldata[3 + metadata_uri_len]
     let (executor_u256) = FeltUtils.felt_to_uint256(executor)
-    let (padded_executor) = EthSigUtils.pad_right(executor_u256)
 
     # Used voting strategies
     let used_voting_strats_len = calldata[4 + metadata_uri_len]
@@ -116,10 +115,10 @@ func authenticate_proposal{
     let (data : Uint256*) = alloc()
 
     assert data[0] = Uint256(PROPOSAL_HASH_LOW, PROPOSAL_HASH_HIGH)
-    assert data[1] = padded_space
+    assert data[1] = space
     assert data[2] = padded_proposer_address
     assert data[3] = metadata_uri_hash
-    assert data[4] = padded_executor
+    assert data[4] = executor_u256
     assert data[5] = execution_hash
     assert data[6] = used_voting_strategies_hash
     assert data[7] = user_voting_strategy_params_flat_hash
@@ -182,8 +181,9 @@ func authenticate_vote{
         assert already_used = 0
     end
 
+    # We don't need to pad because calling `.address` with starknet.js
+    # already left pads the address with 0s
     let (space) = FeltUtils.felt_to_uint256(target)
-    let (padded_space) = EthSigUtils.pad_right(space)
 
     let (voter_address_u256) = FeltUtils.felt_to_uint256(voter_address)
     let (padded_voter_address) = EthSigUtils.pad_right(voter_address_u256)
@@ -206,7 +206,7 @@ func authenticate_vote{
     # Now construct the data hash (hashStruct)
     let (data : Uint256*) = alloc()
     assert data[0] = Uint256(VOTE_HASH_LOW, VOTE_HASH_HIGH)
-    assert data[1] = padded_space
+    assert data[1] = space
     assert data[2] = padded_voter_address
     assert data[3] = proposal_id
     assert data[4] = choice

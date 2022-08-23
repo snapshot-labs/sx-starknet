@@ -36,22 +36,18 @@ describe('Ethereum Sig Auth testing', () => {
   let vanillaVotingStrategy: StarknetContract;
   let vanillaExecutionStrategy: StarknetContract;
 
-
-
   before(async function () {
     this.timeout(800000);
     const accounts = await ethers.getSigners();
     ({ space, controller, ethSigSessionKeyAuth, vanillaVotingStrategy, vanillaExecutionStrategy } =
       await ethereumSigSessionKeyAuthSetup());
-
   });
 
   it('Should generate a session key if a valid signature is provided', async () => {
     // -- Creates the proposal --
     {
       const accounts = await ethers.getSigners();
-      const salt: utils.splitUint256.SplitUint256 =
-        utils.splitUint256.SplitUint256.fromHex('0x01');
+      const salt: utils.splitUint256.SplitUint256 = utils.splitUint256.SplitUint256.fromHex('0x01');
 
       const message: SessionKey = {
         address: utils.encoding.hexPadRight(accounts[0].address),
@@ -71,7 +67,7 @@ describe('Ethereum Sig Auth testing', () => {
         salt: salt,
         eth_address: accounts[0].address,
         session_public_key: '0x1234',
-        session_duration: '0x1111'
+        session_duration: '0x1111',
       });
 
       console.log('Checking...');

@@ -7,12 +7,13 @@ namespace HashArray:
     # Dev note: starkware.py and starknet.js methods for hashing an array append the length of the array to the end before hashing.
     # This is why we replicate that here.
     func hash_array{pedersen_ptr : HashBuiltin*}(array_len : felt, array : felt*) -> (hash : felt):
-        # Appending the length of the array to itself as the offchain version of the hash works this way
-        assert array[array_len] = array_len
         let (hash_state_ptr) = hash_init()
-        let (hash_state_ptr) = hash_update{hash_ptr=pedersen_ptr}(
-            hash_state_ptr, array, array_len + 1
-        )
+        let (hash_state_ptr) = hash_update{hash_ptr=pedersen_ptr}(hash_state_ptr, array, array_len)
+
+        let (__fp__, _) = get_fp_and_pc()
+
+        # Appending the length of the array to itself as the offchain version of the hash works this way
+        let (hash_state_ptr) = hash_update{hash_ptr=pedersen_ptr}(hash_state_ptr, &array_len, 1)
         return (hash_state_ptr.current_hash)
     end
 end
