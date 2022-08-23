@@ -50,8 +50,6 @@ async function main() {
   const sig = await ethAccount._signTypedData(domain, voteTypes, message);
   const { r, s, v } = utils.encoding.getRSVFromSig(sig);
 
-
-
   // const { transaction_hash: txHash } = await starkAccount.execute(
   //   {
   //     contractAddress: authenticatorAddress,
@@ -77,27 +75,24 @@ async function main() {
   // await defaultProvider.waitForTransaction(txHash);
   // console.log('---- VOTE CAST ----');
 
-  const out = await starkAccount.estimateFee(
-    {
-      contractAddress: authenticatorAddress,
-      entrypoint: 'authenticate',
-      calldata: [
-        r.low,
-        r.high,
-        s.low,
-        s.high,
-        v,
-        salt.low,
-        salt.high,
-        spaceAddress,
-        VOTE_SELECTOR,
-        voteCalldata.length,
-        ...voteCalldata,
-      ],
-    },
-  );
+  const out = await starkAccount.estimateFee({
+    contractAddress: authenticatorAddress,
+    entrypoint: 'authenticate',
+    calldata: [
+      r.low,
+      r.high,
+      s.low,
+      s.high,
+      v,
+      salt.low,
+      salt.high,
+      spaceAddress,
+      VOTE_SELECTOR,
+      voteCalldata.length,
+      ...voteCalldata,
+    ],
+  });
   console.log(out);
-
 }
 
 main()

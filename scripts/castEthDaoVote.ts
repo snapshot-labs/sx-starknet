@@ -16,7 +16,7 @@ async function main() {
     ec.getKeyPair(process.env.ARGENT_X_PK!)
   );
   const ethAccount = new ethers.Wallet(process.env.ETH_PK_1!);
-
+  console.log(ethAccount);
   const spaceAddress = '0x5ad4bd1ca422953ac845ac7915ddfa93fe3fecec0ed8c86db5e294b0e18c9bd';
   const proposalId = '0x1';
   const choice = utils.choice.Choice.AGAINST;
@@ -75,27 +75,24 @@ async function main() {
   // await defaultProvider.waitForTransaction(txHash);
   // console.log('---- VOTE CAST ----');
 
-  const out = await starkAccount.execute(
-    {
-      contractAddress: authenticatorAddress,
-      entrypoint: 'authenticate',
-      calldata: [
-        r.low,
-        r.high,
-        s.low,
-        s.high,
-        v,
-        salt.low,
-        salt.high,
-        spaceAddress,
-        VOTE_SELECTOR,
-        voteCalldata.length,
-        ...voteCalldata,
-      ],
-    },
-  );
+  const out = await starkAccount.execute({
+    contractAddress: authenticatorAddress,
+    entrypoint: 'authenticate',
+    calldata: [
+      r.low,
+      r.high,
+      s.low,
+      s.high,
+      v,
+      salt.low,
+      salt.high,
+      spaceAddress,
+      VOTE_SELECTOR,
+      voteCalldata.length,
+      ...voteCalldata,
+    ],
+  });
   console.log(out);
-
 }
 
 main()
