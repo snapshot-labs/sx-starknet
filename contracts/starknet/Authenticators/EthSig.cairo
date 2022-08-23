@@ -225,7 +225,8 @@ func authenticate_proposal{
     let (local keccak_ptr : felt*) = alloc()
     let keccak_ptr_start = keccak_ptr
 
-    # Space address
+    # We don't need to pad because calling `.address` with starknet.js
+    # already left pads the address with 0s
     let (space) = FeltUtils.felt_to_uint256(target)
 
     # Proposer address
@@ -331,8 +332,9 @@ func authenticate_vote{
         assert already_used = 0
     end
 
+    # We don't need to pad because calling `.address` with starknet.js
+    # already left pads the address with 0s
     let (space) = FeltUtils.felt_to_uint256(target)
-    let (padded_space) = pad_right(space)
 
     let (voter_address_u256) = FeltUtils.felt_to_uint256(voter_address)
     let (padded_voter_address) = pad_right(voter_address_u256)
@@ -355,7 +357,7 @@ func authenticate_vote{
     # Now construct the data hash (hashStruct)
     let (data : Uint256*) = alloc()
     assert data[0] = Uint256(VOTE_HASH_LOW, VOTE_HASH_HIGH)
-    assert data[1] = padded_space
+    assert data[1] = space
     assert data[2] = padded_voter_address
     assert data[3] = proposal_id
     assert data[4] = choice
