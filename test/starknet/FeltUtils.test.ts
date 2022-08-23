@@ -5,7 +5,7 @@ import { utils } from '@snapshot-labs/sx';
 
 async function setup() {
   const testWordsFactory = await starknet.getContractFactory(
-    './contracts/starknet/TestContracts/Test_words_to_uint256.cairo'
+    './contracts/starknet/TestContracts/Test_FeltUtils.cairo'
   );
   const testWords = await testWordsFactory.deploy();
   return {
@@ -13,8 +13,8 @@ async function setup() {
   };
 }
 
-describe('Words 64 to Uint256:', () => {
-  it('The contract should covert 4 64 bit words to a Uint256', async () => {
+describe('Felt Utils:', () => {
+  it('The library should covert 4 64 bit words to a Uint256', async () => {
     const { testWords } = await setup();
     const word1 = BigInt(utils.bytes.bytesToHex(ethers.utils.randomBytes(2)));
     const word2 = BigInt(utils.bytes.bytesToHex(ethers.utils.randomBytes(2)));
@@ -34,5 +34,15 @@ describe('Words 64 to Uint256:', () => {
         `0x${uint256.high.toString(16)}`
       )
     ).to.deep.equal(utils.splitUint256.SplitUint256.fromUint(uint));
+  }).timeout(600000);
+
+  it('The library should covert a felt into 4 words', async () => {
+    const { testWords } = await setup();
+    const input = BigInt(utils.bytes.bytesToHex(ethers.utils.randomBytes(31)));
+    const { words: words } = await testWords.call('test_felt_to_words', {
+      input: input,
+    });
+    const uint = utils.words64.wordsToUint(words.word_1, words.word_2, words.word_3, words.word_4);
+    expect(uint).to.deep.equal(input);
   }).timeout(600000);
 });

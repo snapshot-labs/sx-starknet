@@ -1,7 +1,7 @@
 import fs from 'fs';
 import { expect } from 'chai';
 import { starknet } from 'hardhat';
-import { singleSlotProofSetup, Fossil } from '../shared/setup';
+import { ethBalanceOfSetup, Fossil } from '../shared/setup';
 import { PROPOSE_SELECTOR, VOTE_SELECTOR } from '../shared/constants';
 import { StarknetContract, Account } from 'hardhat/types';
 // import { strToShortStringArr } from '@snapshot-labs/sx';
@@ -13,7 +13,7 @@ describe('Single slot proof voting strategy:', () => {
   let controller: Account;
   let account: Account;
   let vanillaAuthenticator: StarknetContract;
-  let singleSlotProofStrategy: StarknetContract;
+  let ethBalanceOfVotingStrategy: StarknetContract;
   let vanillaExecutionStrategy: StarknetContract;
   let fossil: Fossil;
 
@@ -50,11 +50,11 @@ describe('Single slot proof voting strategy:', () => {
       space,
       controller,
       vanillaAuthenticator,
-      singleSlotProofStrategy,
+      ethBalanceOfVotingStrategy,
       vanillaExecutionStrategy,
       fossil,
       proofInputs,
-    } = await singleSlotProofSetup(block, proofs));
+    } = await ethBalanceOfSetup(block, proofs));
 
     proposalId = '0x1';
     metadataUri = utils.intsSequence.IntsSequence.LEFromString(

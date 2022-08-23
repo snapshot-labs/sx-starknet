@@ -1,7 +1,7 @@
 %lang starknet
 from contracts.starknet.lib.execute import execute
-from contracts.starknet.lib.felt_to_uint256 import felt_to_uint256
-from contracts.starknet.lib.hash_array import hash_array
+from contracts.starknet.lib.felt_utils import FeltUtils
+from contracts.starknet.lib.hash_array import HashArray
 from starkware.cairo.common.cairo_builtins import BitwiseBuiltin
 from starkware.cairo.common.uint256 import (
     Uint256,
@@ -136,7 +136,7 @@ func u256_pow{range_check_ptr}(base : felt, exp : felt) -> (res : Uint256):
         # Compute `base ** exp - 1`
         let (recursion) = u256_pow(base, exp - 1)
 
-        let (uint256_base) = felt_to_uint256(base)
+        let (uint256_base) = FeltUtils.felt_to_uint256(base)
 
         # Multiply the result by `base`
         let (res, overflow) = uint256_mul(recursion, uint256_base)
@@ -191,8 +191,8 @@ func get_padded_hash{range_check_ptr, pedersen_ptr : HashBuiltin*}(
 ) -> (res : Uint256):
     alloc_locals
 
-    let (hash) = hash_array(input_len, input)
-    let (hash_u256) = felt_to_uint256(hash)
+    let (hash) = HashArray.hash_array(input_len, input)
+    let (hash_u256) = FeltUtils.felt_to_uint256(hash)
     let (padded_hash) = pad_right(hash_u256)
 
     return (res=padded_hash)
@@ -225,12 +225,12 @@ func authenticate_proposal{
     let (local keccak_ptr : felt*) = alloc()
     let keccak_ptr_start = keccak_ptr
 
-    # Space address
-    let (space) = felt_to_uint256(target)
-    let (padded_space) = pad_right(space)
+    # We don't need to pad because calling `.address` with starknet.js
+    # already left pads the address with 0s
+    let (space) = FeltUtils.felt_to_uint256(target)
 
     # Proposer address
-    let (proposer_address_u256) = felt_to_uint256(proposer_address)
+    let (proposer_address_u256) = FeltUtils.felt_to_uint256(proposer_address)
     let (padded_proposer_address) = pad_right(proposer_address_u256)
 
     # Metadata URI
@@ -243,8 +243,7 @@ func authenticate_proposal{
 
     # Executor
     let executor = calldata[3 + metadata_uri_len]
-    let (executor_u256) = felt_to_uint256(executor)
-    let (padded_executor) = pad_right(executor_u256)
+    let (executor_u256) = FeltUtils.felt_to_uint256(executor)
 
     # Used voting strategies
     let used_voting_strats_len = calldata[4 + metadata_uri_len]
@@ -267,10 +266,10 @@ func authenticate_proposal{
     let (data : Uint256*) = alloc()
 
     assert data[0] = Uint256(PROPOSAL_HASH_LOW, PROPOSAL_HASH_HIGH)
-    assert data[1] = padded_space
+    assert data[1] = space
     assert data[2] = padded_proposer_address
     assert data[3] = metadata_uri_hash
-    assert data[4] = padded_executor
+    assert data[4] = executor_u256
     assert data[5] = execution_hash
     assert data[6] = used_voting_strategies_hash
     assert data[7] = user_voting_strategy_params_flat_hash
@@ -333,14 +332,15 @@ func authenticate_vote{
         assert already_used = 0
     end
 
-    let (space) = felt_to_uint256(target)
-    let (padded_space) = pad_right(space)
+    # We don't need to pad because calling `.address` with starknet.js
+    # already left pads the address with 0s
+    let (space) = FeltUtils.felt_to_uint256(target)
 
-    let (voter_address_u256) = felt_to_uint256(voter_address)
+    let (voter_address_u256) = FeltUtils.felt_to_uint256(voter_address)
     let (padded_voter_address) = pad_right(voter_address_u256)
 
-    let (proposal_id) = felt_to_uint256(calldata[1])
-    let (choice) = felt_to_uint256(calldata[2])
+    let (proposal_id) = FeltUtils.felt_to_uint256(calldata[1])
+    let (choice) = FeltUtils.felt_to_uint256(calldata[2])
 
     let used_voting_strategies_len = calldata[3]
     let used_voting_strategies = &calldata[4]
@@ -357,7 +357,7 @@ func authenticate_vote{
     # Now construct the data hash (hashStruct)
     let (data : Uint256*) = alloc()
     assert data[0] = Uint256(VOTE_HASH_LOW, VOTE_HASH_HIGH)
-    assert data[1] = padded_space
+    assert data[1] = space
     assert data[2] = padded_voter_address
     assert data[3] = proposal_id
     assert data[4] = choice
