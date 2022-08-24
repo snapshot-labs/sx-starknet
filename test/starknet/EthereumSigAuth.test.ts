@@ -69,7 +69,7 @@ describe('Ethereum Sig Auth testing', () => {
 
     metadataUri = 'Hello and welcome to Snapshot X. This is the future of governance.';
     metadataUriInts = utils.intsSequence.IntsSequence.LEFromString(metadataUri);
-    usedVotingStrategies1 = [vanillaVotingStrategy.address];
+    usedVotingStrategies1 = ['0x0'];
     userVotingParamsAll1 = [[]];
     executionStrategy = vanillaExecutionStrategy.address;
     spaceAddress = space.address;
@@ -93,7 +93,7 @@ describe('Ethereum Sig Auth testing', () => {
     voterEthAddress = accounts[0].address;
     proposalId = '0x1';
     choice = utils.choice.Choice.FOR;
-    usedVotingStrategies2 = [vanillaVotingStrategy.address];
+    usedVotingStrategies2 = ['0x0'];
     userVotingParamsAll2 = [[]];
     usedVotingStrategiesHash2 = computeHashOnElements(usedVotingStrategies2);
     const userVotingStrategyParamsFlat2 = utils.encoding.flatten2DArray(userVotingParamsAll2);

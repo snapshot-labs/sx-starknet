@@ -47,7 +47,7 @@ describe('Starknet execution via account contract', () => {
     );
     proposerEthAddress = ethers.Wallet.createRandom().address;
     spaceAddress = space.address;
-    usedVotingStrategies1 = [vanillaVotingStrategy.address];
+    usedVotingStrategies1 = ['0x0'];
     userVotingParamsAll1 = [[]];
     executionStrategy = '0x1'; // Starknet execution does not use a separate strategy contract, instead its indicated via passing the value 1.
 
@@ -120,7 +120,7 @@ describe('Starknet execution via account contract', () => {
     voterEthAddress = ethers.Wallet.createRandom().address;
     proposalId = '0x1';
     choice = utils.choice.Choice.FOR;
-    usedVotingStrategies2 = [vanillaVotingStrategy.address];
+    usedVotingStrategies2 = ['0x0'];
     userVotingParamsAll2 = [[]];
     voteCalldata = utils.encoding.getVoteCalldata(
       voterEthAddress,

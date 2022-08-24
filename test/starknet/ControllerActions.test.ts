@@ -58,15 +58,15 @@ describe('Controller Actions', () => {
     const votingStrategyParams: string[][] = [[]];
     const votingStrategyParamsFlat: string[] = utils.encoding.flatten2DArray(votingStrategyParams);
 
-    // Add the whitelist strategy
+    // Add the whitelist strategy, which will be placed at index 1
     await controller.invoke(space, 'add_voting_strategies', {
-      to_add: [whitelistStrategy.address],
+      addresses: [whitelistStrategy.address],
       params_flat: votingStrategyParamsFlat,
     });
 
-    // Remove the vanilla voting strategy
+    // Remove the vanilla voting strategy, which is at index 0
     await controller.invoke(space, 'remove_voting_strategies', {
-      to_remove: [vanillaVotingStrategy.address],
+      indexes: ['0x0'],
     });
 
     // Ensure that `controller` can't propose (we removed the vanillaVotingStrategy)
@@ -75,7 +75,7 @@ describe('Controller Actions', () => {
         controller.address,
         utils.intsSequence.IntsSequence.LEFromString(''),
         vanillaExecutionStrategy.address,
-        [vanillaVotingStrategy.address],
+        ['0x0'],
         [[]],
         []
       );
@@ -94,7 +94,7 @@ describe('Controller Actions', () => {
       address,
       utils.intsSequence.IntsSequence.LEFromString(''),
       vanillaExecutionStrategy.address,
-      [whitelistStrategy.address],
+      ['0x1'],
       [[]],
       []
     );
@@ -115,15 +115,15 @@ describe('Controller Actions', () => {
       execution_params: [],
     });
 
-    // Reset to the original voting strategy
+    // Re-add vanilla voting strategy, which will now be at index 2
     await controller.invoke(space, 'add_voting_strategies', {
-      to_add: [vanillaVotingStrategy.address],
+      addresses: [vanillaVotingStrategy.address],
       params_flat: votingStrategyParamsFlat,
     });
 
-    // Remove the vanilla voting strategy
+    // Remove the whitelist voting strategy
     await controller.invoke(space, 'remove_voting_strategies', {
-      to_remove: [whitelistStrategy.address],
+      indexes: ['0x1'],
     });
 
     proposalId += BigInt(1);
@@ -149,7 +149,7 @@ describe('Controller Actions', () => {
       user.address,
       utils.intsSequence.IntsSequence.LEFromString(''),
       vanillaExecutionStrategy.address,
-      [vanillaVotingStrategy.address],
+      ['0x2'],
       [[]],
       []
     );
@@ -209,7 +209,7 @@ describe('Controller Actions', () => {
       user.address,
       utils.intsSequence.IntsSequence.LEFromString(''),
       vanillaExecutionStrategy.address,
-      [vanillaVotingStrategy.address],
+      ['0x2'],
       [[]],
       []
     );
@@ -229,7 +229,7 @@ describe('Controller Actions', () => {
       user.address,
       utils.intsSequence.IntsSequence.LEFromString(''),
       randomExecutionContract.address,
-      [vanillaVotingStrategy.address],
+      ['0x2'],
       [[]],
       []
     );
@@ -267,7 +267,7 @@ describe('Controller Actions', () => {
       user.address,
       utils.intsSequence.IntsSequence.LEFromString(''),
       vanillaExecutionStrategy.address,
-      [vanillaVotingStrategy.address],
+      ['0x2'],
       [[]],
       []
     );
@@ -282,7 +282,7 @@ describe('Controller Actions', () => {
       user.address,
       proposalId.toString(16),
       utils.choice.Choice.FOR,
-      [vanillaVotingStrategy.address],
+      ['0x2'],
       [[]]
     );
     // Vote once
@@ -307,7 +307,7 @@ describe('Controller Actions', () => {
       space.address,
       proposalId.toString(16),
       utils.choice.Choice.FOR,
-      [vanillaVotingStrategy.address],
+      ['0x2'],
       [[]]
     );
     // Vote a second time
@@ -341,7 +341,7 @@ describe('Controller Actions', () => {
       user.address,
       utils.intsSequence.IntsSequence.LEFromString(''),
       vanillaExecutionStrategy.address,
-      [vanillaVotingStrategy.address],
+      ['0x2'],
       [[]],
       []
     );
@@ -357,7 +357,7 @@ describe('Controller Actions', () => {
       user.address,
       proposalId.toString(16),
       utils.choice.Choice.FOR,
-      [vanillaVotingStrategy.address],
+      ['0x2'],
       [[]]
     );
     try {
@@ -412,7 +412,7 @@ describe('Controller Actions', () => {
       user.address,
       utils.intsSequence.IntsSequence.LEFromString(''),
       vanillaExecutionStrategy.address,
-      [vanillaVotingStrategy.address],
+      ['0x2'],
       [[]],
       []
     );
@@ -427,7 +427,7 @@ describe('Controller Actions', () => {
       user.address,
       proposalId.toString(16),
       utils.choice.Choice.FOR,
-      [vanillaVotingStrategy.address],
+      ['0x2'],
       [[]]
     );
     // Cast a vote
@@ -483,7 +483,7 @@ describe('Controller Actions', () => {
       user.address,
       utils.intsSequence.IntsSequence.LEFromString(''),
       vanillaExecutionStrategy.address,
-      [vanillaVotingStrategy.address],
+      ['0x2'],
       [[]],
       []
     );
@@ -498,7 +498,7 @@ describe('Controller Actions', () => {
       user.address,
       proposalId.toString(16),
       utils.choice.Choice.FOR,
-      [vanillaVotingStrategy.address],
+      ['0x2'],
       [[]]
     );
     // Cast a vote before the end of the vote
@@ -524,7 +524,7 @@ describe('Controller Actions', () => {
         space.address,
         proposalId.toString(16),
         utils.choice.Choice.FOR,
-        [vanillaVotingStrategy.address],
+        ['0x2'],
         [[]]
       );
       await controller.invoke(vanillaAuthenticator, 'authenticate', {
@@ -575,8 +575,9 @@ describe('Controller Actions', () => {
 
     const votingStrategyParams: string[][] = [[]];
     const votingStrategyParamsFlat: string[] = utils.encoding.flatten2DArray(votingStrategyParams);
+    // The whitelist strategy will be at index 3
     await controller.invoke(space, 'add_voting_strategies', {
-      to_add: [whitelistStrategy.address],
+      addresses: [whitelistStrategy.address],
       params_flat: votingStrategyParamsFlat,
     });
 
@@ -586,7 +587,7 @@ describe('Controller Actions', () => {
         space.address,
         utils.intsSequence.IntsSequence.LEFromString(''),
         vanillaExecutionStrategy.address,
-        [whitelistStrategy.address],
+        ['0x3'],
         [[]],
         []
       );
@@ -604,7 +605,7 @@ describe('Controller Actions', () => {
       user.address,
       utils.intsSequence.IntsSequence.LEFromString(''),
       vanillaExecutionStrategy.address,
-      [whitelistStrategy.address],
+      ['0x3'],
       [[]],
       []
     );

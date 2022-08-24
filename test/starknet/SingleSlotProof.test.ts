@@ -63,7 +63,7 @@ describe('Single slot proof voting strategy:', () => {
     // Eth address corresponding to slot with key: 0x1f209fa834e9c9c92b83d1bd04d8d1914bd212e440f88fdda8a5879962bda665
     proposerEthAddress = '0x4048c47b546b68ad226ea20b5f0acac49b086a21';
     spaceAddress = space.address;
-    usedVotingStrategies1 = [ethBalanceOfVotingStrategy.address];
+    usedVotingStrategies1 = ['0x0'];
     userVotingParamsAll1 = [proofInputs.storageProofs[0]];
     executionStrategy = vanillaExecutionStrategy.address;
     executionParams = [];
@@ -78,7 +78,7 @@ describe('Single slot proof voting strategy:', () => {
     // Eth address corresponding to slot with key: 0x9dd2a912bd3f98d4e52ea66ae2fff8b73a522895d081d522fe86f592ec8467c3
     voterEthAddress = '0x3744da57184575064838bbc87a0fc791f5e39ea2';
     choice = utils.choice.Choice.FOR;
-    usedVotingStrategies2 = [ethBalanceOfVotingStrategy.address];
+    usedVotingStrategies2 = ['0x0'];
     userVotingParamsAll2 = [proofInputs.storageProofs[1]];
     voteCalldata = utils.encoding.getVoteCalldata(
       voterEthAddress,
@@ -89,7 +89,7 @@ describe('Single slot proof voting strategy:', () => {
     );
   });
 
-  it('A user can create a proposal', async () => {
+  it('A user can create a proposal and another user can vote on it', async () => {
     // Verify an account proof to obtain the storage root for the account at the specified block number trustlessly on-chain.
     // Result will be stored in the L1 Headers store in Fossil
     await account.invoke(fossil.factsRegistry, 'prove_account', {

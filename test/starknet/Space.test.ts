@@ -42,7 +42,7 @@ describe('Space Testing', () => {
     );
     proposerEthAddress = ethers.Wallet.createRandom().address;
     spaceAddress = space.address;
-    usedVotingStrategies1 = [vanillaVotingStrategy.address];
+    usedVotingStrategies1 = ['0x0'];
     userVotingParamsAll1 = [[]];
     executionStrategy = vanillaExecutionStrategy.address;
     executionParams = [];
@@ -58,7 +58,7 @@ describe('Space Testing', () => {
     voterEthAddress = ethers.Wallet.createRandom().address;
     proposalId = '0x1';
     choice = utils.choice.Choice.FOR;
-    usedVotingStrategies2 = [vanillaVotingStrategy.address];
+    usedVotingStrategies2 = ['0x0']; // The vanilla voting strategy corresponds to index 0 in the space contract
     userVotingParamsAll2 = [[]];
     voteCalldata = utils.encoding.getVoteCalldata(
       voterEthAddress,
