@@ -32,7 +32,7 @@ export const sessionKeyTypes = {
   SessionKey: [
     { name: 'address', type: 'bytes32' },
     { name: 'sessionPublicKey', type: 'bytes32' },
-    { name: 'sessionDuration', type: 'uint256' },
+    { name: 'sessionDuration', type: 'bytes32' },
     { name: 'salt', type: 'uint256' },
   ],
 };

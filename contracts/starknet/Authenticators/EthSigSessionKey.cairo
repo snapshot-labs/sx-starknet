@@ -1,4 +1,5 @@
 %lang starknet
+
 from contracts.starknet.lib.execute import execute
 from contracts.starknet.lib.felt_utils import FeltUtils
 from starkware.cairo.common.cairo_builtins import BitwiseBuiltin
@@ -12,16 +13,13 @@ from starkware.cairo.common.cairo_keccak.keccak import (
     keccak_bigend,
     finalize_keccak,
 )
-
 from contracts.starknet.lib.eth_sig_utils import EthSigUtils
 
 const ETHEREUM_PREFIX = 0x1901
 
-# This is the typeHash, obtained via:
-# keccak256("Vote(bytes32 space,bytes32 voterAddress,uint256 proposal,uint256 choice,bytes32 usedVotingStrategiesHash,bytes32 userVotingStrategyParamsFlatHash,uint256 salt)")
-# keccak256("Session(bytes32 ethereumAddress,bytes32 sessionPublicKey,uint256 sessionDuration,uint256 salt)")
-const SESSION_TYPE_HASH_HIGH = 0x0f76587b41b5c7810a4c8591d4d84385
-const SESSION_TYPE_HASH_LOW = 0x85dba41961e8886710ef5d5cbe72713d
+# keccak256("SessionKey(bytes32 address,bytes32 sessionPublicKey,bytes32 sessionDuration,uint256 salt)")
+const SESSION_KEY_TYPE_HASH_HIGH = 0x233b93cc8989df29b5834cd69e96f1e9
+const SESSION_KEY_TYPE_HASH_LOW = 0x390b13389ac2a65080907f1fcf6385e8
 
 # This is the domainSeparator, obtained by using those fields (see more about it in EIP712):
 # name: 'snapshot-x',
@@ -39,6 +37,7 @@ func session_key_owner(session_public_key : felt) -> (eth_address):
 end
 
 # Returns owner of a session key if it exists, otherwise returns 0
+@external
 func get_session_key{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr}(
     session_public_key : felt
 ) -> (eth_address : felt):
@@ -91,37 +90,32 @@ func check_eth_signature{
 
     # Ensure voter has not already used this salt in a previous action
     let (already_used) = salts.read(eth_address, salt)
-
     with_attr error_message("Salt already used"):
         assert already_used = 0
     end
 
-    # Eth address
+    # Encode data
     let (eth_address_u256) = FeltUtils.felt_to_uint256(eth_address)
     let (padded_eth_address) = EthSigUtils.pad_right(eth_address_u256)
-
-    # Session public key
     let (session_public_key_u256) = FeltUtils.felt_to_uint256(session_public_key)
     let (padded_session_public_key) = EthSigUtils.pad_right(session_public_key_u256)
-
-    # Session duration
     let (session_duration_u256) = FeltUtils.felt_to_uint256(session_duration)
     let (padded_session_duration) = EthSigUtils.pad_right(session_duration_u256)
 
-    # Now construct the data hash (hashStruct)
+    # Now construct the data array
     let (data : Uint256*) = alloc()
-    assert data[0] = Uint256(SESSION_TYPE_HASH_LOW, SESSION_TYPE_HASH_HIGH)
-    assert data[1] = eth_address_u256
-    assert data[2] = session_public_key_u256
-    assert data[3] = session_duration_u256
+    assert data[0] = Uint256(SESSION_KEY_TYPE_HASH_LOW, SESSION_KEY_TYPE_HASH_HIGH)
+    assert data[1] = padded_eth_address
+    assert data[2] = padded_session_public_key
+    assert data[3] = padded_session_duration
     assert data[4] = salt
 
+    # Hash the data array
     let (local keccak_ptr : felt*) = alloc()
     let keccak_ptr_start = keccak_ptr
-
     let (hash_struct) = EthSigUtils.get_keccak_hash{keccak_ptr=keccak_ptr}(5, data)
 
-    # Prepare the encoded data
+    # Prepend the domain separator hash
     let (prepared_encoded : Uint256*) = alloc()
     assert prepared_encoded[0] = Uint256(DOMAIN_HASH_LOW, DOMAIN_HASH_HIGH)
     assert prepared_encoded[1] = hash_struct
@@ -130,7 +124,7 @@ func check_eth_signature{
     let (encoded_data : Uint256*) = alloc()
     EthSigUtils.prepend_prefix_2bytes(ETHEREUM_PREFIX, encoded_data, 2, prepared_encoded)
 
-    # Now go from Uint256s to Uint64s (required in order to call `keccak`)
+    # Now go from Uint256s to Uint64s (required for the cairo keccak implementation)
     let (signable_bytes) = alloc()
     let signable_bytes_start = signable_bytes
     keccak_add_uint256s{inputs=signable_bytes}(n_elements=3, elements=encoded_data, bigend=1)
