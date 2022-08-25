@@ -51,10 +51,10 @@ contract StarkNetCommit is Initializable {
    * @dev Commit a hash and the sender address to StarkNet.
    * @param _hash The hash to commit
    */
-  function commit(uint256 _hash) external {
+  function commit(uint256 starknetAuthenticator, uint256 _hash) external {
     uint256[] memory payload = new uint256[](2);
     payload[0] = uint256(uint160(msg.sender));
     payload[1] = _hash;
-    starknetCore.sendMessageToL2(starknetAuthenticatorOfL1Tx, L1_COMMIT_HANDLER, payload);
+    starknetCore.sendMessageToL2(starknetAuthenticator, L1_COMMIT_HANDLER, payload);
   }
 }

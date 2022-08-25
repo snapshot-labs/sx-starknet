@@ -69,7 +69,10 @@ describe('L1 interaction with Snapshot X', function () {
     // Committing the hash of the payload to the StarkNet Commit L1 contract
     await starknetCommit
       .connect(signer)
-      .commit(utils.encoding.getCommit(spaceAddress, PROPOSE_SELECTOR, proposeCalldata));
+      .commit(
+        ethTxAuthenticator.address,
+        utils.encoding.getCommit(spaceAddress, PROPOSE_SELECTOR, proposeCalldata)
+      );
     // Checking that the L1 -> L2 message has been propogated
     expect((await starknet.devnet.flush()).consumed_messages.from_l1).to.have.a.lengthOf(1);
     // Creating proposal
@@ -84,7 +87,10 @@ describe('L1 interaction with Snapshot X', function () {
     await starknet.devnet.loadL1MessagingContract(networkUrl, mockStarknetMessaging.address);
     await starknetCommit
       .connect(signer)
-      .commit(utils.encoding.getCommit(spaceAddress, PROPOSE_SELECTOR, proposeCalldata));
+      .commit(
+        ethTxAuthenticator.address,
+        utils.encoding.getCommit(spaceAddress, PROPOSE_SELECTOR, proposeCalldata)
+      );
     await starknet.devnet.flush();
     await ethTxAuthenticator.invoke('authenticate', {
       target: spaceAddress,
@@ -107,7 +113,10 @@ describe('L1 interaction with Snapshot X', function () {
     await starknet.devnet.loadL1MessagingContract(networkUrl, mockStarknetMessaging.address);
     await starknetCommit
       .connect(signer)
-      .commit(utils.encoding.getCommit(spaceAddress, PROPOSE_SELECTOR, proposeCalldata)); // Wrong selector
+      .commit(
+        ethTxAuthenticator.address,
+        utils.encoding.getCommit(spaceAddress, PROPOSE_SELECTOR, proposeCalldata)
+      ); // Wrong selector
     await starknet.devnet.flush();
     try {
       await ethTxAuthenticator.invoke('authenticate', {
@@ -125,7 +134,10 @@ describe('L1 interaction with Snapshot X', function () {
     proposeCalldata[0] = ethers.Wallet.createRandom().address; // Random l1 address in the calldata
     await starknetCommit
       .connect(signer)
-      .commit(utils.encoding.getCommit(spaceAddress, PROPOSE_SELECTOR, proposeCalldata));
+      .commit(
+        ethTxAuthenticator.address,
+        utils.encoding.getCommit(spaceAddress, PROPOSE_SELECTOR, proposeCalldata)
+      );
     await starknet.devnet.flush();
     try {
       await ethTxAuthenticator.invoke('authenticate', {
