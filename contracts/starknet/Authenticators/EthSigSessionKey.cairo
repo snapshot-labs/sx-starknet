@@ -1,11 +1,12 @@
 %lang starknet
 
+from starkware.starknet.common.syscalls import get_caller_address, get_block_timestamp
 from starkware.cairo.common.cairo_builtins import BitwiseBuiltin
 from starkware.cairo.common.uint256 import Uint256
 from starkware.cairo.common.alloc import alloc
 from starkware.cairo.common.cairo_secp.signature import verify_eth_signature_uint256
 from starkware.cairo.common.cairo_builtins import HashBuiltin
-from starkware.cairo.common.math import split_felt
+from starkware.cairo.common.math import split_felt, assert_le, assert_not_zero
 from starkware.cairo.common.cairo_keccak.keccak import (
     keccak_add_uint256s,
     keccak_bigend,
@@ -15,6 +16,7 @@ from starkware.cairo.common.cairo_keccak.keccak import (
 from contracts.starknet.lib.execute import execute
 from contracts.starknet.lib.felt_utils import FeltUtils
 from contracts.starknet.lib.eth_sig_utils import EthSigUtils
+from contracts.starknet.lib.session_key import SessionKey
 
 const ETHEREUM_PREFIX = 0x1901
 
@@ -33,34 +35,38 @@ const DOMAIN_HASH_LOW = 0x72c5ab51b06b74e448d6b02ce79ba93c
 func salts(eth_address : felt, salt : Uint256) -> (already_used : felt):
 end
 
-@storage_var
-func session_key_owner(session_public_key : felt) -> (eth_address):
-end
-
-# Returns owner of a session key if it exists, otherwise returns 0
-@external
-func get_session_key{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr}(
-    session_public_key : felt
-) -> (eth_address : felt):
-    let (eth_address) = session_key_owner.read(session_public_key)
-    return (eth_address)
-end
-
-# # Checks signature is valid and if so, removes session key for user
-# @external
-# func revoke_session_key(sig_len : felt, sig : felt*):
-# end
-
 # Calls get_session_key with the ethereum address (calldata[0]) to check that a session is active.
 # If so, perfoms stark signature verification to check the sig is valid. If so calls execute with the payload.
-# @external
-# func authenticate(sig_len: felt, sig: felt*, target: felt, function_selector: felt, calldata_len: felt, calldata: felt*):
-# end
+@external
+func authenticate{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr}(
+    sig_len : felt,
+    sig : felt*,
+    session_public_key : felt,
+    target : felt,
+    function_selector : felt,
+    calldata_len : felt,
+    calldata : felt*,
+):
+    # Verify stark signature
+
+    # Check session key is active
+    let (eth_address) = SessionKey.get_session_key(session_public_key)
+
+    # Check user's address is equal to the owner of the session key
+    with_attr error_message("Invalid Ethereum address"):
+        assert calldata[0] = eth_address
+    end
+
+    # foreward payload to target
+    execute(target, function_selector, calldata_len, calldata)
+
+    return ()
+end
 
 # Performs EC recover on the Ethereum signature and stores the session key in a
 # mapping indexed by the recovered Ethereum address
 @external
-func generate_session_key_from_sig{
+func authorize_session_key_from_sig{
     syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, bitwise_ptr : BitwiseBuiltin*, range_check_ptr
 }(
     r : Uint256,
@@ -71,12 +77,12 @@ func generate_session_key_from_sig{
     session_public_key : felt,
     session_duration : felt,
 ):
-    check_eth_signature(r, s, v, salt, eth_address, session_public_key, session_duration)
-    session_key_owner.write(session_public_key, eth_address)
+    verify_eth_signature(r, s, v, salt, eth_address, session_public_key, session_duration)
+    SessionKey.register_session_key(eth_address, session_public_key, session_duration)
     return ()
 end
 
-func check_eth_signature{
+func verify_eth_signature{
     syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, bitwise_ptr : BitwiseBuiltin*, range_check_ptr
 }(
     r : Uint256,
