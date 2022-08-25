@@ -1026,9 +1026,70 @@ func assert_no_active_proposal{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*,
     return ()
 end
 
+# Asserts that the array does not contain any duplicates.
+# O(N^2) as it loops over each element N times.
+func assert_no_duplicates{}(array_len : felt, array : felt*):
+    if array_len == 0:
+        return ()
+    else:
+        let to_find = array[0]
+
+        # For each element in the array, try to find
+        # this element in the rest of the array
+        let (found) = find(to_find, array_len - 1, &array[1])
+
+        # If the element was found, we have found a duplicate.
+        # Raise an error!
+        with_attr error_message("Duplicate entry found"):
+            assert found = FALSE
+        end
+
+        assert_no_duplicates(array_len - 1, &array[1])
+        return ()
+    end
+end
+
+# Tries to find `to_find` in `array`. Returns `TRUE` if it finds it, else returns `FALSE`.
+func find{}(to_find : felt, array_len : felt, array : felt*) -> (found : felt):
+    if array_len == 0:
+        return (FALSE)
+    else:
+        if to_find == array[0]:
+            return (TRUE)
+        else:
+            return find(to_find, array_len - 1, array + 1)
+        end
+    end
+end
+
 # Computes the cumulated voting power of a user by iterating over the voting strategies of `used_voting_strategies`.
 # TODO: In the future we will need to transition to an array of `voter_address` because they might be different for different voting strategies.
 func get_cumulative_voting_power{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr}(
+    current_timestamp : felt,
+    voter_address : Address,
+    used_voting_strategies_len : felt,
+    used_voting_strategies : felt*,
+    user_voting_strategy_params_all : Immutable2DArray,
+    index : felt,
+) -> (voting_power : Uint256):
+    # Make sure there are no duplicates to avoid an attack where people double count a voting strategy
+    assert_no_duplicates(used_voting_strategies_len, used_voting_strategies)
+
+    return unchecked_get_cumulative_voting_power(
+        current_timestamp,
+        voter_address,
+        used_voting_strategies_len,
+        used_voting_strategies,
+        user_voting_strategy_params_all,
+        index,
+    )
+end
+
+# Actual computation of voting power. Unchecked because duplicates are not checked in `used_voting_strategies`. The caller is
+# expected to check for duplicates before calling this function.
+func unchecked_get_cumulative_voting_power{
+    syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr
+}(
     current_timestamp : felt,
     voter_address : Address,
     used_voting_strategies_len : felt,
