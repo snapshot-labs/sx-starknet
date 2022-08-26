@@ -88,7 +88,7 @@ describe('Create proposal, cast vote, and send execution to l1', function () {
 
     proposerEthAddress = signer.address;
     spaceAddress = BigInt(space.address);
-    usedVotingStrategies1 = [vanillaVotingStrategy.address];
+    usedVotingStrategies1 = ['0x0'];
     userVotingParamsAll1 = [[]];
     executionStrategy = zodiacRelayer.address;
     executionParams = [
@@ -110,7 +110,7 @@ describe('Create proposal, cast vote, and send execution to l1', function () {
 
     proposalId = '0x1';
     choice = utils.choice.Choice.FOR;
-    usedVotingStrategies2 = [vanillaVotingStrategy.address];
+    usedVotingStrategies2 = ['0x0'];
     userVotingParamsAll2 = [[]];
     voteCalldata = utils.encoding.getVoteCalldata(
       voterEthAddress,

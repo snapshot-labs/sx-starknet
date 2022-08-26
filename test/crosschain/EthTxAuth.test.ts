@@ -48,7 +48,7 @@ describe('L1 interaction with Snapshot X', function () {
     );
     proposerEthAddress = signer.address;
     spaceAddress = space.address;
-    usedVotingStrategies = [vanillaVotingStrategy.address];
+    usedVotingStrategies = ['0x0'];
     userVotingParamsAll = [[]];
     executionStrategy = vanillaExecutionStrategy.address;
     executionParams = [];
