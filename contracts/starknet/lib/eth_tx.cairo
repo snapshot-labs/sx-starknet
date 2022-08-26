@@ -1,11 +1,7 @@
 %lang starknet
 
 from starkware.cairo.common.cairo_builtins import HashBuiltin
-from starkware.cairo.common.alloc import alloc
-from starkware.cairo.common.memcpy import memcpy
 from starkware.cairo.common.math import assert_not_equal
-from contracts.starknet.lib.general_address import Address
-from contracts.starknet.lib.hash_array import HashArray
 
 # Address of the StarkNet Commit L1 contract which acts as the origin address of the messages sent to this contract.
 @storage_var
@@ -22,21 +18,6 @@ namespace EthTx:
         starknet_commit_address : felt
     ):
         EthTx_starknet_commit_address_store.write(value=starknet_commit_address)
-        return ()
-    end
-
-    # Receives hash from StarkNet commit contract and stores it in state.
-    @l1_handler
-    func commit{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr : felt}(
-        from_address : felt, sender : felt, hash : felt
-    ):
-        # Check L1 message origin is equal to the StarkNet commit address.
-        let (origin) = EthTx_starknet_commit_address_store.read()
-        with_attr error_message("Invalid message origin address"):
-            assert from_address = origin
-        end
-        # Note: If the same hash is committed twice by the same sender, then the mapping will be overwritten but with the same value as before.
-        EthTx_commit_store.write(hash, sender)
         return ()
     end
 

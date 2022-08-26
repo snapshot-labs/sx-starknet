@@ -1,9 +1,8 @@
 %lang starknet
+
 from starkware.cairo.common.cairo_builtins import HashBuiltin
 from starkware.cairo.common.alloc import alloc
 from starkware.cairo.common.memcpy import memcpy
-from starkware.cairo.common.math import assert_not_equal
-from contracts.starknet.lib.general_address import Address
 from contracts.starknet.lib.hash_array import HashArray
 from contracts.starknet.lib.execute import execute
 from contracts.starknet.lib.eth_tx import EthTx
@@ -14,6 +13,34 @@ func constructor{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_p
     starknet_commit_address : felt
 ):
     EthTx.initializer(starknet_commit_address)
+    return ()
+end
+
+# Calls get_session_key with the ethereum address (calldata[0]) to check that a session is active.
+# If so, perfoms stark signature verification to check the sig is valid. If so calls execute with the payload.
+@external
+func authenticate{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr}(
+    sig_len : felt,
+    sig : felt*,
+    session_public_key : felt,
+    target : felt,
+    function_selector : felt,
+    calldata_len : felt,
+    calldata : felt*,
+):
+    # TO DO: Verify stark signature
+
+    # Check session key is active
+    let (eth_address) = SessionKey.get_session_key(session_public_key)
+
+    # Check user's address is equal to the owner of the session key
+    with_attr error_message("Invalid Ethereum address"):
+        assert calldata[0] = eth_address
+    end
+
+    # foreward payload to target
+    execute(target, function_selector, calldata_len, calldata)
+
     return ()
 end
 
