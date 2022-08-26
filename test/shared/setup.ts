@@ -309,9 +309,6 @@ export async function ethTxAuthSetup() {
     executors: executors,
   })) as StarknetContract;
 
-  // Setting the L1 tx authenticator address in the StarkNet commit contract
-  await starknetCommit.setAuth(BigInt(ethTxAuthenticator.address));
-
   return {
     space,
     controller,

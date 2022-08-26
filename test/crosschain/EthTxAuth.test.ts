@@ -15,7 +15,6 @@ describe('L1 interaction with Snapshot X', function () {
   // Contracts
   let mockStarknetMessaging: Contract;
   let space: StarknetContract;
-  let controller: Account;
   let ethTxAuthenticator: StarknetContract;
   let vanillaVotingStrategy: StarknetContract;
   let vanillaExecutionStrategy: StarknetContract;
@@ -37,7 +36,6 @@ describe('L1 interaction with Snapshot X', function () {
 
     ({
       space,
-      controller,
       ethTxAuthenticator,
       vanillaVotingStrategy,
       vanillaExecutionStrategy,
