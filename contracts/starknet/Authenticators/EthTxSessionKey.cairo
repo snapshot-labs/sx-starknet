@@ -65,3 +65,12 @@ func authorize_session_key_from_tx{
     SessionKey.register_session_key(eth_address, session_public_key, session_duration)
     return ()
 end
+
+# Receives hash from StarkNet commit contract and stores it in state.
+@l1_handler
+func commit{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr : felt}(
+    from_address : felt, sender : felt, hash : felt
+):
+    EthTx.commit(from_address, sender, hash)
+    return ()
+end

@@ -21,6 +21,19 @@ namespace EthTx:
         return ()
     end
 
+    func commit{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr : felt}(
+        from_address : felt, sender : felt, hash : felt
+    ):
+        # Check L1 message origin is equal to the StarkNet commit address.
+        let (origin) = EthTx_starknet_commit_address_store.read()
+        with_attr error_message("Invalid message origin address"):
+            assert from_address = origin
+        end
+        # Note: If the same hash is committed twice by the same sender, then the mapping will be overwritten but with the same value as before.
+        EthTx_commit_store.write(hash, sender)
+        return ()
+    end
+
     # Checks to see if commit exists, if so clears it from the contract, else throws
     func check_commit{syscall_ptr : felt*, range_check_ptr, pedersen_ptr : HashBuiltin*}(
         hash : felt, address : felt
