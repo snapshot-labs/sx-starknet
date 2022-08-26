@@ -320,6 +320,85 @@ export async function ethTxAuthSetup() {
   };
 }
 
+export async function ethTxSessionKeyAuthSetup() {
+  const controller = (await starknet.deployAccount('OpenZeppelin')) as Account;
+  const spaceFactory = await starknet.getContractFactory('./contracts/starknet/SpaceAccount.cairo');
+  const vanillaVotingStrategyFactory = await starknet.getContractFactory(
+    './contracts/starknet/VotingStrategies/Vanilla.cairo'
+  );
+  const ethTxSessionKeyAuthenticatorFactory = await starknet.getContractFactory(
+    './contracts/starknet/Authenticators/EthTxSessionKey.cairo'
+  );
+  const vanillaExecutionStrategyFactory = await starknet.getContractFactory(
+    './contracts/starknet/ExecutionStrategies/Vanilla.cairo'
+  );
+
+  // Deploying StarkNet core instance required for L1 -> L2 message passing
+  const mockStarknetMessagingFactory = (await ethers.getContractFactory(
+    'MockStarknetMessaging'
+  )) as ContractFactory;
+  const mockStarknetMessaging = (await mockStarknetMessagingFactory.deploy()) as Contract;
+  await mockStarknetMessaging.deployed();
+  const starknetCore = mockStarknetMessaging.address;
+
+  // Deploy StarkNet Commit L1 contract
+  const starknetCommitFactory = (await ethers.getContractFactory(
+    'StarkNetCommit'
+  )) as ContractFactory;
+  const starknetCommit = (await starknetCommitFactory.deploy(starknetCore)) as Contract;
+
+  const deployments = [
+    ethTxSessionKeyAuthenticatorFactory.deploy({
+      starknet_commit_address: BigInt(starknetCommit.address),
+    }),
+    vanillaVotingStrategyFactory.deploy(),
+    vanillaExecutionStrategyFactory.deploy(),
+  ];
+  const contracts = await Promise.all(deployments);
+  const ethTxSessionKeyAuthenticator = contracts[0] as StarknetContract;
+  const vanillaVotingStrategy = contracts[1] as StarknetContract;
+  const vanillaExecutionStrategy = contracts[2] as StarknetContract;
+
+  const votingDelay = BigInt(0);
+  const minVotingDuration = BigInt(0);
+  const maxVotingDuration = BigInt(2000);
+  const quorum: utils.splitUint256.SplitUint256 = utils.splitUint256.SplitUint256.fromUint(
+    BigInt(1)
+  );
+  const proposalThreshold: utils.splitUint256.SplitUint256 =
+    utils.splitUint256.SplitUint256.fromUint(BigInt(1));
+  const votingStrategies: string[] = [vanillaVotingStrategy.address];
+  const votingStrategyParams: string[][] = [[]];
+  const votingStrategyParamsFlat: string[] = utils.encoding.flatten2DArray(votingStrategyParams);
+  const authenticators: string[] = [ethTxSessionKeyAuthenticator.address];
+  const executors: string[] = [vanillaExecutionStrategy.address];
+
+  console.log('Deploying space contract...');
+  const space = (await spaceFactory.deploy({
+    public_key: controller.publicKey,
+    voting_delay: votingDelay,
+    min_voting_duration: minVotingDuration,
+    max_voting_duration: maxVotingDuration,
+    proposal_threshold: proposalThreshold,
+    controller: controller.starknetContract.address,
+    quorum: quorum,
+    voting_strategy_params_flat: votingStrategyParamsFlat,
+    voting_strategies: votingStrategies,
+    authenticators: authenticators,
+    executors: executors,
+  })) as StarknetContract;
+
+  return {
+    space,
+    controller,
+    ethTxSessionKeyAuthenticator,
+    vanillaVotingStrategy,
+    vanillaExecutionStrategy,
+    mockStarknetMessaging,
+    starknetCommit,
+  };
+}
+
 export async function ethBalanceOfSetup(block: any, proofs: any) {
   // We pass the encode params function for the single slot proof strategy to generate the encoded data for the single slot proof strategy
   const proofInputs: utils.storageProofs.ProofInputs = utils.storageProofs.getProofInputs(
