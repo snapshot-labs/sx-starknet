@@ -31,7 +31,7 @@ func authenticate{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_
     # TO DO: Verify stark signature
 
     # Check session key is active
-    let (eth_address) = SessionKey.get_session_key(session_public_key)
+    let (eth_address) = SessionKey.get_session_key_owner(session_public_key)
 
     # Check user's address is equal to the owner of the session key
     with_attr error_message("Invalid Ethereum address"):
@@ -73,4 +73,13 @@ func commit{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr : 
 ):
     EthTx.commit(from_address, sender, hash)
     return ()
+end
+
+# Public view function for checking a session key
+@view
+func get_session_key_owner{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr}(
+    session_public_key : felt
+) -> (eth_address : felt):
+    let (eth_address) = SessionKey.get_session_key_owner(session_public_key)
+    return (eth_address)
 end

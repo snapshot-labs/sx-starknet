@@ -5,7 +5,7 @@ import { domain, SessionKey, sessionKeyTypes } from '../shared/types';
 import { utils } from '@snapshot-labs/sx';
 import { ethereumSigSessionKeyAuthSetup } from '../shared/setup';
 
-describe('Ethereum Sig Auth testing', () => {
+describe('Ethereum Signature Session Key Auth testing', () => {
   // Contracts
   let space: StarknetContract;
   let controller: Account;
@@ -16,6 +16,7 @@ describe('Ethereum Sig Auth testing', () => {
   before(async function () {
     this.timeout(800000);
     const accounts = await ethers.getSigners();
+
     ({ space, controller, ethSigSessionKeyAuth, vanillaVotingStrategy, vanillaExecutionStrategy } =
       await ethereumSigSessionKeyAuthSetup());
   });
@@ -33,7 +34,7 @@ describe('Ethereum Sig Auth testing', () => {
       };
       const sig = await accounts[0]._signTypedData(domain, sessionKeyTypes, message);
       const { r, s, v } = utils.encoding.getRSVFromSig(sig);
-      await controller.invoke(ethSigSessionKeyAuth, 'generate_session_key_from_sig', {
+      await controller.invoke(ethSigSessionKeyAuth, 'authorize_session_key_from_sig', {
         r: r,
         s: s,
         v: v,
@@ -42,10 +43,10 @@ describe('Ethereum Sig Auth testing', () => {
         session_public_key: '0x1234',
         session_duration: '0x1111',
       });
-      const { session_public_key } = await ethSigSessionKeyAuth.call('get_session_key', {
+      const { eth_address } = await ethSigSessionKeyAuth.call('get_session_key_owner', {
         session_public_key: '0x1234',
       });
-      console.log(session_public_key);
+      expect(eth_address).to.deep.equal(BigInt(accounts[0].address));
     }
   }).timeout(6000000);
 });

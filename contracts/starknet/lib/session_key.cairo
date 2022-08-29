@@ -43,7 +43,7 @@ namespace SessionKey:
     end
 
     # Returns owner of a session key if it exists, otherwise returns 0
-    func get_session_key{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr}(
+    func get_session_key_owner{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr}(
         session_public_key : felt
     ) -> (eth_address : felt):
         let (eth_address) = SessionKey_owner.read(session_public_key)

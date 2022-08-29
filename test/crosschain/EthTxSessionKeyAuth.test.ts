@@ -67,5 +67,9 @@ describe('Ethereum Transaction Session Keys', function () {
       session_public_key: sessionPublicKey,
       session_duration: sessionDuration,
     });
+    const { eth_address } = await ethTxSessionKeyAuthenticator.call('get_session_key_owner', {
+      session_public_key: '0x1234',
+    });
+    expect(eth_address).to.deep.equal(BigInt(ethAddress));
   });
 });

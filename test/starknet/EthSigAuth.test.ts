@@ -14,7 +14,7 @@ export const PROPOSAL_METHOD = 'propose';
 export const VOTE_METHOD = 'vote';
 export const METADATA_URI = 'Hello and welcome to Snapshot X. This is the future of governance.';
 
-describe('Ethereum Sig Auth testing', () => {
+describe('Ethereum Signature Auth testing', () => {
   // Contracts
   let space: StarknetContract;
   let controller: Account;
