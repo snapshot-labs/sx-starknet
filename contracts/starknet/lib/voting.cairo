@@ -2,6 +2,7 @@
 
 %lang starknet
 
+# Standard Library
 from starkware.starknet.common.syscalls import get_caller_address, get_block_timestamp
 from starkware.cairo.common.cairo_builtins import HashBuiltin, SignatureBuiltin, BitwiseBuiltin
 from starkware.cairo.common.alloc import alloc
@@ -15,22 +16,28 @@ from starkware.cairo.common.math import (
     assert_nn_le,
     assert_not_zero,
     assert_lt_felt,
+    assert_not_equal,
 )
 
+# OpenZeppelin
 from openzeppelin.access.ownable.library import Ownable
 from openzeppelin.account.library import Account, AccountCallArray, Account_current_nonce
 
+# Interfaces
 from contracts.starknet.Interfaces.IVotingStrategy import IVotingStrategy
 from contracts.starknet.Interfaces.IExecutionStrategy import IExecutionStrategy
+
+# Types
 from contracts.starknet.lib.general_address import Address
 from contracts.starknet.lib.proposal import Proposal
 from contracts.starknet.lib.proposal_info import ProposalInfo
 from contracts.starknet.lib.vote import Vote
 from contracts.starknet.lib.choice import Choice
 from contracts.starknet.lib.proposal_outcome import ProposalOutcome
-from contracts.starknet.lib.hash_array import hash_array
-from contracts.starknet.lib.array2d import Immutable2DArray, construct_array2d, get_sub_array
-from contracts.starknet.lib.slot_key import get_slot_key
+
+# Libraries
+from contracts.starknet.lib.hash_array import HashArray
+from contracts.starknet.lib.array_2d import Array2D, Immutable2DArray
 
 #
 # Storage
@@ -65,12 +72,16 @@ func Voting_executors_store(executor_address : felt) -> (is_valid : felt):
 end
 
 @storage_var
-func Voting_voting_strategies_store(strategy_address : felt) -> (is_valid : felt):
+func Voting_voting_strategies_store(strategy_index : felt) -> (strategy_address : felt):
 end
 
 @storage_var
-func Voting_voting_strategy_params_store(voting_strategy_contract : felt, index : felt) -> (
-    voting_strategy_param : felt
+func Voting_num_voting_strategies_store() -> (num : felt):
+end
+
+@storage_var
+func Voting_voting_strategy_params_store(strategy_index : felt, param_index : felt) -> (
+    param : felt
 ):
 end
 
@@ -206,7 +217,7 @@ namespace Voting:
 
         # Reconstruct the voting params 2D array (1 sub array per strategy) from the flattened version.
         # Currently there is no way to pass struct types with pointers in calldata, so we must do it this way.
-        let (voting_strategy_params_all : Immutable2DArray) = construct_array2d(
+        let (voting_strategy_params_all : Immutable2DArray) = Array2D.construct_array2d(
             voting_strategy_params_flat_len, voting_strategy_params_flat
         )
 
@@ -358,29 +369,35 @@ namespace Voting:
     @external
     func add_voting_strategies{
         syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr : felt
-    }(to_add_len : felt, to_add : felt*, params_flat_len : felt, params_flat : felt*):
+    }(addresses_len : felt, addresses : felt*, params_flat_len : felt, params_flat : felt*):
         alloc_locals
 
         Ownable.assert_only_owner()
 
-        let (params_all : Immutable2DArray) = construct_array2d(params_flat_len, params_flat)
+        assert_no_active_proposal()
 
-        unchecked_add_voting_strategies(to_add_len, to_add, params_all, 0)
+        let (params_all : Immutable2DArray) = Array2D.construct_array2d(
+            params_flat_len, params_flat
+        )
 
-        voting_strategies_added.emit(to_add_len, to_add)
+        unchecked_add_voting_strategies(addresses_len, addresses, params_all, 0)
+
+        voting_strategies_added.emit(addresses_len, addresses)
         return ()
     end
 
     @external
     func remove_voting_strategies{
         syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr : felt
-    }(to_remove_len : felt, to_remove : felt*):
+    }(indexes_len : felt, indexes : felt*):
         alloc_locals
 
         Ownable.assert_only_owner()
 
-        unchecked_remove_voting_strategies(to_remove_len, to_remove)
-        voting_strategies_removed.emit(to_remove_len, to_remove)
+        assert_no_active_proposal()
+
+        unchecked_remove_voting_strategies(indexes_len, indexes)
+        voting_strategies_removed.emit(indexes_len, indexes)
         return ()
     end
 
@@ -391,6 +408,8 @@ namespace Voting:
         alloc_locals
 
         Ownable.assert_only_owner()
+
+        assert_no_active_proposal()
 
         unchecked_add_authenticators(to_add_len, to_add)
 
@@ -405,6 +424,8 @@ namespace Voting:
         alloc_locals
 
         Ownable.assert_only_owner()
+
+        assert_no_active_proposal()
 
         unchecked_remove_authenticators(to_remove_len, to_remove)
 
@@ -473,7 +494,7 @@ namespace Voting:
         end
 
         # Reconstruct the voting params 2D array (1 sub array per strategy) from the flattened version.
-        let (user_voting_strategy_params_all : Immutable2DArray) = construct_array2d(
+        let (user_voting_strategy_params_all : Immutable2DArray) = Array2D.construct_array2d(
             user_voting_strategy_params_flat_len, user_voting_strategy_params_flat
         )
 
@@ -547,7 +568,7 @@ namespace Voting:
         let max_end_timestamp = start_timestamp + _max_voting_duration
 
         # Reconstruct the voting params 2D array (1 sub array per strategy) from the flattened version.
-        let (user_voting_strategy_params_all : Immutable2DArray) = construct_array2d(
+        let (user_voting_strategy_params_all : Immutable2DArray) = Array2D.construct_array2d(
             user_voting_strategy_params_flat_len, user_voting_strategy_params_flat
         )
 
@@ -569,7 +590,7 @@ namespace Voting:
 
         # Hash the execution params
         # Storing arrays inside a struct is impossible so instead we just store a hash and then reconstruct the array in finalize_proposal
-        let (execution_hash) = hash_array(execution_params_len, execution_params)
+        let (execution_hash) = HashArray.hash_array(execution_params_len, execution_params)
 
         let (_quorum) = Voting_quorum_store.read()
 
@@ -638,7 +659,7 @@ namespace Voting:
         end
 
         # Make sure execution params match the ones sent at proposal creation by checking that the hashes match
-        let (recovered_hash) = hash_array(execution_params_len, execution_params)
+        let (recovered_hash) = HashArray.hash_array(execution_params_len, execution_params)
         with_attr error_message("Invalid execution parameters"):
             assert recovered_hash = proposal.execution_hash
         end
@@ -842,78 +863,84 @@ end
 
 func unchecked_add_voting_strategies{
     syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr
-}(to_add_len : felt, to_add : felt*, params_all : Immutable2DArray, index : felt):
+}(addresses_len : felt, addresses : felt*, params_all : Immutable2DArray, index : felt):
     alloc_locals
-    if to_add_len == 0:
+    if addresses_len == 0:
         return ()
     else:
-        Voting_voting_strategies_store.write(to_add[0], 1)
+        let (next_index) = Voting_num_voting_strategies_store.read()
+
+        Voting_voting_strategies_store.write(next_index, addresses[0])
 
         # Extract voting params for the voting strategy
-        let (params_len, params) = get_sub_array(params_all, index)
+        let (params_len, params) = Array2D.get_sub_array(params_all, index)
 
         # We store the length of the voting strategy params array at index zero
-        Voting_voting_strategy_params_store.write(to_add[0], 0, params_len)
+        Voting_voting_strategy_params_store.write(next_index, 0, params_len)
 
         # The following elements are the actual params
-        unchecked_add_voting_strategy_params(to_add[0], params_len, params, 1)
+        unchecked_add_voting_strategy_params(next_index, 1, params_len, params)
 
-        unchecked_add_voting_strategies(to_add_len - 1, &to_add[1], params_all, index + 1)
+        unchecked_add_voting_strategies(addresses_len - 1, &addresses[1], params_all, index + 1)
+
+        Voting_num_voting_strategies_store.write(next_index + 1)
         return ()
     end
 end
 
 func unchecked_add_voting_strategy_params{
     syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr
-}(to_add : felt, params_len : felt, params : felt*, index : felt):
+}(strategy_index : felt, param_index : felt, params_len : felt, params : felt*):
     if params_len == 0:
         # List is empty
         return ()
     else:
         # Store voting parameter
-        Voting_voting_strategy_params_store.write(to_add, index, params[0])
+        Voting_voting_strategy_params_store.write(strategy_index, param_index, params[0])
 
-        unchecked_add_voting_strategy_params(to_add, params_len - 1, &params[1], index + 1)
+        unchecked_add_voting_strategy_params(
+            strategy_index, param_index + 1, params_len - 1, &params[1]
+        )
         return ()
     end
 end
 
 func unchecked_remove_voting_strategies{
     syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr : felt
-}(to_remove_len : felt, to_remove : felt*):
-    if to_remove_len == 0:
+}(indexes_len : felt, indexes : felt*):
+    if indexes_len == 0:
         return ()
     else:
-        Voting_voting_strategies_store.write(to_remove[0], 0)
+        Voting_voting_strategies_store.write(indexes[0], 0)
 
         # The length of the voting strategy params is stored at index zero
-        let (params_len) = Voting_voting_strategy_params_store.read(to_remove[0], 0)
+        let (params_len) = Voting_voting_strategy_params_store.read(indexes[0], 0)
 
-        Voting_voting_strategy_params_store.write(to_remove[0], 0, 0)
+        Voting_voting_strategy_params_store.write(indexes[0], 0, 0)
 
         # Removing voting strategy params
-        unchecked_remove_voting_strategy_params(to_remove[0], params_len, 1)
+        unchecked_remove_voting_strategy_params(indexes[0], params_len, 1)
 
-        unchecked_remove_voting_strategies(to_remove_len - 1, &to_remove[1])
+        unchecked_remove_voting_strategies(indexes_len - 1, &indexes[1])
         return ()
     end
 end
 
 func unchecked_remove_voting_strategy_params{
     syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr
-}(to_remove : felt, params_len : felt, index : felt):
+}(strategy_index : felt, param_index : felt, params_len : felt):
     if params_len == 0:
         # List is empty
         return ()
     end
-    if index == params_len + 1:
+    if param_index == params_len + 1:
         # All params have been removed from the array
         return ()
     end
     # Remove voting parameter
-    Voting_voting_strategy_params_store.write(to_remove, index, 0)
+    Voting_voting_strategy_params_store.write(strategy_index, param_index, 0)
 
-    unchecked_remove_voting_strategy_params(to_remove, params_len, index + 1)
+    unchecked_remove_voting_strategy_params(strategy_index, param_index + 1, params_len)
     return ()
 end
 
@@ -970,9 +997,100 @@ func assert_valid_executor{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, ran
     return ()
 end
 
+func assert_no_active_proposal_recurse{
+    syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr
+}(proposal_id : felt):
+    if proposal_id == 0:
+        return ()
+    else:
+        # Ensure the proposal has been executed
+        let (has_been_executed) = Voting_executed_proposals_store.read(proposal_id)
+        assert has_been_executed = 1
+
+        # Recurse
+        assert_no_active_proposal_recurse(proposal_id - 1)
+        return ()
+    end
+end
+
+func assert_no_active_proposal{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr}():
+    let (next_proposal) = Voting_next_proposal_nonce_store.read()
+
+    # Using `next_proposal - 1` because `next_proposal` corresponds to the *next* nonce
+    # so we need to substract one. This is safe because latest_proposal is at least 1 because
+    # the constructor initializes the nonce to 1.
+    let latest_proposal = next_proposal - 1
+
+    with_attr error_message("Some proposals are still active"):
+        assert_no_active_proposal_recurse(latest_proposal)
+    end
+    return ()
+end
+
+# Asserts that the array does not contain any duplicates.
+# O(N^2) as it loops over each element N times.
+func assert_no_duplicates{}(array_len : felt, array : felt*):
+    if array_len == 0:
+        return ()
+    else:
+        let to_find = array[0]
+
+        # For each element in the array, try to find
+        # this element in the rest of the array
+        let (found) = find(to_find, array_len - 1, &array[1])
+
+        # If the element was found, we have found a duplicate.
+        # Raise an error!
+        with_attr error_message("Duplicate entry found"):
+            assert found = FALSE
+        end
+
+        assert_no_duplicates(array_len - 1, &array[1])
+        return ()
+    end
+end
+
+# Tries to find `to_find` in `array`. Returns `TRUE` if it finds it, else returns `FALSE`.
+func find{}(to_find : felt, array_len : felt, array : felt*) -> (found : felt):
+    if array_len == 0:
+        return (FALSE)
+    else:
+        if to_find == array[0]:
+            return (TRUE)
+        else:
+            return find(to_find, array_len - 1, array + 1)
+        end
+    end
+end
+
 # Computes the cumulated voting power of a user by iterating over the voting strategies of `used_voting_strategies`.
 # TODO: In the future we will need to transition to an array of `voter_address` because they might be different for different voting strategies.
 func get_cumulative_voting_power{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr}(
+    current_timestamp : felt,
+    voter_address : Address,
+    used_voting_strategies_len : felt,
+    used_voting_strategies : felt*,
+    user_voting_strategy_params_all : Immutable2DArray,
+    index : felt,
+) -> (voting_power : Uint256):
+    # Make sure there are no duplicates to avoid an attack where people double count a voting strategy
+    assert_no_duplicates(used_voting_strategies_len, used_voting_strategies)
+
+    return unchecked_get_cumulative_voting_power(
+        current_timestamp,
+        voter_address,
+        used_voting_strategies_len,
+        used_voting_strategies,
+        user_voting_strategy_params_all,
+        index,
+    )
+end
+
+# Actual computation of voting power. Unchecked because duplicates are not checked in `used_voting_strategies`. The caller is
+# expected to check for duplicates before calling this function.
+func unchecked_get_cumulative_voting_power{
+    syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr
+}(
     current_timestamp : felt,
     voter_address : Address,
     used_voting_strategies_len : felt,
@@ -987,16 +1105,16 @@ func get_cumulative_voting_power{syscall_ptr : felt*, pedersen_ptr : HashBuiltin
         return (Uint256(0, 0))
     end
 
-    let voting_strategy = used_voting_strategies[0]
+    let strategy_index = used_voting_strategies[0]
 
-    let (is_valid) = Voting_voting_strategies_store.read(voting_strategy)
+    let (strategy_address) = Voting_voting_strategies_store.read(strategy_index)
 
     with_attr error_message("Invalid voting strategy"):
-        assert is_valid = 1
+        assert_not_equal(strategy_address, 0)
     end
 
     # Extract voting params array for the voting strategy specified by the index
-    let (user_voting_strategy_params_len, user_voting_strategy_params) = get_sub_array(
+    let (user_voting_strategy_params_len, user_voting_strategy_params) = Array2D.get_sub_array(
         user_voting_strategy_params_all, index
     )
 
@@ -1004,14 +1122,14 @@ func get_cumulative_voting_power{syscall_ptr : felt*, pedersen_ptr : HashBuiltin
     let (voting_strategy_params : felt*) = alloc()
 
     # Check that voting strategy params exist by the length which is stored in the first element of the array
-    let (voting_strategy_params_len) = Voting_voting_strategy_params_store.read(voting_strategy, 0)
+    let (voting_strategy_params_len) = Voting_voting_strategy_params_store.read(strategy_index, 0)
 
     let (voting_strategy_params_len, voting_strategy_params) = get_voting_strategy_params(
-        voting_strategy, voting_strategy_params_len, voting_strategy_params, 1
+        strategy_index, voting_strategy_params_len, voting_strategy_params, 1
     )
 
     let (user_voting_power) = IVotingStrategy.get_voting_power(
-        contract_address=voting_strategy,
+        contract_address=strategy_address,
         timestamp=current_timestamp,
         voter_address=voter_address,
         params_len=voting_strategy_params_len,
@@ -1040,30 +1158,25 @@ end
 
 # Function to reconstruct voting param array for voting strategy specified
 func get_voting_strategy_params{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr}(
-    _voting_strategy_contract : felt,
-    voting_strategy_params_len : felt,
-    voting_strategy_params : felt*,
-    index : felt,
-) -> (voting_strategy_params_len : felt, voting_strategy_params : felt*):
+    strategy_index : felt, params_len : felt, params : felt*, index : felt
+) -> (params_len : felt, params : felt*):
     # The are no parameters so we just return an empty array
-    if voting_strategy_params_len == 0:
-        return (0, voting_strategy_params)
+    if params_len == 0:
+        return (0, params)
     end
 
-    let (voting_strategy_param) = Voting_voting_strategy_params_store.read(
-        _voting_strategy_contract, index
-    )
-    assert voting_strategy_params[index - 1] = voting_strategy_param
+    let (param) = Voting_voting_strategy_params_store.read(strategy_index, index)
+    assert params[index - 1] = param
 
     # All parameters have been added to the array so we can return it
-    if index == voting_strategy_params_len:
-        return (voting_strategy_params_len, voting_strategy_params)
+    if index == params_len:
+        return (params_len, params)
     end
 
-    let (voting_strategy_params_len, voting_strategy_params) = get_voting_strategy_params(
-        _voting_strategy_contract, voting_strategy_params_len, voting_strategy_params, index + 1
+    let (params_len, params) = get_voting_strategy_params(
+        strategy_index, params_len, params, index + 1
     )
-    return (voting_strategy_params_len, voting_strategy_params)
+    return (params_len, params)
 end
 
 # Decodes an array into the data required to perform a set of calls according to the OZ account standard

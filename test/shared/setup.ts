@@ -323,7 +323,7 @@ export async function ethTxAuthSetup() {
   };
 }
 
-export async function singleSlotProofSetup(block: any, proofs: any, slotIndex: string) {
+export async function ethBalanceOfSetup(block: any, proofs: any) {
   // We pass the encode params function for the single slot proof strategy to generate the encoded data for the single slot proof strategy
   const proofInputs: utils.storageProofs.ProofInputs = utils.storageProofs.getProofInputs(
     block.number,
@@ -335,8 +335,8 @@ export async function singleSlotProofSetup(block: any, proofs: any, slotIndex: s
   const fossil = await fossilSetup(controller);
 
   const spaceFactory = await starknet.getContractFactory('./contracts/starknet/SpaceAccount.cairo');
-  const singleSlotProofStrategyFactory = await starknet.getContractFactory(
-    'contracts/starknet/VotingStrategies/SingleSlotProof.cairo'
+  const ethBalanceOfVotingStrategyFactory = await starknet.getContractFactory(
+    'contracts/starknet/VotingStrategies/EthBalanceOf.cairo'
   );
   const vanillaAuthenticatorFactory = await starknet.getContractFactory(
     './contracts/starknet/Authenticators/Vanilla.cairo'
@@ -346,7 +346,7 @@ export async function singleSlotProofSetup(block: any, proofs: any, slotIndex: s
   );
   const deployments = [
     vanillaAuthenticatorFactory.deploy(),
-    singleSlotProofStrategyFactory.deploy({
+    ethBalanceOfVotingStrategyFactory.deploy({
       fact_registry_address: BigInt(fossil.factsRegistry.address),
       l1_headers_store_address: BigInt(fossil.l1HeadersStore.address),
     }),
@@ -354,7 +354,7 @@ export async function singleSlotProofSetup(block: any, proofs: any, slotIndex: s
   ];
   const contracts = await Promise.all(deployments);
   const vanillaAuthenticator = contracts[0] as StarknetContract;
-  const singleSlotProofStrategy = contracts[1] as StarknetContract;
+  const ethBalanceOfVotingStrategy = contracts[1] as StarknetContract;
   const vanillaExecutionStrategy = contracts[2] as StarknetContract;
 
   // Submit blockhash to L1 Headers Store (via dummy function rather than L1 -> L2 bridge)
@@ -378,8 +378,8 @@ export async function singleSlotProofSetup(block: any, proofs: any, slotIndex: s
   const votingDelay = BigInt(0);
   const minVotingDuration = BigInt(0);
   const maxVotingDuration = BigInt(2000);
-  const votingStrategies: string[] = [singleSlotProofStrategy.address];
-  const votingStrategyParams: string[][] = [[proofInputs.ethAddressFelt, slotIndex]]; // For the aave erc20 contract, the balances mapping has a storage index of 0
+  const votingStrategies: string[] = [ethBalanceOfVotingStrategy.address];
+  const votingStrategyParams: string[][] = [[proofInputs.ethAddressFelt, '0x0']]; // For the aave erc20 contract, the balances mapping has a storage index of 0
   const votingStrategyParamsFlat: string[] = utils.encoding.flatten2DArray(votingStrategyParams);
   const authenticators: string[] = [vanillaAuthenticator.address];
   const executors: string[] = [vanillaExecutionStrategy.address];
@@ -408,7 +408,7 @@ export async function singleSlotProofSetup(block: any, proofs: any, slotIndex: s
     space,
     controller,
     vanillaAuthenticator,
-    singleSlotProofStrategy,
+    ethBalanceOfVotingStrategy,
     vanillaExecutionStrategy,
     fossil,
     proofInputs,

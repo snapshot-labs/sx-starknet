@@ -52,7 +52,7 @@ describe('StarkNet Tx Auth testing', () => {
     );
     proposerAddress = proposerAccount.starknetContract.address;
     spaceAddress = space.address;
-    usedVotingStrategies1 = [vanillaVotingStrategy.address];
+    usedVotingStrategies1 = ['0x0'];
     userVotingParamsAll1 = [[]];
     executionStrategy = vanillaExecutionStrategy.address;
     executionParams = [];
@@ -68,7 +68,7 @@ describe('StarkNet Tx Auth testing', () => {
     voterAddress = voterAccount.starknetContract.address;
     proposalId = '0x1';
     choice = utils.choice.Choice.FOR;
-    usedVotingStrategies2 = [vanillaVotingStrategy.address];
+    usedVotingStrategies2 = ['0x0'];
     userVotingParamsAll2 = [[]];
     voteCalldata = utils.encoding.getVoteCalldata(
       voterAddress,
@@ -88,7 +88,7 @@ describe('StarkNet Tx Auth testing', () => {
         function_selector: PROPOSE_SELECTOR,
         calldata: fakeData,
       });
-      throw 'error';
+      throw { message: 'error' };
     } catch (err: any) {
       expect(err.message).to.contain('Incorrect caller');
     }

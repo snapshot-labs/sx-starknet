@@ -1,6 +1,3 @@
-import { number } from 'starknet';
-import { BigNumberish } from 'starknet/dist/utils/number';
-
 export const domain = {
   name: 'snapshot-x',
   version: '1',
@@ -9,8 +6,12 @@ export const domain = {
 export const proposeTypes = {
   Propose: [
     { name: 'space', type: 'bytes32' },
-    { name: 'executionHash', type: 'bytes32' },
-    { name: 'metadataURI', type: 'string' },
+    { name: 'proposerAddress', type: 'bytes32' },
+    { name: 'metadataUri', type: 'string' },
+    { name: 'executor', type: 'bytes32' },
+    { name: 'executionParamsHash', type: 'bytes32' },
+    { name: 'usedVotingStrategiesHash', type: 'bytes32' },
+    { name: 'userVotingStrategyParamsFlatHash', type: 'bytes32' },
     { name: 'salt', type: 'uint256' },
   ],
 };
@@ -18,22 +19,32 @@ export const proposeTypes = {
 export const voteTypes = {
   Vote: [
     { name: 'space', type: 'bytes32' },
+    { name: 'voterAddress', type: 'bytes32' },
     { name: 'proposal', type: 'uint256' },
     { name: 'choice', type: 'uint256' },
+    { name: 'usedVotingStrategiesHash', type: 'bytes32' },
+    { name: 'userVotingStrategyParamsFlatHash', type: 'bytes32' },
     { name: 'salt', type: 'uint256' },
   ],
 };
 
 export interface Propose {
   space: string;
-  executionHash: string;
-  metadataURI: string;
-  salt: number;
+  proposerAddress: string;
+  metadataUri: string;
+  executor: string;
+  executionParamsHash: string;
+  usedVotingStrategiesHash: string;
+  userVotingStrategyParamsFlatHash: string;
+  salt: string;
 }
 
 export interface Vote {
   space: string;
-  proposal: number;
+  voterAddress: string;
+  proposal: string;
   choice: number;
-  salt: number;
+  usedVotingStrategiesHash: string;
+  userVotingStrategyParamsFlatHash: string;
+  salt: string;
 }

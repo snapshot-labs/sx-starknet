@@ -4,6 +4,7 @@ import { StarknetContract, Account } from 'hardhat/types';
 import { utils } from '@snapshot-labs/sx';
 import { vanillaSetup } from '../shared/setup';
 import { PROPOSE_SELECTOR, VOTE_SELECTOR } from '../shared/constants';
+import { getProposeCalldata } from '@snapshot-labs/sx/dist/utils/encoding';
 
 describe('Space Testing', () => {
   // Contracts
@@ -42,7 +43,7 @@ describe('Space Testing', () => {
     );
     proposerEthAddress = ethers.Wallet.createRandom().address;
     spaceAddress = space.address;
-    usedVotingStrategies1 = [vanillaVotingStrategy.address];
+    usedVotingStrategies1 = ['0x0'];
     userVotingParamsAll1 = [[]];
     executionStrategy = vanillaExecutionStrategy.address;
     executionParams = [];
@@ -58,7 +59,7 @@ describe('Space Testing', () => {
     voterEthAddress = ethers.Wallet.createRandom().address;
     proposalId = '0x1';
     choice = utils.choice.Choice.FOR;
-    usedVotingStrategies2 = [vanillaVotingStrategy.address];
+    usedVotingStrategies2 = ['0x0']; // The vanilla voting strategy corresponds to index 0 in the space contract
     userVotingParamsAll2 = [[]];
     voteCalldata = utils.encoding.getVoteCalldata(
       voterEthAddress,
@@ -115,6 +116,45 @@ describe('Space Testing', () => {
         proposal_id: proposalId,
         execution_params: executionParams,
       });
+    }
+  }).timeout(6000000);
+
+  it('Fails if the same voting strategy is used multiple times', async () => {
+    // -- Creates the proposal --
+    {
+      const duplicateVotingStrategies = [
+        vanillaVotingStrategy.address,
+        vanillaAuthenticator.address,
+        vanillaVotingStrategy.address,
+      ];
+      const duplicateCalldata = utils.encoding.getProposeCalldata(
+        proposerEthAddress,
+        metadataUri,
+        executionStrategy,
+        duplicateVotingStrategies,
+        userVotingParamsAll1,
+        executionParams
+      );
+
+      try {
+        await vanillaAuthenticator.invoke('authenticate', {
+          target: spaceAddress,
+          function_selector: PROPOSE_SELECTOR,
+          calldata: duplicateCalldata,
+        });
+      } catch (error: any) {
+        expect(error.message).to.contain('Duplicate entry found');
+      }
+    }
+  }).timeout(6000000);
+
+  it('Reverts when querying an invalid proposal id', async () => {
+    try {
+      await space.call('get_proposal_info', {
+        proposal_id: 4242,
+      });
+    } catch (error: any) {
+      expect(error.message).to.contain('Proposal does not exist');
     }
   }).timeout(6000000);
 });
