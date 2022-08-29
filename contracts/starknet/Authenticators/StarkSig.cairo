@@ -8,6 +8,7 @@ from starkware.cairo.common.uint256 import uint256_eq, Uint256
 from starkware.cairo.common.alloc import alloc
 from contracts.starknet.lib.hash_array import HashArray
 from starkware.cairo.common.signature import verify_ecdsa_signature
+from starkware.starknet.common.syscalls import get_contract_address
 from contracts.starknet.lib.felt_utils import FeltUtils
 
 # getSelectorFromName("propose")
@@ -20,11 +21,11 @@ const DOMAIN_HASH = 0x7b887e96718721a64b601a4873454d4a9e26a4b798d660c8d6b96d2045
 
 const STARKNET_MESSAGE = 0x537461726b4e6574204d657373616765
 
-# getSelectorFromName("Propose(space:felt,proposerAddress:felt,metadataURI:felt*,executor:felt,executionParamsHash:felt,usedVotingStrategiesHash:felt,userVotingStrategyParamsFlatHash:felt,salt:felt)")
-const PROPOSAL_HASH = 0x35e10ef4a95bb833ee01f14d379540b1724b76496753505d7cceb30e133bf2
+# getSelectorFromName("Propose(authenticator:felt,space:felt,proposerAddress:felt,metadataURI:felt*,executor:felt,executionParamsHash:felt,usedVotingStrategiesHash:felt,userVotingStrategyParamsFlatHash:felt,salt:felt)")
+const PROPOSAL_HASH = 0x35180a46d53c4d36513bccec7be2c0483af6d821501af7e5b4ffa0700136c55
 
-# getSelectorFromName("Vote(space:felt,voterAddress:felt,proposal:felt,choice:felt,usedVotingStrategiesHash:felt,userVotingStrategyParamsFlatHash:felt,salt:felt)")
-const VOTE_HASH = 0x2a9a147261602c563f1c9d05ca076f6ae23a8a7a161ee8c8e3de6e468beaf9e
+# getSelectorFromName("Vote(authenticator:felt,space:felt,voterAddress:felt,proposal:felt,choice:felt,usedVotingStrategiesHash:felt,userVotingStrategyParamsFlatHash:felt,salt:felt)")
+const VOTE_HASH = 0x681e893f9fbb94a75c0eef52211a33b0446cd6b802420bb4e3c65f17099aaf
 
 # Maps a tuple of (user, salt) to a boolean stating whether this tuple was already used or not (to prevent replay attack).
 @storage_var
@@ -37,6 +38,8 @@ func authenticate_proposal{
     alloc_locals
 
     let proposer_address = calldata[0]
+
+    let (authenticator) = get_contract_address()
 
     # Ensure proposer has not already used this salt in a previous action
     let (already_used) = salts.read(proposer_address, salt)
@@ -77,16 +80,17 @@ func authenticate_proposal{
     let (structure : felt*) = alloc()
 
     assert structure[0] = PROPOSAL_HASH
-    assert structure[1] = target
-    assert structure[2] = proposer_address
-    assert structure[3] = metadata_uri_hash
-    assert structure[4] = executor
-    assert structure[5] = execution_hash
-    assert structure[6] = used_voting_strategies_hash
-    assert structure[7] = user_voting_strategy_params_flat_hash
-    assert structure[8] = salt
+    assert structure[1] = authenticator
+    assert structure[2] = target
+    assert structure[3] = proposer_address
+    assert structure[4] = metadata_uri_hash
+    assert structure[5] = executor
+    assert structure[6] = execution_hash
+    assert structure[7] = used_voting_strategies_hash
+    assert structure[8] = user_voting_strategy_params_flat_hash
+    assert structure[9] = salt
 
-    let (hash_struct) = HashArray.hash_array(9, structure)
+    let (hash_struct) = HashArray.hash_array(10, structure)
 
     let (message : felt*) = alloc()
 
@@ -110,6 +114,8 @@ func authenticate_vote{
     alloc_locals
 
     let voter_address = calldata[0]
+
+    let (authenticator) = get_contract_address()
 
     # Ensure voter has not already used this salt in a previous action
     let (already_used) = salts.read(voter_address, salt)
@@ -136,15 +142,16 @@ func authenticate_vote{
     # Now construct the data hash (hashStruct)
     let (structure : felt*) = alloc()
     assert structure[0] = VOTE_HASH
-    assert structure[1] = target
-    assert structure[2] = voter_address
-    assert structure[3] = proposal_id
-    assert structure[4] = choice
-    assert structure[5] = used_voting_strategies_hash
-    assert structure[6] = user_voting_strategy_params_flat_hash
-    assert structure[7] = salt
+    assert structure[1] = authenticator
+    assert structure[2] = target
+    assert structure[3] = voter_address
+    assert structure[4] = proposal_id
+    assert structure[5] = choice
+    assert structure[6] = used_voting_strategies_hash
+    assert structure[7] = user_voting_strategy_params_flat_hash
+    assert structure[8] = salt
 
-    let (hash_struct) = HashArray.hash_array(8, structure)
+    let (hash_struct) = HashArray.hash_array(9, structure)
 
     let (message : felt*) = alloc()
 

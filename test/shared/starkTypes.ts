@@ -24,6 +24,7 @@ export const domainTypes = {
 export const proposeTypes = {
   StarkNetDomain: domainTypes.StarkNetDomain,
   Propose: [
+    { name: 'authenticator', type: 'felt' },
     { name: 'space', type: 'felt' },
     { name: 'proposerAddress', type: 'felt' },
     { name: 'metadataURI', type: 'felt*' },
@@ -38,6 +39,7 @@ export const proposeTypes = {
 export const voteTypes = {
   StarkNetDomain: domainTypes.StarkNetDomain,
   Vote: [
+    { name: 'authenticator', type: 'felt' },
     { name: 'space', type: 'felt' },
     { name: 'voterAddress', type: 'felt' },
     { name: 'proposal', type: 'felt' },
@@ -49,6 +51,7 @@ export const voteTypes = {
 };
 
 export interface Propose {
+  authenticator: string;
   space: string;
   proposerAddress: string;
   metadataURI: string[];
@@ -60,6 +63,7 @@ export interface Propose {
 }
 
 export interface Vote {
+  authenticator: string;
   space: string;
   voterAddress: string;
   proposal: string;

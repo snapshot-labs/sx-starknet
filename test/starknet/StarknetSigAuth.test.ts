@@ -2,12 +2,13 @@ import { expect } from 'chai';
 import { StarknetContract, Account } from 'hardhat/types';
 import { Account as StarknetAccount, ec, defaultProvider, typedData } from 'starknet';
 import { domain, proposeTypes, voteTypes } from '../shared/starkTypes';
-import { computeHashOnElements } from 'starknet/dist/utils/hash';
+import { computeHashOnElements, getSelectorFromName } from 'starknet/dist/utils/hash';
 import { utils } from '@snapshot-labs/sx';
 import { starknetSigAuthSetup } from '../shared/setup';
 import { PROPOSE_SELECTOR, VOTE_SELECTOR } from '../shared/constants';
 import { _TypedDataEncoder } from 'ethers/lib/utils';
 import { getStarkKey } from 'starknet/utils/ellipticCurve';
+import { getStructHash, getTypeHash } from 'starknet/dist/utils/typedData';
 
 export const AUTHENTICATE_METHOD = 'authenticate';
 export const PROPOSAL_METHOD = 'propose';
@@ -108,6 +109,7 @@ describe('Starknet Sig Auth testing', () => {
     const incorrectSpace = '0x1337';
 
     const message = {
+      authenticator: starkSigAuth.address,
       space: spaceAddress,
       proposerAddress: proposerAddress,
       metadataURI: metadataUriInts.values,
@@ -149,6 +151,7 @@ describe('Starknet Sig Auth testing', () => {
       const proposalSalt = '0x01';
 
       const message = {
+        authenticator: starkSigAuth.address,
         space: spaceAddress,
         proposerAddress: proposerAddress,
         metadataURI: metadataUriInts.values,
@@ -202,6 +205,7 @@ describe('Starknet Sig Auth testing', () => {
       const voteSalt = '0x02';
 
       const message = {
+        authenticator: starkSigAuth.address,
         space: spaceAddress,
         voterAddress: voterAddress,
         proposal: proposalId,
