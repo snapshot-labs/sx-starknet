@@ -15,11 +15,13 @@ const PROPOSAL_SELECTOR = 0x1bfd596ae442867ef71ca523061610682af8b00fc2738329422f
 # getSelectorFromName("vote")
 const VOTE_SELECTOR = 0x132bdf85fc8aa10ac3c22f02317f8f53d4b4f52235ed1eabb3a4cbbe08b5c41
 
-const DOMAIN_HASH = 0x34410130560c343e1021bc2d858d98f18ef7a8052309c04cbe31bceb5f20625
+# { name: 'snapshot-x', version: '1', chainId: '0x534e5f474f45524c49'} (chainID: SN_GOERLI)
+const DOMAIN_HASH = 0x7b887e96718721a64b601a4873454d4a9e26a4b798d660c8d6b96d2045c8404
+
 const STARKNET_MESSAGE = 0x537461726b4e6574204d657373616765
 
-# getSelectorFromName("Propose(space:felt,proposerAddress:felt,metadataURI:felt,executor:felt,executionParamsHash:felt,usedVotingStrategiesHash:felt,userVotingStrategyParamsFlatHash:felt,salt:felt)")
-const PROPOSAL_HASH = 0x3f5d25b510ee76ffc9bbc8607a1290bc72564465f1074cab6e78d0830164faf
+# getSelectorFromName("Propose(space:felt,proposerAddress:felt,metadataURI:felt*,executor:felt,executionParamsHash:felt,usedVotingStrategiesHash:felt,userVotingStrategyParamsFlatHash:felt,salt:felt)")
+const PROPOSAL_HASH = 0x35e10ef4a95bb833ee01f14d379540b1724b76496753505d7cceb30e133bf2
 
 # getSelectorFromName("Vote(space:felt,voterAddress:felt,proposal:felt,choice:felt,usedVotingStrategiesHash:felt,userVotingStrategyParamsFlatHash:felt,salt:felt)")
 const VOTE_HASH = 0x2a9a147261602c563f1c9d05ca076f6ae23a8a7a161ee8c8e3de6e468beaf9e

@@ -1,16 +1,21 @@
 export const domain = {
   name: 'snapshot-x',
   version: '1',
+  chainId: '0x534e5f474f45524c49', // SN_GOERLI
 };
 
 export const domainTypes = {
   StarkNetDomain: [
     {
       name: 'name',
-      type: 'felt',
+      type: 'string',
     },
     {
       name: 'version',
+      type: 'felt',
+    },
+    {
+      name: 'chainId',
       type: 'felt',
     },
   ],
@@ -21,7 +26,7 @@ export const proposeTypes = {
   Propose: [
     { name: 'space', type: 'felt' },
     { name: 'proposerAddress', type: 'felt' },
-    { name: 'metadataURI', type: 'felt' },
+    { name: 'metadataURI', type: 'felt*' },
     { name: 'executor', type: 'felt' },
     { name: 'executionParamsHash', type: 'felt' },
     { name: 'usedVotingStrategiesHash', type: 'felt' },
@@ -46,7 +51,7 @@ export const voteTypes = {
 export interface Propose {
   space: string;
   proposerAddress: string;
-  metadataURI: string;
+  metadataURI: string[];
   executor: string;
   executionParamsHash: string;
   usedVotingStrategiesHash: string;

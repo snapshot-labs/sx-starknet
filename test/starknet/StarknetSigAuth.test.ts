@@ -1,6 +1,6 @@
 import { expect } from 'chai';
 import { StarknetContract, Account } from 'hardhat/types';
-import { Account as StarknetAccount, ec, defaultProvider } from 'starknet';
+import { Account as StarknetAccount, ec, defaultProvider, typedData } from 'starknet';
 import { domain, proposeTypes, voteTypes } from '../shared/starkTypes';
 import { computeHashOnElements } from 'starknet/dist/utils/hash';
 import { utils } from '@snapshot-labs/sx';
@@ -9,11 +9,9 @@ import { PROPOSE_SELECTOR, VOTE_SELECTOR } from '../shared/constants';
 import { _TypedDataEncoder } from 'ethers/lib/utils';
 import { getStarkKey } from 'starknet/utils/ellipticCurve';
 
-export const VITALIK_ADDRESS = BigInt('0xd8da6bf26964af9d7eed9e03e53415d37aa96045');
 export const AUTHENTICATE_METHOD = 'authenticate';
 export const PROPOSAL_METHOD = 'propose';
 export const VOTE_METHOD = 'vote';
-export const METADATA_URI = 'Hello and welcome to Snapshot X. This is the future of governance.';
 
 function createAccount() {
   let starkKeyPair = ec.genKeyPair();
@@ -65,7 +63,7 @@ describe('Starknet Sig Auth testing', () => {
       await starknetSigAuthSetup());
 
     metadataUri = 'Hello and welcome to Snapshot X. This is the future of governance.';
-    metadataUriInts = utils.intsSequence.IntsSequence.LEFromString(metadataUri);
+    metadataUriInts = utils.intsSequence.IntsSequence.fromString(metadataUri);
     usedVotingStrategies1 = ['0x0'];
     userVotingParamsAll1 = [[]];
     executionStrategy = vanillaExecutionStrategy.address;
@@ -108,19 +106,23 @@ describe('Starknet Sig Auth testing', () => {
   it('Should not authenticate an invalid proposal', async () => {
     const proposalSalt = '0x01';
     const incorrectSpace = '0x1337';
-    const metadataUriHash = computeHashOnElements(metadataUriInts.values);
 
     const message = {
       space: spaceAddress,
       proposerAddress: proposerAddress,
-      metadataURI: metadataUriHash,
+      metadataURI: metadataUriInts.values,
       executor: vanillaExecutionStrategy.address,
       executionParamsHash: executionHash,
       usedVotingStrategiesHash: usedVotingStrategiesHash1,
       userVotingStrategyParamsFlatHash: userVotingStrategyParamsFlatHash1,
       salt: proposalSalt,
     };
-    const data = { types: proposeTypes, primaryType: 'Propose', domain, message };
+    const data: typedData.TypedData = {
+      types: proposeTypes,
+      primaryType: 'Propose',
+      domain,
+      message,
+    };
     const sig = await user.account.signMessage(data);
 
     const [r, s] = sig;
@@ -145,19 +147,23 @@ describe('Starknet Sig Auth testing', () => {
     // -- Creates the proposal --
     {
       const proposalSalt = '0x01';
-      const metadataUriHash = computeHashOnElements(metadataUriInts.values);
 
       const message = {
         space: spaceAddress,
         proposerAddress: proposerAddress,
-        metadataURI: metadataUriHash,
+        metadataURI: metadataUriInts.values,
         executor: vanillaExecutionStrategy.address,
         executionParamsHash: executionHash,
         usedVotingStrategiesHash: usedVotingStrategiesHash1,
         userVotingStrategyParamsFlatHash: userVotingStrategyParamsFlatHash1,
         salt: proposalSalt,
       };
-      const data = { types: proposeTypes, primaryType: 'Propose', domain, message };
+      const data: typedData.TypedData = {
+        types: proposeTypes,
+        primaryType: 'Propose',
+        domain,
+        message,
+      };
       const sig = await user.account.signMessage(data);
 
       const [r, s] = sig;
