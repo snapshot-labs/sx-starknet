@@ -1,10 +1,12 @@
 export const domain = {
   name: 'snapshot-x',
   version: '1',
+  chainId: '0x534e5f474f45524c49', // SN_GOERLI
 };
 
 export const proposeTypes = {
   Propose: [
+    { name: 'authenticator', type: 'bytes32' },
     { name: 'space', type: 'bytes32' },
     { name: 'proposerAddress', type: 'bytes32' },
     { name: 'metadataUri', type: 'string' },
@@ -18,6 +20,7 @@ export const proposeTypes = {
 
 export const voteTypes = {
   Vote: [
+    { name: 'authenticator', type: 'bytes32' },
     { name: 'space', type: 'bytes32' },
     { name: 'voterAddress', type: 'bytes32' },
     { name: 'proposal', type: 'uint256' },
@@ -29,6 +32,7 @@ export const voteTypes = {
 };
 
 export interface Propose {
+  authenticator: string;
   space: string;
   proposerAddress: string;
   metadataUri: string;
@@ -40,6 +44,7 @@ export interface Propose {
 }
 
 export interface Vote {
+  authenticator: string;
   space: string;
   voterAddress: string;
   proposal: string;
