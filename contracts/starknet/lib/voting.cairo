@@ -880,9 +880,10 @@ func unchecked_add_voting_strategies{
         # The following elements are the actual params
         unchecked_add_voting_strategy_params(next_index, 1, params_len, params)
 
+        Voting_num_voting_strategies_store.write(next_index + 1)
+
         unchecked_add_voting_strategies(addresses_len - 1, &addresses[1], params_all, index + 1)
 
-        Voting_num_voting_strategies_store.write(next_index + 1)
         return ()
     end
 end
