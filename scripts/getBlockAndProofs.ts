@@ -4,7 +4,7 @@ import fetch from 'node-fetch';
 
 async function main() {
   // The target block number.
-  const blockNumber = 7380034;
+  const blockNumber = 7497454;
 
   // The address of the contract we are proving storage values from.
   // This example is the Goerli WETH ERC20 contract address.

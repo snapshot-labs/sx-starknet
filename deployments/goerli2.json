@@ -1,0 +1,38 @@
+{
+    "space": {
+        "address": "0x5118b2481780aef2b209c2102e2143e2bdd0322cc0ddef1544a5042f4cad4df",
+        "authenticators": {
+            "EthSig": "0x11e41ee1edc66e4b65fc0aaeca757bdbaeecedc2514fcdf58bb72a3f75518bc",
+            "Vanilla": "0x68553dd647a471b197435f212b6536088118c47de5e05f374f224b2977ad20f"
+        },
+        "controller": "0x0764c647e4c5f6e81c5baa1769b4554e44851a7b6319791fc6db9e25a32148bb",
+        "executionStrategies": {
+            "Vanilla": "0x7bbb7a6a4b87334716aef338195e8bbd3ac6346654d8118ddc1daeb1260906c"
+        },
+        "maxVotingDuration": 200000,
+        "minVotingDuration": 0,
+        "name": "Ethereum DAO test space",
+        "proposalThreshold": "0x1",
+        "quorum": "0x1",
+        "votingStrategies": {
+            "EthBalanceOf": {
+                "address": "0x71b4f90aec133dd5fb89e9851c1466b2df2ea6dbe7de475915d78394a7dbb1a",
+                "index": 1,
+                "parameters": [
+                    "0xB4FBF271143F4FBf7B91A5ded31805e42b2208d6",
+                    "0x3"
+                ]
+            },
+            "Vanilla": {
+                "address": "0x1b18d9fe16f47e2cf8abc4e84b3cfd37b94abeae3c5fa6ceb8b6f3bbd1f99f5",
+                "index": 0,
+                "parameters": [
+                ]
+            }
+        }
+    },
+    "spaceFactory": {
+        "address": "0x56e8870147d967d8aa72ea7e8d73f7652e5419b6f3964ee108beeb91176c6b4",
+        "spaceClassHash": "0x6e8568aef7e82626259451bc5414bc6bb6ecfe82b6dc8d849492e62d17009d9"
+    }
+}
