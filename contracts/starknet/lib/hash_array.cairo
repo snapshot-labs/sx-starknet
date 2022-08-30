@@ -1,5 +1,5 @@
 from starkware.cairo.common.cairo_builtins import HashBuiltin
-from starkware.cairo.common.hash_state import hash_init, hash_update
+from starkware.cairo.common.hash_state import hash_init, hash_update, hash_finalize
 from starkware.cairo.lang.compiler.lib.registers import get_fp_and_pc
 
 namespace HashArray:
@@ -9,11 +9,7 @@ namespace HashArray:
     func hash_array{pedersen_ptr : HashBuiltin*}(array_len : felt, array : felt*) -> (hash : felt):
         let (hash_state_ptr) = hash_init()
         let (hash_state_ptr) = hash_update{hash_ptr=pedersen_ptr}(hash_state_ptr, array, array_len)
-
-        let (__fp__, _) = get_fp_and_pc()
-
-        # Appending the length of the array to itself as the offchain version of the hash works this way
-        let (hash_state_ptr) = hash_update{hash_ptr=pedersen_ptr}(hash_state_ptr, &array_len, 1)
-        return (hash_state_ptr.current_hash)
+        let (hash) = hash_finalize{hash_ptr=pedersen_ptr}(hash_state_ptr)
+        return (hash)
     end
 end
