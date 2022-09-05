@@ -1,35 +1,38 @@
 %lang starknet
 
 from contracts.starknet.lib.execute import execute
-from starkware.starknet.common.syscalls import get_caller_address
-from starkware.cairo.common.cairo_builtins import BitwiseBuiltin
-from starkware.cairo.common.math import assert_not_zero
-from starkware.cairo.common.uint256 import uint256_eq
-# from openzeppelin.account.IAccount import IAccount
+from starkware.cairo.common.cairo_builtins import HashBuiltin, SignatureBuiltin
+from contracts.starknet.lib.stark_sig import StarkSig
 
-# TODO: change `hash` to actual data, not simply the hash
+# getSelectorFromName("propose")
+const PROPOSAL_SELECTOR = 0x1bfd596ae442867ef71ca523061610682af8b00fc2738329422f4ad8d220b81
+# getSelectorFromName("vote")
+const VOTE_SELECTOR = 0x132bdf85fc8aa10ac3c22f02317f8f53d4b4f52235ed1eabb3a4cbbe08b5c41
+
 @external
-func authenticate{syscall_ptr : felt*, range_check_ptr, bitwise_ptr : BitwiseBuiltin*}(
-    hash : felt,
-    sig_len : felt,
-    sig : felt*,
+func authenticate{
+    syscall_ptr : felt*, range_check_ptr, pedersen_ptr : HashBuiltin*, ecdsa_ptr : SignatureBuiltin*
+}(
+    r : felt,
+    s : felt,
+    salt : felt,
     target : felt,
     function_selector : felt,
     calldata_len : felt,
     calldata : felt*,
 ) -> ():
-    # Voter address or proposer address should be located in calldata[0]
-    let user_address = calldata[0]
-
-    # Will throw if signature is invalid
-    # with_attr error_message("Invalid signature"):
-    #     IAccount.is_valid_signature(
-    #         contract_address=user_address, hash=hash, signature_len=sig_len, signature=sig
-    #     )
-    # end
+    if function_selector == PROPOSAL_SELECTOR:
+        StarkSig.verify_propose_sig(r, s, salt, target, calldata_len, calldata)
+    else:
+        if function_selector == VOTE_SELECTOR:
+            StarkSig.verify_vote_sig(r, s, salt, target, calldata_len, calldata)
+        else:
+            # Invalid selector
+            return ()
+        end
+    end
 
     # Call the contract
     execute(target, function_selector, calldata_len, calldata)
-
     return ()
 end
