@@ -30,8 +30,10 @@ async function main() {
     operation: 0,
     nonce: 0,
   };
-  const executionHash = utils.splitUint256.SplitUint256.fromHex(utils.encoding.createExecutionHash([tx1], zodiacModuleAddress, goerliChainId).executionHash);
-  const executionParams = [zodiacModuleAddress, executionHash.low, executionHash.high];
+
+  const { executionHash, txHashes }  = utils.encoding.createExecutionHash([tx1], zodiacModuleAddress, goerliChainId)
+  const executionHashSplit = utils.splitUint256.SplitUint256.fromHex(executionHash);
+  const executionParams = [zodiacModuleAddress, executionHashSplit.low, executionHashSplit.high];
 
   const { transaction_hash: txHash } = await starkAccount.execute(
     {
@@ -58,8 +60,8 @@ async function main() {
     zodiacModuleInterface,
     ethAccount
   );
-
-  zodiacModule.receiveProposal()
+  const proposalOutcome = 1;
+  zodiacModule.receiveProposal(spaceAddress, proposalOutcome, executionHashSplit.low, executionHashSplit.high, txHashes)
   
 }
 
