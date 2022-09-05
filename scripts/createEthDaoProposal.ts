@@ -17,17 +17,10 @@ async function main() {
   );
   const ethAccount = new ethers.Wallet(process.env.ETH_PK_1!);
 
-  const vanillaAuthenticatorAddress =
-    '0x68553dd647a471b197435f212b6536088118c47de5e05f374f224b2977ad20f';
-  const ethSigAuthenticatorAddress =
-    '0x11e41ee1edc66e4b65fc0aaeca757bdbaeecedc2514fcdf58bb72a3f75518bc';
-  const vanillaVotingStrategyAddress =
-    '0x1b18d9fe16f47e2cf8abc4e84b3cfd37b94abeae3c5fa6ceb8b6f3bbd1f99f5';
-  const ethBalanceOfVotingStrategyAddress =
-    '0x71b4f90aec133dd5fb89e9851c1466b2df2ea6dbe7de475915d78394a7dbb1a';
-  const vanillaExecutionStrategyAddress =
-    '0x7bbb7a6a4b87334716aef338195e8bbd3ac6346654d8118ddc1daeb1260906c';
-  const spaceAddress = '0x5118b2481780aef2b209c2102e2143e2bdd0322cc0ddef1544a5042f4cad4df';
+  const deployment = JSON.parse(fs.readFileSync('./deployments/goerli2.json').toString());
+  const ethSigAuthenticatorAddress = deployment.space.authenticators.ethSig;
+  const vanillaExecutionStrategyAddress = deployment.space.executionStrategies.vanilla;
+  const spaceAddress = deployment.space.address;
 
   const usedVotingStrategies = ['0x1']; // Goerli WETH balance voting strategy is index 1
   const metadataUri = 'Hello and welcome to Snapshot X. This is the future of governance.';
@@ -55,8 +48,6 @@ async function main() {
   const salt = utils.splitUint256.SplitUint256.fromHex(
     utils.bytes.bytesToHex(ethers.utils.randomBytes(4))
   );
-  const executionHashStr = utils.encoding.hexPadRight(executionHash);
-
   const message: Propose = {
     space: utils.encoding.hexPadRight(spaceAddress),
     proposerAddress: utils.encoding.hexPadRight(proposerEthAddress),

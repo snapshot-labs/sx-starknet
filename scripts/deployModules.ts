@@ -44,6 +44,13 @@ async function main() {
       )
       .toString('ascii')
   );
+  const compiledZodiacExecutionStrategy = json.parse(
+    fs
+      .readFileSync(
+        './starknet-artifacts/contracts/starknet/ExecutionStrategies/ZodiacRelayer.cairo/ZodiacRelayer.json'
+      )
+      .toString('ascii')
+  );
   const compiledSpaceFactory = json.parse(
     fs
       .readFileSync('./starknet-artifacts/contracts/starknet/SpaceFactory.cairo/SpaceFactory.json')
@@ -54,7 +61,7 @@ async function main() {
       .readFileSync('./starknet-artifacts/contracts/starknet/SpaceAccount.cairo/SpaceAccount.json')
       .toString('ascii')
   );
-  const spaceClassHash = '0x1a19262b4badb0a897e6295a40c019d7ef297dd1ec246f7eedfd72366a03f09';
+  const spaceClassHash = '0x7fbabb6a96ed800d66d1ace0de4d216cc19c7308bb15faa0c0252fe2c7af006';
   const fossilFactRegistryAddress =
     '0x363108ac1521a47b4f7d82f8ba868199bc1535216bbedfc1b071ae93cc406fd';
   const fossilL1HeadersStoreAddress =
@@ -69,6 +76,7 @@ async function main() {
       constructorCalldata: [fossilFactRegistryAddress, fossilL1HeadersStoreAddress],
     }),
     defaultProvider.deployContract({ contract: compiledVanillaExecutionStrategy }),
+    defaultProvider.deployContract({ contract: compiledZodiacExecutionStrategy }),
     defaultProvider.deployContract({
       contract: compiledSpaceFactory,
       constructorCalldata: [spaceClassHash],
@@ -80,12 +88,14 @@ async function main() {
   const vanillaVotingStrategyAddress = responses[2].address!;
   const ethBalanceOfVotingStrategyAddress = responses[3].address!;
   const vanillaExecutionStrategyAddress = responses[4].address!;
-  const spaceFactoryAddress = responses[5].address!;
+  const zodiacExecutionStrategyAddress = responses[5].address!;
+  const spaceFactoryAddress = responses[6].address!;
   console.log('vanillaAuthenticatorAddress', vanillaAuthenticatorAddress);
   console.log('ethSigAuthenticatorAddress', ethSigAuthenticatorAddress);
   console.log('vanillaVotingStrategyAddress', vanillaVotingStrategyAddress);
   console.log('ethBalanceOfVotingStrategyAddress', ethBalanceOfVotingStrategyAddress);
   console.log('vanillaExecutionStrategyAddress', vanillaExecutionStrategyAddress);
+  console.log('zodiacExecutionStrategyAddress', zodiacExecutionStrategyAddress);
   console.log('spaceFactoryAddress', spaceFactoryAddress);
 }
 

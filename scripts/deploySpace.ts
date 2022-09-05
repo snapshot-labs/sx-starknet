@@ -19,9 +19,12 @@ async function main() {
     '0x71b4f90aec133dd5fb89e9851c1466b2df2ea6dbe7de475915d78394a7dbb1a';
   const vanillaExecutionStrategyAddress =
     '0x7bbb7a6a4b87334716aef338195e8bbd3ac6346654d8118ddc1daeb1260906c';
-  const spaceFactoryAddress = '0x56e8870147d967d8aa72ea7e8d73f7652e5419b6f3964ee108beeb91176c6b4';
+  const zodiacExecutionStrategyAddress =
+    '0x1d5a3e4a86559398b35ab5c959bb20f91737168351b628ffff68404301268de';
 
-  const spaceClassHash = '0x6e8568aef7e82626259451bc5414bc6bb6ecfe82b6dc8d849492e62d17009d9';
+  const spaceFactoryAddress = '0x6eb62d281fb2ebdac4c326818204df636457df8da5ce1edea8c9ce546467417';
+
+  const spaceClassHash = '0x7fbabb6a96ed800d66d1ace0de4d216cc19c7308bb15faa0c0252fe2c7af006';
   const votingDelay = 0;
   const minVotingDuration = 0;
   const maxVotingDuration = 200000;
@@ -34,7 +37,7 @@ async function main() {
   ];
   const votingStrategyParamsFlat = utils.encoding.flatten2DArray(votingStrategyParams);
   const authenticators = [vanillaAuthenticatorAddress, ethSigAuthenticatorAddress];
-  const executors = [vanillaExecutionStrategyAddress];
+  const executors = [vanillaExecutionStrategyAddress, zodiacExecutionStrategyAddress];
   const quorum = utils.splitUint256.SplitUint256.fromUint(BigInt(1));
   const proposalThreshold = utils.splitUint256.SplitUint256.fromUint(BigInt(1));
   const controllerAddress = '0x0764c647e4c5f6e81c5baa1769b4554e44851a7b6319791fc6db9e25a32148bb'; // Controller address is orlando's argent x
@@ -83,7 +86,7 @@ async function main() {
       spaceClassHash: spaceClassHash,
     },
     space: {
-      name: 'Ethereum DAO test space',
+      name: 'DAO test space',
       address: spaceAddress,
       controller: controllerAddress,
       minVotingDuration: minVotingDuration,
@@ -91,23 +94,24 @@ async function main() {
       proposalThreshold: proposalThreshold.toHex(),
       quorum: quorum.toHex(),
       authenticators: {
-        EthSig: ethSigAuthenticatorAddress,
-        Vanilla: vanillaAuthenticatorAddress,
+        ethSig: ethSigAuthenticatorAddress,
+        vanilla: vanillaAuthenticatorAddress,
       },
       votingStrategies: {
-        Vanilla: {
+        vanilla: {
           index: 0,
           address: vanillaVotingStrategyAddress,
           parameters: [],
         },
-        EthBalanceOf: {
+        ethBalanceOf: {
           index: 1,
           address: ethBalanceOfVotingStrategyAddress,
           parameters: ['0xB4FBF271143F4FBf7B91A5ded31805e42b2208d6', '0x3'],
         },
       },
       executionStrategies: {
-        Vanilla: vanillaExecutionStrategyAddress,
+        vanilla: vanillaExecutionStrategyAddress,
+        zodiac: zodiacExecutionStrategyAddress,
       },
     },
   };

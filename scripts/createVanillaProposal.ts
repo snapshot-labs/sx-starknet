@@ -17,25 +17,28 @@ async function main() {
   );
   const ethAccount = new ethers.Wallet(process.env.ETH_PK_1!);
 
-  const vanillaAuthenticatorAddress =
-    '0x68553dd647a471b197435f212b6536088118c47de5e05f374f224b2977ad20f';
-  const ethSigAuthenticatorAddress =
-    '0x11e41ee1edc66e4b65fc0aaeca757bdbaeecedc2514fcdf58bb72a3f75518bc';
-  const vanillaVotingStrategyAddress =
-    '0x1b18d9fe16f47e2cf8abc4e84b3cfd37b94abeae3c5fa6ceb8b6f3bbd1f99f5';
-  const ethBalanceOfVotingStrategyAddress =
-    '0x71b4f90aec133dd5fb89e9851c1466b2df2ea6dbe7de475915d78394a7dbb1a';
-  const vanillaExecutionStrategyAddress =
-    '0x7bbb7a6a4b87334716aef338195e8bbd3ac6346654d8118ddc1daeb1260906c';
-  const spaceAddress = '0x5118b2481780aef2b209c2102e2143e2bdd0322cc0ddef1544a5042f4cad4df';
+  const deployment = JSON.parse(fs.readFileSync('./deployments/goerli2.json').toString());
+  const vanillaAuthenticatorAddress = deployment.space.authenticators.vanilla;
+  const zodiacExecutionStrategyAddress = deployment.space.executionStrategies.zodiac;
+  const spaceAddress = deployment.space.address;
 
+  const goerliChainId = 5;
+  const zodiacModuleAddress = '0x66072142ed77472728a146F00f137982e72F42Dc';
+  const tx1: utils.encoding.MetaTransaction = {
+    to: '0x2842c82E20ab600F443646e1BC8550B44a513D82',
+    value: ethers.utils.parseEther('0.01').toHexString(),
+    data: '0x',
+    operation: 0,
+    nonce: 0,
+  };
+  const executionHash = utils.splitUint256.SplitUint256.fromHex(utils.encoding.createExecutionHash([tx1], zodiacModuleAddress, goerliChainId).executionHash);
+  
   const usedVotingStrategies = ['0x0']; // Vanilla voting strategy is index 0
   const metadataUri = 'Hello and welcome to Snapshot X. This is the future of governance.';
   const metadataUriInts = utils.intsSequence.IntsSequence.LEFromString(metadataUri);
   const userVotingStrategyParams = [[]];
-  const executionStrategy = vanillaExecutionStrategyAddress;
-  const executionParams = ['0x1']; // Random params
-  const executionHash = hash.computeHashOnElements(executionParams);
+  const executionStrategy = zodiacExecutionStrategyAddress;
+  const executionParams = [zodiacModuleAddress, executionHash.low, executionHash.high];
   const proposerEthAddress = ethAccount.address;
   const proposeCalldata = utils.encoding.getProposeCalldata(
     proposerEthAddress,

@@ -9,6 +9,7 @@ import '@nomiclabs/hardhat-ethers';
 import '@nomiclabs/hardhat-waffle';
 import 'hardhat-gas-reporter';
 import '@nomiclabs/hardhat-etherscan';
+import 'hardhat-abi-exporter';
 
 // const chainIds = {
 //   ganache: 1337,
@@ -47,6 +48,11 @@ const config: HardhatUserConfig = {
     ropsten: {
       url: process.env.ROPSTEN_URL || '',
       accounts: process.env.PRIVATE_KEY !== undefined ? [process.env.PRIVATE_KEY] : [],
+    },
+    goerli: {
+      url: process.env.GOERLI_NODE_URL || '',
+      accounts: process.env.ETH_PK_1 !== undefined ? [process.env.ETH_PK_1] : [],
+      gas: 1000000,
     },
     ethereumLocal: {
       url: 'http://localhost:8545',

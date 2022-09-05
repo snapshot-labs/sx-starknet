@@ -63,6 +63,7 @@
     "ethereum-waffle": "^3.4.0",
     "ethers": "^5.7.0",
     "hardhat": "^2.10.2",
+    "hardhat-abi-exporter": "^2.10.0",
     "hardhat-gas-reporter": "^1.0.7",
     "json-format-cli": "^1.1.1",
     "prettier": "^2.7.1",

@@ -1,10 +1,17 @@
 /* eslint-disable  @typescript-eslint/no-non-null-assertion */
 /* eslint-disable  @typescript-eslint/explicit-module-boundary-types */
 
-import { Contract, utils, BigNumber, BigNumberish, Signer, PopulatedTransaction } from 'ethers';
+import {
+  Contract,
+  utils,
+  BigNumber,
+  BigNumberish,
+  Signer,
+  PopulatedTransaction,
+  Wallet,
+} from 'ethers';
 import { TypedDataSigner } from '@ethersproject/abstract-signer';
 import { AddressZero } from '@ethersproject/constants';
-import { SignerWithAddress } from '@nomiclabs/hardhat-ethers/signers';
 
 export const EIP712_TYPES = {
   Transaction: [
@@ -318,7 +325,7 @@ export const buildContractCallVariable = (
 export const executeTxWithSigners = async (
   safe: Contract,
   tx: SafeTransaction,
-  signers: SignerWithAddress[],
+  signers: Wallet[],
   overrides?: any
 ) => {
   const sigs = await Promise.all(signers.map((signer) => safeSignTypedData(signer, safe, tx)));
@@ -330,7 +337,7 @@ export const executeContractCallWithSigners = async (
   contract: Contract,
   method: string,
   params: any[],
-  signers: SignerWithAddress[],
+  signers: Wallet[],
   delegateCall?: boolean,
   overrides?: Partial<SafeTransaction>
 ) => {

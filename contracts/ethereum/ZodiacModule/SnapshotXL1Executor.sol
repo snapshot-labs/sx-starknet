@@ -178,6 +178,7 @@ contract SnapshotXL1Executor is Module, SnapshotXProposalRelayer {
 
   /**
    * @dev Initializes a new proposal execution struct on the receival of a completed proposal from StarkNet
+   * @dev callerAddress
    * @param executionHashLow Lowest 128 bits of the hash of all the transactions in the proposal
    * @param executionHashHigh Highest 128 bits of the hash of all the transactions in the proposal
    * @param proposalOutcome Whether the proposal was accepted / rejected / cancelled

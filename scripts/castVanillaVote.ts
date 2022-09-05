@@ -1,10 +1,8 @@
 import fetch from 'cross-fetch';
 import fs from 'fs';
-import { _TypedDataEncoder } from '@ethersproject/hash';
 import { ethers } from 'ethers';
 import { utils } from '@snapshot-labs/sx';
-import { defaultProvider, Account, ec, hash } from 'starknet';
-import { domain, Vote, voteTypes } from '../test/shared/types';
+import { defaultProvider, Account, ec } from 'starknet';
 import { VOTE_SELECTOR } from '../test/shared/constants';
 
 async function main() {
@@ -17,19 +15,12 @@ async function main() {
   );
   const ethAccount = new ethers.Wallet(process.env.ETH_PK_1!);
 
-  const vanillaAuthenticatorAddress =
-    '0x68553dd647a471b197435f212b6536088118c47de5e05f374f224b2977ad20f';
-  const ethSigAuthenticatorAddress =
-    '0x11e41ee1edc66e4b65fc0aaeca757bdbaeecedc2514fcdf58bb72a3f75518bc';
-  const vanillaVotingStrategyAddress =
-    '0x1b18d9fe16f47e2cf8abc4e84b3cfd37b94abeae3c5fa6ceb8b6f3bbd1f99f5';
-  const ethBalanceOfVotingStrategyAddress =
-    '0x71b4f90aec133dd5fb89e9851c1466b2df2ea6dbe7de475915d78394a7dbb1a';
-  const vanillaExecutionStrategyAddress =
-    '0x7bbb7a6a4b87334716aef338195e8bbd3ac6346654d8118ddc1daeb1260906c';
-  const spaceAddress = '0x5118b2481780aef2b209c2102e2143e2bdd0322cc0ddef1544a5042f4cad4df';
+  const deployment = JSON.parse(fs.readFileSync('./deployments/goerli2.json').toString());
+  const vanillaAuthenticatorAddress = deployment.space.authenticators.vanilla;
+  const vanillaExecutionStrategyAddress = deployment.space.executionStrategies.vanilla;
+  const spaceAddress = deployment.space.address;
 
-  const proposalId = '0x1';
+  const proposalId = '0x3';
   const choice = utils.choice.Choice.FOR;
   const usedVotingStrategies = ['0x0']; // Vanilla voting strategy is index 0
   const userVotingStrategyParams = [[]];
