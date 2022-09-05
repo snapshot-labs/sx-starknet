@@ -31,8 +31,10 @@ async function main() {
     operation: 0,
     nonce: 0,
   };
-  const executionHash = utils.splitUint256.SplitUint256.fromHex(utils.encoding.createExecutionHash([tx1], zodiacModuleAddress, goerliChainId).executionHash);
-  
+  const executionHash = utils.splitUint256.SplitUint256.fromHex(
+    utils.encoding.createExecutionHash([tx1], zodiacModuleAddress, goerliChainId).executionHash
+  );
+
   const usedVotingStrategies = ['0x0']; // Vanilla voting strategy is index 0
   const metadataUri = 'Hello and welcome to Snapshot X. This is the future of governance.';
   const metadataUriInts = utils.intsSequence.IntsSequence.LEFromString(metadataUri);

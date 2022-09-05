@@ -17,7 +17,6 @@ async function main() {
   const ethAccount = new ethers.Wallet(process.env.ETH_PK_1!, provider);
 
   const deployment = JSON.parse(fs.readFileSync('./deployments/goerli2.json').toString());
-  const vanillaExecutionStrategyAddress = deployment.space.executionStrategies.zodiacRelayer;
   const spaceAddress = deployment.space.address;
 
   const proposalId = '0x3';
@@ -31,7 +30,11 @@ async function main() {
     nonce: 0,
   };
 
-  const { executionHash, txHashes }  = utils.encoding.createExecutionHash([tx1], zodiacModuleAddress, goerliChainId)
+  const { executionHash, txHashes } = utils.encoding.createExecutionHash(
+    [tx1],
+    zodiacModuleAddress,
+    goerliChainId
+  );
   const executionHashSplit = utils.splitUint256.SplitUint256.fromHex(executionHash);
   const executionParams = [zodiacModuleAddress, executionHashSplit.low, executionHashSplit.high];
 
@@ -48,21 +51,20 @@ async function main() {
   await defaultProvider.waitForTransaction(txHash);
   console.log('---- PROPOSAL FINALIZED ----');
 
-  const zodiacModuleInterface = new ethers.utils.Interface(
-    fs
-      .readFileSync(
-        './abi/contracts/ethereum/ZodiacModule/SnapshotXL1Executor.sol/SnapshotXL1Executor.json'
-      )
-      .toString()
-  );
-  const zodiacModule = new ethers.Contract(
-    zodiacModuleAddress,
-    zodiacModuleInterface,
-    ethAccount
-  );
-  const proposalOutcome = 1;
-  zodiacModule.receiveProposal(spaceAddress, proposalOutcome, executionHashSplit.low, executionHashSplit.high, txHashes)
-  
+  // const zodiacModuleInterface = new ethers.utils.Interface(
+  //   fs
+  //     .readFileSync(
+  //       './abi/contracts/ethereum/ZodiacModule/SnapshotXL1Executor.sol/SnapshotXL1Executor.json'
+  //     )
+  //     .toString()
+  // );
+  // const zodiacModule = new ethers.Contract(
+  //   zodiacModuleAddress,
+  //   zodiacModuleInterface,
+  //   ethAccount
+  // );
+  // const proposalOutcome = 1;
+  // zodiacModule.receiveProposal(spaceAddress, proposalOutcome, executionHashSplit.low, executionHashSplit.high, txHashes)
 }
 
 main()
