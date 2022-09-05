@@ -139,7 +139,7 @@ describe('Starknet Sig Auth testing', () => {
         function_selector: PROPOSE_SELECTOR,
         calldata: proposeCalldata,
       });
-      throw { message: 'replay attack worked on `propose`' };
+      throw { message: 'invalid payload was authenticated by signature' };
     } catch (err: any) {
       expect(err.message).to.contain('is invalid, with respect to the public key');
     }
