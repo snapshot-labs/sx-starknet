@@ -732,6 +732,66 @@ export async function ethereumSigAuthSetup() {
   };
 }
 
+export async function starknetSigAuthSetup() {
+  const controller = await starknet.deployAccount('OpenZeppelin');
+  const spaceFactory = await starknet.getContractFactory('./contracts/starknet/SpaceAccount.cairo');
+  const vanillaVotingStrategyFactory = await starknet.getContractFactory(
+    './contracts/starknet/VotingStrategies/Vanilla.cairo'
+  );
+  const starkSigAuthFactory = await starknet.getContractFactory(
+    './contracts/starknet/Authenticators/StarkSig.cairo'
+  );
+  const vanillaExecutionFactory = await starknet.getContractFactory(
+    './contracts/starknet/ExecutionStrategies/Vanilla.cairo'
+  );
+
+  const deployments = [
+    starkSigAuthFactory.deploy(),
+    vanillaVotingStrategyFactory.deploy(),
+    vanillaExecutionFactory.deploy(),
+  ];
+  const contracts = await Promise.all(deployments);
+  const starkSigAuth = contracts[0] as StarknetContract;
+  const vanillaVotingStrategy = contracts[1] as StarknetContract;
+  const vanillaExecutionStrategy = contracts[2] as StarknetContract;
+
+  const votingDelay = BigInt(0);
+  const minVotingDuration = BigInt(0);
+  const maxVotingDuration = BigInt(2000);
+  const votingStrategies: string[] = [vanillaVotingStrategy.address];
+  const votingStrategyParams: string[][] = [[]]; // No params for the vanilla voting strategy
+  const votingStrategyParamsFlat: string[] = utils.encoding.flatten2DArray(votingStrategyParams);
+  const authenticators: string[] = [starkSigAuth.address];
+  const executors: string[] = [vanillaExecutionStrategy.address];
+  const quorum: utils.splitUint256.SplitUint256 = utils.splitUint256.SplitUint256.fromUint(
+    BigInt(1)
+  ); //  Quorum of one for the vanilla test
+  const proposalThreshold: utils.splitUint256.SplitUint256 =
+    utils.splitUint256.SplitUint256.fromUint(BigInt(1)); // Proposal threshold of 1 for the vanilla test
+
+  const space = (await spaceFactory.deploy({
+    public_key: controller.publicKey,
+    voting_delay: votingDelay,
+    min_voting_duration: minVotingDuration,
+    max_voting_duration: maxVotingDuration,
+    proposal_threshold: proposalThreshold,
+    controller: controller.starknetContract.address,
+    quorum: quorum,
+    voting_strategy_params_flat: votingStrategyParamsFlat,
+    voting_strategies: votingStrategies,
+    authenticators: authenticators,
+    executors: executors,
+  })) as StarknetContract;
+
+  return {
+    space,
+    controller,
+    starkSigAuth,
+    vanillaVotingStrategy,
+    vanillaExecutionStrategy,
+  };
+}
+
 export async function spaceFactorySetup() {
   const controller = (await starknet.deployAccount('OpenZeppelin')) as Account;
   const spaceDeployerFactory = await starknet.getContractFactory(

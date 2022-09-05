@@ -6,7 +6,7 @@ import { computeHashOnElements } from 'starknet/dist/utils/hash';
 import { utils } from '@snapshot-labs/sx';
 import { ethereumSigAuthSetup } from '../shared/setup';
 import { PROPOSE_SELECTOR, VOTE_SELECTOR } from '../shared/constants';
-import { _TypedDataEncoder } from 'ethers/lib/utils';
+import { keccak256, _TypedDataEncoder } from 'ethers/lib/utils';
 
 export const VITALIK_ADDRESS = BigInt('0xd8da6bf26964af9d7eed9e03e53415d37aa96045');
 export const AUTHENTICATE_METHOD = 'authenticate';
@@ -105,6 +105,7 @@ describe('Ethereum Signature Auth testing', () => {
       const paddedProposerAddress = utils.encoding.hexPadRight(proposerEthAddress);
       const paddedExecutor = utils.encoding.hexPadRight(vanillaExecutionStrategy.address);
       const message: Propose = {
+        authenticator: ethSigAuth.address,
         space: spaceStr,
         proposerAddress: paddedProposerAddress,
         metadataUri: METADATA_URI,
@@ -154,6 +155,7 @@ describe('Ethereum Signature Auth testing', () => {
       const paddedExecutor = utils.encoding.hexPadRight(executionStrategy);
 
       const message: Propose = {
+        authenticator: ethSigAuth.address,
         space: spaceAddress,
         proposerAddress: paddedProposerAddress,
         metadataUri: METADATA_URI,
@@ -228,6 +230,7 @@ describe('Ethereum Signature Auth testing', () => {
       const voterEthAddressPadded = utils.encoding.hexPadRight(voterEthAddress);
 
       const message: Vote = {
+        authenticator: ethSigAuth.address,
         space: spaceStr,
         voterAddress: voterEthAddressPadded,
         proposal: BigInt(proposalId).toString(16),
