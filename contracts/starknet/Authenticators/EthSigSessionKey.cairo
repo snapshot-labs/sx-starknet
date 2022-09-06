@@ -1,9 +1,8 @@
 %lang starknet
 
 from starkware.starknet.common.syscalls import get_block_timestamp
-from starkware.cairo.common.cairo_builtins import BitwiseBuiltin
+from starkware.cairo.common.cairo_builtins import HashBuiltin, SignatureBuiltin, BitwiseBuiltin
 from starkware.cairo.common.uint256 import Uint256
-from starkware.cairo.common.cairo_builtins import HashBuiltin
 from starkware.cairo.common.math import split_felt, assert_le, assert_not_zero
 from starkware.cairo.common.cairo_keccak.keccak import (
     keccak_add_uint256s,
@@ -15,19 +14,36 @@ from contracts.starknet.lib.eip712 import EIP712
 from contracts.starknet.lib.stark_sig import StarkSig
 from contracts.starknet.lib.session_key import SessionKey
 
+# getSelectorFromName("propose")
+const PROPOSAL_SELECTOR = 0x1bfd596ae442867ef71ca523061610682af8b00fc2738329422f4ad8d220b81
+# getSelectorFromName("vote")
+const VOTE_SELECTOR = 0x132bdf85fc8aa10ac3c22f02317f8f53d4b4f52235ed1eabb3a4cbbe08b5c41
+
 # Calls get_session_key with the ethereum address (calldata[0]) to check that a session is active.
 # If so, perfoms stark signature verification to check the sig is valid. If so calls execute with the payload.
 @external
-func authenticate{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr}(
-    sig_len : felt,
-    sig : felt*,
-    session_public_key : felt,
+func authenticate{
+    syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr, ecdsa_ptr : SignatureBuiltin*
+}(
+    r : felt,
+    s : felt,
+    salt : felt,
     target : felt,
     function_selector : felt,
     calldata_len : felt,
     calldata : felt*,
+    session_public_key : felt,
 ):
-    # TO DO: Verify stark signature
+    if function_selector == PROPOSAL_SELECTOR:
+        StarkSig.verify_propose_sig(r, s, salt, target, calldata_len, calldata)
+    else:
+        if function_selector == VOTE_SELECTOR:
+            StarkSig.verify_vote_sig(r, s, salt, target, calldata_len, calldata)
+        else:
+            # Invalid selector
+            return ()
+        end
+    end
 
     # Check session key is active
     let (eth_address) = SessionKey.get_session_key_owner(session_public_key)
@@ -37,7 +53,7 @@ func authenticate{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_
         assert calldata[0] = eth_address
     end
 
-    # foreward payload to target
+    # Call the contract
     execute(target, function_selector, calldata_len, calldata)
 
     return ()

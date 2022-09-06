@@ -7,7 +7,6 @@ import { utils } from '@snapshot-labs/sx';
 import { starknetSigAuthSetup } from '../shared/setup';
 import { PROPOSE_SELECTOR, VOTE_SELECTOR } from '../shared/constants';
 import { _TypedDataEncoder } from 'ethers/lib/utils';
-import { getStarkKey } from 'starknet/utils/ellipticCurve';
 import { getStructHash, getTypeHash } from 'starknet/dist/utils/typedData';
 
 export const AUTHENTICATE_METHOD = 'authenticate';
@@ -19,7 +18,7 @@ function createAccount() {
   const privKey = starkKeyPair.getPrivate('hex');
   starkKeyPair = ec.getKeyPair(`0x${privKey}`);
   const pubKey = starkKeyPair.getPublic('hex');
-  const address = getStarkKey(starkKeyPair);
+  const address = ec.getStarkKey(starkKeyPair);
   const account = new StarknetAccount(defaultProvider, address, starkKeyPair);
 
   return { pubKey, address, account };
@@ -47,6 +46,10 @@ describe('Starknet Sig Auth testing', () => {
   let executionParams: string[];
   let proposerAddress: string;
   let proposeCalldata: string[];
+
+  // Session Key
+  let sessionPublicKey: string;
+  let sessionAccount: Account;
 
   // Additional parameters for voting
   let voterAddress: string;
