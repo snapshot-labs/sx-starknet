@@ -1,6 +1,6 @@
 import { expect } from 'chai';
 import { StarknetContract, Account } from 'hardhat/types';
-import { Account as StarknetAccount, ec, defaultProvider, typedData } from 'starknet';
+import { Account as StarknetAccount, ec, defaultProvider, typedData, Signer } from 'starknet';
 import { domain, proposeTypes, voteTypes } from '../shared/starkTypes';
 import { computeHashOnElements, getSelectorFromName } from 'starknet/dist/utils/hash';
 import { utils } from '@snapshot-labs/sx';
@@ -13,17 +13,6 @@ export const AUTHENTICATE_METHOD = 'authenticate';
 export const PROPOSAL_METHOD = 'propose';
 export const VOTE_METHOD = 'vote';
 
-function createAccount() {
-  let starkKeyPair = ec.genKeyPair();
-  const privKey = starkKeyPair.getPrivate('hex');
-  starkKeyPair = ec.getKeyPair(`0x${privKey}`);
-  const pubKey = starkKeyPair.getPublic('hex');
-  const address = ec.getStarkKey(starkKeyPair);
-  const account = new StarknetAccount(defaultProvider, address, starkKeyPair);
-
-  return { pubKey, address, account };
-}
-
 describe('Starknet Sig Auth testing', () => {
   // Contracts
   let space: StarknetContract;
@@ -32,6 +21,8 @@ describe('Starknet Sig Auth testing', () => {
   let vanillaVotingStrategy: StarknetContract;
   let vanillaExecutionStrategy: StarknetContract;
   let user: any;
+
+  let starkSigner: Signer;
 
   // Proposal creation parameters
   let spaceAddress: string;
@@ -46,10 +37,6 @@ describe('Starknet Sig Auth testing', () => {
   let executionParams: string[];
   let proposerAddress: string;
   let proposeCalldata: string[];
-
-  // Session Key
-  let sessionPublicKey: string;
-  let sessionAccount: Account;
 
   // Additional parameters for voting
   let voterAddress: string;
@@ -72,7 +59,8 @@ describe('Starknet Sig Auth testing', () => {
     userVotingParamsAll1 = [[]];
     executionStrategy = vanillaExecutionStrategy.address;
     spaceAddress = space.address;
-    user = createAccount();
+
+    starkSigner = new Signer(ec.genKeyPair());
 
     executionParams = ['0x01']; // Random params
     executionHash = computeHashOnElements(executionParams);
@@ -80,7 +68,7 @@ describe('Starknet Sig Auth testing', () => {
     const userVotingStrategyParamsFlat1 = utils.encoding.flatten2DArray(userVotingParamsAll1);
     userVotingStrategyParamsFlatHash1 = computeHashOnElements(userVotingStrategyParamsFlat1);
 
-    proposerAddress = user.address;
+    proposerAddress = await starkSigner.getPubKey();
     proposeCalldata = utils.encoding.getProposeCalldata(
       proposerAddress,
       metadataUriInts,
@@ -90,7 +78,7 @@ describe('Starknet Sig Auth testing', () => {
       executionParams
     );
 
-    voterAddress = user.address;
+    voterAddress = await starkSigner.getPubKey();
     proposalId = '0x1';
     choice = utils.choice.Choice.FOR;
     usedVotingStrategies2 = ['0x0'];
@@ -128,8 +116,7 @@ describe('Starknet Sig Auth testing', () => {
       domain,
       message,
     };
-    const sig = await user.account.signMessage(data);
-
+    const sig = await starkSigner.signMessage(data, starkSigAuth.address);
     const [r, s] = sig;
 
     try {
@@ -170,8 +157,7 @@ describe('Starknet Sig Auth testing', () => {
         domain,
         message,
       };
-      const sig = await user.account.signMessage(data);
-
+      const sig = await starkSigner.signMessage(data, starkSigAuth.address);
       const [r, s] = sig;
 
       console.log('Creating proposal...');
@@ -218,7 +204,8 @@ describe('Starknet Sig Auth testing', () => {
         salt: voteSalt,
       };
       const data = { types: voteTypes, primaryType: 'Vote', domain, message };
-      const [r, s] = await user.account.signMessage(data);
+      const sig = await starkSigner.signMessage(data, starkSigAuth.address);
+      const [r, s] = sig;
 
       await controller.invoke(starkSigAuth, 'authenticate', {
         r: r,

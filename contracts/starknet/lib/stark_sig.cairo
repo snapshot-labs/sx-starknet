@@ -32,7 +32,15 @@ namespace StarkSig:
         range_check_ptr,
         pedersen_ptr : HashBuiltin*,
         ecdsa_ptr : SignatureBuiltin*,
-    }(r : felt, s : felt, salt : felt, target : felt, calldata_len : felt, calldata : felt*):
+    }(
+        r : felt,
+        s : felt,
+        salt : felt,
+        target : felt,
+        calldata_len : felt,
+        calldata : felt*,
+        public_key : felt,
+    ):
         alloc_locals
 
         let proposer_address = calldata[0]
@@ -94,12 +102,12 @@ namespace StarkSig:
 
         assert message[0] = STARKNET_MESSAGE
         assert message[1] = DOMAIN_HASH
-        assert message[2] = proposer_address
+        assert message[2] = authenticator
         assert message[3] = hash_struct
 
         let (message_hash) = HashArray.hash_array(4, message)
 
-        verify_ecdsa_signature(message_hash, proposer_address, r, s)
+        verify_ecdsa_signature(message_hash, public_key, r, s)
 
         StarkSig_salts.write(proposer_address, salt, 1)
 
@@ -111,7 +119,15 @@ namespace StarkSig:
         range_check_ptr,
         pedersen_ptr : HashBuiltin*,
         ecdsa_ptr : SignatureBuiltin*,
-    }(r : felt, s : felt, salt : felt, target : felt, calldata_len : felt, calldata : felt*):
+    }(
+        r : felt,
+        s : felt,
+        salt : felt,
+        target : felt,
+        calldata_len : felt,
+        calldata : felt*,
+        public_key : felt,
+    ):
         alloc_locals
 
         let voter_address = calldata[0]
@@ -158,12 +174,12 @@ namespace StarkSig:
 
         assert message[0] = STARKNET_MESSAGE
         assert message[1] = DOMAIN_HASH
-        assert message[2] = voter_address
+        assert message[2] = authenticator
         assert message[3] = hash_struct
 
         let (message_hash) = HashArray.hash_array(4, message)
 
-        verify_ecdsa_signature(message_hash, voter_address, r, s)
+        verify_ecdsa_signature(message_hash, public_key, r, s)
 
         StarkSig_salts.write(voter_address, salt, 1)
 

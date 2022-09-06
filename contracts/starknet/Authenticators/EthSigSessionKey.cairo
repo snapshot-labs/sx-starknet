@@ -35,10 +35,10 @@ func authenticate{
     session_public_key : felt,
 ):
     if function_selector == PROPOSAL_SELECTOR:
-        StarkSig.verify_propose_sig(r, s, salt, target, calldata_len, calldata)
+        StarkSig.verify_propose_sig(r, s, salt, target, calldata_len, calldata, session_public_key)
     else:
         if function_selector == VOTE_SELECTOR:
-            StarkSig.verify_vote_sig(r, s, salt, target, calldata_len, calldata)
+            StarkSig.verify_vote_sig(r, s, salt, target, calldata_len, calldata, session_public_key)
         else:
             # Invalid selector
             return ()
