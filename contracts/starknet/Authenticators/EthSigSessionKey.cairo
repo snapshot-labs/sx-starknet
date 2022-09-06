@@ -12,6 +12,7 @@ from starkware.cairo.common.cairo_keccak.keccak import (
 )
 from contracts.starknet.lib.execute import execute
 from contracts.starknet.lib.eip712 import EIP712
+from contracts.starknet.lib.stark_sig import StarkSig
 from contracts.starknet.lib.session_key import SessionKey
 
 # Calls get_session_key with the ethereum address (calldata[0]) to check that a session is active.
@@ -27,6 +28,7 @@ func authenticate{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_
     calldata : felt*,
 ):
     # TO DO: Verify stark signature
+
 
     # Check session key is active
     let (eth_address) = SessionKey.get_session_key_owner(session_public_key)
