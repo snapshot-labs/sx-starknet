@@ -1,5 +1,6 @@
 %lang starknet
 
+from starkware.starknet.common.syscalls import get_contract_address
 from starkware.cairo.common.cairo_builtins import BitwiseBuiltin
 from starkware.cairo.common.alloc import alloc
 from starkware.cairo.common.cairo_secp.signature import verify_eth_signature_uint256
@@ -23,13 +24,17 @@ from contracts.starknet.lib.hash_array import HashArray
 
 const ETHEREUM_PREFIX = 0x1901
 
-# keccak256("Propose(bytes32 space,bytes32 proposerAddress,string metadataUri,bytes32 executor,bytes32 executionParamsHash,bytes32 usedVotingStrategiesHash,bytes32 userVotingStrategyParamsFlatHash,uint256 salt)")
-const PROPOSAL_TYPE_HASH_HIGH = 0xa1a96273f272324c66f87ba1a951949d
-const PROPOSAL_TYPE_HASH_LOW = 0xa34effccf1463302bc6e241f37fe5ef7
+# This is the `Proposal` typeHash, obtained by doing this:
+# keccak256("Propose(bytes32 authenticator,bytes32 space,bytes32 proposerAddress,string metadataUri,bytes32 executor,bytes32 executionParamsHash,bytes32 usedVotingStrategiesHash,bytes32 userVotingStrategyParamsFlatHash,uint256 salt)")
+# 0xdd4b6d662f476088f7bfd59cd7f3487d83e72c2166a7985fb62fa23315c6db8c
+const PROPOSAL_TYPE_HASH_HIGH = 0xdd4b6d662f476088f7bfd59cd7f3487d
+const PROPOSAL_TYPE_HASH_LOW = 0x83e72c2166a7985fb62fa23315c6db8c
 
-# keccak256("Vote(bytes32 space,bytes32 voterAddress,uint256 proposal,uint256 choice,bytes32 usedVotingStrategiesHash,bytes32 userVotingStrategyParamsFlatHash,uint256 salt)")
-const VOTE_TYPE_HASH_HIGH = 0x0f76587b41b5c7810a4c8591d4d84385
-const VOTE_TYPE_HASH_LOW = 0x85dba41961e8886710ef5d5cbe72713d
+# This is the `Vote` typeHash, obtained by doing this:
+# keccak256("Vote(bytes32 authenticator,bytes32 space,bytes32 voterAddress,uint256 proposal,uint256 choice,bytes32 usedVotingStrategiesHash,bytes32 userVotingStrategyParamsFlatHash,uint256 salt)")
+# 0x943c2de24cfb6aaea8956c0444db4921ef29792e6cd3ada75d9adbd50bd9760a
+const VOTE_TYPE_HASH_HIGH = 0x943c2de24cfb6aaea8956c0444db4921
+const VOTE_TYPE_HASH_LOW = 0xef29792e6cd3ada75d9adbd50bd9760a
 
 # keccak256("SessionKey(bytes32 address,bytes32 sessionPublicKey,bytes32 sessionDuration,uint256 salt)")
 const SESSION_KEY_TYPE_HASH_HIGH = 0x233b93cc8989df29b5834cd69e96f1e9
@@ -38,9 +43,10 @@ const SESSION_KEY_TYPE_HASH_LOW = 0x390b13389ac2a65080907f1fcf6385e8
 # This is the domainSeparator, obtained by using those fields (see more about it in EIP712):
 # name: 'snapshot-x',
 # version: '1'
-# Which returns: 0x4ea062c13aa1ccc0dde3383926ef913772c5ab51b06b74e448d6b02ce79ba93c
-const DOMAIN_HASH_HIGH = 0x4ea062c13aa1ccc0dde3383926ef9137
-const DOMAIN_HASH_LOW = 0x72c5ab51b06b74e448d6b02ce79ba93c
+# chainId: '0x534e5f474f45524c49'
+# Which returns: 0x043091edf1497234296cbcfabb6af2ac73449a969c5e0d2c5429cf8e7d9534e9
+const DOMAIN_HASH_HIGH = 0x043091edf1497234296cbcfabb6af2ac
+const DOMAIN_HASH_LOW = 0x73449a969c5e0d2c5429cf8e7d9534e9
 
 @storage_var
 func EIP712_salts(eth_address : felt, salt : Uint256) -> (already_used : felt):
@@ -64,6 +70,9 @@ namespace EIP712:
         alloc_locals
 
         let voter_address = calldata[0]
+
+        let (authenticator_address) = get_contract_address()
+        let (auth_address_u256) = FeltUtils.felt_to_uint256(authenticator_address)
 
         # Ensure voter has not already used this salt in a previous action
         let (already_used) = EIP712_salts.read(voter_address, salt)
@@ -97,18 +106,19 @@ namespace EIP712:
         # Now construct the data hash (hashStruct)
         let (data : Uint256*) = alloc()
         assert data[0] = Uint256(VOTE_TYPE_HASH_LOW, VOTE_TYPE_HASH_HIGH)
-        assert data[1] = space
-        assert data[2] = padded_voter_address
-        assert data[3] = proposal_id
-        assert data[4] = choice
-        assert data[5] = used_voting_strategies_hash
-        assert data[6] = user_voting_strategy_params_flat_hash
-        assert data[7] = salt
+        assert data[1] = auth_address_u256
+        assert data[2] = space
+        assert data[3] = padded_voter_address
+        assert data[4] = proposal_id
+        assert data[5] = choice
+        assert data[6] = used_voting_strategies_hash
+        assert data[7] = user_voting_strategy_params_flat_hash
+        assert data[8] = salt
 
         let (local keccak_ptr : felt*) = alloc()
         let keccak_ptr_start = keccak_ptr
 
-        let (hash_struct) = _get_keccak_hash{keccak_ptr=keccak_ptr}(8, data)
+        let (hash_struct) = _get_keccak_hash{keccak_ptr=keccak_ptr}(9, data)
 
         # Prepare the encoded data
         let (prepared_encoded : Uint256*) = alloc()
@@ -159,6 +169,9 @@ namespace EIP712:
 
         # Proposer address should be located in calldata[0]
         let proposer_address = calldata[0]
+
+        let (authenticator_address) = get_contract_address()
+        let (auth_address_u256) = FeltUtils.felt_to_uint256(authenticator_address)
 
         # Ensure proposer has not already used this salt in a previous action
         let (already_used) = EIP712_salts.read(proposer_address, salt)
@@ -213,16 +226,17 @@ namespace EIP712:
         let (data : Uint256*) = alloc()
 
         assert data[0] = Uint256(PROPOSAL_TYPE_HASH_LOW, PROPOSAL_TYPE_HASH_HIGH)
-        assert data[1] = space
-        assert data[2] = padded_proposer_address
-        assert data[3] = metadata_uri_hash
-        assert data[4] = executor_u256
-        assert data[5] = execution_hash
-        assert data[6] = used_voting_strategies_hash
-        assert data[7] = user_voting_strategy_params_flat_hash
-        assert data[8] = salt
+        assert data[1] = auth_address_u256
+        assert data[2] = space
+        assert data[3] = padded_proposer_address
+        assert data[4] = metadata_uri_hash
+        assert data[5] = executor_u256
+        assert data[6] = execution_hash
+        assert data[7] = used_voting_strategies_hash
+        assert data[8] = user_voting_strategy_params_flat_hash
+        assert data[9] = salt
 
-        let (hash_struct) = _get_keccak_hash{keccak_ptr=keccak_ptr}(9, data)
+        let (hash_struct) = _get_keccak_hash{keccak_ptr=keccak_ptr}(10, data)
 
         # Prepare the encoded data
         let (prepared_encoded : Uint256*) = alloc()
@@ -332,9 +346,9 @@ namespace EIP712:
     end
 
     # Adds a 2 bytes (16 bits) `prefix` to a 16 bytes (128 bits) `value`.
-    func _add_prefix128{range_check_ptr, bitwise_ptr : BitwiseBuiltin*}(value : felt, prefix : felt) -> (
-        result : felt, carry
-    ):
+    func _add_prefix128{range_check_ptr, bitwise_ptr : BitwiseBuiltin*}(
+        value : felt, prefix : felt
+    ) -> (result : felt, carry):
         # Shift the prefix by 128 bits
         let shifted_prefix = prefix * 2 ** 128
         # `with_prefix` is now 18 bytes long

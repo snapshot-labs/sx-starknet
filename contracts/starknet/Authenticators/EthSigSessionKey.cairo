@@ -29,7 +29,6 @@ func authenticate{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_
 ):
     # TO DO: Verify stark signature
 
-
     # Check session key is active
     let (eth_address) = SessionKey.get_session_key_owner(session_public_key)
 
