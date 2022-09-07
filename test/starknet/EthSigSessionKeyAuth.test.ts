@@ -137,7 +137,7 @@ describe('Ethereum Signature Session Key Auth testing', () => {
     {
       const accounts = await ethers.getSigners();
       const salt: utils.splitUint256.SplitUint256 = utils.splitUint256.SplitUint256.fromHex('0x07');
-      sessionDuration = '0x25';
+      sessionDuration = '0xffff';
       const message: SessionKey = {
         address: utils.encoding.hexPadRight(accounts[0].address),
         sessionPublicKey: utils.encoding.hexPadRight(sessionPublicKey),
