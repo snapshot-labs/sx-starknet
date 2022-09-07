@@ -34,6 +34,15 @@ func authenticate{
     calldata : felt*,
     session_public_key : felt,
 ):
+    # Check session key is active
+    let (eth_address) = SessionKey.get_session_key_owner(session_public_key)
+
+    # Check user's address is equal to the owner of the session key
+    with_attr error_message("Invalid Ethereum address"):
+        assert calldata[0] = eth_address
+    end
+
+    # Check signature with session key
     if function_selector == PROPOSAL_SELECTOR:
         StarkSig.verify_propose_sig(r, s, salt, target, calldata_len, calldata, session_public_key)
     else:
@@ -43,14 +52,6 @@ func authenticate{
             # Invalid selector
             return ()
         end
-    end
-
-    # Check session key is active
-    let (eth_address) = SessionKey.get_session_key_owner(session_public_key)
-
-    # Check user's address is equal to the owner of the session key
-    with_attr error_message("Invalid Ethereum address"):
-        assert calldata[0] = eth_address
     end
 
     # Call the contract
