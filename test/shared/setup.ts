@@ -249,7 +249,7 @@ export async function ethTxAuthSetup() {
   const vanillaVotingStrategyFactory = await starknet.getContractFactory(
     './contracts/starknet/VotingStrategies/Vanilla.cairo'
   );
-  const ethTxAuthenticatorFactory = await starknet.getContractFactory(
+  const ethTxAuthFactory = await starknet.getContractFactory(
     './contracts/starknet/Authenticators/EthTx.cairo'
   );
   const vanillaExecutionStrategyFactory = await starknet.getContractFactory(
@@ -271,12 +271,12 @@ export async function ethTxAuthSetup() {
   const starknetCommit = (await starknetCommitFactory.deploy(starknetCore)) as Contract;
 
   const deployments = [
-    ethTxAuthenticatorFactory.deploy({ starknet_commit_address: BigInt(starknetCommit.address) }),
+    ethTxAuthFactory.deploy({ starknet_commit_address: BigInt(starknetCommit.address) }),
     vanillaVotingStrategyFactory.deploy(),
     vanillaExecutionStrategyFactory.deploy(),
   ];
   const contracts = await Promise.all(deployments);
-  const ethTxAuthenticator = contracts[0] as StarknetContract;
+  const ethTxAuth = contracts[0] as StarknetContract;
   const vanillaVotingStrategy = contracts[1] as StarknetContract;
   const vanillaExecutionStrategy = contracts[2] as StarknetContract;
 
@@ -291,7 +291,7 @@ export async function ethTxAuthSetup() {
   const votingStrategies: string[] = [vanillaVotingStrategy.address];
   const votingStrategyParams: string[][] = [[]];
   const votingStrategyParamsFlat: string[] = utils.encoding.flatten2DArray(votingStrategyParams);
-  const authenticators: string[] = [ethTxAuthenticator.address];
+  const authenticators: string[] = [ethTxAuth.address];
   const executors: string[] = [vanillaExecutionStrategy.address];
 
   console.log('Deploying space contract...');
@@ -312,7 +312,7 @@ export async function ethTxAuthSetup() {
   return {
     space,
     controller,
-    ethTxAuthenticator,
+    ethTxAuth,
     vanillaVotingStrategy,
     vanillaExecutionStrategy,
     mockStarknetMessaging,
@@ -326,7 +326,7 @@ export async function ethTxSessionKeyAuthSetup() {
   const vanillaVotingStrategyFactory = await starknet.getContractFactory(
     './contracts/starknet/VotingStrategies/Vanilla.cairo'
   );
-  const ethTxSessionKeyAuthenticatorFactory = await starknet.getContractFactory(
+  const ethTxSessionKeyAuthFactory = await starknet.getContractFactory(
     './contracts/starknet/Authenticators/EthTxSessionKey.cairo'
   );
   const vanillaExecutionStrategyFactory = await starknet.getContractFactory(
@@ -348,14 +348,14 @@ export async function ethTxSessionKeyAuthSetup() {
   const starknetCommit = (await starknetCommitFactory.deploy(starknetCore)) as Contract;
 
   const deployments = [
-    ethTxSessionKeyAuthenticatorFactory.deploy({
+    ethTxSessionKeyAuthFactory.deploy({
       starknet_commit_address: BigInt(starknetCommit.address),
     }),
     vanillaVotingStrategyFactory.deploy(),
     vanillaExecutionStrategyFactory.deploy(),
   ];
   const contracts = await Promise.all(deployments);
-  const ethTxSessionKeyAuthenticator = contracts[0] as StarknetContract;
+  const ethTxSessionKeyAuth = contracts[0] as StarknetContract;
   const vanillaVotingStrategy = contracts[1] as StarknetContract;
   const vanillaExecutionStrategy = contracts[2] as StarknetContract;
 
@@ -370,7 +370,7 @@ export async function ethTxSessionKeyAuthSetup() {
   const votingStrategies: string[] = [vanillaVotingStrategy.address];
   const votingStrategyParams: string[][] = [[]];
   const votingStrategyParamsFlat: string[] = utils.encoding.flatten2DArray(votingStrategyParams);
-  const authenticators: string[] = [ethTxSessionKeyAuthenticator.address];
+  const authenticators: string[] = [ethTxSessionKeyAuth.address];
   const executors: string[] = [vanillaExecutionStrategy.address];
 
   console.log('Deploying space contract...');
@@ -391,7 +391,7 @@ export async function ethTxSessionKeyAuthSetup() {
   return {
     space,
     controller,
-    ethTxSessionKeyAuthenticator,
+    ethTxSessionKeyAuth,
     vanillaVotingStrategy,
     vanillaExecutionStrategy,
     mockStarknetMessaging,
@@ -672,7 +672,7 @@ export async function starkTxAuthSetup() {
   };
 }
 
-export async function ethereumSigAuthSetup() {
+export async function ethSigAuthSetup() {
   const controller = await starknet.deployAccount('OpenZeppelin');
   const spaceFactory = await starknet.getContractFactory('./contracts/starknet/SpaceAccount.cairo');
   const vanillaVotingStrategyFactory = await starknet.getContractFactory(
@@ -893,7 +893,7 @@ export async function starknetExecutionSetup() {
   };
 }
 
-export async function ethereumSigSessionKeyAuthSetup() {
+export async function ethSigSessionKeyAuthSetup() {
   const controller = await starknet.deployAccount('OpenZeppelin');
   const spaceFactory = await starknet.getContractFactory('./contracts/starknet/SpaceAccount.cairo');
   const vanillaVotingStrategyFactory = await starknet.getContractFactory(

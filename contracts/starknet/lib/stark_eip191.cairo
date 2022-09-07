@@ -10,6 +10,8 @@ from starkware.cairo.common.signature import verify_ecdsa_signature
 from starkware.starknet.common.syscalls import get_contract_address
 from contracts.starknet.lib.felt_utils import FeltUtils
 
+# Following a Starknet version of the EIP191 standard
+
 # { name: 'snapshot-x', version: '1', chainId: '0x534e5f474f45524c49'} (chainID: SN_GOERLI)
 const DOMAIN_HASH = 0x7b887e96718721a64b601a4873454d4a9e26a4b798d660c8d6b96d2045c8404
 
@@ -26,7 +28,7 @@ const VOTE_HASH = 0x681e893f9fbb94a75c0eef52211a33b0446cd6b802420bb4e3c65f17099a
 func StarkSig_salts(user : felt, salt : felt) -> (already_used : felt):
 end
 
-namespace StarkSig:
+namespace StarkEIP191:
     func verify_propose_sig{
         syscall_ptr : felt*,
         range_check_ptr,

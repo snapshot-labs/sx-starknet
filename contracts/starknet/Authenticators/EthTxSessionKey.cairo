@@ -1,12 +1,18 @@
 %lang starknet
 
-from starkware.cairo.common.cairo_builtins import HashBuiltin
+from starkware.cairo.common.cairo_builtins import HashBuiltin, SignatureBuiltin
 from starkware.cairo.common.alloc import alloc
 from starkware.cairo.common.memcpy import memcpy
 from contracts.starknet.lib.hash_array import HashArray
 from contracts.starknet.lib.execute import execute
 from contracts.starknet.lib.eth_tx import EthTx
 from contracts.starknet.lib.session_key import SessionKey
+from contracts.starknet.lib.stark_eip191 import StarkEIP191
+
+# getSelectorFromName("propose")
+const PROPOSAL_SELECTOR = 0x1bfd596ae442867ef71ca523061610682af8b00fc2738329422f4ad8d220b81
+# getSelectorFromName("vote")
+const VOTE_SELECTOR = 0x132bdf85fc8aa10ac3c22f02317f8f53d4b4f52235ed1eabb3a4cbbe08b5c41
 
 @constructor
 func constructor{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr}(
@@ -19,17 +25,18 @@ end
 # Calls get_session_key with the ethereum address (calldata[0]) to check that a session is active.
 # If so, perfoms stark signature verification to check the sig is valid. If so calls execute with the payload.
 @external
-func authenticate{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr}(
-    sig_len : felt,
-    sig : felt*,
-    session_public_key : felt,
+func authenticate{
+    syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr, ecdsa_ptr : SignatureBuiltin*
+}(
+    r : felt,
+    s : felt,
+    salt : felt,
     target : felt,
     function_selector : felt,
     calldata_len : felt,
     calldata : felt*,
+    session_public_key : felt,
 ):
-    # TO DO: Verify stark signature
-
     # Check session key is active
     let (eth_address) = SessionKey.get_session_key_owner(session_public_key)
 
@@ -38,7 +45,23 @@ func authenticate{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_
         assert calldata[0] = eth_address
     end
 
-    # foreward payload to target
+    # Check signature with session key
+    if function_selector == PROPOSAL_SELECTOR:
+        StarkEIP191.verify_propose_sig(
+            r, s, salt, target, calldata_len, calldata, session_public_key
+        )
+    else:
+        if function_selector == VOTE_SELECTOR:
+            StarkEIP191.verify_vote_sig(
+                r, s, salt, target, calldata_len, calldata, session_public_key
+            )
+        else:
+            # Invalid selector
+            return ()
+        end
+    end
+
+    # Call the contract
     execute(target, function_selector, calldata_len, calldata)
 
     return ()

@@ -11,7 +11,7 @@ from starkware.cairo.common.cairo_keccak.keccak import (
 )
 from contracts.starknet.lib.execute import execute
 from contracts.starknet.lib.eip712 import EIP712
-from contracts.starknet.lib.stark_sig import StarkSig
+from contracts.starknet.lib.stark_eip191 import StarkEIP191
 from contracts.starknet.lib.session_key import SessionKey
 
 # getSelectorFromName("propose")
@@ -44,10 +44,14 @@ func authenticate{
 
     # Check signature with session key
     if function_selector == PROPOSAL_SELECTOR:
-        StarkSig.verify_propose_sig(r, s, salt, target, calldata_len, calldata, session_public_key)
+        StarkEIP191.verify_propose_sig(
+            r, s, salt, target, calldata_len, calldata, session_public_key
+        )
     else:
         if function_selector == VOTE_SELECTOR:
-            StarkSig.verify_vote_sig(r, s, salt, target, calldata_len, calldata, session_public_key)
+            StarkEIP191.verify_vote_sig(
+                r, s, salt, target, calldata_len, calldata, session_public_key
+            )
         else:
             # Invalid selector
             return ()

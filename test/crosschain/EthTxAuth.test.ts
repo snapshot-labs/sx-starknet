@@ -15,7 +15,7 @@ describe('L1 interaction with Snapshot X', function () {
   // Contracts
   let mockStarknetMessaging: Contract;
   let space: StarknetContract;
-  let ethTxAuthenticator: StarknetContract;
+  let ethTxAuth: StarknetContract;
   let vanillaVotingStrategy: StarknetContract;
   let vanillaExecutionStrategy: StarknetContract;
   let starknetCommit: Contract;
@@ -36,7 +36,7 @@ describe('L1 interaction with Snapshot X', function () {
 
     ({
       space,
-      ethTxAuthenticator,
+      ethTxAuth,
       vanillaVotingStrategy,
       vanillaExecutionStrategy,
       mockStarknetMessaging,
@@ -68,13 +68,13 @@ describe('L1 interaction with Snapshot X', function () {
     await starknetCommit
       .connect(signer)
       .commit(
-        ethTxAuthenticator.address,
+        ethTxAuth.address,
         utils.encoding.getCommit(spaceAddress, PROPOSE_SELECTOR, proposeCalldata)
       );
     // Checking that the L1 -> L2 message has been propogated
     expect((await starknet.devnet.flush()).consumed_messages.from_l1).to.have.a.lengthOf(1);
     // Creating proposal
-    await ethTxAuthenticator.invoke('authenticate', {
+    await ethTxAuth.invoke('authenticate', {
       target: spaceAddress,
       function_selector: PROPOSE_SELECTOR,
       calldata: proposeCalldata,
@@ -86,18 +86,18 @@ describe('L1 interaction with Snapshot X', function () {
     await starknetCommit
       .connect(signer)
       .commit(
-        ethTxAuthenticator.address,
+        ethTxAuth.address,
         utils.encoding.getCommit(spaceAddress, PROPOSE_SELECTOR, proposeCalldata)
       );
     await starknet.devnet.flush();
-    await ethTxAuthenticator.invoke('authenticate', {
+    await ethTxAuth.invoke('authenticate', {
       target: spaceAddress,
       function_selector: PROPOSE_SELECTOR,
       calldata: proposeCalldata,
     });
     // Second attempt at calling authenticate should fail
     try {
-      await ethTxAuthenticator.invoke('authenticate', {
+      await ethTxAuth.invoke('authenticate', {
         target: spaceAddress,
         function_selector: PROPOSE_SELECTOR,
         calldata: proposeCalldata,
@@ -112,12 +112,12 @@ describe('L1 interaction with Snapshot X', function () {
     await starknetCommit
       .connect(signer)
       .commit(
-        ethTxAuthenticator.address,
+        ethTxAuth.address,
         utils.encoding.getCommit(spaceAddress, PROPOSE_SELECTOR, proposeCalldata)
       ); // Wrong selector
     await starknet.devnet.flush();
     try {
-      await ethTxAuthenticator.invoke('authenticate', {
+      await ethTxAuth.invoke('authenticate', {
         target: spaceAddress,
         function_selector: PROPOSE_SELECTOR,
         calldata: proposeCalldata,
@@ -133,12 +133,12 @@ describe('L1 interaction with Snapshot X', function () {
     await starknetCommit
       .connect(signer)
       .commit(
-        ethTxAuthenticator.address,
+        ethTxAuth.address,
         utils.encoding.getCommit(spaceAddress, PROPOSE_SELECTOR, proposeCalldata)
       );
     await starknet.devnet.flush();
     try {
-      await ethTxAuthenticator.invoke('authenticate', {
+      await ethTxAuth.invoke('authenticate', {
         target: spaceAddress,
         function_selector: PROPOSE_SELECTOR,
         calldata: proposeCalldata,

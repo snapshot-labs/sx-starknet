@@ -6,7 +6,7 @@ import { domain, SessionKey, sessionKeyTypes } from '../shared/types';
 import { proposeTypes, voteTypes } from '../shared/starkTypes';
 import { PROPOSE_SELECTOR, VOTE_SELECTOR } from '../shared/constants';
 import { utils } from '@snapshot-labs/sx';
-import { ethereumSigSessionKeyAuthSetup } from '../shared/setup';
+import { ethSigSessionKeyAuthSetup } from '../shared/setup';
 
 function sleep(milliseconds: number) {
   const date = Date.now();
@@ -61,7 +61,7 @@ describe('Ethereum Signature Session Key Auth testing', () => {
     sessionPublicKey = await sessionSigner.getPubKey();
 
     ({ space, controller, ethSigSessionKeyAuth, vanillaVotingStrategy, vanillaExecutionStrategy } =
-      await ethereumSigSessionKeyAuthSetup());
+      await ethSigSessionKeyAuthSetup());
 
     metadataUri = 'Hello and welcome to Snapshot X. This is the future of governance.';
     metadataUriInts = utils.intsSequence.IntsSequence.LEFromString(metadataUri);
@@ -132,7 +132,7 @@ describe('Ethereum Signature Session Key Auth testing', () => {
     }
   }).timeout(6000000);
 
-  it('Should generate a session key if a valid signature is provided', async () => {
+  it('Should generate a session key and allow authentication via it if a valid signature is provided', async () => {
     // -- Authenticates the session key --
     {
       const accounts = await ethers.getSigners();

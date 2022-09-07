@@ -4,7 +4,7 @@ import { ethers } from 'hardhat';
 import { domain, Propose, proposeTypes, Vote, voteTypes } from '../shared/types';
 import { computeHashOnElements } from 'starknet/dist/utils/hash';
 import { utils } from '@snapshot-labs/sx';
-import { ethereumSigAuthSetup } from '../shared/setup';
+import { ethSigAuthSetup } from '../shared/setup';
 import { PROPOSE_SELECTOR, VOTE_SELECTOR } from '../shared/constants';
 import { keccak256, _TypedDataEncoder } from 'ethers/lib/utils';
 
@@ -50,7 +50,7 @@ describe('Ethereum Signature Auth testing', () => {
     this.timeout(800000);
     const accounts = await ethers.getSigners();
     ({ space, controller, ethSigAuth, vanillaVotingStrategy, vanillaExecutionStrategy } =
-      await ethereumSigAuthSetup());
+      await ethSigAuthSetup());
 
     metadataUri = 'Hello and welcome to Snapshot X. This is the future of governance.';
     metadataUriInts = utils.intsSequence.IntsSequence.LEFromString(metadataUri);
