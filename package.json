@@ -33,8 +33,8 @@
     "@openzeppelin/contracts": "^4.7.3",
     "@snapshot-labs/sx": "0.1.0-beta.12",
     "@shardlabs/starknet-hardhat-plugin": "^0.6.5",
-    "concurrently": "^7.3.0",
     "starknet": "^4.4.2",
+    "concurrently": "^7.4.0",
     "wait-on": "^6.0.1"
   },
   "devDependencies": {
@@ -46,7 +46,7 @@
     "@typechain/hardhat": "^6.1.2",
     "@types/chai": "^4.3.3",
     "@types/mocha": "^9.1.0",
-    "@types/node": "^18.7.15",
+    "@types/node": "^18.7.16",
     "@typescript-eslint/eslint-plugin": "^4.33.0",
     "@typescript-eslint/parser": "^4.33.0",
     "chai": "^4.3.5",
