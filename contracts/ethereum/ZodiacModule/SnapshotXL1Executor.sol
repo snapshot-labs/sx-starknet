@@ -246,7 +246,7 @@ contract SnapshotXL1Executor is Module, SnapshotXProposalRelayer {
         proposalIndexToProposalExecution[_proposalIndexes[i]].cancelled == false,
         'proposal is already cancelled'
       );
-      // Tto cancel a proposal, we can set the execution counter for the proposal to the number of transactions in the proposal.
+      // To cancel a proposal, we can set the execution counter for the proposal to the number of transactions in the proposal.
       // We must also set a boolean in the Proposal Execution struct to true, without this there would be no way for the state to differentiate between a cancelled and an executed proposal.
       // proposalIndexToProposalExecution[_proposalIndexes[i]]
       //   .executionCounter = proposalIndexToProposalExecution[_proposalIndexes[i]].txHashes.length;
