@@ -52,7 +52,6 @@ const config: HardhatUserConfig = {
     goerli: {
       url: process.env.GOERLI_NODE_URL || '',
       accounts: process.env.ETH_PK_1 !== undefined ? [process.env.ETH_PK_1] : [],
-      gas: 1000000,
     },
     ethereumLocal: {
       url: 'http://localhost:8545',

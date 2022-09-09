@@ -61,7 +61,10 @@ async function main() {
       .readFileSync('./starknet-artifacts/contracts/starknet/SpaceAccount.cairo/SpaceAccount.json')
       .toString('ascii')
   );
-  const spaceClassHash = '0x7fbabb6a96ed800d66d1ace0de4d216cc19c7308bb15faa0c0252fe2c7af006';
+
+  // Obtained via declaring the space account contract:
+  // starknet declare --contract ./starknet-artifacts/contracts/starknet/SpaceAccount.cairo/SpaceAccount.json
+  const spaceClassHash = '0xf6a58610d0ce607f69fcc3df1559baacd0b1f06c452dc57a53320168d97bf8';
   const fossilFactRegistryAddress =
     '0x363108ac1521a47b4f7d82f8ba868199bc1535216bbedfc1b071ae93cc406fd';
   const fossilL1HeadersStoreAddress =

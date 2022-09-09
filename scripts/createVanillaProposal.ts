@@ -23,7 +23,7 @@ async function main() {
   const spaceAddress = deployment.space.address;
 
   const goerliChainId = 5;
-  const zodiacModuleAddress = '0x66072142ed77472728a146F00f137982e72F42Dc';
+  const zodiacModuleAddress = '0xa88f72e92cc519d617b684F8A78d3532E7bb61ca';
   const tx1: utils.encoding.MetaTransaction = {
     to: '0x2842c82E20ab600F443646e1BC8550B44a513D82',
     value: ethers.utils.parseEther('0.01').toHexString(),

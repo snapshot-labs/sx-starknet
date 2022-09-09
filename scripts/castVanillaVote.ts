@@ -19,7 +19,7 @@ async function main() {
   const vanillaAuthenticatorAddress = deployment.space.authenticators.vanilla;
   const spaceAddress = deployment.space.address;
 
-  const proposalId = '0x6';
+  const proposalId = '0x3';
   const choice = utils.choice.Choice.FOR;
   const usedVotingStrategies = ['0x0']; // Vanilla voting strategy is index 0
   const userVotingStrategyParams = [[]];

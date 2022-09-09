@@ -12,8 +12,8 @@ async function main() {
 
   const safeAddress = '0x11455A53117B5142A8Bf5E6DcaFcD504eb633Ae1';
   const starknetCoreAddress = '0xde29d060D45901Fb19ED6C6e959EB22d8626708e';
-  const spaceAddress = '0x6e22ee24a849dc02d21e66cde9c25fe38dd310a850f6ad041fb3f966b38a024';
-  const zodiacRelayerAddress = '0x1d5a3e4a86559398b35ab5c959bb20f91737168351b628ffff68404301268de';
+  const spaceAddress = '0x324fb879af5b650e31f7513bd19cf093f826ae3211022919cafcd08fca17700';
+  const zodiacRelayerAddress = '0x7a0c890e6dc4dc445fb42c70579813ea33e7d3c37c2cfdbcb47cc059503747d';
   const moduleProxyFactoryAddress = '0x00000000000DC7F163742Eb4aBEf650037b1f588';
   const zodiacModuleMasterAddress = '0xC61BF210c37150B39FB97ae1C9f74e9B00E64620';
 

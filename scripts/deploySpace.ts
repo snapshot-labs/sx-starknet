@@ -10,21 +10,21 @@ async function main() {
   );
 
   const vanillaAuthenticatorAddress =
-    '0x68553dd647a471b197435f212b6536088118c47de5e05f374f224b2977ad20f';
+    '0x17dcb5cfee6763f4aebfc99e94bcd607756703a7f8bc633c66dcb7c82577a18';
   const ethSigAuthenticatorAddress =
-    '0x11e41ee1edc66e4b65fc0aaeca757bdbaeecedc2514fcdf58bb72a3f75518bc';
+    '0x4e1e37fafcea50aafdbe5658cebc5712fc043b07dfcac5983f818db20508979';
   const vanillaVotingStrategyAddress =
-    '0x1b18d9fe16f47e2cf8abc4e84b3cfd37b94abeae3c5fa6ceb8b6f3bbd1f99f5';
+    '0x76494a9bf97703bfee2c44685e10b8242dc03c40f0a2b129db47baf38f5cdfb';
   const ethBalanceOfVotingStrategyAddress =
-    '0x71b4f90aec133dd5fb89e9851c1466b2df2ea6dbe7de475915d78394a7dbb1a';
+    '0x23787b1c10adc91ecf15c772ab2f3a489fb461b9dc82226270e51a0b8fe5a0e';
   const vanillaExecutionStrategyAddress =
-    '0x7bbb7a6a4b87334716aef338195e8bbd3ac6346654d8118ddc1daeb1260906c';
+    '0x2fa09cdb0f8bf7a0c08ed48bb9b4a9c06eab026a24c22c2842552dfc9a40b80';
   const zodiacExecutionStrategyAddress =
-    '0x1d5a3e4a86559398b35ab5c959bb20f91737168351b628ffff68404301268de';
+    '0x7a0c890e6dc4dc445fb42c70579813ea33e7d3c37c2cfdbcb47cc059503747d';
 
-  const spaceFactoryAddress = '0x6eb62d281fb2ebdac4c326818204df636457df8da5ce1edea8c9ce546467417';
+  const spaceFactoryAddress = '0x2e364670ba4f805d667dc4d220c0f8385b1678bd1ca329ca0f969b3c92b62e0';
 
-  const spaceClassHash = '0x7fbabb6a96ed800d66d1ace0de4d216cc19c7308bb15faa0c0252fe2c7af006';
+  const spaceClassHash = '0xf6a58610d0ce607f69fcc3df1559baacd0b1f06c452dc57a53320168d97bf8';
   const votingDelay = 0;
   const minVotingDuration = 0;
   const maxVotingDuration = 200000;

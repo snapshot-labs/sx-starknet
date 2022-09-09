@@ -1,23 +1,23 @@
 {
     "space": {
-        "address": "0x6e22ee24a849dc02d21e66cde9c25fe38dd310a850f6ad041fb3f966b38a024",
+        "address": "0x324fb879af5b650e31f7513bd19cf093f826ae3211022919cafcd08fca17700",
         "authenticators": {
-            "ethSig": "0x11e41ee1edc66e4b65fc0aaeca757bdbaeecedc2514fcdf58bb72a3f75518bc",
-            "vanilla": "0x68553dd647a471b197435f212b6536088118c47de5e05f374f224b2977ad20f"
+            "ethSig": "0x4e1e37fafcea50aafdbe5658cebc5712fc043b07dfcac5983f818db20508979",
+            "vanilla": "0x17dcb5cfee6763f4aebfc99e94bcd607756703a7f8bc633c66dcb7c82577a18"
         },
         "controller": "0x0764c647e4c5f6e81c5baa1769b4554e44851a7b6319791fc6db9e25a32148bb",
         "executionStrategies": {
-            "vanilla": "0x7bbb7a6a4b87334716aef338195e8bbd3ac6346654d8118ddc1daeb1260906c",
-            "zodiac": "0x1d5a3e4a86559398b35ab5c959bb20f91737168351b628ffff68404301268de"
+            "vanilla": "0x2fa09cdb0f8bf7a0c08ed48bb9b4a9c06eab026a24c22c2842552dfc9a40b80",
+            "zodiac": "0x7a0c890e6dc4dc445fb42c70579813ea33e7d3c37c2cfdbcb47cc059503747d"
         },
         "maxVotingDuration": 200000,
         "minVotingDuration": 0,
-        "name": "Vanilla DAO test space",
+        "name": "DAO test space",
         "proposalThreshold": "0x1",
         "quorum": "0x1",
         "votingStrategies": {
             "ethBalanceOf": {
-                "address": "0x71b4f90aec133dd5fb89e9851c1466b2df2ea6dbe7de475915d78394a7dbb1a",
+                "address": "0x23787b1c10adc91ecf15c772ab2f3a489fb461b9dc82226270e51a0b8fe5a0e",
                 "index": 1,
                 "parameters": [
                     "0xB4FBF271143F4FBf7B91A5ded31805e42b2208d6",
@@ -25,7 +25,7 @@
                 ]
             },
             "vanilla": {
-                "address": "0x1b18d9fe16f47e2cf8abc4e84b3cfd37b94abeae3c5fa6ceb8b6f3bbd1f99f5",
+                "address": "0x76494a9bf97703bfee2c44685e10b8242dc03c40f0a2b129db47baf38f5cdfb",
                 "index": 0,
                 "parameters": [
                 ]
@@ -33,7 +33,7 @@
         }
     },
     "spaceFactory": {
-        "address": "0x6eb62d281fb2ebdac4c326818204df636457df8da5ce1edea8c9ce546467417",
-        "spaceClassHash": "0x7fbabb6a96ed800d66d1ace0de4d216cc19c7308bb15faa0c0252fe2c7af006"
+        "address": "0x2e364670ba4f805d667dc4d220c0f8385b1678bd1ca329ca0f969b3c92b62e0",
+        "spaceClassHash": "0xf6a58610d0ce607f69fcc3df1559baacd0b1f06c452dc57a53320168d97bf8"
     }
 }
