@@ -9,6 +9,7 @@ factories
 typechain
 typechain-types
 abi
+coverage 
 
 .yarn
 .env
