@@ -1,0 +1,82 @@
+{
+    "spaceFactory": {
+        "address": "0xbecc696f9790b511bbdbdf30bab7e2aa4e54c7a23d777b0fbe8e581821cf0c",
+        "spaceClassHash": "0xf6a58610d0ce607f69fcc3df1559baacd0b1f06c452dc57a53320168d97bf8"
+    },
+    "spaces": [
+        {
+            "address": "0x7f4d11afafd1fda51a029c3fa5f5d13c0801dc48e9747b6f1527c59da33037a",
+            "authenticators": {
+                "vanilla": "0x36f53ac6efe16403267873d307db90b5cc10c97fd3353af3107609bb63f9f83"
+            },
+            "controller": "0x0764c647e4c5f6e81c5baa1769b4554e44851a7b6319791fc6db9e25a32148bb",
+            "executionStrategies": {
+                "vanilla": "0x6b429254760eea72cedb8e6485ebf090ced630a366012994296ceb253b42aeb",
+                "zodiac": "0x125eeaeac3e2439b28a1becf50d5bba74a60cf17936f29b1a4347184369bef6"
+            },
+            "maxVotingDuration": 200000,
+            "minVotingDuration": 0,
+            "name": "Vanilla Auth + Vanilla Voting",
+            "proposalThreshold": "0x1",
+            "quorum": "0x1",
+            "votingStrategies": {
+                "vanilla": {
+                    "address": "0x7cccf8ea8e940a4728182a4c05423c0148a805aeba3e6c43bed9743acd6d09b",
+                    "index": 0,
+                    "parameters": [
+                    ]
+                }
+            }
+        },
+        {
+            "address": "0x06622411f588d02811a98982ef6ce63a3afb66c44da9dc710924cc95a1a21fb7",
+            "authenticators": {
+                "ethSig": "0x4bbd4959806784f2ad7541e36eda88d9b3dff1baef60b39862abc171f3eed38"
+            },
+            "controller": "0x0764c647e4c5f6e81c5baa1769b4554e44851a7b6319791fc6db9e25a32148bb",
+            "executionStrategies": {
+                "vanilla": "0x6b429254760eea72cedb8e6485ebf090ced630a366012994296ceb253b42aeb",
+                "zodiac": "0x125eeaeac3e2439b28a1becf50d5bba74a60cf17936f29b1a4347184369bef6"
+            },
+            "maxVotingDuration": 200000,
+            "minVotingDuration": 0,
+            "name": "EthSig Auth + Vanilla Voting",
+            "proposalThreshold": "0x1",
+            "quorum": "0x1",
+            "votingStrategies": {
+                "vanilla": {
+                    "address": "0x7cccf8ea8e940a4728182a4c05423c0148a805aeba3e6c43bed9743acd6d09b",
+                    "index": 0,
+                    "parameters": [
+                    ]
+                }
+            }
+        },
+        {
+            "address": "0x030b95f7186b72e7d1a9e1a53198d121b25e03bd741b8a726c1d417efc69fa46",
+            "authenticators": {
+                "ethSig": "0x4bbd4959806784f2ad7541e36eda88d9b3dff1baef60b39862abc171f3eed38"
+            },
+            "controller": "0x0764c647e4c5f6e81c5baa1769b4554e44851a7b6319791fc6db9e25a32148bb",
+            "executionStrategies": {
+                "vanilla": "0x6b429254760eea72cedb8e6485ebf090ced630a366012994296ceb253b42aeb",
+                "zodiac": "0x125eeaeac3e2439b28a1becf50d5bba74a60cf17936f29b1a4347184369bef6"
+            },
+            "maxVotingDuration": 200000,
+            "minVotingDuration": 0,
+            "name": "EthSig Auth + EthBalanceOf Voting",
+            "proposalThreshold": "0x1",
+            "quorum": "0x1",
+            "votingStrategies": {
+                "ethBalanceOf": {
+                    "address": "0x68da98d7798439f16b63b61644e7b27c932d5c051a455a978aa95488d5dcc9b",
+                    "index": 0,
+                    "parameters": [
+                        "0xB4FBF271143F4FBf7B91A5ded31805e42b2208d6",
+                        "0x3"
+                    ]
+                }
+            }
+        }
+    ]
+}

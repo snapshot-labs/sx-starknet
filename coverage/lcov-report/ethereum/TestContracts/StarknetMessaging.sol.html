@@ -1,0 +1,320 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <title>Code coverage report for ethereum/TestContracts/StarknetMessaging.sol</title>
+    <meta charset="utf-8" />
+    <link rel="stylesheet" href="../../prettify.css" />
+    <link rel="stylesheet" href="../../base.css" />
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <style type='text/css'>
+        .coverage-summary .sorter {
+            background-image: url(../../sort-arrow-sprite.png);
+        }
+    </style>
+</head>
+<body>
+<div class='wrapper'>
+  <div class='pad1'>
+    <h1>
+      <a href="../../index.html">all files</a> / <a href="index.html">ethereum/TestContracts/</a> StarknetMessaging.sol
+    </h1>
+    <div class='clearfix'>
+      <div class='fl pad1y space-right2'>
+        <span class="strong">0% </span>
+        <span class="quiet">Statements</span>
+        <span class='fraction'>0/14</span>
+      </div>
+      <div class='fl pad1y space-right2'>
+        <span class="strong">0% </span>
+        <span class="quiet">Branches</span>
+        <span class='fraction'>0/2</span>
+      </div>
+      <div class='fl pad1y space-right2'>
+        <span class="strong">0% </span>
+        <span class="quiet">Functions</span>
+        <span class='fraction'>0/7</span>
+      </div>
+      <div class='fl pad1y space-right2'>
+        <span class="strong">0% </span>
+        <span class="quiet">Lines</span>
+        <span class='fraction'>0/16</span>
+      </div>
+    </div>
+  </div>
+  <div class='status-line low'></div>
+<pre><table class="coverage">
+<tr><td class="line-count quiet">1
+2
+3
+4
+5
+6
+7
+8
+9
+10
+11
+12
+13
+14
+15
+16
+17
+18
+19
+20
+21
+22
+23
+24
+25
+26
+27
+28
+29
+30
+31
+32
+33
+34
+35
+36
+37
+38
+39
+40
+41
+42
+43
+44
+45
+46
+47
+48
+49
+50
+51
+52
+53
+54
+55
+56
+57
+58
+59
+60
+61
+62
+63
+64
+65
+66
+67
+68
+69
+70
+71
+72
+73
+74
+75
+76
+77
+78
+79
+80
+81
+82
+83
+84
+85
+86</td><td class="line-coverage quiet"><span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span></td><td class="text"><pre class="prettyprint lang-js">// SPDX-License-Identifier: Apache-2.0.
+pragma solidity ^0.8.6;
+&nbsp;
+import './IStarknetMessaging.sol';
+import './NamedStorage.sol';
+&nbsp;
+/**
+  Implements sending messages to L2 by adding them to a pipe and consuming messages from L2 by
+  removing them from a different pipe. A deriving contract can handle the former pipe and add items
+  to the latter pipe while interacting with L2.
+*/
+contract StarknetMessaging is IStarknetMessaging {
+  /**
+      Random slot storage elements and accessors.
+    */
+  string constant L1L2_MESSAGE_MAP_TAG = 'STARKNET_1.0_MSGING_L1TOL2_MAPPPING_V2';
+  string constant L2L1_MESSAGE_MAP_TAG = 'STARKNET_1.0_MSGING_L2TOL1_MAPPPING';
+&nbsp;
+  string constant L1L2_MESSAGE_NONCE_TAG = 'STARKNET_1.0_MSGING_L1TOL2_NONCE';
+&nbsp;
+<span class="fstat-no" title="function not covered" >  function l1ToL2Messages(bytes32 msgHash) external view returns (uint256) {</span>
+<span class="cstat-no" title="statement not covered" >    return l1ToL2Messages()[msgHash];</span>
+  }
+&nbsp;
+<span class="fstat-no" title="function not covered" >  function l2ToL1Messages(bytes32 msgHash) external view returns (uint256) {</span>
+<span class="cstat-no" title="statement not covered" >    return l2ToL1Messages()[msgHash];</span>
+  }
+&nbsp;
+<span class="fstat-no" title="function not covered" >  function l1ToL2Messages() internal pure returns (mapping(bytes32 =&gt; uint256) storage) {</span>
+<span class="cstat-no" title="statement not covered" >    return NamedStorage.bytes32ToUint256Mapping(L1L2_MESSAGE_MAP_TAG);</span>
+  }
+&nbsp;
+<span class="fstat-no" title="function not covered" >  function l2ToL1Messages() internal pure returns (mapping(bytes32 =&gt; uint256) storage) {</span>
+<span class="cstat-no" title="statement not covered" >    return NamedStorage.bytes32ToUint256Mapping(L2L1_MESSAGE_MAP_TAG);</span>
+  }
+&nbsp;
+<span class="fstat-no" title="function not covered" >  function l1ToL2MessageNonce() public view returns (uint256) {</span>
+<span class="cstat-no" title="statement not covered" >    return NamedStorage.getUintValue(L1L2_MESSAGE_NONCE_TAG);</span>
+  }
+&nbsp;
+  /**
+      Sends a message to an L2 contract.
+    */
+<span class="fstat-no" title="function not covered" >  function sendMessageToL2(</span>
+    uint256 to_address,
+    uint256 selector,
+    uint256[] calldata payload
+  ) external override returns (bytes32) {
+<span class="cstat-no" title="statement not covered" >    uint256 nonce = l1ToL2MessageNonce();</span>
+<span class="cstat-no" title="statement not covered" >    NamedStorage.setUintValue(L1L2_MESSAGE_NONCE_TAG, nonce + 1)</span>;
+<span class="cstat-no" title="statement not covered" >    emit LogMessageToL2(msg.sender, to_address, selector, payload, nonce);</span>
+<span class="cstat-no" title="statement not covered" >    bytes32 msgHash = keccak256(</span>
+      abi.encodePacked(
+        uint256(uint160(address(msg.sender))),
+        to_address,
+        nonce,
+        selector,
+        payload.length,
+        payload
+      )
+    );
+    l1ToL2Messages()[msgHash] += 1;
+&nbsp;
+<span class="cstat-no" title="statement not covered" >    return msgHash;</span>
+  }
+&nbsp;
+  /**
+      Consumes a message that was sent from an L2 contract.
+      Returns the hash of the message.
+    */
+<span class="fstat-no" title="function not covered" >  function consumeMessageFromL2(uint256 from_address, uint256[] calldata payload)</span>
+    external
+    override
+    returns (bytes32)
+  {
+<span class="cstat-no" title="statement not covered" >    bytes32 msgHash = keccak256(</span>
+      abi.encodePacked(from_address, uint256(uint160(address(msg.sender))), payload.length, payload)
+    );
+&nbsp;
+<span class="cstat-no" title="statement not covered" >    require(l2ToL1Messages()[msgHash] &gt; 0, 'INVALID_MESSAGE_TO_CONSUME')</span>;
+<span class="cstat-no" title="statement not covered" >    emit ConsumedMessageToL1(from_address, msg.sender, payload);</span>
+    l2ToL1Messages()[msgHash] -= 1;
+<span class="cstat-no" title="statement not covered" >    return msgHash;</span>
+  }
+}
+&nbsp;</pre></td></tr>
+</table></pre>
+<div class='push'></div><!-- for sticky footer -->
+</div><!-- /wrapper -->
+<div class='footer quiet pad2 space-top1 center small'>
+  Code coverage
+  generated by <a href="http://istanbul-js.org/" target="_blank">istanbul</a> at Fri Sep 09 2022 19:52:14 GMT+0100 (British Summer Time)
+</div>
+</div>
+<script src="../../prettify.js"></script>
+<script>
+window.onload = function () {
+        if (typeof prettyPrint === 'function') {
+            prettyPrint();
+        }
+};
+</script>
+<script src="../../sorter.js"></script>
+</body>
+</html>
