@@ -4,7 +4,6 @@ import { StarknetContract, Account } from 'hardhat/types';
 import { utils } from '@snapshot-labs/sx';
 import { vanillaSetup } from '../shared/setup';
 import { PROPOSE_SELECTOR, VOTE_SELECTOR } from '../shared/constants';
-import { getProposeCalldata } from '@snapshot-labs/sx/dist/utils/encoding';
 
 describe('Space Testing', () => {
   // Contracts
@@ -119,6 +118,26 @@ describe('Space Testing', () => {
     }
   }).timeout(6000000);
 
+  it('Fails if an invalid voting strategy is used', async () => {
+    // -- Creates the proposal --
+    try {
+      await vanillaAuthenticator.invoke('authenticate', {
+        target: spaceAddress,
+        function_selector: PROPOSE_SELECTOR,
+        calldata: utils.encoding.getProposeCalldata(
+          proposerEthAddress,
+          metadataUri,
+          executionStrategy,
+          ['0x1'],
+          userVotingParamsAll1,
+          executionParams
+        ),
+      });
+    } catch (error: any) {
+      expect(error.message).to.contain('Invalid voting strategy');
+    }
+  }).timeout(6000000);
+
   it('Fails if the same voting strategy is used multiple times', async () => {
     // -- Creates the proposal --
     {
@@ -148,10 +167,63 @@ describe('Space Testing', () => {
     }
   }).timeout(6000000);
 
+  it('Correctly aggregates voting power when using multiple voting strategies', async () => {
+    // -- Register 2nd and 3rd voting strategy --
+    await controller.invoke(space, 'add_voting_strategies', {
+      addresses: [vanillaVotingStrategy.address],
+      params_flat: utils.encoding.flatten2DArray([[]]),
+    });
+    await controller.invoke(space, 'add_voting_strategies', {
+      addresses: [vanillaVotingStrategy.address],
+      params_flat: utils.encoding.flatten2DArray([[]]),
+    });
+
+    // -- Creates the proposal --
+    proposeCalldata = utils.encoding.getProposeCalldata(
+      proposerEthAddress,
+      metadataUri,
+      executionStrategy,
+      ['0x0', '0x1', '0x2'],
+      [[], [], []],
+      executionParams
+    );
+    await vanillaAuthenticator.invoke('authenticate', {
+      target: spaceAddress,
+      function_selector: PROPOSE_SELECTOR,
+      calldata: proposeCalldata,
+    });
+
+    // -- Casts vote --
+    voteCalldata = utils.encoding.getVoteCalldata(
+      voterEthAddress,
+      '0x2',
+      choice,
+      ['0x0', '0x1', '0x2'],
+      [[], [], []]
+    );
+
+    await vanillaAuthenticator.invoke('authenticate', {
+      target: spaceAddress,
+      function_selector: VOTE_SELECTOR,
+      calldata: voteCalldata,
+    });
+
+    const { proposal_info } = await space.call('get_proposal_info', {
+      proposal_id: '0x2',
+    });
+
+    const _for = utils.splitUint256.SplitUint256.fromObj(proposal_info.power_for).toUint();
+    expect(_for).to.deep.equal(BigInt(3));
+    const against = utils.splitUint256.SplitUint256.fromObj(proposal_info.power_against).toUint();
+    expect(against).to.deep.equal(BigInt(0));
+    const abstain = utils.splitUint256.SplitUint256.fromObj(proposal_info.power_abstain).toUint();
+    expect(abstain).to.deep.equal(BigInt(0));
+  }).timeout(6000000);
+
   it('Reverts when querying an invalid proposal id', async () => {
     try {
       await space.call('get_proposal_info', {
-        proposal_id: 4242,
+        proposal_id: 3,
       });
     } catch (error: any) {
       expect(error.message).to.contain('Proposal does not exist');
