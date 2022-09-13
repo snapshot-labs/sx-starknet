@@ -93,13 +93,33 @@ async function main() {
   const vanillaExecutionStrategyAddress = responses[4].address!;
   const zodiacExecutionStrategyAddress = responses[5].address!;
   const spaceFactoryAddress = responses[6].address!;
-  console.log('vanillaAuthenticatorAddress', vanillaAuthenticatorAddress);
-  console.log('ethSigAuthenticatorAddress', ethSigAuthenticatorAddress);
-  console.log('vanillaVotingStrategyAddress', vanillaVotingStrategyAddress);
-  console.log('ethBalanceOfVotingStrategyAddress', ethBalanceOfVotingStrategyAddress);
-  console.log('vanillaExecutionStrategyAddress', vanillaExecutionStrategyAddress);
-  console.log('zodiacExecutionStrategyAddress', zodiacExecutionStrategyAddress);
-  console.log('spaceFactoryAddress', spaceFactoryAddress);
+
+  // Storing deployment config.
+  const modules = {
+    authenticators: {
+      vanilla: vanillaAuthenticatorAddress,
+      ethSig: ethSigAuthenticatorAddress,
+    },
+    votingStrategies: {
+      vanilla: vanillaVotingStrategyAddress,
+      ethBalanceOf: {
+        address: ethBalanceOfVotingStrategyAddress,
+        fossilFactRegistry: fossilFactRegistryAddress,
+        fossilL1HeadersStore: fossilL1HeadersStoreAddress,
+      },
+    },
+    executionStrategies: {
+      vanilla: vanillaExecutionStrategyAddress,
+      zodiac: zodiacExecutionStrategyAddress,
+    },
+    spaceFactory: {
+      address: spaceFactoryAddress,
+      spaceClassHash: spaceClassHash,
+    },
+  };
+
+  fs.writeFileSync('./deployments/modules.json', JSON.stringify(modules));
+  console.log('---- MODULE DEPLOYMENT COMPLETE ----');
 }
 
 main()
