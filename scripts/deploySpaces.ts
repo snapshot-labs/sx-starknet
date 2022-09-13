@@ -10,19 +10,19 @@ async function main() {
   );
 
   const vanillaAuthenticatorAddress =
-    '0x2b22f87441b36efc5ed73dee8154cb0a90f499d54a43610029fbb614838a181';
+    '0x36f53ac6efe16403267873d307db90b5cc10c97fd3353af3107609bb63f9f83';
   const ethSigAuthenticatorAddress =
-    '0x5091f63bb1ccd84ffa65e2895afa461ad29d2bcea11cc7fe6a92a1088794485';
+    '0x4bbd4959806784f2ad7541e36eda88d9b3dff1baef60b39862abc171f3eed38';
   const vanillaVotingStrategyAddress =
-    '0x664badd6ea610deddff3f02967507741234e8b094fa7fb88ac74693efd742bc';
+    '0x7cccf8ea8e940a4728182a4c05423c0148a805aeba3e6c43bed9743acd6d09b';
   const ethBalanceOfVotingStrategyAddress =
-    '0x36c2bf2207434f29f29da7d3188c074bf274adc803c617493ea020fc7366d1b';
+    '0x68da98d7798439f16b63b61644e7b27c932d5c051a455a978aa95488d5dcc9b';
   const vanillaExecutionStrategyAddress =
-    '0x17e19860c1b30c9246829e8b6417e912bab2a8f3cea6ac2b6190813de9e1bdd';
+    '0x6b429254760eea72cedb8e6485ebf090ced630a366012994296ceb253b42aeb';
   const zodiacExecutionStrategyAddress =
-    '0x5f48aadc9d0dc5addaf53ea59fff23eae34095e5625a9cee60d05820d7651d6';
+    '0x125eeaeac3e2439b28a1becf50d5bba74a60cf17936f29b1a4347184369bef6';
 
-  const spaceFactoryAddress = '0x7ab28bf203eb9425638f7e39829bf600d47c69859ccba9dcabbbe9a575cf0ab';
+  const spaceFactoryAddress = '0xbecc696f9790b511bbdbdf30bab7e2aa4e54c7a23d777b0fbe8e581821cf0c';
 
   const spaceClassHash = '0xf6a58610d0ce607f69fcc3df1559baacd0b1f06c452dc57a53320168d97bf8';
   const votingDelay = 0;
@@ -132,8 +132,11 @@ async function main() {
 
   // Extracting space address from the event emitted by the space factory.
   const receipt = (await defaultProvider.getTransactionReceipt(txHash)) as any;
-  console.log(receipt);
-  const spaceAddress = receipt.events[1].data[1];
+  // The events corresponding to the deployment events are at indexes 1, 3, 5 for the 3 spaces
+  // The addresses of the space contracts are stored at the 1st index of the event array
+  const spaceAddress1 = receipt.events[1].data[1];
+  const spaceAddress2 = receipt.events[3].data[1];
+  const spaceAddress3 = receipt.events[5].data[1];
 
   // Storing deployment config.
   const deployments = {
@@ -144,7 +147,7 @@ async function main() {
     spaces: [
       {
         name: 'Vanilla Auth + Vanilla Voting',
-        address: spaceAddress,
+        address: spaceAddress1,
         controller: controllerAddress,
         minVotingDuration: minVotingDuration,
         maxVotingDuration: maxVotingDuration,
@@ -167,7 +170,7 @@ async function main() {
       },
       {
         name: 'EthSig Auth + Vanilla Voting',
-        address: spaceAddress,
+        address: spaceAddress2,
         controller: controllerAddress,
         minVotingDuration: minVotingDuration,
         maxVotingDuration: maxVotingDuration,
@@ -190,7 +193,7 @@ async function main() {
       },
       {
         name: 'EthSig Auth + EthBalanceOf Voting',
-        address: spaceAddress,
+        address: spaceAddress3,
         controller: controllerAddress,
         minVotingDuration: minVotingDuration,
         maxVotingDuration: maxVotingDuration,
