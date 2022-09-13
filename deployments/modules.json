@@ -14,9 +14,9 @@
     "votingStrategies": {
         "ethBalanceOf": {
             "address": "0x68da98d7798439f16b63b61644e7b27c932d5c051a455a978aa95488d5dcc9b",
-            "l1MessagesSender": "0x738bfb83246156b759165d244077865B994F9d33",
             "fossilFactRegistry": "0x363108ac1521a47b4f7d82f8ba868199bc1535216bbedfc1b071ae93cc406fd",
-            "fossilL1HeadersStore": "0x6ca3d25e901ce1fff2a7dd4079a24ff63ca6bbf8ba956efc71c1467975ab78f"
+            "fossilL1HeadersStore": "0x6ca3d25e901ce1fff2a7dd4079a24ff63ca6bbf8ba956efc71c1467975ab78f",
+            "l1MessagesSender": "0x738bfb83246156b759165d244077865B994F9d33"
         },
         "vanilla": "0x5c6d57ec2de36340cb81a93f2d0cf92f98869c5cd9da2ba075b9b01e8c7181b"
     }

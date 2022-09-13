@@ -65,7 +65,7 @@ async function main() {
   // Obtained via declaring the space account contract:
   // starknet declare --contract ./starknet-artifacts/contracts/starknet/SpaceAccount.cairo/SpaceAccount.json
   const spaceClassHash = '0xf6a58610d0ce607f69fcc3df1559baacd0b1f06c452dc57a53320168d97bf8';
-  const l1MessagesSenderAddress = "0x738bfb83246156b759165d244077865B994F9d33";
+  const l1MessagesSenderAddress = '0x738bfb83246156b759165d244077865B994F9d33';
   const fossilFactRegistryAddress =
     '0x363108ac1521a47b4f7d82f8ba868199bc1535216bbedfc1b071ae93cc406fd';
   const fossilL1HeadersStoreAddress =

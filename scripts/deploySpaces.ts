@@ -8,23 +8,17 @@ async function main() {
     process.env.ARGENT_X_ADDRESS!,
     ec.getKeyPair(process.env.ARGENT_X_PK!)
   );
+  const modules = JSON.parse(fs.readFileSync('./deployments/modules.json').toString());
 
-  const vanillaAuthenticatorAddress =
-    '0x36f53ac6efe16403267873d307db90b5cc10c97fd3353af3107609bb63f9f83';
-  const ethSigAuthenticatorAddress =
-    '0x4bbd4959806784f2ad7541e36eda88d9b3dff1baef60b39862abc171f3eed38';
-  const vanillaVotingStrategyAddress =
-    '0x7cccf8ea8e940a4728182a4c05423c0148a805aeba3e6c43bed9743acd6d09b';
-  const ethBalanceOfVotingStrategyAddress =
-    '0x68da98d7798439f16b63b61644e7b27c932d5c051a455a978aa95488d5dcc9b';
-  const vanillaExecutionStrategyAddress =
-    '0x6b429254760eea72cedb8e6485ebf090ced630a366012994296ceb253b42aeb';
-  const zodiacExecutionStrategyAddress =
-    '0x125eeaeac3e2439b28a1becf50d5bba74a60cf17936f29b1a4347184369bef6';
+  const vanillaAuthenticatorAddress = modules.authenticators.vanilla;
+  const ethSigAuthenticatorAddress = modules.authenticators.ethSig;
+  const vanillaVotingStrategyAddress = modules.votingStrategies.vanilla;
+  const ethBalanceOfVotingStrategyAddress = modules.votingStrategies.ethBalanceOf.address;
+  const vanillaExecutionStrategyAddress = modules.executionStrategies.vanilla;
+  const zodiacExecutionStrategyAddress = modules.executionStrategies.zodiac;
+  const spaceFactoryAddress = modules.spaceFactory.address;
+  const spaceClassHash = modules.spaceFactory.spaceClassHash;
 
-  const spaceFactoryAddress = '0xbecc696f9790b511bbdbdf30bab7e2aa4e54c7a23d777b0fbe8e581821cf0c';
-
-  const spaceClassHash = '0xf6a58610d0ce607f69fcc3df1559baacd0b1f06c452dc57a53320168d97bf8';
   const votingDelay = 0;
   const minVotingDuration = 0;
   const maxVotingDuration = 200000;
