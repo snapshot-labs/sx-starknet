@@ -5,7 +5,7 @@
     },
     "spaces": [
         {
-            "address": "0x7f4d11afafd1fda51a029c3fa5f5d13c0801dc48e9747b6f1527c59da33037a",
+            "address": "0xe4524f240f31334d0970d8516f1e8135308c7f4aa6867cae2bb4a53fa656e1",
             "authenticators": {
                 "vanilla": "0x36f53ac6efe16403267873d307db90b5cc10c97fd3353af3107609bb63f9f83"
             },
@@ -29,7 +29,7 @@
             }
         },
         {
-            "address": "0x06622411f588d02811a98982ef6ce63a3afb66c44da9dc710924cc95a1a21fb7",
+            "address": "0x0072064a0d2d717fcb4bb6af182a652e7deb1d0eef8dc126e3062bf6dda0156b",
             "authenticators": {
                 "ethSig": "0x4bbd4959806784f2ad7541e36eda88d9b3dff1baef60b39862abc171f3eed38"
             },
@@ -53,7 +53,7 @@
             }
         },
         {
-            "address": "0x030b95f7186b72e7d1a9e1a53198d121b25e03bd741b8a726c1d417efc69fa46",
+            "address": "0x0375bc9b4d236f961cbc5410213cdbf2de6dfe30f21b2c58bb4de3713d868383",
             "authenticators": {
                 "ethSig": "0x4bbd4959806784f2ad7541e36eda88d9b3dff1baef60b39862abc171f3eed38"
             },

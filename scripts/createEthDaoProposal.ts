@@ -17,12 +17,12 @@ async function main() {
   );
   const ethAccount = new ethers.Wallet(process.env.ETH_PK_1!);
 
-  const deployment = JSON.parse(fs.readFileSync('./deployments/goerli2.json').toString());
-  const ethSigAuthenticatorAddress = deployment.space.authenticators.ethSig;
-  const vanillaExecutionStrategyAddress = deployment.space.executionStrategies.vanilla;
-  const spaceAddress = deployment.space.address;
+  const deployment = JSON.parse(fs.readFileSync('./deployments/goerli3.json').toString());
+  const ethSigAuthenticatorAddress = deployment.spaces[2].authenticators.ethSig;
+  const vanillaExecutionStrategyAddress = deployment.spaces[2].executionStrategies.vanilla;
+  const spaceAddress = deployment.spaces[2].address;
 
-  const usedVotingStrategies = ['0x1']; // Goerli WETH balance voting strategy is index 1
+  const usedVotingStrategies = ['0x0'];
   const metadataUri = 'Hello and welcome to Snapshot X. This is the future of governance.';
   const metadataUriInts = utils.intsSequence.IntsSequence.LEFromString(metadataUri);
   const block = JSON.parse(fs.readFileSync('./test/data/blockGoerli.json').toString());
@@ -46,9 +46,10 @@ async function main() {
   );
 
   const salt = utils.splitUint256.SplitUint256.fromHex(
-    utils.bytes.bytesToHex(ethers.utils.randomBytes(4))
+    utils.bytes.bytesToHex(ethers.utils.randomBytes(6))
   );
   const message: Propose = {
+    authenticator: utils.encoding.hexPadRight(ethSigAuthenticatorAddress),
     space: utils.encoding.hexPadRight(spaceAddress),
     proposerAddress: utils.encoding.hexPadRight(proposerEthAddress),
     metadataUri: metadataUri,
