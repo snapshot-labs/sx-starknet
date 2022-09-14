@@ -29,7 +29,7 @@
   },
   "dependencies": {
     "@gnosis.pm/safe-contracts": "^1.3.0",
-    "@gnosis.pm/zodiac": "^1.1.4",
+    "@gnosis.pm/zodiac": "^1.1.5",
     "@openzeppelin/contracts": "^4.7.3",
     "@snapshot-labs/sx": "0.1.0-beta.12",
     "@shardlabs/starknet-hardhat-plugin": "^0.6.5",
