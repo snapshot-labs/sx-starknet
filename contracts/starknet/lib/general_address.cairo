@@ -1,4 +1,4 @@
-# Generalized type used to represent addresses in Snapshot X. Eg Ethereum, Starknet, etc.
-struct Address:
-    member value : felt
-end
+// Generalized type used to represent addresses in Snapshot X. Eg Ethereum, Starknet, etc.
+struct Address {
+    value: felt,
+}
