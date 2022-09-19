@@ -211,7 +211,7 @@ contract SnapshotXL1Executor is Module, SnapshotXProposalRelayer {
    * @param executionHash Hash of all the transactions in the proposal
    * @param proposalOutcome Whether proposal was accepted / rejected / cancelled
    * @param _txHashes Array of transaction hashes in proposal
-   * @notice REMEMBER TO REMOVE BEFORE PROD
+   * @notice TODO: REMEMBER TO REMOVE BEFORE PROD
    */
   function receiveProposalTest(
     uint256 callerAddress,
