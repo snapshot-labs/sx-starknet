@@ -34,91 +34,91 @@ func constructor{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_ptr
 ) {
     Account.initializer(public_key);
 
-    Voting.initializer(
-        voting_delay,
-        min_voting_duration,
-        max_voting_duration,
-        proposal_threshold,
-        controller,
-        quorum,
-        voting_strategy_params_flat_len,
-        voting_strategy_params_flat,
-        voting_strategies_len,
-        voting_strategies,
-        authenticators_len,
-        authenticators,
-        executors_len,
-        executors,
-    );
+    // Voting.initializer(
+    //     voting_delay,
+    //     min_voting_duration,
+    //     max_voting_duration,
+    //     proposal_threshold,
+    //     controller,
+    //     quorum,
+    //     voting_strategy_params_flat_len,
+    //     voting_strategy_params_flat,
+    //     voting_strategies_len,
+    //     voting_strategies,
+    //     authenticators_len,
+    //     authenticators,
+    //     executors_len,
+    //     executors,
+    // );
     return ();
 }
 
-//
-// Getters
-//
+// //
+// // Getters
+// //
 
-@view
-func get_public_key{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_ptr}() -> (
-    res: felt
-) {
-    let (res) = Account.get_public_key();
-    return (res=res);
-}
+// @view
+// func get_public_key{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_ptr}() -> (
+//     res: felt
+// ) {
+//     let (res) = Account.get_public_key();
+//     return (res=res);
+// }
 
-@view
-func get_nonce{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_ptr}() -> (res: felt) {
-    let (res) = Account.get_nonce();
-    return (res=res);
-}
+// @view
+// func get_nonce{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_ptr}() -> (res: felt) {
+//     let (res) = Account.get_nonce();
+//     return (res=res);
+// }
 
-@view
-func supportsInterface{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_ptr}(
-    interfaceId: felt
-) -> (success: felt) {
-    let (success) = ERC165.supports_interface(interfaceId);
-    return (success,);
-}
+// @view
+// func supportsInterface{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_ptr}(
+//     interfaceId: felt
+// ) -> (success: felt) {
+//     let (success) = ERC165.supports_interface(interfaceId);
+//     return (success,);
+// }
 
-//
-// Setters
-//
+// //
+// // Setters
+// //
 
-@external
-func set_public_key{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_ptr}(
-    new_public_key: felt
-) {
-    Account.set_public_key(new_public_key);
-    return ();
-}
+// @external
+// func set_public_key{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_ptr}(
+//     new_public_key: felt
+// ) {
+//     Account.set_public_key(new_public_key);
+//     return ();
+// }
 
-//
-// Business logic
-//
+// //
+// // Business logic
+// //
 
-@view
-func is_valid_signature{
-    syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_ptr, ecdsa_ptr: SignatureBuiltin*
-}(hash: felt, signature_len: felt, signature: felt*) -> (is_valid: felt) {
-    let (is_valid) = Account.is_valid_signature(hash, signature_len, signature);
-    return (is_valid=is_valid);
-}
+// @view
+// func is_valid_signature{
+//     syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_ptr, ecdsa_ptr: SignatureBuiltin*
+// }(hash: felt, signature_len: felt, signature: felt*) -> (is_valid: felt) {
+//     let (is_valid) = Account.is_valid_signature(hash, signature_len, signature);
+//     return (is_valid=is_valid);
+// }
 
-@external
-func __execute__{
-    syscall_ptr: felt*,
-    pedersen_ptr: HashBuiltin*,
-    range_check_ptr,
-    ecdsa_ptr: SignatureBuiltin*,
-    bitwise_ptr: BitwiseBuiltin*,
-}(
-    call_array_len: felt,
-    call_array: AccountCallArray*,
-    calldata_len: felt,
-    calldata: felt*,
-    nonce: felt,
-) -> (response_len: felt, response: felt*) {
-    let (response_len, response) = Account.execute(
-        call_array_len, call_array, calldata_len, calldata, nonce
-    );
-    return (response_len=response_len, response=response);
-}
+// @external
+// func __execute__{
+//     syscall_ptr: felt*,
+//     pedersen_ptr: HashBuiltin*,
+//     range_check_ptr,
+//     ecdsa_ptr: SignatureBuiltin*,
+//     bitwise_ptr: BitwiseBuiltin*,
+// }(
+//     call_array_len: felt,
+//     call_array: AccountCallArray*,
+//     calldata_len: felt,
+//     calldata: felt*,
+//     nonce: felt,
+// ) -> (response_len: felt, response: felt*) {
+//     let (response_len, response) = Account.execute(
+//         call_array_len, call_array, calldata_len, calldata, nonce
+//     );
+//     return (response_len=response_len, response=response);
+// }

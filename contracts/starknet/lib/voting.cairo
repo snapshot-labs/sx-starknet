@@ -21,7 +21,7 @@ from starkware.cairo.common.math import (
 
 // OpenZeppelin
 from openzeppelin.access.ownable.library import Ownable
-from openzeppelin.account.library import Account, AccountCallArray, Account_current_nonce
+from openzeppelin.account.library import Account, AccountCallArray
 
 // Interfaces
 from contracts.starknet.Interfaces.IVotingStrategy import IVotingStrategy
@@ -711,13 +711,12 @@ namespace Voting {
         if (proposal.executor == 1) {
             // Starknet execution strategy so we execute the proposal txs directly
             if (proposal_outcome == ProposalOutcome.ACCEPTED) {
-                let (nonce) = Account.get_nonce();
                 let (call_array_len, call_array, calldata_len, calldata) = decode_execution_params(
                     execution_params_len, execution_params
                 );
                 // We use unsafe execute as no signature verification is needed.
-                let (response_len, response) = Account._unsafe_execute(
-                    call_array_len, call_array, calldata_len, calldata, nonce
+                let (response_len, response) = Account.execute(
+                    call_array_len, call_array, calldata_len, calldata
                 );
                 tempvar syscall_ptr = syscall_ptr;
                 tempvar pedersen_ptr = pedersen_ptr;
