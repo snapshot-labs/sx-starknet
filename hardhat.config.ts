@@ -67,6 +67,18 @@ const config: HardhatUserConfig = {
   starknet: {
     venv: 'active',
     network: 'starknetLocal',
+    wallets: {
+      RelayerWallet: {
+        accountName: 'OpenZeppelin',
+        modulePath: 'starkware.starknet.wallets.open_zeppelin.OpenZeppelinAccount',
+        accountPath: '~/.starknet_accounts',
+      },
+      OpenZeppelin: {
+        accountName: 'OpenZeppelin2',
+        modulePath: 'starkware.starknet.wallets.open_zeppelin.OpenZeppelinAccount',
+        accountPath: '~/.starknet_accounts',
+      },
+    },
   },
   paths: {
     cairoPaths: ['./contracts/starknet/fossil/contracts'],

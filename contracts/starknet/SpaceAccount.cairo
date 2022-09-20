@@ -9,6 +9,7 @@ from starkware.cairo.common.uint256 import Uint256
 
 from openzeppelin.account.library import Account, AccountCallArray
 from contracts.starknet.lib.voting import Voting
+from contracts.starknet.lib.general_address import Address
 
 //
 // Constructor
@@ -128,4 +129,23 @@ func __execute__{
         call_array_len, call_array, calldata_len, calldata
     );
     return (response_len, response);
+}
+
+@external
+func propose{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_ptr: felt}(
+    proposer_address: Address,
+    metadata_uri_string_len: felt,
+    metadata_uri_len: felt,
+    metadata_uri: felt*,
+    executor: felt,
+    used_voting_strategies_len: felt,
+    used_voting_strategies: felt*,
+    user_voting_strategy_params_flat_len: felt,
+    user_voting_strategy_params_flat: felt*,
+    execution_params_len: felt,
+    execution_params: felt*,
+) -> () {
+    alloc_locals;
+
+    return ();
 }
