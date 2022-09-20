@@ -9,7 +9,10 @@ from starkware.cairo.common.uint256 import Uint256
 
 from openzeppelin.account.library import Account, AccountCallArray
 from contracts.starknet.lib.voting import Voting
+
 from contracts.starknet.lib.general_address import Address
+from contracts.starknet.lib.proposal_info import ProposalInfo
+from contracts.starknet.lib.vote import Vote
 
 //
 // Constructor
@@ -145,7 +148,180 @@ func propose{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_ptr: fe
     execution_params_len: felt,
     execution_params: felt*,
 ) -> () {
-    alloc_locals;
+    Voting.propose(
+        proposer_address,
+        metadata_uri_string_len,
+        metadata_uri_len,
+        metadata_uri,
+        executor,
+        used_voting_strategies_len,
+        used_voting_strategies,
+        user_voting_strategy_params_flat_len,
+        user_voting_strategy_params_flat,
+        execution_params_len,
+        execution_params,
+    );
+    return ();
+}
 
+@external
+func vote{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_ptr: felt}(
+    voter_address: Address,
+    proposal_id: felt,
+    choice: felt,
+    used_voting_strategies_len: felt,
+    used_voting_strategies: felt*,
+    user_voting_strategy_params_flat_len: felt,
+    user_voting_strategy_params_flat: felt*,
+) -> () {
+    Voting.vote(
+        voter_address,
+        proposal_id,
+        choice,
+        used_voting_strategies_len,
+        used_voting_strategies,
+        user_voting_strategy_params_flat_len,
+        user_voting_strategy_params_flat,
+    );
+    return ();
+}
+
+// Finalizes the proposal, counts the voting power, and send the corresponding result to the L1 executor contract
+@external
+func finalize_proposal{
+    syscall_ptr: felt*,
+    pedersen_ptr: HashBuiltin*,
+    range_check_ptr,
+    ecdsa_ptr: SignatureBuiltin*,
+    bitwise_ptr: BitwiseBuiltin*,
+}(proposal_id: felt, execution_params_len: felt, execution_params: felt*) {
+    Voting.finalize_proposal(proposal_id, execution_params_len, execution_params);
+    return ();
+}
+
+// Cancels the proposal. Only callable by the controller.
+@external
+func cancel_proposal{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_ptr: felt}(
+    proposal_id: felt, execution_params_len: felt, execution_params: felt*
+) {
+    Voting.cancel_proposal(proposal_id, execution_params_len, execution_params);
+    return ();
+}
+
+//
+// View functions
+//
+
+@view
+func get_vote_info{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_ptr: felt}(
+    voter_address: Address, proposal_id: felt
+) -> (vote: Vote) {
+    return Voting.get_vote_info(voter_address, proposal_id);
+}
+
+@view
+func get_proposal_info{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_ptr: felt}(
+    proposal_id: felt
+) -> (proposal_info: ProposalInfo) {
+    return Voting.get_proposal_info(proposal_id);
+}
+
+//
+// Setters
+//
+
+@external
+func update_controller{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_ptr: felt}(
+    new_controller: felt
+) {
+    Voting.update_controller(new_controller);
+    return ();
+}
+
+@external
+func update_quorum{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_ptr: felt}(
+    new_quorum: Uint256
+) {
+    Voting.update_quorum(new_quorum);
+    return ();
+}
+
+@external
+func update_voting_delay{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_ptr: felt}(
+    new_delay: felt
+) {
+    Voting.update_voting_delay(new_delay);
+    return ();
+}
+
+@external
+func update_min_voting_duration{
+    syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_ptr: felt
+}(new_min_voting_duration: felt) {
+    Voting.update_min_voting_duration(new_min_voting_duration);
+    return ();
+}
+
+@external
+func update_max_voting_duration{
+    syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_ptr: felt
+}(new_max_voting_duration: felt) {
+    Voting.update_max_voting_duration(new_max_voting_duration);
+    return ();
+}
+
+@external
+func update_proposal_threshold{
+    syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_ptr: felt
+}(new_proposal_threshold: Uint256) {
+    Voting.update_proposal_threshold(new_proposal_threshold);
+    return ();
+}
+
+@external
+func add_executors{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_ptr: felt}(
+    addresses_len: felt, addresses: felt*
+) {
+    Voting.add_executors(addresses_len, addresses);
+    return ();
+}
+
+@external
+func remove_executors{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_ptr: felt}(
+    addresses_len: felt, addresses: felt*
+) {
+    Voting.remove_executors(addresses_len, addresses);
+    return ();
+}
+
+@external
+func add_voting_strategies{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_ptr: felt}(
+    addresses_len: felt, addresses: felt*, params_flat_len: felt, params_flat: felt*
+) {
+    Voting.add_voting_strategies(addresses_len, addresses, params_flat_len, params_flat);
+    return ();
+}
+
+@external
+func remove_voting_strategies{
+    syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_ptr: felt
+}(indexes_len: felt, indexes: felt*) {
+    Voting.remove_voting_strategies(indexes_len, indexes);
+    return ();
+}
+
+@external
+func add_authenticators{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_ptr: felt}(
+    addresses_len: felt, addresses: felt*
+) {
+    Voting.add_authenticators(addresses_len, addresses);
+    return ();
+}
+
+@external
+func remove_authenticators{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_ptr: felt}(
+    addresses_len: felt, addresses: felt*
+) {
+    Voting.remove_authenticators(addresses_len, addresses);
     return ();
 }

@@ -118,12 +118,12 @@ describe('Space Testing', () => {
       expect(abstain).to.deep.equal(BigInt(0));
     }
     // -- Executes the proposal --
-    {
-      await space.invoke('finalize_proposal', {
-        proposal_id: proposalId,
-        execution_params: executionParams,
-      });
-    }
+    // {
+    //   await space.invoke('finalize_proposal', {
+    //     proposal_id: proposalId,
+    //     execution_params: executionParams,
+    //   });
+    // }
   }).timeout(6000000);
 
   // it('Fails if an invalid voting strategy is used', async () => {

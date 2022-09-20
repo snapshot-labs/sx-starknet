@@ -231,7 +231,6 @@ namespace Voting {
         return ();
     }
 
-    @external
     func update_controller{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_ptr: felt}(
         new_controller: felt
     ) {
@@ -246,7 +245,6 @@ namespace Voting {
         return ();
     }
 
-    @external
     func update_quorum{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_ptr: felt}(
         new_quorum: Uint256
     ) {
@@ -260,7 +258,6 @@ namespace Voting {
         return ();
     }
 
-    @external
     func update_voting_delay{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_ptr: felt}(
         new_delay: felt
     ) {
@@ -275,7 +272,6 @@ namespace Voting {
         return ();
     }
 
-    @external
     func update_min_voting_duration{
         syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_ptr: felt
     }(new_min_duration: felt) {
@@ -296,11 +292,6 @@ namespace Voting {
         return ();
     }
 
-    //
-    // Setters
-    //
-
-    @external
     func update_max_voting_duration{
         syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_ptr: felt
     }(new_max_duration: felt) {
@@ -321,7 +312,6 @@ namespace Voting {
         return ();
     }
 
-    @external
     func update_proposal_threshold{
         syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_ptr: felt
     }(new_threshold: Uint256) {
@@ -336,7 +326,6 @@ namespace Voting {
         return ();
     }
 
-    @external
     func add_executors{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_ptr: felt}(
         to_add_len: felt, to_add: felt*
     ) {
@@ -350,7 +339,6 @@ namespace Voting {
         return ();
     }
 
-    @external
     func remove_executors{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_ptr: felt}(
         to_remove_len: felt, to_remove: felt*
     ) {
@@ -364,7 +352,6 @@ namespace Voting {
         return ();
     }
 
-    @external
     func add_voting_strategies{
         syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_ptr: felt
     }(addresses_len: felt, addresses: felt*, params_flat_len: felt, params_flat: felt*) {
@@ -384,7 +371,6 @@ namespace Voting {
         return ();
     }
 
-    @external
     func remove_voting_strategies{
         syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_ptr: felt
     }(indexes_len: felt, indexes: felt*) {
@@ -399,7 +385,6 @@ namespace Voting {
         return ();
     }
 
-    @external
     func add_authenticators{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_ptr: felt}(
         to_add_len: felt, to_add: felt*
     ) {
@@ -415,7 +400,6 @@ namespace Voting {
         return ();
     }
 
-    @external
     func remove_authenticators{
         syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_ptr: felt
     }(to_remove_len: felt, to_remove: felt*) {
@@ -435,7 +419,6 @@ namespace Voting {
     // Business logic
     //
 
-    @external
     func vote{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_ptr: felt}(
         voter_address: Address,
         proposal_id: felt,
@@ -528,7 +511,6 @@ namespace Voting {
         return ();
     }
 
-    @external
     func propose{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_ptr: felt}(
         proposer_address: Address,
         metadata_uri_string_len: felt,
@@ -625,7 +607,6 @@ namespace Voting {
     }
 
     // Finalizes the proposal, counts the voting power, and send the corresponding result to the L1 executor contract
-    @external
     func finalize_proposal{
         syscall_ptr: felt*,
         pedersen_ptr: HashBuiltin*,
@@ -752,7 +733,6 @@ namespace Voting {
     }
 
     // Cancels the proposal. Only callable by the controller.
-    @external
     func cancel_proposal{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_ptr: felt}(
         proposal_id: felt, execution_params_len: felt, execution_params: felt*
     ) {
