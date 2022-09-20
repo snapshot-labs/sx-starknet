@@ -259,96 +259,96 @@ namespace Voting {
     }
 
     func update_voting_delay{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_ptr: felt}(
-        new_delay: felt
+        new_voting_delay: felt
     ) {
         Ownable.assert_only_owner();
 
         let (previous_delay) = Voting_voting_delay_store.read();
 
-        Voting_voting_delay_store.write(new_delay);
+        Voting_voting_delay_store.write(new_voting_delay);
 
-        voting_delay_updated.emit(previous_delay, new_delay);
+        voting_delay_updated.emit(previous_delay, new_voting_delay);
 
         return ();
     }
 
     func update_min_voting_duration{
         syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_ptr: felt
-    }(new_min_duration: felt) {
+    }(new_min_voting_duration: felt) {
         Ownable.assert_only_owner();
 
-        let (previous_duration) = Voting_min_voting_duration_store.read();
+        let (previous_min_voting_duration) = Voting_min_voting_duration_store.read();
 
-        let (max_duration) = Voting_max_voting_duration_store.read();
+        let (max_voting_duration) = Voting_max_voting_duration_store.read();
 
         with_attr error_message("Min voting duration must be less than max voting duration") {
-            assert_le(new_min_duration, max_duration);
+            assert_le(new_min_voting_duration, max_voting_duration);
         }
 
-        Voting_min_voting_duration_store.write(new_min_duration);
+        Voting_min_voting_duration_store.write(new_min_voting_duration);
 
-        min_voting_duration_updated.emit(previous_duration, new_min_duration);
+        min_voting_duration_updated.emit(previous_min_voting_duration, new_min_voting_duration);
 
         return ();
     }
 
     func update_max_voting_duration{
         syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_ptr: felt
-    }(new_max_duration: felt) {
+    }(new_max_voting_duration: felt) {
         Ownable.assert_only_owner();
 
-        let (previous_duration) = Voting_max_voting_duration_store.read();
+        let (previous_max_voting_duration) = Voting_max_voting_duration_store.read();
 
-        let (min_duration) = Voting_min_voting_duration_store.read();
+        let (min_voting_duration) = Voting_min_voting_duration_store.read();
 
         with_attr error_message("Max voting duration must be greater than min voting duration") {
-            assert_le(min_duration, new_max_duration);
+            assert_le(min_voting_duration, new_max_voting_duration);
         }
 
-        Voting_max_voting_duration_store.write(new_max_duration);
+        Voting_max_voting_duration_store.write(new_max_voting_duration);
 
-        max_voting_duration_updated.emit(previous_duration, new_max_duration);
+        max_voting_duration_updated.emit(previous_max_voting_duration, new_max_voting_duration);
 
         return ();
     }
 
     func update_proposal_threshold{
         syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_ptr: felt
-    }(new_threshold: Uint256) {
+    }(new_proposal_threshold: Uint256) {
         Ownable.assert_only_owner();
 
-        let (previous_threshold) = Voting_proposal_threshold_store.read();
+        let (previous_proposal_threshold) = Voting_proposal_threshold_store.read();
 
-        Voting_proposal_threshold_store.write(new_threshold);
+        Voting_proposal_threshold_store.write(new_proposal_threshold);
 
-        proposal_threshold_updated.emit(previous_threshold, new_threshold);
+        proposal_threshold_updated.emit(previous_proposal_threshold, new_proposal_threshold);
 
         return ();
     }
 
     func add_executors{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_ptr: felt}(
-        to_add_len: felt, to_add: felt*
+        addresses_len: felt, addresses: felt*
     ) {
         alloc_locals;
 
         Ownable.assert_only_owner();
 
-        unchecked_add_executors(to_add_len, to_add);
+        unchecked_add_executors(addresses_len, addresses);
 
-        executors_added.emit(to_add_len, to_add);
+        executors_added.emit(addresses_len, addresses);
         return ();
     }
 
     func remove_executors{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_ptr: felt}(
-        to_remove_len: felt, to_remove: felt*
+        addresses_len: felt, addresses: felt*
     ) {
         alloc_locals;
 
         Ownable.assert_only_owner();
 
-        unchecked_remove_executors(to_remove_len, to_remove);
+        unchecked_remove_executors(addresses_len, addresses);
 
-        executors_removed.emit(to_remove_len, to_remove);
+        executors_removed.emit(addresses_len, addresses);
         return ();
     }
 
@@ -386,7 +386,7 @@ namespace Voting {
     }
 
     func add_authenticators{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_ptr: felt}(
-        to_add_len: felt, to_add: felt*
+        addresses_len: felt, addresses: felt*
     ) {
         alloc_locals;
 
@@ -394,24 +394,24 @@ namespace Voting {
 
         assert_no_active_proposal();
 
-        unchecked_add_authenticators(to_add_len, to_add);
+        unchecked_add_authenticators(addresses_len, addresses);
 
-        authenticators_added.emit(to_add_len, to_add);
+        authenticators_added.emit(addresses_len, addresses);
         return ();
     }
 
     func remove_authenticators{
         syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_ptr: felt
-    }(to_remove_len: felt, to_remove: felt*) {
+    }(addresses_len: felt, addresses: felt*) {
         alloc_locals;
 
         Ownable.assert_only_owner();
 
         assert_no_active_proposal();
 
-        unchecked_remove_authenticators(to_remove_len, to_remove);
+        unchecked_remove_authenticators(addresses_len, addresses);
 
-        authenticators_removed.emit(to_remove_len, to_remove);
+        authenticators_removed.emit(addresses_len, addresses);
         return ();
     }
 
