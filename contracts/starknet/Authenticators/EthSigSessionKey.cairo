@@ -35,7 +35,7 @@ func authenticate{
     session_public_key : felt,
 ):
     # Check session key is active
-    let (eth_address) = SessionKey.get_session_key_owner(session_public_key)
+    let (eth_address) = SessionKey.get_owner(session_public_key)
 
     # Check user's address is equal to the owner of the session key
     with_attr error_message("Invalid Ethereum address"):
@@ -67,8 +67,12 @@ end
 # Performs EC recover on the Ethereum signature and stores the session key in a
 # mapping indexed by the recovered Ethereum address
 @external
-func authorize_session_key_from_sig{
-    syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, bitwise_ptr : BitwiseBuiltin*, range_check_ptr
+func authorize_session_key_with_sig{
+    syscall_ptr : felt*,
+    pedersen_ptr : HashBuiltin*,
+    ecdsa_ptr : SignatureBuiltin*,
+    bitwise_ptr : BitwiseBuiltin*,
+    range_check_ptr,
 }(
     r : Uint256,
     s : Uint256,
@@ -78,17 +82,29 @@ func authorize_session_key_from_sig{
     session_public_key : felt,
     session_duration : felt,
 ):
-    EIP712.verify_session_key_sig(r, s, v, salt, eth_address, session_public_key, session_duration)
-    SessionKey.register_session_key(eth_address, session_public_key, session_duration)
+    SessionKey.authorize_with_sig(r, s, v, salt, eth_address, session_public_key, session_duration)
     return ()
 end
 
 # Checks signature is valid and if so, removes session key for user
 @external
-func revoke_session_key{
+func revoke_session_key_with_session_key_sig{
     syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr, ecdsa_ptr : SignatureBuiltin*
 }(r : felt, s : felt, salt : felt, session_public_key : felt):
-    SessionKey.revoke_session_key(r, s, salt, session_public_key)
+    SessionKey.revoke_with_session_key_sig(r, s, salt, session_public_key)
+    return ()
+end
+
+# Checks signature is valid and if so, removes session key for user
+@external
+func revoke_session_key_with_owner_sig{
+    syscall_ptr : felt*,
+    pedersen_ptr : HashBuiltin*,
+    bitwise_ptr : BitwiseBuiltin*,
+    range_check_ptr,
+    ecdsa_ptr : SignatureBuiltin*,
+}(r : Uint256, s : Uint256, v : felt, salt : Uint256, session_public_key : felt):
+    SessionKey.revoke_with_owner_sig(r, s, v, salt, session_public_key)
     return ()
 end
 
@@ -97,6 +113,6 @@ end
 func get_session_key_owner{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr}(
     session_public_key : felt
 ) -> (eth_address : felt):
-    let (eth_address) = SessionKey.get_session_key_owner(session_public_key)
+    let (eth_address) = SessionKey.get_owner(session_public_key)
     return (eth_address)
 end

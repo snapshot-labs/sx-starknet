@@ -6,9 +6,9 @@ import { ec, typedData, hash, Signer } from 'starknet';
 import { StarknetContract, Account, HttpNetworkConfig } from 'hardhat/types';
 import { utils } from '@snapshot-labs/sx';
 import { ethTxSessionKeyAuthSetup } from '../shared/setup';
-import { domain, SessionKey, sessionKeyTypes } from '../shared/types';
+import { domain } from '../shared/types';
 
-import { proposeTypes, voteTypes } from '../shared/starkTypes';
+import { proposeTypes, revokeSessionKeyTypes } from '../shared/starkTypes';
 import { PROPOSE_SELECTOR } from '../shared/constants';
 
 const { computeHashOnElements } = hash;
@@ -43,23 +43,26 @@ describe('Ethereum Transaction Session Keys', function () {
   let userVotingStrategyParamsFlatHash1: string;
   let executionStrategy: string;
   let executionParams: string[];
-  let ethAddress: string;
   let proposeCalldata: string[];
 
-  // Session Key
+  // Session Keys
   let sessionSigner: Signer;
   let sessionPublicKey: string;
   let sessionDuration: string;
+  let sessionSigner2: Signer;
+  let sessionPublicKey2: string;
 
   before(async function () {
     const accounts = await ethers.getSigners();
     account = accounts[0];
     account2 = accounts[1];
-    ethAddress = account.address;
 
     sessionSigner = new Signer(ec.genKeyPair());
     sessionPublicKey = await sessionSigner.getPubKey();
     sessionDuration = '0x1111';
+
+    sessionSigner2 = new Signer(ec.genKeyPair());
+    sessionPublicKey2 = await sessionSigner2.getPubKey();
 
     ({
       space,
@@ -84,9 +87,8 @@ describe('Ethereum Transaction Session Keys', function () {
     const userVotingStrategyParamsFlat1 = utils.encoding.flatten2DArray(userVotingParamsAll1);
     userVotingStrategyParamsFlatHash1 = hash.computeHashOnElements(userVotingStrategyParamsFlat1);
 
-    ethAddress = accounts[0].address;
     proposeCalldata = utils.encoding.getProposeCalldata(
-      ethAddress,
+      account.address,
       metadataUriInts,
       executionStrategy,
       usedVotingStrategies1,
@@ -102,28 +104,27 @@ describe('Ethereum Transaction Session Keys', function () {
       .connect(account)
       .commit(
         ethTxSessionKeyAuth.address,
-        getCommit(ethAddress, sessionPublicKey, sessionDuration)
+        getCommit(account.address, sessionPublicKey, sessionDuration)
       );
     // Checking that the L1 -> L2 message has been propogated
     expect((await starknet.devnet.flush()).consumed_messages.from_l1).to.have.a.lengthOf(1);
     await ethTxSessionKeyAuth.invoke('authorize_session_key_from_tx', {
-      eth_address: ethAddress,
+      eth_address: account.address,
       session_public_key: sessionPublicKey,
       session_duration: sessionDuration,
     });
     const { eth_address } = await ethTxSessionKeyAuth.call('get_session_key_owner', {
       session_public_key: sessionPublicKey,
     });
-    expect(eth_address).to.deep.equal(BigInt(ethAddress));
+    expect(eth_address).to.deep.equal(BigInt(account.address));
 
     // -- Creates the proposal --
     {
-      const proposalSalt = '0x08';
+      const proposalSalt = ethers.utils.hexlify(ethers.utils.randomBytes(4));
 
       const message = {
-        authenticator: ethTxSessionKeyAuth.address,
         space: spaceAddress,
-        proposerAddress: ethAddress,
+        proposerAddress: account.address,
         metadataURI: metadataUriInts.values,
         executor: vanillaExecutionStrategy.address,
         executionParamsHash: executionHash,
@@ -178,12 +179,12 @@ describe('Ethereum Transaction Session Keys', function () {
       .connect(account)
       .commit(
         ethTxSessionKeyAuth.address,
-        getCommit(ethAddress, sessionPublicKey, sessionDuration)
+        getCommit(account.address, sessionPublicKey, sessionDuration)
       );
     await starknet.devnet.flush();
     try {
       await ethTxSessionKeyAuth.invoke('authorize_session_key_from_tx', {
-        eth_address: ethAddress,
+        eth_address: account.address,
         session_public_key: sessionPublicKey,
         session_duration: fakeSessionDuration,
       });
@@ -198,12 +199,12 @@ describe('Ethereum Transaction Session Keys', function () {
       .connect(account2)
       .commit(
         ethTxSessionKeyAuth.address,
-        getCommit(ethAddress, sessionPublicKey, sessionDuration)
+        getCommit(account.address, sessionPublicKey, sessionDuration)
       );
     await starknet.devnet.flush();
     try {
       await ethTxSessionKeyAuth.invoke('authorize_session_key_from_tx', {
-        eth_address: ethAddress,
+        eth_address: account.address,
         session_public_key: sessionPublicKey,
         session_duration: sessionDuration,
       });
@@ -211,4 +212,70 @@ describe('Ethereum Transaction Session Keys', function () {
       expect(err.message).to.contain('Commit made by invalid L1 address');
     }
   });
+
+  it('Should allow revoking of a session key via a signature from the session key', async () => {
+    // -- Revokes Session Key --
+    {
+      const salt = ethers.utils.hexlify(ethers.utils.randomBytes(4));
+
+      const message = {
+        salt: salt,
+      };
+      const msg: typedData.TypedData = {
+        types: revokeSessionKeyTypes,
+        primaryType: 'RevokeSessionKey',
+        domain,
+        message,
+      };
+      const sig = await sessionSigner.signMessage(msg, ethTxSessionKeyAuth.address);
+      const [r, s] = sig;
+
+      await controller.invoke(ethTxSessionKeyAuth, 'revoke_session_key', {
+        r: r,
+        s: s,
+        salt: salt,
+        session_public_key: sessionPublicKey,
+      });
+    }
+
+    // -- Checks that the session key can no longer be used
+    {
+      const proposalSalt = ethers.utils.hexlify(ethers.utils.randomBytes(4));
+
+      const message = {
+        space: spaceAddress,
+        proposerAddress: account.address,
+        metadataURI: metadataUriInts.values,
+        executor: vanillaExecutionStrategy.address,
+        executionParamsHash: executionHash,
+        usedVotingStrategiesHash: usedVotingStrategiesHash1,
+        userVotingStrategyParamsFlatHash: userVotingStrategyParamsFlatHash1,
+        salt: proposalSalt,
+      };
+      const msg: typedData.TypedData = {
+        types: proposeTypes,
+        primaryType: 'Propose',
+        domain,
+        message,
+      };
+      const sig = await sessionSigner.signMessage(msg, ethTxSessionKeyAuth.address);
+      const [r, s] = sig;
+
+      try {
+        console.log('Creating proposal...');
+        await controller.invoke(ethTxSessionKeyAuth, 'authenticate', {
+          r: r,
+          s: s,
+          salt: proposalSalt,
+          target: spaceAddress,
+          function_selector: PROPOSE_SELECTOR,
+          calldata: proposeCalldata,
+          session_public_key: sessionPublicKey,
+        });
+        throw { message: '' };
+      } catch (err: any) {
+        expect(err.message).to.contain('Session does not exist');
+      }
+    }
+  }).timeout(6000000);
 });

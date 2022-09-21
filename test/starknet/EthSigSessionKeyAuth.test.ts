@@ -56,10 +56,10 @@ describe('Ethereum Signature Session Key Auth testing', () => {
   let sessionDuration: string;
   let sessionSigner2: Signer;
   let sessionPublicKey2: string;
-  let sessionDuration2: string;
 
   before(async function () {
     this.timeout(800000);
+
     const accounts = await ethers.getSigners();
     account = accounts[0];
     account2 = accounts[1];
@@ -126,7 +126,7 @@ describe('Ethereum Signature Session Key Auth testing', () => {
       const sig = await account._signTypedData(domain, sessionKeyTypes, message);
       const { r, s, v } = utils.encoding.getRSVFromSig(sig);
       // Different session duration to signed data
-      await controller.invoke(ethSigSessionKeyAuth, 'authorize_session_key_from_sig', {
+      await controller.invoke(ethSigSessionKeyAuth, 'authorize_session_key_with_sig', {
         r: r,
         s: s,
         v: v,
@@ -156,7 +156,7 @@ describe('Ethereum Signature Session Key Auth testing', () => {
       };
       const sig = await account._signTypedData(domain, sessionKeyTypes, message);
       const { r, s, v } = utils.encoding.getRSVFromSig(sig);
-      await controller.invoke(ethSigSessionKeyAuth, 'authorize_session_key_from_sig', {
+      await controller.invoke(ethSigSessionKeyAuth, 'authorize_session_key_with_sig', {
         r: r,
         s: s,
         v: v,
@@ -334,7 +334,7 @@ describe('Ethereum Signature Session Key Auth testing', () => {
       };
       const sig = await account2._signTypedData(domain, sessionKeyTypes, message);
       const { r, s, v } = utils.encoding.getRSVFromSig(sig);
-      await controller.invoke(ethSigSessionKeyAuth, 'authorize_session_key_from_sig', {
+      await controller.invoke(ethSigSessionKeyAuth, 'authorize_session_key_with_sig', {
         r: r,
         s: s,
         v: v,
@@ -387,32 +387,6 @@ describe('Ethereum Signature Session Key Auth testing', () => {
   }).timeout(6000000);
 
   it('Should allow revoking of a session key via a signature from the session key', async () => {
-    const sessionSigner2 = new Signer(ec.genKeyPair());
-    const sessionPublicKey2 = await sessionSigner2.getPubKey();
-    const accounts = await ethers.getSigners();
-    // // -- Authenticates the session key --
-    // {
-    //   const salt: utils.splitUint256.SplitUint256 = utils.splitUint256.SplitUint256.fromHex(ethers.utils.hexlify(ethers.utils.randomBytes(4)));
-    //   sessionDuration = '0xffffff';
-    //   const message: SessionKey = {
-    //     address: utils.encoding.hexPadRight(accounts[2].address),
-    //     sessionPublicKey: utils.encoding.hexPadRight(sessionPublicKey2),
-    //     sessionDuration: utils.encoding.hexPadRight(sessionDuration),
-    //     salt: salt.toHex(),
-    //   };
-    //   const sig = await account._signTypedData(domain, sessionKeyTypes, message);
-    //   const { r, s, v } = utils.encoding.getRSVFromSig(sig);
-    //   await controller.invoke(ethSigSessionKeyAuth, 'authorize_session_key_from_sig', {
-    //     r: r,
-    //     s: s,
-    //     v: v,
-    //     salt: salt,
-    //     eth_address: accounts[2].address,
-    //     session_public_key: sessionPublicKey2,
-    //     session_duration: sessionDuration,
-    //   });
-    // }
-
     // -- Revokes Session Key --
     {
       const salt = ethers.utils.hexlify(ethers.utils.randomBytes(4));
@@ -429,7 +403,7 @@ describe('Ethereum Signature Session Key Auth testing', () => {
       const sig = await sessionSigner.signMessage(msg, ethSigSessionKeyAuth.address);
       const [r, s] = sig;
 
-      await controller.invoke(ethSigSessionKeyAuth, 'revoke_session_key', {
+      await controller.invoke(ethSigSessionKeyAuth, 'revoke_session_key_with_session_key_sig', {
         r: r,
         s: s,
         salt: salt,
@@ -457,7 +431,7 @@ describe('Ethereum Signature Session Key Auth testing', () => {
         domain,
         message,
       };
-      const sig = await sessionSigner2.signMessage(msg, ethSigSessionKeyAuth.address);
+      const sig = await sessionSigner.signMessage(msg, ethSigSessionKeyAuth.address);
       const [r, s] = sig;
 
       try {
@@ -469,7 +443,7 @@ describe('Ethereum Signature Session Key Auth testing', () => {
           target: spaceAddress,
           function_selector: PROPOSE_SELECTOR,
           calldata: proposeCalldata,
-          session_public_key: sessionPublicKey2,
+          session_public_key: sessionPublicKey,
         });
         throw { message: '' };
       } catch (err: any) {

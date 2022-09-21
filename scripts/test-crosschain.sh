@@ -6,7 +6,7 @@ yarn hardhat test test/crosschain/ZodiacExecution.test.ts --network 'ethereumLoc
 sleep 10 && 
 yarn hardhat test test/crosschain/EthTxAuth.test.ts --network 'ethereumLocal' --starknet-network 'starknetLocal' && 
 sleep 10 &&
-yarn hardhat test test/crosschain/EthTxSessionKeyAuth.test.ts --network 'ethereumLocal' --starknet-network 'starknetLocal' && 
+yarn hardhat test test/crosschain/EthTxSessionKeyAuth.test.ts --network 'ethereumLocal' --starknet-network 'starknetLocal' 
 
 if [ $? -eq 0 ]
 then

@@ -189,7 +189,7 @@ namespace StarkEIP191:
         return ()
     end
 
-    func verify_session_key_sig{
+    func verify_session_key_revoke_sig{
         syscall_ptr : felt*,
         range_check_ptr,
         pedersen_ptr : HashBuiltin*,

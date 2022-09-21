@@ -89,6 +89,15 @@ func authorize_session_key_from_tx{
     return ()
 end
 
+# Checks signature is valid and if so, removes session key for user
+@external
+func revoke_session_key_with_session_key{
+    syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr, ecdsa_ptr : SignatureBuiltin*
+}(r : felt, s : felt, salt : felt, session_public_key : felt):
+    SessionKey.revoke_with_session_key(r, s, salt, session_public_key)
+    return ()
+end
+
 # Receives hash from StarkNet commit contract and stores it in state.
 @l1_handler
 func commit{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr : felt}(
@@ -103,6 +112,6 @@ end
 func get_session_key_owner{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr}(
     session_public_key : felt
 ) -> (eth_address : felt):
-    let (eth_address) = SessionKey.get_session_key_owner(session_public_key)
+    let (eth_address) = SessionKey.get_owner(session_public_key)
     return (eth_address)
 end

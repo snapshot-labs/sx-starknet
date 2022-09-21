@@ -24,6 +24,13 @@ from contracts.starknet.lib.hash_array import HashArray
 
 const ETHEREUM_PREFIX = 0x1901
 
+# This is the domainSeparator, obtained by using those fields (see more about it in EIP712):
+# name: 'snapshot-x',
+# version: '1'
+# chainId: '0x534e5f474f45524c49'
+const DOMAIN_HASH_HIGH = 0x043091edf1497234296cbcfabb6af2ac
+const DOMAIN_HASH_LOW = 0x73449a969c5e0d2c5429cf8e7d9534e9
+
 # This is the `Proposal` typeHash, obtained by doing this:
 # keccak256("Propose(bytes32 authenticator,bytes32 space,bytes32 proposerAddress,string metadataUri,bytes32 executor,bytes32 executionParamsHash,bytes32 usedVotingStrategiesHash,bytes32 userVotingStrategyParamsFlatHash,uint256 salt)")
 # 0xdd4b6d662f476088f7bfd59cd7f3487d83e72c2166a7985fb62fa23315c6db8c
@@ -37,16 +44,12 @@ const VOTE_TYPE_HASH_HIGH = 0x943c2de24cfb6aaea8956c0444db4921
 const VOTE_TYPE_HASH_LOW = 0xef29792e6cd3ada75d9adbd50bd9760a
 
 # keccak256("SessionKey(bytes32 address,bytes32 sessionPublicKey,bytes32 sessionDuration,uint256 salt)")
-const SESSION_KEY_TYPE_HASH_HIGH = 0x233b93cc8989df29b5834cd69e96f1e9
-const SESSION_KEY_TYPE_HASH_LOW = 0x390b13389ac2a65080907f1fcf6385e8
+const SESSION_KEY_INIT_TYPE_HASH_HIGH = 0x233b93cc8989df29b5834cd69e96f1e9
+const SESSION_KEY_INIT_TYPE_HASH_LOW = 0x390b13389ac2a65080907f1fcf6385e8
 
-# This is the domainSeparator, obtained by using those fields (see more about it in EIP712):
-# name: 'snapshot-x',
-# version: '1'
-# chainId: '0x534e5f474f45524c49'
-# Which returns: 0x043091edf1497234296cbcfabb6af2ac73449a969c5e0d2c5429cf8e7d9534e9
-const DOMAIN_HASH_HIGH = 0x043091edf1497234296cbcfabb6af2ac
-const DOMAIN_HASH_LOW = 0x73449a969c5e0d2c5429cf8e7d9534e9
+# keccak256("RevokeSessionKey(bytes32 sessionPublicKey,uint256 salt)")
+const SESSION_KEY_REVOKE_TYPE_HASH_HIGH = 0x0a5ba214c2c419ff474ecb96dc30103d
+const SESSION_KEY_REVOKE_TYPE_HASH_LOW = 0x8166de3d410abc781e23aae247360fa9
 
 @storage_var
 func EIP712_salts(eth_address : felt, salt : Uint256) -> (already_used : felt):
@@ -270,7 +273,7 @@ namespace EIP712:
         return ()
     end
 
-    func verify_session_key_sig{
+    func verify_session_key_init_sig{
         syscall_ptr : felt*,
         pedersen_ptr : HashBuiltin*,
         bitwise_ptr : BitwiseBuiltin*,
@@ -302,7 +305,7 @@ namespace EIP712:
 
         # Now construct the data array
         let (data : Uint256*) = alloc()
-        assert data[0] = Uint256(SESSION_KEY_TYPE_HASH_LOW, SESSION_KEY_TYPE_HASH_HIGH)
+        assert data[0] = Uint256(SESSION_KEY_INIT_TYPE_HASH_LOW, SESSION_KEY_INIT_TYPE_HASH_HIGH)
         assert data[1] = padded_eth_address
         assert data[2] = padded_session_public_key
         assert data[3] = padded_session_duration
@@ -345,149 +348,217 @@ namespace EIP712:
         return ()
     end
 
-    # Adds a 2 bytes (16 bits) `prefix` to a 16 bytes (128 bits) `value`.
-    func _add_prefix128{range_check_ptr, bitwise_ptr : BitwiseBuiltin*}(
-        value : felt, prefix : felt
-    ) -> (result : felt, carry):
-        # Shift the prefix by 128 bits
-        let shifted_prefix = prefix * 2 ** 128
-        # `with_prefix` is now 18 bytes long
-        let with_prefix = shifted_prefix + value
-        # Create 2 bytes mask
-        let overflow_mask = 2 ** 16 - 1
-        # Extract the last two bytes of `with_prefix`
-        let (carry) = bitwise_and(with_prefix, overflow_mask)
-        # Compute the new number, right shift by 16
-        let result = (with_prefix - carry) / 2 ** 16
-        return (result, carry)
-    end
-
-    # Concatenates a 2 bytes long `prefix` and `input` to `output`.
-    # `input_len` is the number of `Uint256` in `input`.
-    func _prepend_prefix_2bytes{range_check_ptr, bitwise_ptr : BitwiseBuiltin*}(
-        prefix : felt, output : Uint256*, input_len : felt, input : Uint256*
-    ):
-        if input_len == 0:
-            # Done, simlpy store the prefix in the `.high` part of the last Uint256, and
-            # make sure we left shift it by 28 (32 - 4)
-            assert output[0] = Uint256(0, prefix * 16 ** 28)
-            return ()
-        else:
-            let num = input[0]
-
-            let (w1, high_carry) = _add_prefix128(num.high, prefix)
-            let (w0, low_carry) = _add_prefix128(num.low, high_carry)
-
-            let res = Uint256(w0, w1)
-            assert output[0] = res
-
-            # Recurse, using the `low_carry` as `prefix`
-            _prepend_prefix_2bytes(low_carry, &output[1], input_len - 1, &input[1])
-            return ()
-        end
-    end
-
-    # Computes the `keccak256` hash from an array of `Uint256`. Does NOT call `finalize_keccak`,
-    # so the caller needs to make she calls `finalize_keccak` on the `keccak_ptr` once she's done
-    # with it.
-    func _get_keccak_hash{range_check_ptr, bitwise_ptr : BitwiseBuiltin*, keccak_ptr : felt*}(
-        uint256_words_len : felt, uint256_words : Uint256*
-    ) -> (hash : Uint256):
-        let (hash) = keccak_uint256s_bigend{keccak_ptr=keccak_ptr}(uint256_words_len, uint256_words)
-
-        return (hash)
-    end
-
-    # Returns the number of digits needed to represent `num` in hexadecimal.
-    # Similar to doing `len(hex(num)[2:])` in Python.
-    # E.g.:
-    # - `0x123` will return `3`
-    # - `0x1` will return `1`
-    # - `0xa3b1d4` will return `6`
-    # Notice: Will not work for `0x0` (will return `0` for `0x0` instead of `1`).
-    func _get_base16_len{range_check_ptr}(num : Uint256) -> (res : felt):
-        let (is_eq) = uint256_eq(num, Uint256(0, 0))
-        if is_eq == 1:
-            return (0)
-        else:
-            # Divide by 16
-            let (divided, _) = uint256_unsigned_div_rem(num, Uint256(16, 0))
-
-            let (res_len) = _get_base16_len(divided)
-            return (res_len + 1)
-        end
-    end
-
-    # Computes `base ** exp` where `base` and `exp` are both `felts` and returns the result as a `Uint256`.
-    func _u256_pow{range_check_ptr}(base : felt, exp : felt) -> (res : Uint256):
+    func verify_session_key_revoke_sig{
+        syscall_ptr : felt*,
+        pedersen_ptr : HashBuiltin*,
+        bitwise_ptr : BitwiseBuiltin*,
+        range_check_ptr,
+    }(
+        r : Uint256,
+        s : Uint256,
+        v : felt,
+        salt : Uint256,
+        eth_address : felt,
+        session_public_key : felt,
+    ) -> ():
         alloc_locals
 
-        if exp == 0:
-            # Any number to the power of 0 is 1
-            return (Uint256(1, 0))
-        else:
-            # Compute `base ** exp - 1`
-            let (recursion) = _u256_pow(base, exp - 1)
-
-            let (uint256_base) = FeltUtils.felt_to_uint256(base)
-
-            # Multiply the result by `base`
-            let (res, overflow) = uint256_mul(recursion, uint256_base)
-
-            with_attr error_message("Overflow happened"):
-                let (no_overflow) = uint256_eq(overflow, Uint256(0, 0))
-                assert no_overflow = 1
-            end
-
-            return (res)
-        end
-    end
-
-    # Right pads `num` with `0` to make it 32 bytes long.
-    # E.g:
-    # - right_pad(0x1)  -> (0x0100000000000000000000000000000000000000000000000000000000000000)
-    # - right_pad(0xaa) -> (0xaa00000000000000000000000000000000000000000000000000000000000000)
-    func _pad_right{range_check_ptr}(num : Uint256) -> (res : Uint256):
-        let (len_base16) = _get_base16_len(num)
-
-        let (_, rem) = unsigned_div_rem(len_base16, 2)
-        if rem == 1:
-            # Odd-length: add one (a byte is two characters long)
-            tempvar len_base16 = len_base16 + 1
-        else:
-            tempvar len_base16 = len_base16
+        # Ensure user has not already used this salt in a previous action
+        let (already_used) = EIP712_salts.read(eth_address, salt)
+        with_attr error_message("Salt already used"):
+            assert already_used = 0
         end
 
-        let base = 16
-        let exp = 64 - len_base16
-        let (power_16) = _u256_pow(base, exp)
+        # Encode data
+        let (session_public_key_u256) = FeltUtils.felt_to_uint256(session_public_key)
+        let (padded_session_public_key) = _pad_right(session_public_key_u256)
 
-        # Left shift
-        let (low, high) = uint256_mul(num, power_16)
+        # Now construct the data array
+        let (data : Uint256*) = alloc()
+        assert data[0] = Uint256(SESSION_KEY_REVOKE_TYPE_HASH_LOW, SESSION_KEY_REVOKE_TYPE_HASH_HIGH)
+        assert data[1] = padded_session_public_key
+        assert data[2] = salt
 
-        with_attr error_message("overflow?"):
-            assert high.low = 0
-            assert high.high = 0
+        # Hash the data array
+        let (local keccak_ptr : felt*) = alloc()
+        let keccak_ptr_start = keccak_ptr
+        let (hash_struct) = _get_keccak_hash{keccak_ptr=keccak_ptr}(3, data)
+
+        # Prepend the domain separator hash
+        let (prepared_encoded : Uint256*) = alloc()
+        assert prepared_encoded[0] = Uint256(DOMAIN_HASH_LOW, DOMAIN_HASH_HIGH)
+        assert prepared_encoded[1] = hash_struct
+
+        # Prepend the ethereum prefix
+        let (encoded_data : Uint256*) = alloc()
+        _prepend_prefix_2bytes(ETHEREUM_PREFIX, encoded_data, 2, prepared_encoded)
+
+        # Now go from Uint256s to Uint64s (required for the cairo keccak implementation)
+        let (signable_bytes) = alloc()
+        let signable_bytes_start = signable_bytes
+        keccak_add_uint256s{inputs=signable_bytes}(n_elements=3, elements=encoded_data, bigend=1)
+
+        # Compute the hash
+        let (msg_hash) = keccak_bigend{keccak_ptr=keccak_ptr}(
+            inputs=signable_bytes_start, n_bytes=2 * 32 + 2
+        )
+
+        # `v` is supposed to be `yParity` and not the `v` usually used in the Ethereum world (pre-EIP155).
+        # We substract `27` because `v` = `{0, 1} + 27`
+        verify_eth_signature_uint256{keccak_ptr=keccak_ptr}(msg_hash, r, s, v - 27, eth_address)
+
+        # Verify that all the previous keccaks are correct
+        finalize_keccak(keccak_ptr_start, keccak_ptr)
+
+        # Write the salt to prevent replay attack
+        EIP712_salts.write(eth_address, salt, 1)
+
+        return ()
+    end
+end
+
+# Adds a 2 bytes (16 bits) `prefix` to a 16 bytes (128 bits) `value`.
+func _add_prefix128{range_check_ptr, bitwise_ptr : BitwiseBuiltin*}(
+    value : felt, prefix : felt
+) -> (result : felt, carry):
+    # Shift the prefix by 128 bits
+    let shifted_prefix = prefix * 2 ** 128
+    # `with_prefix` is now 18 bytes long
+    let with_prefix = shifted_prefix + value
+    # Create 2 bytes mask
+    let overflow_mask = 2 ** 16 - 1
+    # Extract the last two bytes of `with_prefix`
+    let (carry) = bitwise_and(with_prefix, overflow_mask)
+    # Compute the new number, right shift by 16
+    let result = (with_prefix - carry) / 2 ** 16
+    return (result, carry)
+end
+
+# Concatenates a 2 bytes long `prefix` and `input` to `output`.
+# `input_len` is the number of `Uint256` in `input`.
+func _prepend_prefix_2bytes{range_check_ptr, bitwise_ptr : BitwiseBuiltin*}(
+    prefix : felt, output : Uint256*, input_len : felt, input : Uint256*
+):
+    if input_len == 0:
+        # Done, simlpy store the prefix in the `.high` part of the last Uint256, and
+        # make sure we left shift it by 28 (32 - 4)
+        assert output[0] = Uint256(0, prefix * 16 ** 28)
+        return ()
+    else:
+        let num = input[0]
+
+        let (w1, high_carry) = _add_prefix128(num.high, prefix)
+        let (w0, low_carry) = _add_prefix128(num.low, high_carry)
+
+        let res = Uint256(w0, w1)
+        assert output[0] = res
+
+        # Recurse, using the `low_carry` as `prefix`
+        _prepend_prefix_2bytes(low_carry, &output[1], input_len - 1, &input[1])
+        return ()
+    end
+end
+
+# Computes the `keccak256` hash from an array of `Uint256`. Does NOT call `finalize_keccak`,
+# so the caller needs to make she calls `finalize_keccak` on the `keccak_ptr` once she's done
+# with it.
+func _get_keccak_hash{range_check_ptr, bitwise_ptr : BitwiseBuiltin*, keccak_ptr : felt*}(
+    uint256_words_len : felt, uint256_words : Uint256*
+) -> (hash : Uint256):
+    let (hash) = keccak_uint256s_bigend{keccak_ptr=keccak_ptr}(uint256_words_len, uint256_words)
+
+    return (hash)
+end
+
+# Returns the number of digits needed to represent `num` in hexadecimal.
+# Similar to doing `len(hex(num)[2:])` in Python.
+# E.g.:
+# - `0x123` will return `3`
+# - `0x1` will return `1`
+# - `0xa3b1d4` will return `6`
+# Notice: Will not work for `0x0` (will return `0` for `0x0` instead of `1`).
+func _get_base16_len{range_check_ptr}(num : Uint256) -> (res : felt):
+    let (is_eq) = uint256_eq(num, Uint256(0, 0))
+    if is_eq == 1:
+        return (0)
+    else:
+        # Divide by 16
+        let (divided, _) = uint256_unsigned_div_rem(num, Uint256(16, 0))
+
+        let (res_len) = _get_base16_len(divided)
+        return (res_len + 1)
+    end
+end
+
+# Computes `base ** exp` where `base` and `exp` are both `felts` and returns the result as a `Uint256`.
+func _u256_pow{range_check_ptr}(base : felt, exp : felt) -> (res : Uint256):
+    alloc_locals
+
+    if exp == 0:
+        # Any number to the power of 0 is 1
+        return (Uint256(1, 0))
+    else:
+        # Compute `base ** exp - 1`
+        let (recursion) = _u256_pow(base, exp - 1)
+
+        let (uint256_base) = FeltUtils.felt_to_uint256(base)
+
+        # Multiply the result by `base`
+        let (res, overflow) = uint256_mul(recursion, uint256_base)
+
+        with_attr error_message("Overflow happened"):
+            let (no_overflow) = uint256_eq(overflow, Uint256(0, 0))
+            assert no_overflow = 1
         end
 
-        return (low)
+        return (res)
+    end
+end
+
+# Right pads `num` with `0` to make it 32 bytes long.
+# E.g:
+# - right_pad(0x1)  -> (0x0100000000000000000000000000000000000000000000000000000000000000)
+# - right_pad(0xaa) -> (0xaa00000000000000000000000000000000000000000000000000000000000000)
+func _pad_right{range_check_ptr}(num : Uint256) -> (res : Uint256):
+    let (len_base16) = _get_base16_len(num)
+
+    let (_, rem) = unsigned_div_rem(len_base16, 2)
+    if rem == 1:
+        # Odd-length: add one (a byte is two characters long)
+        tempvar len_base16 = len_base16 + 1
+    else:
+        tempvar len_base16 = len_base16
     end
 
-    func _keccak_ints_sequence{range_check_ptr, bitwise_ptr : BitwiseBuiltin*, keccak_ptr : felt*}(
-        nb_bytes : felt, sequence_len : felt, sequence : felt*
-    ) -> (res : Uint256):
-        return keccak_bigend(inputs=sequence, n_bytes=nb_bytes)
+    let base = 16
+    let exp = 64 - len_base16
+    let (power_16) = _u256_pow(base, exp)
+
+    # Left shift
+    let (low, high) = uint256_mul(num, power_16)
+
+    with_attr error_message("overflow?"):
+        assert high.low = 0
+        assert high.high = 0
     end
 
-    func _get_padded_hash{range_check_ptr, pedersen_ptr : HashBuiltin*}(
-        input_len : felt, input : felt*
-    ) -> (res : Uint256):
-        alloc_locals
+    return (low)
+end
 
-        let (hash) = HashArray.hash_array(input_len, input)
-        let (hash_u256) = FeltUtils.felt_to_uint256(hash)
-        let (padded_hash) = _pad_right(hash_u256)
+func _keccak_ints_sequence{range_check_ptr, bitwise_ptr : BitwiseBuiltin*, keccak_ptr : felt*}(
+    nb_bytes : felt, sequence_len : felt, sequence : felt*
+) -> (res : Uint256):
+    return keccak_bigend(inputs=sequence, n_bytes=nb_bytes)
+end
 
-        return (res=padded_hash)
-    end
+func _get_padded_hash{range_check_ptr, pedersen_ptr : HashBuiltin*}(
+    input_len : felt, input : felt*
+) -> (res : Uint256):
+    alloc_locals
+
+    let (hash) = HashArray.hash_array(input_len, input)
+    let (hash_u256) = FeltUtils.felt_to_uint256(hash)
+    let (padded_hash) = _pad_right(hash_u256)
+
+    return (res=padded_hash)
 end
