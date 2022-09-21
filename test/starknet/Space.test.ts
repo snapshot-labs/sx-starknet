@@ -1,6 +1,6 @@
 import { expect } from 'chai';
 import { ethers, starknet } from 'hardhat';
-import { StarknetContract, Account} from 'hardhat/types';
+import { StarknetContract, Account } from 'hardhat/types';
 import { utils } from '@snapshot-labs/sx';
 import { vanillaSetup } from '../shared/setup';
 import { PROPOSE_SELECTOR, VOTE_SELECTOR } from '../shared/constants';
@@ -73,7 +73,6 @@ describe('Space Testing', () => {
   });
 
   it('Users should be able to create a proposal, cast a vote, and execute it', async () => {
-    
     // -- Creates the proposal --
     {
       console.log(PROPOSE_SELECTOR);
@@ -121,30 +120,36 @@ describe('Space Testing', () => {
     }
     // -- Executes the proposal --
     {
-      await space.invoke('finalize_proposal', {
-        proposal_id: proposalId,
-        execution_params: executionParams,
-      },
-      { wallet: relayerWallet });
+      await space.invoke(
+        'finalize_proposal',
+        {
+          proposal_id: proposalId,
+          execution_params: executionParams,
+        },
+        { wallet: relayerWallet }
+      );
     }
   }).timeout(6000000);
 
   it('Fails if an invalid voting strategy is used', async () => {
     // -- Creates the proposal --
     try {
-      await vanillaAuthenticator.invoke('authenticate', {
-        target: spaceAddress,
-        function_selector: PROPOSE_SELECTOR,
-        calldata: utils.encoding.getProposeCalldata(
-          proposerEthAddress,
-          metadataUri,
-          executionStrategy,
-          ['0x1'],
-          userVotingParamsAll1,
-          executionParams
-        ),
-      },
-      { wallet: relayerWallet });
+      await vanillaAuthenticator.invoke(
+        'authenticate',
+        {
+          target: spaceAddress,
+          function_selector: PROPOSE_SELECTOR,
+          calldata: utils.encoding.getProposeCalldata(
+            proposerEthAddress,
+            metadataUri,
+            executionStrategy,
+            ['0x1'],
+            userVotingParamsAll1,
+            executionParams
+          ),
+        },
+        { wallet: relayerWallet }
+      );
     } catch (error: any) {
       expect(error.message).to.contain('Invalid voting strategy');
     }
@@ -168,12 +173,15 @@ describe('Space Testing', () => {
       );
 
       try {
-        await vanillaAuthenticator.invoke('authenticate', {
-          target: spaceAddress,
-          function_selector: PROPOSE_SELECTOR,
-          calldata: duplicateCalldata,
-        }, 
-        { wallet: relayerWallet });
+        await vanillaAuthenticator.invoke(
+          'authenticate',
+          {
+            target: spaceAddress,
+            function_selector: PROPOSE_SELECTOR,
+            calldata: duplicateCalldata,
+          },
+          { wallet: relayerWallet }
+        );
       } catch (error: any) {
         expect(error.message).to.contain('Duplicate entry found');
       }
@@ -200,12 +208,15 @@ describe('Space Testing', () => {
       [[], [], []],
       executionParams
     );
-    await vanillaAuthenticator.invoke('authenticate', {
-      target: spaceAddress,
-      function_selector: PROPOSE_SELECTOR,
-      calldata: proposeCalldata,
-    }, 
-    { wallet: relayerWallet });
+    await vanillaAuthenticator.invoke(
+      'authenticate',
+      {
+        target: spaceAddress,
+        function_selector: PROPOSE_SELECTOR,
+        calldata: proposeCalldata,
+      },
+      { wallet: relayerWallet }
+    );
 
     // -- Casts vote --
     voteCalldata = utils.encoding.getVoteCalldata(
@@ -216,12 +227,15 @@ describe('Space Testing', () => {
       [[], [], []]
     );
 
-    await vanillaAuthenticator.invoke('authenticate', {
-      target: spaceAddress,
-      function_selector: VOTE_SELECTOR,
-      calldata: voteCalldata,
-    }, 
-    { wallet: relayerWallet });
+    await vanillaAuthenticator.invoke(
+      'authenticate',
+      {
+        target: spaceAddress,
+        function_selector: VOTE_SELECTOR,
+        calldata: voteCalldata,
+      },
+      { wallet: relayerWallet }
+    );
 
     const { proposal_info } = await space.call('get_proposal_info', {
       proposal_id: '0x2',
