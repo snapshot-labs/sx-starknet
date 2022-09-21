@@ -85,12 +85,10 @@ end
 
 # Checks signature is valid and if so, removes session key for user
 @external
-func revoke_session_key{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr}(
-    sig_len : felt, sig : felt*, session_public_key : felt
-):
-    # TO DO: sig verification
-
-    SessionKey.revoke_session_key(sig_len, sig, session_public_key)
+func revoke_session_key{
+    syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr, ecdsa_ptr : SignatureBuiltin*
+}(r : felt, s : felt, salt : felt, session_public_key : felt):
+    SessionKey.revoke_session_key(r, s, salt, session_public_key)
     return ()
 end
 

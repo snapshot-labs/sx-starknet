@@ -3,10 +3,11 @@ import { StarknetContract, Account } from 'hardhat/types';
 import { ec, typedData, hash, Signer } from 'starknet';
 import { ethers } from 'hardhat';
 import { domain, SessionKey, sessionKeyTypes } from '../shared/types';
-import { proposeTypes, voteTypes } from '../shared/starkTypes';
+import { proposeTypes, revokeSessionKeyTypes, voteTypes } from '../shared/starkTypes';
 import { PROPOSE_SELECTOR, VOTE_SELECTOR } from '../shared/constants';
 import { utils } from '@snapshot-labs/sx';
 import { ethSigSessionKeyAuthSetup } from '../shared/setup';
+import { SignerWithAddress } from '@nomiclabs/hardhat-ethers/signers';
 
 function sleep(milliseconds: number) {
   const date = Date.now();
@@ -17,6 +18,9 @@ function sleep(milliseconds: number) {
 }
 
 describe('Ethereum Signature Session Key Auth testing', () => {
+  let account: SignerWithAddress;
+  let account2: SignerWithAddress;
+
   // Contracts
   let space: StarknetContract;
   let controller: Account;
@@ -35,11 +39,9 @@ describe('Ethereum Signature Session Key Auth testing', () => {
   let userVotingStrategyParamsFlatHash1: string;
   let executionStrategy: string;
   let executionParams: string[];
-  let proposerEthAddress: string;
   let proposeCalldata: string[];
 
   // Additional parameters for voting
-  let voterEthAddress: string;
   let proposalId: string;
   let choice: utils.choice.Choice;
   let usedVotingStrategies2: string[];
@@ -48,17 +50,24 @@ describe('Ethereum Signature Session Key Auth testing', () => {
   let userVotingStrategyParamsFlatHash2: string;
   let voteCalldata: string[];
 
-  // Session Key
+  // Session Keys
   let sessionSigner: Signer;
   let sessionPublicKey: string;
   let sessionDuration: string;
+  let sessionSigner2: Signer;
+  let sessionPublicKey2: string;
+  let sessionDuration2: string;
 
   before(async function () {
     this.timeout(800000);
     const accounts = await ethers.getSigners();
+    account = accounts[0];
+    account2 = accounts[1];
 
     sessionSigner = new Signer(ec.genKeyPair());
     sessionPublicKey = await sessionSigner.getPubKey();
+    sessionSigner2 = new Signer(ec.genKeyPair());
+    sessionPublicKey2 = await sessionSigner2.getPubKey();
 
     ({ space, controller, ethSigSessionKeyAuth, vanillaVotingStrategy, vanillaExecutionStrategy } =
       await ethSigSessionKeyAuthSetup());
@@ -76,9 +85,8 @@ describe('Ethereum Signature Session Key Auth testing', () => {
     const userVotingStrategyParamsFlat1 = utils.encoding.flatten2DArray(userVotingParamsAll1);
     userVotingStrategyParamsFlatHash1 = hash.computeHashOnElements(userVotingStrategyParamsFlat1);
 
-    proposerEthAddress = accounts[0].address;
     proposeCalldata = utils.encoding.getProposeCalldata(
-      proposerEthAddress,
+      account.address,
       metadataUriInts,
       executionStrategy,
       usedVotingStrategies1,
@@ -86,7 +94,6 @@ describe('Ethereum Signature Session Key Auth testing', () => {
       executionParams
     );
 
-    voterEthAddress = accounts[0].address;
     proposalId = '0x1';
     choice = utils.choice.Choice.FOR;
     usedVotingStrategies2 = ['0x0'];
@@ -95,7 +102,7 @@ describe('Ethereum Signature Session Key Auth testing', () => {
     const userVotingStrategyParamsFlat2 = utils.encoding.flatten2DArray(userVotingParamsAll2);
     userVotingStrategyParamsFlatHash2 = hash.computeHashOnElements(userVotingStrategyParamsFlat2);
     voteCalldata = utils.encoding.getVoteCalldata(
-      voterEthAddress,
+      account.address,
       proposalId,
       choice,
       usedVotingStrategies2,
@@ -106,7 +113,9 @@ describe('Ethereum Signature Session Key Auth testing', () => {
   it('Should not generate a session key if an invalid signature is provided', async () => {
     try {
       const accounts = await ethers.getSigners();
-      const salt: utils.splitUint256.SplitUint256 = utils.splitUint256.SplitUint256.fromHex('0x01');
+      const salt: utils.splitUint256.SplitUint256 = utils.splitUint256.SplitUint256.fromHex(
+        ethers.utils.hexlify(ethers.utils.randomBytes(4))
+      );
       sessionDuration = '0x30';
       const message: SessionKey = {
         address: utils.encoding.hexPadRight(accounts[0].address),
@@ -114,7 +123,7 @@ describe('Ethereum Signature Session Key Auth testing', () => {
         sessionDuration: utils.encoding.hexPadRight(sessionDuration),
         salt: salt.toHex(),
       };
-      const sig = await accounts[0]._signTypedData(domain, sessionKeyTypes, message);
+      const sig = await account._signTypedData(domain, sessionKeyTypes, message);
       const { r, s, v } = utils.encoding.getRSVFromSig(sig);
       // Different session duration to signed data
       await controller.invoke(ethSigSessionKeyAuth, 'authorize_session_key_from_sig', {
@@ -122,7 +131,7 @@ describe('Ethereum Signature Session Key Auth testing', () => {
         s: s,
         v: v,
         salt: salt,
-        eth_address: accounts[0].address,
+        eth_address: account.address,
         session_public_key: sessionPublicKey,
         session_duration: '0x1111',
       });
@@ -135,40 +144,40 @@ describe('Ethereum Signature Session Key Auth testing', () => {
   it('Should generate a session key and allow authentication via it if a valid signature is provided', async () => {
     // -- Authenticates the session key --
     {
-      const accounts = await ethers.getSigners();
-      const salt: utils.splitUint256.SplitUint256 = utils.splitUint256.SplitUint256.fromHex('0x07');
+      const salt: utils.splitUint256.SplitUint256 = utils.splitUint256.SplitUint256.fromHex(
+        ethers.utils.hexlify(ethers.utils.randomBytes(4))
+      );
       sessionDuration = '0xffff';
       const message: SessionKey = {
-        address: utils.encoding.hexPadRight(accounts[0].address),
+        address: utils.encoding.hexPadRight(account.address),
         sessionPublicKey: utils.encoding.hexPadRight(sessionPublicKey),
         sessionDuration: utils.encoding.hexPadRight(sessionDuration),
         salt: salt.toHex(),
       };
-      const sig = await accounts[0]._signTypedData(domain, sessionKeyTypes, message);
+      const sig = await account._signTypedData(domain, sessionKeyTypes, message);
       const { r, s, v } = utils.encoding.getRSVFromSig(sig);
       await controller.invoke(ethSigSessionKeyAuth, 'authorize_session_key_from_sig', {
         r: r,
         s: s,
         v: v,
         salt: salt,
-        eth_address: accounts[0].address,
+        eth_address: account.address,
         session_public_key: sessionPublicKey,
         session_duration: sessionDuration,
       });
       const { eth_address } = await ethSigSessionKeyAuth.call('get_session_key_owner', {
         session_public_key: sessionPublicKey,
       });
-      expect(eth_address).to.deep.equal(BigInt(accounts[0].address));
+      expect(eth_address).to.deep.equal(BigInt(account.address));
     }
 
     // -- Creates the proposal --
     {
-      const proposalSalt = '0x08';
+      const proposalSalt = ethers.utils.hexlify(ethers.utils.randomBytes(4));
 
       const message = {
-        authenticator: ethSigSessionKeyAuth.address,
         space: spaceAddress,
-        proposerAddress: proposerEthAddress,
+        proposerAddress: account.address,
         metadataURI: metadataUriInts.values,
         executor: vanillaExecutionStrategy.address,
         executionParamsHash: executionHash,
@@ -218,12 +227,11 @@ describe('Ethereum Signature Session Key Auth testing', () => {
     // -- Casts Vote --
     {
       console.log('Casting a vote FOR...');
-      const voteSalt = '0x09';
+      const voteSalt = ethers.utils.hexlify(ethers.utils.randomBytes(4));
 
       const message = {
-        authenticator: ethSigSessionKeyAuth.address,
         space: spaceAddress,
-        voterAddress: voterEthAddress,
+        voterAddress: account.address,
         proposal: proposalId,
         choice: utils.choice.Choice.FOR,
         usedVotingStrategiesHash: usedVotingStrategiesHash2,
@@ -280,11 +288,11 @@ describe('Ethereum Signature Session Key Auth testing', () => {
       // Invalid session key
       const sessionSigner2 = new Signer(ec.genKeyPair());
       const sessionPublicKey2 = await sessionSigner2.getPubKey();
-      const voteSalt = '0x03';
+      const voteSalt = ethers.utils.hexlify(ethers.utils.randomBytes(4));
       const message = {
         authenticator: ethSigSessionKeyAuth.address,
         space: spaceAddress,
-        voterAddress: voterEthAddress,
+        voterAddress: account.address,
         proposal: proposalId,
         choice: utils.choice.Choice.FOR,
         usedVotingStrategiesHash: usedVotingStrategiesHash2,
@@ -311,27 +319,27 @@ describe('Ethereum Signature Session Key Auth testing', () => {
   }).timeout(6000000);
 
   it('Should reject an expired session key', async () => {
-    const sessionSigner2 = new Signer(ec.genKeyPair());
-    const sessionPublicKey2 = await sessionSigner2.getPubKey();
     // -- Authenticates the session key --
     {
       const accounts = await ethers.getSigners();
-      const salt: utils.splitUint256.SplitUint256 = utils.splitUint256.SplitUint256.fromHex('0x01');
-      sessionDuration = '0x1';
+      const salt: utils.splitUint256.SplitUint256 = utils.splitUint256.SplitUint256.fromHex(
+        ethers.utils.hexlify(ethers.utils.randomBytes(4))
+      );
+      sessionDuration = '0x1'; // 1 second duration session
       const message: SessionKey = {
         address: utils.encoding.hexPadRight(accounts[1].address),
         sessionPublicKey: utils.encoding.hexPadRight(sessionPublicKey2),
         sessionDuration: utils.encoding.hexPadRight(sessionDuration),
         salt: salt.toHex(),
       };
-      const sig = await accounts[1]._signTypedData(domain, sessionKeyTypes, message);
+      const sig = await account2._signTypedData(domain, sessionKeyTypes, message);
       const { r, s, v } = utils.encoding.getRSVFromSig(sig);
       await controller.invoke(ethSigSessionKeyAuth, 'authorize_session_key_from_sig', {
         r: r,
         s: s,
         v: v,
         salt: salt,
-        eth_address: accounts[1].address,
+        eth_address: account2.address,
         session_public_key: sessionPublicKey2,
         session_duration: sessionDuration,
       });
@@ -339,12 +347,103 @@ describe('Ethereum Signature Session Key Auth testing', () => {
 
     // -- Creates the proposal --
     {
-      const proposalSalt = '0x08';
+      const proposalSalt = ethers.utils.hexlify(ethers.utils.randomBytes(4));
 
       const message = {
         authenticator: ethSigSessionKeyAuth.address,
         space: spaceAddress,
-        proposerAddress: proposerEthAddress,
+        proposerAddress: account2.address,
+        metadataURI: metadataUriInts.values,
+        executor: vanillaExecutionStrategy.address,
+        executionParamsHash: executionHash,
+        usedVotingStrategiesHash: usedVotingStrategiesHash1,
+        userVotingStrategyParamsFlatHash: userVotingStrategyParamsFlatHash1,
+        salt: proposalSalt,
+      };
+      const msg: typedData.TypedData = {
+        types: proposeTypes,
+        primaryType: 'Propose',
+        domain,
+        message,
+      };
+      const sig = await sessionSigner2.signMessage(msg, ethSigSessionKeyAuth.address);
+      const [r, s] = sig;
+
+      try {
+        await controller.invoke(ethSigSessionKeyAuth, 'authenticate', {
+          r: r,
+          s: s,
+          salt: proposalSalt,
+          target: spaceAddress,
+          function_selector: PROPOSE_SELECTOR,
+          calldata: proposeCalldata,
+          session_public_key: sessionPublicKey2,
+        });
+        throw { message: '' };
+      } catch (err: any) {
+        expect(err.message).to.contain('Session has ended');
+      }
+    }
+  }).timeout(6000000);
+
+  it('Should allow revoking of a session key via a signature from the session key', async () => {
+    const sessionSigner2 = new Signer(ec.genKeyPair());
+    const sessionPublicKey2 = await sessionSigner2.getPubKey();
+    const accounts = await ethers.getSigners();
+    // // -- Authenticates the session key --
+    // {
+    //   const salt: utils.splitUint256.SplitUint256 = utils.splitUint256.SplitUint256.fromHex(ethers.utils.hexlify(ethers.utils.randomBytes(4)));
+    //   sessionDuration = '0xffffff';
+    //   const message: SessionKey = {
+    //     address: utils.encoding.hexPadRight(accounts[2].address),
+    //     sessionPublicKey: utils.encoding.hexPadRight(sessionPublicKey2),
+    //     sessionDuration: utils.encoding.hexPadRight(sessionDuration),
+    //     salt: salt.toHex(),
+    //   };
+    //   const sig = await account._signTypedData(domain, sessionKeyTypes, message);
+    //   const { r, s, v } = utils.encoding.getRSVFromSig(sig);
+    //   await controller.invoke(ethSigSessionKeyAuth, 'authorize_session_key_from_sig', {
+    //     r: r,
+    //     s: s,
+    //     v: v,
+    //     salt: salt,
+    //     eth_address: accounts[2].address,
+    //     session_public_key: sessionPublicKey2,
+    //     session_duration: sessionDuration,
+    //   });
+    // }
+
+    // -- Revokes Session Key --
+    {
+      const salt = ethers.utils.hexlify(ethers.utils.randomBytes(4));
+
+      const message = {
+        salt: salt,
+      };
+      const msg: typedData.TypedData = {
+        types: revokeSessionKeyTypes,
+        primaryType: 'RevokeSessionKey',
+        domain,
+        message,
+      };
+      const sig = await sessionSigner.signMessage(msg, ethSigSessionKeyAuth.address);
+      const [r, s] = sig;
+
+      await controller.invoke(ethSigSessionKeyAuth, 'revoke_session_key', {
+        r: r,
+        s: s,
+        salt: salt,
+        session_public_key: sessionPublicKey,
+      });
+    }
+
+    // -- Checks that the session key can no longer be used
+    {
+      const proposalSalt = ethers.utils.hexlify(ethers.utils.randomBytes(4));
+
+      const message = {
+        space: spaceAddress,
+        proposerAddress: account.address,
         metadataURI: metadataUriInts.values,
         executor: vanillaExecutionStrategy.address,
         executionParamsHash: executionHash,
@@ -374,7 +473,7 @@ describe('Ethereum Signature Session Key Auth testing', () => {
         });
         throw { message: '' };
       } catch (err: any) {
-        expect(err.message).to.contain('Session has ended');
+        expect(err.message).to.contain('Session does not exist');
       }
     }
   }).timeout(6000000);

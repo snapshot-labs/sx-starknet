@@ -17,15 +17,18 @@ const DOMAIN_HASH = 0x7b887e96718721a64b601a4873454d4a9e26a4b798d660c8d6b96d2045
 
 const STARKNET_MESSAGE = 0x537461726b4e6574204d657373616765
 
-# getSelectorFromName("Propose(authenticator:felt,space:felt,proposerAddress:felt,metadataURI:felt*,executor:felt,executionParamsHash:felt,usedVotingStrategiesHash:felt,userVotingStrategyParamsFlatHash:felt,salt:felt)")
-const PROPOSAL_HASH = 0x35180a46d53c4d36513bccec7be2c0483af6d821501af7e5b4ffa0700136c55
+# getSelectorFromName("Propose(space:felt,proposerAddress:felt,metadataURI:felt*,executor:felt,executionParamsHash:felt,usedVotingStrategiesHash:felt,userVotingStrategyParamsFlatHash:felt,salt:felt)")
+const PROPOSAL_TYPE_HASH = 0x35E10EF4A95BB833EE01F14D379540B1724B76496753505D7CCEB30E133BF2
 
-# getSelectorFromName("Vote(authenticator:felt,space:felt,voterAddress:felt,proposal:felt,choice:felt,usedVotingStrategiesHash:felt,userVotingStrategyParamsFlatHash:felt,salt:felt)")
-const VOTE_HASH = 0x681e893f9fbb94a75c0eef52211a33b0446cd6b802420bb4e3c65f17099aaf
+# getSelectorFromName("Vote(space:felt,voterAddress:felt,proposal:felt,choice:felt,usedVotingStrategiesHash:felt,userVotingStrategyParamsFlatHash:felt,salt:felt)")
+const VOTE_TYPE_HASH = 0x2A9A147261602C563F1C9D05CA076F6AE23A8A7A161EE8C8E3DE6E468BEAF9E
+
+# getSelectorFromName("RevokeSessionKey(salt:felt)")
+const REVOKE_SESSION_KEY_TYPE_HASH = 0x31F0BF4E2BBD12ECBA02E325F0EA3231350A638FC633AF8EBF244F50663ACE8
 
 # Maps a tuple of (user, salt) to a boolean stating whether this tuple was already used or not (to prevent replay attack).
 @storage_var
-func StarkSig_salts(user : felt, salt : felt) -> (already_used : felt):
+func StarkEIP191_salts(user : felt, salt : felt) -> (already_used : felt):
 end
 
 namespace StarkEIP191:
@@ -50,7 +53,7 @@ namespace StarkEIP191:
         let (authenticator) = get_contract_address()
 
         # Ensure proposer has not already used this salt in a previous action
-        let (already_used) = StarkSig_salts.read(proposer_address, salt)
+        let (already_used) = StarkEIP191_salts.read(proposer_address, salt)
 
         with_attr error_message("Salt already used"):
             assert already_used = 0
@@ -87,18 +90,17 @@ namespace StarkEIP191:
 
         let (structure : felt*) = alloc()
 
-        assert structure[0] = PROPOSAL_HASH
-        assert structure[1] = authenticator
-        assert structure[2] = target
-        assert structure[3] = proposer_address
-        assert structure[4] = metadata_uri_hash
-        assert structure[5] = executor
-        assert structure[6] = execution_hash
-        assert structure[7] = used_voting_strategies_hash
-        assert structure[8] = user_voting_strategy_params_flat_hash
-        assert structure[9] = salt
+        assert structure[0] = PROPOSAL_TYPE_HASH
+        assert structure[1] = target
+        assert structure[2] = proposer_address
+        assert structure[3] = metadata_uri_hash
+        assert structure[4] = executor
+        assert structure[5] = execution_hash
+        assert structure[6] = used_voting_strategies_hash
+        assert structure[7] = user_voting_strategy_params_flat_hash
+        assert structure[8] = salt
 
-        let (hash_struct) = HashArray.hash_array(10, structure)
+        let (hash_struct) = HashArray.hash_array(9, structure)
 
         let (message : felt*) = alloc()
 
@@ -111,7 +113,7 @@ namespace StarkEIP191:
 
         verify_ecdsa_signature(message_hash, public_key, r, s)
 
-        StarkSig_salts.write(proposer_address, salt, 1)
+        StarkEIP191_salts.write(proposer_address, salt, 1)
 
         return ()
     end
@@ -137,7 +139,7 @@ namespace StarkEIP191:
         let (authenticator) = get_contract_address()
 
         # Ensure voter has not already used this salt in a previous action
-        let (already_used) = StarkSig_salts.read(voter_address, salt)
+        let (already_used) = StarkEIP191_salts.read(voter_address, salt)
 
         with_attr error_message("Salt already used"):
             assert already_used = 0
@@ -160,17 +162,16 @@ namespace StarkEIP191:
 
         # Now construct the data hash (hashStruct)
         let (structure : felt*) = alloc()
-        assert structure[0] = VOTE_HASH
-        assert structure[1] = authenticator
-        assert structure[2] = target
-        assert structure[3] = voter_address
-        assert structure[4] = proposal_id
-        assert structure[5] = choice
-        assert structure[6] = used_voting_strategies_hash
-        assert structure[7] = user_voting_strategy_params_flat_hash
-        assert structure[8] = salt
+        assert structure[0] = VOTE_TYPE_HASH
+        assert structure[1] = target
+        assert structure[2] = voter_address
+        assert structure[3] = proposal_id
+        assert structure[4] = choice
+        assert structure[5] = used_voting_strategies_hash
+        assert structure[6] = user_voting_strategy_params_flat_hash
+        assert structure[7] = salt
 
-        let (hash_struct) = HashArray.hash_array(9, structure)
+        let (hash_struct) = HashArray.hash_array(8, structure)
 
         let (message : felt*) = alloc()
 
@@ -183,7 +184,46 @@ namespace StarkEIP191:
 
         verify_ecdsa_signature(message_hash, public_key, r, s)
 
-        StarkSig_salts.write(voter_address, salt, 1)
+        StarkEIP191_salts.write(voter_address, salt, 1)
+
+        return ()
+    end
+
+    func verify_session_key_sig{
+        syscall_ptr : felt*,
+        range_check_ptr,
+        pedersen_ptr : HashBuiltin*,
+        ecdsa_ptr : SignatureBuiltin*,
+    }(r : felt, s : felt, salt : felt, public_key : felt):
+        alloc_locals
+
+        let (authenticator) = get_contract_address()
+
+        # Ensure voter has not already used this salt in a previous action
+        let (already_used) = StarkEIP191_salts.read(public_key, salt)
+        with_attr error_message("Salt already used"):
+            assert already_used = 0
+        end
+
+        # Now construct the data hash (hashStruct)
+        let (structure : felt*) = alloc()
+        assert structure[0] = REVOKE_SESSION_KEY_TYPE_HASH
+        assert structure[1] = salt
+
+        let (hash_struct) = HashArray.hash_array(2, structure)
+
+        let (message : felt*) = alloc()
+
+        assert message[0] = STARKNET_MESSAGE
+        assert message[1] = DOMAIN_HASH
+        assert message[2] = authenticator
+        assert message[3] = hash_struct
+
+        let (message_hash) = HashArray.hash_array(4, message)
+
+        verify_ecdsa_signature(message_hash, public_key, r, s)
+
+        StarkEIP191_salts.write(public_key, salt, 1)
 
         return ()
     end

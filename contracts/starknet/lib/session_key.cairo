@@ -1,8 +1,10 @@
 %lang starknet
 
 from starkware.starknet.common.syscalls import get_block_timestamp
-from starkware.cairo.common.cairo_builtins import HashBuiltin
+from starkware.cairo.common.cairo_builtins import HashBuiltin, SignatureBuiltin
 from starkware.cairo.common.math import assert_le, assert_not_zero
+
+from contracts.starknet.lib.stark_eip191 import StarkEIP191
 
 @storage_var
 func SessionKey_owner(session_public_key : felt) -> (eth_address : felt):
@@ -31,12 +33,13 @@ namespace SessionKey:
         return ()
     end
 
-    func revoke_session_key{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr}(
-        sig_len : felt, sig : felt*, session_public_key : felt
-    ):
-        # TODO: Verify stark signature
-
-        # Set session key owner to zero
+    func revoke_session_key{
+        syscall_ptr : felt*,
+        range_check_ptr,
+        pedersen_ptr : HashBuiltin*,
+        ecdsa_ptr : SignatureBuiltin*,
+    }(r : felt, s : felt, salt : felt, session_public_key : felt):
+        StarkEIP191.verify_session_key_sig(r, s, salt, session_public_key)
         SessionKey_owner.write(session_public_key, 0)
         session_key_revoked.emit(session_public_key)
         return ()

@@ -286,7 +286,7 @@ namespace EIP712:
     ) -> ():
         alloc_locals
 
-        # Ensure voter has not already used this salt in a previous action
+        # Ensure user has not already used this salt in a previous action
         let (already_used) = EIP712_salts.read(eth_address, salt)
         with_attr error_message("Salt already used"):
             assert already_used = 0
