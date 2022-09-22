@@ -38,7 +38,7 @@ func authenticate{
     session_public_key : felt,
 ):
     # Check session key is active
-    let (eth_address) = SessionKey.get_session_key_owner(session_public_key)
+    let (eth_address) = SessionKey.get_owner(session_public_key)
 
     # Check user's address is equal to the owner of the session key
     with_attr error_message("Invalid Ethereum address"):
@@ -70,40 +70,27 @@ end
 # Performs EC recover on the Ethereum signature and stores the session key in a
 # mapping indexed by the recovered Ethereum address
 @external
-func authorize_session_key_from_tx{
+func authorize_session_key_with_tx{
     syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr
 }(eth_address : felt, session_public_key : felt, session_duration : felt):
-    alloc_locals
-    # Cast arguments to single array and hash them
-    let (input_array : felt*) = alloc()
-    assert input_array[0] = eth_address
-    assert input_array[1] = session_public_key
-    assert input_array[2] = session_duration
-    let (hash) = HashArray.hash_array(3, input_array)
-
-    # Checks that hash maches a commit and that the commit was created by the correct address
-    EthTx.check_commit(hash, eth_address)
-
-    # Register session key
-    SessionKey.register_session_key(eth_address, session_public_key, session_duration)
+    SessionKey.authorize_with_tx(eth_address, session_public_key, session_duration)
     return ()
 end
 
 # Checks signature is valid and if so, removes session key for user
 @external
-func revoke_session_key_with_session_key{
+func revoke_session_key_with_session_key_sig{
     syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr, ecdsa_ptr : SignatureBuiltin*
 }(r : felt, s : felt, salt : felt, session_public_key : felt):
-    SessionKey.revoke_with_session_key(r, s, salt, session_public_key)
+    SessionKey.revoke_with_session_key_sig(r, s, salt, session_public_key)
     return ()
 end
 
-# Receives hash from StarkNet commit contract and stores it in state.
-@l1_handler
-func commit{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr : felt}(
-    from_address : felt, sender : felt, hash : felt
-):
-    EthTx.commit(from_address, sender, hash)
+@external
+func revoke_session_key_with_owner_tx{
+    syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr
+}(session_public_key : felt):
+    SessionKey.revoke_with_owner_tx(session_public_key)
     return ()
 end
 
@@ -114,4 +101,13 @@ func get_session_key_owner{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, ran
 ) -> (eth_address : felt):
     let (eth_address) = SessionKey.get_owner(session_public_key)
     return (eth_address)
+end
+
+# Receives hash from StarkNet commit contract and stores it in state.
+@l1_handler
+func commit{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr : felt}(
+    from_address : felt, sender : felt, hash : felt
+):
+    EthTx.commit(from_address, sender, hash)
+    return ()
 end

@@ -2,8 +2,14 @@ import { expect } from 'chai';
 import { StarknetContract, Account } from 'hardhat/types';
 import { ec, typedData, hash, Signer } from 'starknet';
 import { ethers } from 'hardhat';
-import { domain, SessionKey, sessionKeyTypes } from '../shared/types';
-import { proposeTypes, revokeSessionKeyTypes, voteTypes } from '../shared/starkTypes';
+import {
+  domain,
+  SessionKey,
+  sessionKeyTypes,
+  RevokeSessionKey,
+  revokeSessionKeyTypes,
+} from '../shared/types';
+import * as starkTypes from '../shared/starkTypes';
 import { PROPOSE_SELECTOR, VOTE_SELECTOR } from '../shared/constants';
 import { utils } from '@snapshot-labs/sx';
 import { ethSigSessionKeyAuthSetup } from '../shared/setup';
@@ -186,7 +192,7 @@ describe('Ethereum Signature Session Key Auth testing', () => {
         salt: proposalSalt,
       };
       const msg: typedData.TypedData = {
-        types: proposeTypes,
+        types: starkTypes.proposeTypes,
         primaryType: 'Propose',
         domain,
         message,
@@ -238,7 +244,7 @@ describe('Ethereum Signature Session Key Auth testing', () => {
         userVotingStrategyParamsFlatHash: userVotingStrategyParamsFlatHash2,
         salt: voteSalt,
       };
-      const msg = { types: voteTypes, primaryType: 'Vote', domain, message };
+      const msg = { types: starkTypes.voteTypes, primaryType: 'Vote', domain, message };
       const sig = await sessionSigner.signMessage(msg, ethSigSessionKeyAuth.address);
       const [r, s] = sig;
 
@@ -299,7 +305,7 @@ describe('Ethereum Signature Session Key Auth testing', () => {
         userVotingStrategyParamsFlatHash: userVotingStrategyParamsFlatHash2,
         salt: voteSalt,
       };
-      const msg = { types: voteTypes, primaryType: 'Vote', domain, message };
+      const msg = { types: starkTypes.voteTypes, primaryType: 'Vote', domain, message };
       const sig = await sessionSigner2.signMessage(msg, ethSigSessionKeyAuth.address);
       const [r, s] = sig;
 
@@ -361,7 +367,7 @@ describe('Ethereum Signature Session Key Auth testing', () => {
         salt: proposalSalt,
       };
       const msg: typedData.TypedData = {
-        types: proposeTypes,
+        types: starkTypes.proposeTypes,
         primaryType: 'Propose',
         domain,
         message,
@@ -395,7 +401,7 @@ describe('Ethereum Signature Session Key Auth testing', () => {
         salt: salt,
       };
       const msg: typedData.TypedData = {
-        types: revokeSessionKeyTypes,
+        types: starkTypes.revokeSessionKeyTypes,
         primaryType: 'RevokeSessionKey',
         domain,
         message,
@@ -426,7 +432,96 @@ describe('Ethereum Signature Session Key Auth testing', () => {
         salt: proposalSalt,
       };
       const msg: typedData.TypedData = {
-        types: proposeTypes,
+        types: starkTypes.proposeTypes,
+        primaryType: 'Propose',
+        domain,
+        message,
+      };
+      const sig = await sessionSigner.signMessage(msg, ethSigSessionKeyAuth.address);
+      const [r, s] = sig;
+
+      try {
+        console.log('Creating proposal...');
+        await controller.invoke(ethSigSessionKeyAuth, 'authenticate', {
+          r: r,
+          s: s,
+          salt: proposalSalt,
+          target: spaceAddress,
+          function_selector: PROPOSE_SELECTOR,
+          calldata: proposeCalldata,
+          session_public_key: sessionPublicKey,
+        });
+        throw { message: '' };
+      } catch (err: any) {
+        expect(err.message).to.contain('Session does not exist');
+      }
+    }
+  }).timeout(6000000);
+
+  it('Should allow revoking of a session key via a signature from the owners ethereum key', async () => {
+    // -- Authenticates the session key --
+    {
+      const salt: utils.splitUint256.SplitUint256 = utils.splitUint256.SplitUint256.fromHex(
+        ethers.utils.hexlify(ethers.utils.randomBytes(4))
+      );
+      sessionDuration = '0xffff';
+      const message: SessionKey = {
+        address: utils.encoding.hexPadRight(account.address),
+        sessionPublicKey: utils.encoding.hexPadRight(sessionPublicKey),
+        sessionDuration: utils.encoding.hexPadRight(sessionDuration),
+        salt: salt.toHex(),
+      };
+      const sig = await account._signTypedData(domain, sessionKeyTypes, message);
+      const { r, s, v } = utils.encoding.getRSVFromSig(sig);
+      await controller.invoke(ethSigSessionKeyAuth, 'authorize_session_key_with_sig', {
+        r: r,
+        s: s,
+        v: v,
+        salt: salt,
+        eth_address: account.address,
+        session_public_key: sessionPublicKey,
+        session_duration: sessionDuration,
+      });
+    }
+
+    // -- Revokes Session Key --
+    {
+      const salt: utils.splitUint256.SplitUint256 = utils.splitUint256.SplitUint256.fromHex(
+        ethers.utils.hexlify(ethers.utils.randomBytes(4))
+      );
+
+      const message: RevokeSessionKey = {
+        sessionPublicKey: utils.encoding.hexPadRight(sessionPublicKey),
+        salt: salt.toHex(),
+      };
+      const sig = await account._signTypedData(domain, revokeSessionKeyTypes, message);
+      const { r, s, v } = utils.encoding.getRSVFromSig(sig);
+
+      await controller.invoke(ethSigSessionKeyAuth, 'revoke_session_key_with_owner_sig', {
+        r: r,
+        s: s,
+        v: v,
+        salt: salt,
+        session_public_key: sessionPublicKey,
+      });
+    }
+
+    // -- Checks that the session key can no longer be used
+    {
+      const proposalSalt = ethers.utils.hexlify(ethers.utils.randomBytes(4));
+
+      const message = {
+        space: spaceAddress,
+        proposerAddress: account.address,
+        metadataURI: metadataUriInts.values,
+        executor: vanillaExecutionStrategy.address,
+        executionParamsHash: executionHash,
+        usedVotingStrategiesHash: usedVotingStrategiesHash1,
+        userVotingStrategyParamsFlatHash: userVotingStrategyParamsFlatHash1,
+        salt: proposalSalt,
+      };
+      const msg: typedData.TypedData = {
+        types: starkTypes.proposeTypes,
         primaryType: 'Propose',
         domain,
         message,

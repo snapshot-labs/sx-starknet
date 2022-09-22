@@ -40,6 +40,13 @@ export const sessionKeyTypes = {
   ],
 };
 
+export const revokeSessionKeyTypes = {
+  RevokeSessionKey: [
+    { name: 'sessionPublicKey', type: 'bytes32' },
+    { name: 'salt', type: 'uint256' },
+  ],
+};
+
 export interface Propose {
   authenticator: string;
   space: string;
@@ -67,5 +74,10 @@ export interface SessionKey {
   address: string;
   sessionPublicKey: string;
   sessionDuration: string;
+  salt: string;
+}
+
+export interface RevokeSessionKey {
+  sessionPublicKey: string;
   salt: string;
 }

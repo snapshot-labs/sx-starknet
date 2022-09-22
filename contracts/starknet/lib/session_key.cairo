@@ -101,12 +101,9 @@ namespace SessionKey:
         return ()
     end
 
-    func revoke_with_owner_tx{
-        syscall_ptr : felt*,
-        range_check_ptr,
-        pedersen_ptr : HashBuiltin*,
-        bitwise_ptr : BitwiseBuiltin*,
-    }(session_public_key : felt):
+    func revoke_with_owner_tx{syscall_ptr : felt*, range_check_ptr, pedersen_ptr : HashBuiltin*}(
+        session_public_key : felt
+    ):
         alloc_locals
         let (eth_address) = SessionKey_owner.read(session_public_key)
         with_attr error_message("Session does not exist"):
