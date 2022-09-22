@@ -244,7 +244,12 @@ describe('Ethereum Signature Session Key Auth testing', () => {
         userVotingStrategyParamsFlatHash: userVotingStrategyParamsFlatHash2,
         salt: voteSalt,
       };
-      const msg = { types: starkTypes.voteTypes, primaryType: 'Vote', domain, message };
+      const msg = {
+        types: starkTypes.voteTypes,
+        primaryType: 'Vote',
+        domain: starkTypes.domain,
+        message,
+      };
       const sig = await sessionSigner.signMessage(msg, ethSigSessionKeyAuth.address);
       const [r, s] = sig;
 

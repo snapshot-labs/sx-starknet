@@ -27,19 +27,15 @@ const ETHEREUM_PREFIX = 0x1901
 # This is the domainSeparator, obtained by using those fields (see more about it in EIP712):
 # name: 'snapshot-x',
 # version: '1'
-# chainId: '0x534e5f474f45524c49'
-const DOMAIN_HASH_HIGH = 0x043091edf1497234296cbcfabb6af2ac
-const DOMAIN_HASH_LOW = 0x73449a969c5e0d2c5429cf8e7d9534e9
+# chainId: '5'
+const DOMAIN_HASH_HIGH = 0x8aba6bf30572474cf5acb579ce4c27aa
+const DOMAIN_HASH_LOW = 0x01d7dbffc7a8de3d601367229ba8a687
 
-# This is the `Proposal` typeHash, obtained by doing this:
 # keccak256("Propose(bytes32 authenticator,bytes32 space,bytes32 proposerAddress,string metadataUri,bytes32 executor,bytes32 executionParamsHash,bytes32 usedVotingStrategiesHash,bytes32 userVotingStrategyParamsFlatHash,uint256 salt)")
-# 0xdd4b6d662f476088f7bfd59cd7f3487d83e72c2166a7985fb62fa23315c6db8c
 const PROPOSAL_TYPE_HASH_HIGH = 0xdd4b6d662f476088f7bfd59cd7f3487d
 const PROPOSAL_TYPE_HASH_LOW = 0x83e72c2166a7985fb62fa23315c6db8c
 
-# This is the `Vote` typeHash, obtained by doing this:
 # keccak256("Vote(bytes32 authenticator,bytes32 space,bytes32 voterAddress,uint256 proposal,uint256 choice,bytes32 usedVotingStrategiesHash,bytes32 userVotingStrategyParamsFlatHash,uint256 salt)")
-# 0x943c2de24cfb6aaea8956c0444db4921ef29792e6cd3ada75d9adbd50bd9760a
 const VOTE_TYPE_HASH_HIGH = 0x943c2de24cfb6aaea8956c0444db4921
 const VOTE_TYPE_HASH_LOW = 0xef29792e6cd3ada75d9adbd50bd9760a
 
