@@ -67,8 +67,6 @@ func authenticate{
     return ()
 end
 
-# Performs EC recover on the Ethereum signature and stores the session key in a
-# mapping indexed by the recovered Ethereum address
 @external
 func authorize_session_key_with_tx{
     syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr

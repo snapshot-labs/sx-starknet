@@ -35,7 +35,7 @@ namespace EthTx:
     end
 
     # Checks to see if commit exists, if so clears it from the contract, else throws
-    func check_commit{syscall_ptr : felt*, range_check_ptr, pedersen_ptr : HashBuiltin*}(
+    func consume_commit{syscall_ptr : felt*, range_check_ptr, pedersen_ptr : HashBuiltin*}(
         hash : felt, address : felt
     ):
         # Check that the hash has been received by the contract from the StarkNet Commit contract

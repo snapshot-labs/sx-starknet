@@ -29,7 +29,7 @@ func authenticate{syscall_ptr : felt*, range_check_ptr, pedersen_ptr : HashBuilt
 
     # Checks that hash maches a commit and that the commit was created by the correct address
     let address = calldata[0]
-    EthTx.check_commit(hash, address)
+    EthTx.consume_commit(hash, address)
 
     # Execute the function call with calldata supplied.
     execute(target, function_selector, calldata_len, calldata)
