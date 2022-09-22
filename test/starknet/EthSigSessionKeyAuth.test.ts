@@ -194,7 +194,7 @@ describe('Ethereum Signature Session Key Auth testing', () => {
       const msg: typedData.TypedData = {
         types: starkTypes.proposeTypes,
         primaryType: 'Propose',
-        domain,
+        domain: starkTypes.domain,
         message,
       };
       const sig = await sessionSigner.signMessage(msg, ethSigSessionKeyAuth.address);
@@ -369,7 +369,7 @@ describe('Ethereum Signature Session Key Auth testing', () => {
       const msg: typedData.TypedData = {
         types: starkTypes.proposeTypes,
         primaryType: 'Propose',
-        domain,
+        domain: starkTypes.domain,
         message,
       };
       const sig = await sessionSigner2.signMessage(msg, ethSigSessionKeyAuth.address);
@@ -403,7 +403,7 @@ describe('Ethereum Signature Session Key Auth testing', () => {
       const msg: typedData.TypedData = {
         types: starkTypes.revokeSessionKeyTypes,
         primaryType: 'RevokeSessionKey',
-        domain,
+        domain: starkTypes.domain,
         message,
       };
       const sig = await sessionSigner.signMessage(msg, ethSigSessionKeyAuth.address);
@@ -434,7 +434,7 @@ describe('Ethereum Signature Session Key Auth testing', () => {
       const msg: typedData.TypedData = {
         types: starkTypes.proposeTypes,
         primaryType: 'Propose',
-        domain,
+        domain: starkTypes.domain,
         message,
       };
       const sig = await sessionSigner.signMessage(msg, ethSigSessionKeyAuth.address);
@@ -523,7 +523,7 @@ describe('Ethereum Signature Session Key Auth testing', () => {
       const msg: typedData.TypedData = {
         types: starkTypes.proposeTypes,
         primaryType: 'Propose',
-        domain,
+        domain: starkTypes.domain,
         message,
       };
       const sig = await sessionSigner.signMessage(msg, ethSigSessionKeyAuth.address);
