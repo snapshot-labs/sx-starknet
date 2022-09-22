@@ -7,8 +7,7 @@ import { StarknetContract, Account, HttpNetworkConfig } from 'hardhat/types';
 import { utils } from '@snapshot-labs/sx';
 import { ethTxSessionKeyAuthSetup } from '../shared/setup';
 import { domain } from '../shared/types';
-
-import { proposeTypes, revokeSessionKeyTypes } from '../shared/starkTypes';
+import * as starkTypes from '../shared/starkTypes';
 import { PROPOSE_SELECTOR } from '../shared/constants';
 
 const { computeHashOnElements } = hash;
@@ -141,9 +140,9 @@ describe('Ethereum Transaction Session Keys', function () {
         salt: proposalSalt,
       };
       const msg: typedData.TypedData = {
-        types: proposeTypes,
+        types: starkTypes.proposeTypes,
         primaryType: 'Propose',
-        domain,
+        domain: starkTypes.domain,
         message,
       };
       const sig = await sessionSigner.signMessage(msg, ethTxSessionKeyAuth.address);
@@ -230,9 +229,9 @@ describe('Ethereum Transaction Session Keys', function () {
         salt: salt,
       };
       const msg: typedData.TypedData = {
-        types: revokeSessionKeyTypes,
+        types: starkTypes.revokeSessionKeyTypes,
         primaryType: 'RevokeSessionKey',
-        domain,
+        domain: starkTypes.domain,
         message,
       };
       const sig = await sessionSigner.signMessage(msg, ethTxSessionKeyAuth.address);
@@ -261,9 +260,9 @@ describe('Ethereum Transaction Session Keys', function () {
         salt: proposalSalt,
       };
       const msg: typedData.TypedData = {
-        types: proposeTypes,
+        types: starkTypes.proposeTypes,
         primaryType: 'Propose',
-        domain,
+        domain: starkTypes.domain,
         message,
       };
       const sig = await sessionSigner.signMessage(msg, ethTxSessionKeyAuth.address);
@@ -337,9 +336,9 @@ describe('Ethereum Transaction Session Keys', function () {
         salt: proposalSalt,
       };
       const msg: typedData.TypedData = {
-        types: proposeTypes,
+        types: starkTypes.proposeTypes,
         primaryType: 'Propose',
-        domain,
+        domain: starkTypes.domain,
         message,
       };
       const sig = await sessionSigner.signMessage(msg, ethTxSessionKeyAuth.address);
