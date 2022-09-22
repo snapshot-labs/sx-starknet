@@ -6,6 +6,12 @@ import { Contract } from 'ethers';
 import { safeWithZodiacSetup } from '../shared/setup';
 import { SignerWithAddress } from '@nomiclabs/hardhat-ethers/signers';
 
+// Proposal States
+const NOT_RECEIVED = 0;
+const EXECUTING = 1;
+const EXECUTED = 2;
+const CANCELLED = 3;
+
 describe('Snapshot X L1 Proposal Executor:', () => {
   let zodiacModule: Contract;
   let safe: Contract;
@@ -133,24 +139,24 @@ describe('Snapshot X L1 Proposal Executor:', () => {
 
   describe('Proposal Receival', async () => {
     it('The module can receive a proposal', async () => {
-      expect(await zodiacModule.getProposalState(0)).to.equal(0);
+      expect(await zodiacModule.getProposalState(0)).to.equal(NOT_RECEIVED);
       const { tx_hash1, tx_hash2 } = await receiveProposalTest(zodiacModule, tx1, tx2);
 
-      expect(await zodiacModule.proposalIndex()).to.equal(1);
+      expect(await zodiacModule.proposalIndex()).to.equal(EXECUTING);
       expect(await zodiacModule.getTxHash(0, 0)).to.equal(tx_hash1);
       expect(await zodiacModule.getTxHash(0, 1)).to.equal(tx_hash2);
-      expect(await zodiacModule.getProposalState(0)).to.equal(1);
+      expect(await zodiacModule.getProposalState(0)).to.equal(EXECUTING);
     });
 
     it('The module can receive multiple proposals', async () => {
       const { zodiacModule } = await safeWithZodiacSetup();
-      expect(await zodiacModule.getProposalState(0)).to.equal(0);
+      expect(await zodiacModule.getProposalState(0)).to.equal(NOT_RECEIVED);
       const { tx_hash1, tx_hash2 } = await receiveProposalTest(zodiacModule, tx1, tx2);
 
       expect(await zodiacModule.proposalIndex()).to.equal(1);
       expect(await zodiacModule.getTxHash(0, 0)).to.equal(tx_hash1);
       expect(await zodiacModule.getTxHash(0, 1)).to.equal(tx_hash2);
-      expect(await zodiacModule.getProposalState(0)).to.equal(1);
+      expect(await zodiacModule.getProposalState(0)).to.equal(EXECUTING);
     });
   });
 
@@ -169,7 +175,7 @@ describe('Snapshot X L1 Proposal Executor:', () => {
       )
         .to.emit(zodiacModule, 'ProposalCancelled')
         .withArgs(0);
-      expect(await zodiacModule.getProposalState(0)).to.equal(4);
+      expect(await zodiacModule.getProposalState(0)).to.equal(CANCELLED);
     });
 
     it('proposal cancel should revert with only owner', async () => {
@@ -178,7 +184,7 @@ describe('Snapshot X L1 Proposal Executor:', () => {
       await expect(zodiacModule.cancelProposals([0])).to.be.revertedWith(
         'Ownable: caller is not the owner'
       );
-      expect(await zodiacModule.getProposalState(0)).to.equal(1);
+      expect(await zodiacModule.getProposalState(0)).to.equal(EXECUTING);
     });
 
     it('Cancellation should fail if all transactions in proposal have been executed', async () => {
@@ -192,13 +198,29 @@ describe('Snapshot X L1 Proposal Executor:', () => {
         [tx1.operation, tx1.operation]
       );
 
-      expect(await zodiacModule.getProposalState(0)).to.equal(3);
+      expect(await zodiacModule.getProposalState(0)).to.equal(EXECUTED);
 
       await expect(
         executeContractCallWithSigners(safe, zodiacModule, 'cancelProposals', [[0]], [wallet_0])
       ).to.be.reverted;
 
-      expect(await zodiacModule.getProposalState(0)).to.equal(3);
+      expect(await zodiacModule.getProposalState(0)).to.equal(EXECUTED);
+    });
+
+    it('Should not be able to execute any more transactions if proposal is cancelled', async () => {
+      await receiveProposalTest(zodiacModule, tx1, tx2);
+      await zodiacModule.executeProposalTx(0, tx1.to, tx1.value, tx1.data, tx1.operation);
+      await executeContractCallWithSigners(
+        safe,
+        zodiacModule,
+        'cancelProposals',
+        [[0]],
+        [wallet_0]
+      );
+      expect(await zodiacModule.getProposalState(0)).to.equal(CANCELLED);
+      await expect(
+        zodiacModule.executeProposalTx(0, tx2.to, tx2.value, tx2.data, tx2.operation)
+      ).to.be.revertedWith('Proposal is not in executing state');
     });
   });
 
@@ -210,7 +232,7 @@ describe('Snapshot X L1 Proposal Executor:', () => {
         .to.emit(zodiacModule, 'TransactionExecuted')
         .withArgs(0, tx_hash1);
 
-      expect(await zodiacModule.getProposalState(0)).to.equal(2);
+      expect(await zodiacModule.getProposalState(0)).to.equal(EXECUTING);
     });
 
     it('The module can execute all transactions in a proposal individually', async () => {
@@ -226,7 +248,7 @@ describe('Snapshot X L1 Proposal Executor:', () => {
         .to.emit(zodiacModule, 'ProposalExecuted')
         .withArgs(0);
 
-      expect(await zodiacModule.getProposalState(0)).to.equal(3);
+      expect(await zodiacModule.getProposalState(0)).to.equal(EXECUTED);
     });
 
     it('The module can execute all transactions in a proposal via batch function', async () => {
@@ -244,7 +266,7 @@ describe('Snapshot X L1 Proposal Executor:', () => {
         .to.emit(zodiacModule, 'ProposalExecuted')
         .withArgs(0);
 
-      expect(await zodiacModule.getProposalState(0)).to.equal(3);
+      expect(await zodiacModule.getProposalState(0)).to.equal(EXECUTED);
     });
 
     it('The module should revert if an incorrect transaction order was used', async () => {
@@ -255,7 +277,7 @@ describe('Snapshot X L1 Proposal Executor:', () => {
         zodiacModule.executeProposalTx(0, tx2.to, tx2.value, tx2.data, tx2.operation)
       ).to.be.revertedWith('Invalid transaction or invalid transaction order');
 
-      expect(await zodiacModule.getProposalState(0)).to.equal(1);
+      expect(await zodiacModule.getProposalState(0)).to.equal(EXECUTING);
     });
 
     it('The module should revert if a transaction was invalid', async () => {
@@ -266,7 +288,43 @@ describe('Snapshot X L1 Proposal Executor:', () => {
         zodiacModule.executeProposalTx(0, tx3.to, tx3.value, tx3.data, tx3.operation)
       ).to.be.revertedWith('Invalid transaction or invalid transaction order');
 
-      expect(await zodiacModule.getProposalState(0)).to.equal(1);
+      expect(await zodiacModule.getProposalState(0)).to.equal(EXECUTING);
+    });
+
+    it('The module should not allow replaying transactions', async () => {
+      const { tx_hash1, tx_hash2 } = await receiveProposalTest(zodiacModule, tx1, tx2);
+
+      await expect(zodiacModule.executeProposalTx(0, tx1.to, tx1.value, tx1.data, tx1.operation))
+        .to.emit(zodiacModule, 'TransactionExecuted')
+        .withArgs(0, tx_hash1);
+
+      await expect(zodiacModule.executeProposalTx(0, tx2.to, tx2.value, tx2.data, tx2.operation))
+        .to.emit(zodiacModule, 'TransactionExecuted')
+        .withArgs(0, tx_hash2)
+        .to.emit(zodiacModule, 'ProposalExecuted')
+        .withArgs(0);
+
+      await expect(
+        zodiacModule.executeProposalTx(0, tx2.to, tx2.value, tx2.data, tx2.operation)
+      ).to.be.revertedWith('Proposal is not in executing state');
+
+      expect(await zodiacModule.getProposalState(0)).to.equal(EXECUTED);
+    });
+  });
+
+  describe('Whitelist Editing', async () => {
+    it('can and and remove strategies from the whitelist', async () => {
+      expect(await zodiacModule.whitelistedSpaces(0)).to.equal(true);
+      // await zodiacModule.editWhitelist([1234], [0]);
+      await executeContractCallWithSigners(
+        safe,
+        zodiacModule,
+        'editWhitelist',
+        [[1234], [0]],
+        [safeSigner]
+      );
+      expect(await zodiacModule.whitelistedSpaces(1234)).to.equal(true);
+      expect(await zodiacModule.whitelistedSpaces(0)).to.equal(false);
     });
   });
 });

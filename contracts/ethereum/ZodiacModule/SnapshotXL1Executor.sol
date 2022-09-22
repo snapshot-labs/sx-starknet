@@ -29,7 +29,6 @@ contract SnapshotXL1Executor is Module, SnapshotXProposalRelayer {
   /// The state of a proposal index exists in one of the 5 categories. This can be queried using the getProposalState view function
   enum ProposalState {
     NotReceived,
-    Received,
     Executing,
     Executed,
     Cancelled
@@ -178,9 +177,10 @@ contract SnapshotXL1Executor is Module, SnapshotXProposalRelayer {
 
   /**
    * @dev Initializes a new proposal execution struct on the receival of a completed proposal from StarkNet
+   * @param callerAddress The StarkNet space address which contained the proposal
+   * @param proposalOutcome Whether the proposal was accepted / rejected / cancelled
    * @param executionHashLow Lowest 128 bits of the hash of all the transactions in the proposal
    * @param executionHashHigh Highest 128 bits of the hash of all the transactions in the proposal
-   * @param proposalOutcome Whether the proposal was accepted / rejected / cancelled
    * @param _txHashes Array of transaction hashes in proposal
    */
   function receiveProposal(
@@ -194,7 +194,7 @@ contract SnapshotXL1Executor is Module, SnapshotXProposalRelayer {
     require(_txHashes.length > 0, 'proposal must contain transactions');
     require(whitelistedSpaces[callerAddress] == true, 'Invalid caller');
 
-    //External call will fail if finalized proposal message was not received on L1.
+    // Call to the StarkNet core contract will fail if finalized proposal message was not received on L1.
     _receiveFinalizedProposal(callerAddress, proposalOutcome, executionHashLow, executionHashHigh);
 
     // Re-assemble the lowest and highest bytes to get the full execution hash
@@ -211,6 +211,7 @@ contract SnapshotXL1Executor is Module, SnapshotXProposalRelayer {
    * @param executionHash Hash of all the transactions in the proposal
    * @param proposalOutcome Whether proposal was accepted / rejected / cancelled
    * @param _txHashes Array of transaction hashes in proposal
+   * @notice TODO: REMEMBER TO REMOVE BEFORE PROD
    */
   function receiveProposalTest(
     uint256 callerAddress,
@@ -245,10 +246,10 @@ contract SnapshotXL1Executor is Module, SnapshotXProposalRelayer {
         proposalIndexToProposalExecution[_proposalIndexes[i]].cancelled == false,
         'proposal is already cancelled'
       );
-      //to cancel a proposal, we can set the execution counter for the proposal to the number of transactions in the proposal.
-      //We must also set a boolean in the Proposal Execution struct to true, without this there would be no way for the state to differentiate between a cancelled and an executed proposal.
-      proposalIndexToProposalExecution[_proposalIndexes[i]]
-        .executionCounter = proposalIndexToProposalExecution[_proposalIndexes[i]].txHashes.length;
+      // To cancel a proposal, we can set the execution counter for the proposal to the number of transactions in the proposal.
+      // We must also set a boolean in the Proposal Execution struct to true, without this there would be no way for the state to differentiate between a cancelled and an executed proposal.
+      // proposalIndexToProposalExecution[_proposalIndexes[i]]
+      //   .executionCounter = proposalIndexToProposalExecution[_proposalIndexes[i]].txHashes.length;
       proposalIndexToProposalExecution[_proposalIndexes[i]].cancelled = true;
       emit ProposalCancelled(_proposalIndexes[i]);
     }
@@ -269,6 +270,10 @@ contract SnapshotXL1Executor is Module, SnapshotXProposalRelayer {
     bytes memory data,
     Enum.Operation operation
   ) public {
+    require(
+      getProposalState(_proposalIndex) == ProposalState.Executing,
+      'Proposal is not in executing state'
+    );
     bytes32 txHash = getTransactionHash(to, value, data, operation);
     require(
       proposalIndexToProposalExecution[_proposalIndex].txHashes[
@@ -316,8 +321,6 @@ contract SnapshotXL1Executor is Module, SnapshotXProposalRelayer {
       return ProposalState.NotReceived;
     } else if (proposalExecution.cancelled) {
       return ProposalState.Cancelled;
-    } else if (proposalExecution.executionCounter == 0) {
-      return ProposalState.Received;
     } else if (proposalExecution.txHashes.length == proposalExecution.executionCounter) {
       return ProposalState.Executed;
     } else {
@@ -400,6 +403,7 @@ contract SnapshotXL1Executor is Module, SnapshotXProposalRelayer {
     bytes memory data,
     Enum.Operation operation
   ) public view returns (bytes32 txHash) {
+    // No nonce is required here because we prevent tx replays via the execution counter
     return keccak256(generateTransactionHashData(to, value, data, operation, 0));
   }
 }

@@ -8,7 +8,9 @@ starknet-artifacts
 factories
 typechain
 typechain-types
-abi 
+abi
+coverage 
+coverage.json
 
 .yarn
 .env
