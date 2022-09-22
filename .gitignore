@@ -8,6 +8,7 @@ starknet-artifacts
 factories
 typechain
 typechain-types
+abi 
 
 .yarn
 .env
