@@ -221,13 +221,9 @@ namespace Voting:
             voting_strategy_params_flat_len, voting_strategy_params_flat
         )
 
-        let (prev_index) = Voting_num_voting_strategies_store.read()
         unchecked_add_voting_strategies(
-            voting_strategies_len, voting_strategies, voting_strategy_params_all, prev_index, 0
+            voting_strategies_len, voting_strategies, voting_strategy_params_all
         )
-        # Incrementing the voting strategies counter by the number of strategies added
-        Voting_num_voting_strategies_store.write(prev_index + voting_strategies_len)
-
         unchecked_add_authenticators(authenticators_len, authenticators)
         unchecked_add_executors(executors_len, executors)
 
@@ -384,11 +380,7 @@ namespace Voting:
             params_flat_len, params_flat
         )
 
-        let (prev_index) = Voting_num_voting_strategies_store.read()
-        unchecked_add_voting_strategies(addresses_len, addresses, params_all, prev_index, 0)
-
-        # Incrementing the voting strategies counter by the number of strategies added
-        Voting_num_voting_strategies_store.write(prev_index + addresses_len)
+        unchecked_add_voting_strategies(addresses_len, addresses, params_all)
 
         voting_strategies_added.emit(addresses_len, addresses)
         return ()
@@ -870,6 +862,17 @@ end
 
 func unchecked_add_voting_strategies{
     syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr
+}(addresses_len : felt, addresses : felt*, params_all : Immutable2DArray):
+    alloc_locals
+    let (prev_index) = Voting_num_voting_strategies_store.read()
+    unchecked_add_voting_strategies_r(addresses_len, addresses, params_all, prev_index, 0)
+    # Incrementing the voting strategies counter by the number of strategies added
+    Voting_num_voting_strategies_store.write(prev_index + addresses_len)
+    return ()
+end
+
+func unchecked_add_voting_strategies_r{
+    syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr
 }(
     addresses_len : felt,
     addresses : felt*,
@@ -892,10 +895,9 @@ func unchecked_add_voting_strategies{
         # The following elements are the actual params
         unchecked_add_voting_strategy_params(next_index, 1, params_len, params)
 
-        unchecked_add_voting_strategies(
+        unchecked_add_voting_strategies_r(
             addresses_len - 1, &addresses[1], params_all, next_index + 1, index + 1
         )
-
         return ()
     end
 end
