@@ -865,13 +865,13 @@ func unchecked_add_voting_strategies{
 }(addresses_len : felt, addresses : felt*, params_all : Immutable2DArray):
     alloc_locals
     let (prev_index) = Voting_num_voting_strategies_store.read()
-    unchecked_add_voting_strategies_r(addresses_len, addresses, params_all, prev_index, 0)
+    unchecked_add_voting_strategies_recurse(addresses_len, addresses, params_all, prev_index, 0)
     # Incrementing the voting strategies counter by the number of strategies added
     Voting_num_voting_strategies_store.write(prev_index + addresses_len)
     return ()
 end
 
-func unchecked_add_voting_strategies_r{
+func unchecked_add_voting_strategies_recurse{
     syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr
 }(
     addresses_len : felt,
@@ -895,7 +895,7 @@ func unchecked_add_voting_strategies_r{
         # The following elements are the actual params
         unchecked_add_voting_strategy_params(next_index, 1, params_len, params)
 
-        unchecked_add_voting_strategies_r(
+        unchecked_add_voting_strategies_recurse(
             addresses_len - 1, &addresses[1], params_all, next_index + 1, index + 1
         )
         return ()
