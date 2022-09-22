@@ -30,13 +30,13 @@ async function main() {
       )
       .toString('ascii')
   );
-  const compiledEthBalanceOfVotingStrategy = json.parse(
-    fs
-      .readFileSync(
-        './starknet-artifacts/contracts/starknet/VotingStrategies/EthBalanceOf.cairo/EthBalanceOf.json'
-      )
-      .toString('ascii')
-  );
+  // const compiledEthBalanceOfVotingStrategy = json.parse(
+  //   fs
+  //     .readFileSync(
+  //       './starknet-artifacts/contracts/starknet/VotingStrategies/EthBalanceOf.cairo/EthBalanceOf.json'
+  //     )
+  //     .toString('ascii')
+  // );
   const compiledVanillaExecutionStrategy = json.parse(
     fs
       .readFileSync(
@@ -64,7 +64,7 @@ async function main() {
 
   // Obtained via declaring the space account contract:
   // starknet declare --contract ./starknet-artifacts/contracts/starknet/SpaceAccount.cairo/SpaceAccount.json
-  const spaceClassHash = '0xf6a58610d0ce607f69fcc3df1559baacd0b1f06c452dc57a53320168d97bf8';
+  const spaceClassHash = '0x11d33854aa6fd7fee2082075bae9a16ad121f85cbd0a9f357474d7f4ba17cb7';
   const l1MessagesSenderAddress = '0x738bfb83246156b759165d244077865B994F9d33';
   const fossilFactRegistryAddress =
     '0x363108ac1521a47b4f7d82f8ba868199bc1535216bbedfc1b071ae93cc406fd';
@@ -75,10 +75,7 @@ async function main() {
     defaultProvider.deployContract({ contract: compiledVanillaAuthenticator }),
     defaultProvider.deployContract({ contract: compiledEthSigAuthenticator }),
     defaultProvider.deployContract({ contract: compiledVanillaVotingStrategy }),
-    defaultProvider.deployContract({
-      contract: compiledEthBalanceOfVotingStrategy,
-      constructorCalldata: [fossilFactRegistryAddress, fossilL1HeadersStoreAddress],
-    }),
+    defaultProvider.deployContract({ contract: compiledVanillaVotingStrategy }),
     defaultProvider.deployContract({ contract: compiledVanillaExecutionStrategy }),
     defaultProvider.deployContract({ contract: compiledZodiacExecutionStrategy }),
     defaultProvider.deployContract({
@@ -87,13 +84,13 @@ async function main() {
     }),
   ];
   const responses = await Promise.all(deployTxs);
-  const vanillaAuthenticatorAddress = responses[0].address!;
-  const ethSigAuthenticatorAddress = responses[1].address!;
-  const vanillaVotingStrategyAddress = responses[2].address!;
-  const ethBalanceOfVotingStrategyAddress = responses[3].address!;
-  const vanillaExecutionStrategyAddress = responses[4].address!;
-  const zodiacExecutionStrategyAddress = responses[5].address!;
-  const spaceFactoryAddress = responses[6].address!;
+  const vanillaAuthenticatorAddress = responses[0].contract_address!;
+  const ethSigAuthenticatorAddress = responses[1].contract_address!;
+  const vanillaVotingStrategyAddress = responses[2].contract_address!;
+  const ethBalanceOfVotingStrategyAddress = responses[3].contract_address!;
+  const vanillaExecutionStrategyAddress = responses[4].contract_address!;
+  const zodiacExecutionStrategyAddress = responses[5].contract_address!;
+  const spaceFactoryAddress = responses[6].contract_address!;
 
   // Storing deployment config.
   const modules = {
