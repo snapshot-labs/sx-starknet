@@ -27,7 +27,7 @@ func authenticate{syscall_ptr : felt*, range_check_ptr, pedersen_ptr : HashBuilt
     memcpy(input_array + 2, calldata, calldata_len)
     let (hash) = HashArray.hash_array(calldata_len + 2, input_array)
 
-    # Checks that hash maches a commit and that the commit was created by the correct address
+    # Checks that hash matches a commit and that the commit was created by the correct address
     let address = calldata[0]
     EthTx.consume_commit(hash, address)
 
