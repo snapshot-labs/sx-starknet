@@ -10,6 +10,7 @@ import '@nomiclabs/hardhat-waffle';
 import 'hardhat-gas-reporter';
 import '@nomiclabs/hardhat-etherscan';
 import 'hardhat-abi-exporter';
+import 'solidity-coverage';
 
 // const chainIds = {
 //   ganache: 1337,

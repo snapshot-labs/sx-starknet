@@ -4,7 +4,7 @@ import { ethers } from 'hardhat';
 import { domain, Propose, proposeTypes, Vote, voteTypes } from '../shared/types';
 import { computeHashOnElements } from 'starknet/dist/utils/hash';
 import { utils } from '@snapshot-labs/sx';
-import { ethereumSigAuthSetup } from '../shared/setup';
+import { ethSigAuthSetup } from '../shared/setup';
 import { PROPOSE_SELECTOR, VOTE_SELECTOR } from '../shared/constants';
 import { keccak256, _TypedDataEncoder } from 'ethers/lib/utils';
 
@@ -14,22 +14,7 @@ export const PROPOSAL_METHOD = 'propose';
 export const VOTE_METHOD = 'vote';
 export const METADATA_URI = 'Hello and welcome to Snapshot X. This is the future of governance.';
 
-function hexPadRight(s: string) {
-  // Remove prefix
-  if (s.startsWith('0x')) {
-    s = s.substring(2);
-  }
-
-  // Odd length, need to prefix with a 0
-  if (s.length % 2 != 0) {
-    s = '0' + s;
-  }
-
-  const numZeroes = 64 - s.length;
-  return '0x' + s + '0'.repeat(numZeroes);
-}
-
-describe('Ethereum Sig Auth testing', () => {
+describe('Ethereum Signature Auth testing', () => {
   // Contracts
   let space: StarknetContract;
   let controller: Account;
@@ -65,7 +50,8 @@ describe('Ethereum Sig Auth testing', () => {
     this.timeout(800000);
     const accounts = await ethers.getSigners();
     ({ space, controller, ethSigAuth, vanillaVotingStrategy, vanillaExecutionStrategy } =
-      await ethereumSigAuthSetup());
+      await ethSigAuthSetup());
+
     metadataUri = 'Hello and welcome to Snapshot X. This is the future of governance.';
     metadataUriInts = utils.intsSequence.IntsSequence.LEFromString(metadataUri);
     usedVotingStrategies1 = ['0x0'];
@@ -110,14 +96,14 @@ describe('Ethereum Sig Auth testing', () => {
     try {
       const accounts = await ethers.getSigners();
       const salt: utils.splitUint256.SplitUint256 = utils.splitUint256.SplitUint256.fromHex('0x1');
-      const spaceStr = hexPadRight(space.address);
-      const executionHashPadded = hexPadRight(executionHash);
-      const usedVotingStrategiesHashPadded1 = hexPadRight(usedVotingStrategiesHash1);
-      const userVotingStrategyParamsFlatHashPadded1 = hexPadRight(
+      const spaceStr = utils.encoding.hexPadRight(space.address);
+      const executionHashPadded = utils.encoding.hexPadRight(executionHash);
+      const usedVotingStrategiesHashPadded1 = utils.encoding.hexPadRight(usedVotingStrategiesHash1);
+      const userVotingStrategyParamsFlatHashPadded1 = utils.encoding.hexPadRight(
         userVotingStrategyParamsFlatHash1
       );
-      const paddedProposerAddress = hexPadRight(proposerEthAddress);
-      const paddedExecutor = hexPadRight(vanillaExecutionStrategy.address);
+      const paddedProposerAddress = utils.encoding.hexPadRight(proposerEthAddress);
+      const paddedExecutor = utils.encoding.hexPadRight(vanillaExecutionStrategy.address);
       const message: Propose = {
         authenticator: ethSigAuth.address,
         space: spaceStr,
@@ -160,13 +146,13 @@ describe('Ethereum Sig Auth testing', () => {
       const proposalSalt: utils.splitUint256.SplitUint256 =
         utils.splitUint256.SplitUint256.fromHex('0x01');
 
-      const executionHashPadded = hexPadRight(executionHash);
-      const usedVotingStrategiesHashPadded1 = hexPadRight(usedVotingStrategiesHash1);
-      const userVotingStrategyParamsFlatHashPadded1 = hexPadRight(
+      const executionHashPadded = utils.encoding.hexPadRight(executionHash);
+      const usedVotingStrategiesHashPadded1 = utils.encoding.hexPadRight(usedVotingStrategiesHash1);
+      const userVotingStrategyParamsFlatHashPadded1 = utils.encoding.hexPadRight(
         userVotingStrategyParamsFlatHash1
       );
-      const paddedProposerAddress = hexPadRight(proposerEthAddress);
-      const paddedExecutor = hexPadRight(executionStrategy);
+      const paddedProposerAddress = utils.encoding.hexPadRight(proposerEthAddress);
+      const paddedExecutor = utils.encoding.hexPadRight(executionStrategy);
 
       const message: Propose = {
         authenticator: ethSigAuth.address,
@@ -237,11 +223,11 @@ describe('Ethereum Sig Auth testing', () => {
       const accounts = await ethers.getSigners();
       const spaceStr = utils.encoding.hexPadRight(space.address);
       const voteSalt = utils.splitUint256.SplitUint256.fromHex('0x02');
-      const usedVotingStrategiesHashPadded2 = hexPadRight(usedVotingStrategiesHash2);
-      const userVotingStrategyParamsFlatHashPadded2 = hexPadRight(
+      const usedVotingStrategiesHashPadded2 = utils.encoding.hexPadRight(usedVotingStrategiesHash2);
+      const userVotingStrategyParamsFlatHashPadded2 = utils.encoding.hexPadRight(
         userVotingStrategyParamsFlatHash2
       );
-      const voterEthAddressPadded = hexPadRight(voterEthAddress);
+      const voterEthAddressPadded = utils.encoding.hexPadRight(voterEthAddress);
 
       const message: Vote = {
         authenticator: ethSigAuth.address,

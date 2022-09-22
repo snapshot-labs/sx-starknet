@@ -63,7 +63,7 @@
     "eslint-plugin-promise": "^6.0.1",
     "ethereum-waffle": "^3.4.0",
     "ethers": "^5.7.1",
-    "hardhat": "^2.11.1",
+    "hardhat": "^2.11.2",
     "hardhat-gas-reporter": "^1.0.9",
     "hardhat-abi-exporter": "^2.10.0",
     "json-format-cli": "^1.1.1",

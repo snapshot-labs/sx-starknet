@@ -222,7 +222,7 @@ namespace Voting:
         )
 
         unchecked_add_voting_strategies(
-            voting_strategies_len, voting_strategies, voting_strategy_params_all, 0
+            voting_strategies_len, voting_strategies, voting_strategy_params_all
         )
         unchecked_add_authenticators(authenticators_len, authenticators)
         unchecked_add_executors(executors_len, executors)
@@ -380,7 +380,7 @@ namespace Voting:
             params_flat_len, params_flat
         )
 
-        unchecked_add_voting_strategies(addresses_len, addresses, params_all, 0)
+        unchecked_add_voting_strategies(addresses_len, addresses, params_all)
 
         voting_strategies_added.emit(addresses_len, addresses)
         return ()
@@ -863,13 +863,28 @@ end
 
 func unchecked_add_voting_strategies{
     syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr
-}(addresses_len : felt, addresses : felt*, params_all : Immutable2DArray, index : felt):
+}(addresses_len : felt, addresses : felt*, params_all : Immutable2DArray):
+    alloc_locals
+    let (prev_index) = Voting_num_voting_strategies_store.read()
+    unchecked_add_voting_strategies_recurse(addresses_len, addresses, params_all, prev_index, 0)
+    # Incrementing the voting strategies counter by the number of strategies added
+    Voting_num_voting_strategies_store.write(prev_index + addresses_len)
+    return ()
+end
+
+func unchecked_add_voting_strategies_recurse{
+    syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr
+}(
+    addresses_len : felt,
+    addresses : felt*,
+    params_all : Immutable2DArray,
+    next_index : felt,
+    index : felt,
+):
     alloc_locals
     if addresses_len == 0:
         return ()
     else:
-        let (next_index) = Voting_num_voting_strategies_store.read()
-
         Voting_voting_strategies_store.write(next_index, addresses[0])
 
         # Extract voting params for the voting strategy
@@ -881,10 +896,9 @@ func unchecked_add_voting_strategies{
         # The following elements are the actual params
         unchecked_add_voting_strategy_params(next_index, 1, params_len, params)
 
-        Voting_num_voting_strategies_store.write(next_index + 1)
-
-        unchecked_add_voting_strategies(addresses_len - 1, &addresses[1], params_all, index + 1)
-
+        unchecked_add_voting_strategies_recurse(
+            addresses_len - 1, &addresses[1], params_all, next_index + 1, index + 1
+        )
         return ()
     end
 end
