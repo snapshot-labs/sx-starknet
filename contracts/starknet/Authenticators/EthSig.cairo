@@ -46,10 +46,10 @@ const VOTE_HASH_LOW = 0xef29792e6cd3ada75d9adbd50bd9760a
 # This is the domainSeparator, obtained by using those fields (see more about it in EIP712):
 # name: 'snapshot-x',
 # version: '1'
-# chainId: '0x534e5f474f45524c49'
-# Which returns: 0x043091edf1497234296cbcfabb6af2ac73449a969c5e0d2c5429cf8e7d9534e9
-const DOMAIN_HASH_HIGH = 0x043091edf1497234296cbcfabb6af2ac
-const DOMAIN_HASH_LOW = 0x73449a969c5e0d2c5429cf8e7d9534e9
+# chainId: '5'
+# Which returns: 0x8aba6bf30572474cf5acb579ce4c27aa01d7dbffc7a8de3d601367229ba8a687
+const DOMAIN_HASH_HIGH = 0x8aba6bf30572474cf5acb579ce4c27aa
+const DOMAIN_HASH_LOW = 0x01d7dbffc7a8de3d601367229ba8a687
 
 # Maps a tuple of (user, salt) to a boolean stating whether this tuple was already used or not (to prevent replay attack).
 @storage_var
