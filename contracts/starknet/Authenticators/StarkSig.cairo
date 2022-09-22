@@ -2,7 +2,7 @@
 
 from contracts.starknet.lib.execute import execute
 from starkware.cairo.common.cairo_builtins import HashBuiltin, SignatureBuiltin
-from contracts.starknet.lib.stark_sig import StarkSig
+from contracts.starknet.lib.stark_eip191 import StarkEIP191
 
 # getSelectorFromName("propose")
 const PROPOSAL_SELECTOR = 0x1bfd596ae442867ef71ca523061610682af8b00fc2738329422f4ad8d220b81
@@ -21,11 +21,14 @@ func authenticate{
     calldata_len : felt,
     calldata : felt*,
 ) -> ():
+    # The public key of the voter or proposer is stored at the start of the calldata array
+    let public_key = calldata[0]
+
     if function_selector == PROPOSAL_SELECTOR:
-        StarkSig.verify_propose_sig(r, s, salt, target, calldata_len, calldata)
+        StarkEIP191.verify_propose_sig(r, s, salt, target, calldata_len, calldata, public_key)
     else:
         if function_selector == VOTE_SELECTOR:
-            StarkSig.verify_vote_sig(r, s, salt, target, calldata_len, calldata)
+            StarkEIP191.verify_vote_sig(r, s, salt, target, calldata_len, calldata, public_key)
         else:
             # Invalid selector
             return ()
