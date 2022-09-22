@@ -1025,19 +1025,6 @@ func assert_no_duplicates{}(array_len: felt, array: felt*) {
     }
 }
 
-// Tries to find `to_find` in `array`. Returns `TRUE` if it finds it, else returns `FALSE`.
-func find{}(to_find: felt, array_len: felt, array: felt*) -> (found: felt) {
-    if (array_len == 0) {
-        return (FALSE,);
-    } else {
-        if (to_find == array[0]) {
-            return (TRUE,);
-        } else {
-            return find(to_find, array_len - 1, array + 1);
-        }
-    }
-}
-
 // Computes the cumulated voting power of a user by iterating over the voting strategies of `used_voting_strategies`.
 // TODO: In the future we will need to transition to an array of `voter_address` because they might be different for different voting strategies.
 func get_cumulative_voting_power{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_ptr}(
