@@ -145,6 +145,10 @@ func register{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr}
 ):
     SessionKey_owner_store.write(session_public_key, eth_address)
     let (current_timestamp) = get_block_timestamp()
+    let end_timestamp = current_timestamp + session_duration
+    with_attr error_message("Overflow in Session duration, use smaller value"):
+        assert_le(current_timestamp, end_timestamp)
+    end
     SessionKey_end_timestamp_store.write(session_public_key, current_timestamp + session_duration)
     session_key_registered.emit(eth_address, session_public_key, session_duration)
     return ()

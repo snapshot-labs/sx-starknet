@@ -551,4 +551,34 @@ describe('Ethereum Signature Session Key Auth testing', () => {
       }
     }
   }).timeout(6000000);
+
+  it('Should fail if overflow occurs on the session duration', async () => {
+    const salt: utils.splitUint256.SplitUint256 = utils.splitUint256.SplitUint256.fromHex(
+      ethers.utils.hexlify(ethers.utils.randomBytes(4))
+    );
+    sessionDuration = '0xffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff';
+    const message: SessionKey = {
+      address: utils.encoding.hexPadRight(account.address),
+      sessionPublicKey: utils.encoding.hexPadRight(sessionPublicKey),
+      sessionDuration: utils.encoding.hexPadRight(sessionDuration),
+      salt: salt.toHex(),
+    };
+    const sig = await account._signTypedData(domain, sessionKeyTypes, message);
+    const { r, s, v } = utils.encoding.getRSVFromSig(sig);
+
+    try {
+      await controller.invoke(ethSigSessionKeyAuth, 'authorize_session_key_with_sig', {
+        r: r,
+        s: s,
+        v: v,
+        salt: salt,
+        eth_address: account.address,
+        session_public_key: sessionPublicKey,
+        session_duration: sessionDuration,
+      });
+      throw { message: '' };
+    } catch (err: any) {
+      expect(err.message).to.contain('Overflow in Session duration, use smaller value');
+    }
+  }).timeout(6000000);
 });
