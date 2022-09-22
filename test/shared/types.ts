@@ -1,7 +1,7 @@
 export const domain = {
   name: 'snapshot-x',
   version: '1',
-  chainId: '0x534e5f474f45524c49', // SN_GOERLI
+  chainId: '5', // GOERLI
 };
 
 export const proposeTypes = {
