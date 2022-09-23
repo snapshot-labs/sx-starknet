@@ -9,6 +9,7 @@ from starkware.cairo.common.alloc import alloc
 from starkware.cairo.common.uint256 import Uint256, uint256_add, uint256_lt, uint256_le, uint256_eq
 from starkware.cairo.common.bool import TRUE, FALSE
 from starkware.cairo.common.hash_state import hash_init, hash_update
+from starkware.cairo.common.math_cmp import is_le
 from starkware.cairo.common.math import (
     assert_lt,
     assert_le,
@@ -683,17 +684,32 @@ namespace Voting:
         # If `is_lower_or_equal` (meaning `_quorum` is smaller than `total_power`), then quorum has been reached (definition of quorum).
         # So if `overflow1 || overflow2 || is_lower_or_equal`, we have reached quorum. If we sum them and find `0`, then they're all equal to 0, which means
         # quorum has not been reached.
-        with_attr error_message("Quorum has not been reached"):
-            assert_not_zero(overflow1 + overflow2 + is_lower_or_equal)
-        end
+        if overflow1 + overflow2 + is_lower_or_equal == 0:
+            let (voting_period_has_ended) = is_le(proposal.max_end_timestamp, current_timestamp + 1)
+            if voting_period_has_ended == FALSE:
+                with_attr error_message("Quorum has not been reached"):
+                    assert 1 = 0
+                    return ()
+                end
+            else:
+                # Voting period has ended but quorum hasn't been reached: proposal should be `REJECTED`
+                tempvar proposal_outcome = ProposalOutcome.REJECTED
 
-        # Set proposal outcome accordingly
-        let (has_passed) = uint256_lt(against, for)
-
-        if has_passed == 1:
-            tempvar proposal_outcome = ProposalOutcome.ACCEPTED
+                # Cairo trick to prevent revoked reference
+                tempvar range_check_ptr = range_check_ptr
+            end
         else:
-            tempvar proposal_outcome = ProposalOutcome.REJECTED
+            # Quorum has been reached: set proposal outcome accordingly
+            let (has_passed) = uint256_lt(against, for)
+
+            if has_passed == 1:
+                tempvar proposal_outcome = ProposalOutcome.ACCEPTED
+            else:
+                tempvar proposal_outcome = ProposalOutcome.REJECTED
+            end
+
+            # Cairo trick to prevent revoked reference
+            tempvar range_check_ptr = range_check_ptr
         end
 
         let (is_valid) = Voting_executors_store.read(proposal.executor)
@@ -701,7 +717,7 @@ namespace Voting:
             # Executor has been removed from the whitelist. Cancel this execution.
             tempvar proposal_outcome = ProposalOutcome.CANCELLED
         else:
-            # Preventing revoked reference
+            # Cairo trick to prevent revoked reference
             tempvar proposal_outcome = proposal_outcome
         end
 
