@@ -36,8 +36,7 @@ from contracts.starknet.lib.choice import Choice
 from contracts.starknet.lib.proposal_outcome import ProposalOutcome
 
 // Libraries
-from contracts.starknet.lib.hash_array import HashArray
-from contracts.starknet.lib.array_2d import Array2D, Immutable2DArray
+from contracts.starknet.lib.array_utils import ArrayUtils, Immutable2DArray
 
 //
 // Storage
@@ -215,7 +214,7 @@ namespace Voting {
 
         // Reconstruct the voting params 2D array (1 sub array per strategy) from the flattened version.
         // Currently there is no way to pass struct types with pointers in calldata, so we must do it this way.
-        let (voting_strategy_params_all: Immutable2DArray) = Array2D.construct_array2d(
+        let (voting_strategy_params_all: Immutable2DArray) = ArrayUtils.construct_array2d(
             voting_strategy_params_flat_len, voting_strategy_params_flat
         );
 
@@ -361,7 +360,7 @@ namespace Voting {
 
         assert_no_active_proposal();
 
-        let (params_all: Immutable2DArray) = Array2D.construct_array2d(
+        let (params_all: Immutable2DArray) = ArrayUtils.construct_array2d(
             params_flat_len, params_flat
         );
 
@@ -474,7 +473,7 @@ namespace Voting {
         }
 
         // Reconstruct the voting params 2D array (1 sub array per strategy) from the flattened version.
-        let (user_voting_strategy_params_all: Immutable2DArray) = Array2D.construct_array2d(
+        let (user_voting_strategy_params_all: Immutable2DArray) = ArrayUtils.construct_array2d(
             user_voting_strategy_params_flat_len, user_voting_strategy_params_flat
         );
 
@@ -547,7 +546,7 @@ namespace Voting {
         let max_end_timestamp = start_timestamp + _max_voting_duration;
 
         // Reconstruct the voting params 2D array (1 sub array per strategy) from the flattened version.
-        let (user_voting_strategy_params_all: Immutable2DArray) = Array2D.construct_array2d(
+        let (user_voting_strategy_params_all: Immutable2DArray) = ArrayUtils.construct_array2d(
             user_voting_strategy_params_flat_len, user_voting_strategy_params_flat
         );
 
@@ -569,7 +568,7 @@ namespace Voting {
 
         // Hash the execution params
         // Storing arrays inside a struct is impossible so instead we just store a hash and then reconstruct the array in finalize_proposal
-        let (execution_hash) = HashArray.hash_array(execution_params_len, execution_params);
+        let (execution_hash) = ArrayUtils.hash(execution_params_len, execution_params);
 
         let (_quorum) = Voting_quorum_store.read();
 
@@ -637,7 +636,7 @@ namespace Voting {
         }
 
         // Make sure execution params match the ones sent at proposal creation by checking that the hashes match
-        let (recovered_hash) = HashArray.hash_array(execution_params_len, execution_params);
+        let (recovered_hash) = ArrayUtils.hash(execution_params_len, execution_params);
         with_attr error_message("Invalid execution parameters") {
             assert recovered_hash = proposal.execution_hash;
         }
@@ -838,8 +837,8 @@ func unchecked_remove_executors{
 }
 
 func unchecked_add_voting_strategies{
-    syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr
-}(addresses_len : felt, addresses : felt*, params_all : Immutable2DArray) {
+    syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_ptr
+}(addresses_len: felt, addresses: felt*, params_all: Immutable2DArray) {
     alloc_locals;
     let (prev_index) = Voting_num_voting_strategies_store.read();
     unchecked_add_voting_strategies_recurse(addresses_len, addresses, params_all, prev_index, 0);
@@ -849,13 +848,13 @@ func unchecked_add_voting_strategies{
 }
 
 func unchecked_add_voting_strategies_recurse{
-    syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr
+    syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_ptr
 }(
-    addresses_len : felt,
-    addresses : felt*,
-    params_all : Immutable2DArray,
-    next_index : felt,
-    index : felt,
+    addresses_len: felt,
+    addresses: felt*,
+    params_all: Immutable2DArray,
+    next_index: felt,
+    index: felt,
 ) {
     alloc_locals;
     if (addresses_len == 0) {
@@ -864,7 +863,7 @@ func unchecked_add_voting_strategies_recurse{
         Voting_voting_strategies_store.write(next_index, addresses[0]);
 
         // Extract voting params for the voting strategy
-        let (params_len, params) = Array2D.get_sub_array(params_all, index);
+        let (params_len, params) = ArrayUtils.get_sub_array(params_all, index);
 
         // We store the length of the voting strategy params array at index zero
         Voting_voting_strategy_params_store.write(next_index, 0, params_len);
@@ -1027,7 +1026,7 @@ func assert_no_duplicates{}(array_len: felt, array: felt*) {
 
         // For each element in the array, try to find
         // this element in the rest of the array
-        let (found) = find(to_find, array_len - 1, &array[1]);
+        let (found) = ArrayUtils.find(to_find, array_len - 1, &array[1]);
 
         // If the element was found, we have found a duplicate.
         // Raise an error!
@@ -1091,7 +1090,7 @@ func unchecked_get_cumulative_voting_power{
     }
 
     // Extract voting params array for the voting strategy specified by the index
-    let (user_voting_strategy_params_len, user_voting_strategy_params) = Array2D.get_sub_array(
+    let (user_voting_strategy_params_len, user_voting_strategy_params) = ArrayUtils.get_sub_array(
         user_voting_strategy_params_all, index
     );
 

@@ -1,5 +1,6 @@
 from starkware.cairo.common.cairo_builtins import HashBuiltin
 from starkware.cairo.common.hash_state import hash_init, hash_update, hash_finalize
+from starkware.cairo.common.bool import TRUE, FALSE
 
 struct Immutable2DArray {
     offsets_len: felt,  // The length of the offsets array is the number of sub arrays in the 2d array
@@ -9,8 +10,8 @@ struct Immutable2DArray {
 }
 
 namespace ArrayUtils {
-    // Hash an array of felts 
-    func hash_array{pedersen_ptr: HashBuiltin*}(array_len: felt, array: felt*) -> (hash: felt) {
+    // Hash an array of felts
+    func hash{pedersen_ptr: HashBuiltin*}(array_len: felt, array: felt*) -> (hash: felt) {
         let (hash_state_ptr) = hash_init();
         let (hash_state_ptr) = hash_update{hash_ptr=pedersen_ptr}(hash_state_ptr, array, array_len);
         let (hash) = hash_finalize{hash_ptr=pedersen_ptr}(hash_state_ptr);
@@ -30,7 +31,7 @@ namespace ArrayUtils {
         }
     }
 
-    // Construct an Immutable2D array from a flat encoding. 
+    // Construct an Immutable2D array from a flat encoding.
     // The structure of the flat array that is passed should be as follows:
     // flat_array[0] = num_arrays
     // flat_array[1:1+num_arrays] = offsets
