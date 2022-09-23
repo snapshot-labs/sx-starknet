@@ -1030,10 +1030,10 @@
   resolved "https://registry.yarnpkg.com/@sindresorhus/is/-/is-0.14.0.tgz#9fb3a3cf3132328151f353de4632e01e52102bea"
   integrity sha512-9NET910DNaIPngYnLLPeg+Ogzqsi9uM4mSboU5y6p8S5DzMTVEsJZrawi+BoDNUVBa2DhJqQYUFvMDfgU062LQ==
 
-"@snapshot-labs/sx@0.1.0-beta.12":
-  version "0.1.0-beta.12"
-  resolved "https://registry.yarnpkg.com/@snapshot-labs/sx/-/sx-0.1.0-beta.12.tgz#021e4dc8618f321778a44d291f713c7821fefa53"
-  integrity sha512-8ityZEpdjmApj8mFxPfGRcgU0uYDxx2Vs1LgnFsfQ5tQ0echvCuaUIDGsfaosG3gV7GsumtwgzjVNDlGzIUt+Q==
+"@snapshot-labs/sx@0.1.0-beta.13":
+  version "0.1.0-beta.13"
+  resolved "https://registry.yarnpkg.com/@snapshot-labs/sx/-/sx-0.1.0-beta.13.tgz#4bf468d27f0c7217001f4c1619780cea1d654e67"
+  integrity sha512-4gR9OTmvT0ZuSLCqfA9HlZr39ATfWufDQtKU1JWOImowwlD/mNP8tdeuK52YDFMmPmRvVUV/BS+4BsmnuZTvcQ==
   dependencies:
     "@ethereumjs/block" "^3.6.3"
     "@ethereumjs/common" "^2.6.5"
@@ -1044,7 +1044,7 @@
     "@ethersproject/wallet" "^5.7.0"
     cross-fetch "^3.1.5"
     randombytes "^2.1.0"
-    starknet "^3.18.2"
+    starknet "^4.4.2"
 
 "@solidity-parser/parser@^0.14.0", "@solidity-parser/parser@^0.14.1", "@solidity-parser/parser@^0.14.3":
   version "0.14.3"
@@ -9325,7 +9325,7 @@ stacktrace-parser@^0.1.10:
   dependencies:
     type-fest "^0.7.1"
 
-starknet@^3.15.0, starknet@^3.18.2:
+starknet@^3.15.0:
   version "3.18.2"
   resolved "https://registry.yarnpkg.com/starknet/-/starknet-3.18.2.tgz#ec0c83ca97763663722f8e4b6a6872bf2cb18e05"
   integrity sha512-w42BOws9np3C9dy4y9MOwY+KqxNhwTseci7CLVlLkui+jzQ7gGWoPVqn9OMeKy0PWIcZadCeuHvLez2xrg3zMg==
