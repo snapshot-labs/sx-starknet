@@ -125,93 +125,91 @@ describe('Create proposal, cast vote, and send execution to l1', function () {
   it('should correctly receive and accept a finalized proposal on l1', async () => {
     this.timeout(1200000);
 
-    relayerWallet = starknet.getWallet('RelayerWallet');
-
     // -- Creates a proposal --
-    await vanillaAuthenticator.invoke(
+    await controller.invoke(
+      vanillaAuthenticator,
       'authenticate',
       {
         target: spaceAddress,
         function_selector: PROPOSE_SELECTOR,
         calldata: proposeCalldata,
-      },
-      { relayerWallet }
+      }
     );
 
-    // // -- Casts a vote FOR --
-    // await relayer.invoke(vanillaAuthenticator, 'authenticate', {
-    //   target: spaceAddress,
-    //   function_selector: VOTE_SELECTOR,
-    //   calldata: voteCalldata,
-    // });
+    // -- Casts a vote FOR --
+    await controller.invoke(vanillaAuthenticator, 'authenticate', {
+      target: spaceAddress,
+      function_selector: VOTE_SELECTOR,
+      calldata: voteCalldata,
+    });
 
-    //   // -- Load messaging contract
-    //   await starknet.devnet.loadL1MessagingContract(networkUrl, mockStarknetMessaging.address);
+    // // -- Load messaging contract
+    await starknet.devnet.loadL1MessagingContract(networkUrl, mockStarknetMessaging.address);
+    // await starknet.devnet.loadL1MessagingContract(networkUrl);
+      // -- Finalize proposal and send execution hash to L1 --
 
-    //   // -- Finalize proposal and send execution hash to L1 --
+      // await controller.invoke(space, 'finalize_proposal', {
+      //   proposal_id: proposalId,
+      //   execution_params: executionParams,
+      // });
 
-    //   await relayer.invoke(space, 'finalize_proposal', {
-    //     proposal_id: proposalId,
-    //     execution_params: executionParams,
-    //   });
+      // // --  Flush messages and check that communication went well --
 
-    //   // --  Flush messages and check that communication went well --
+      // const flushL2Response = await starknet.devnet.flush();
+      // expect(flushL2Response.consumed_messages.from_l1).to.be.empty;
+      // const flushL2Messages = flushL2Response.consumed_messages.from_l2;
+      // expect(flushL2Messages).to.have.a.lengthOf(1);
+      // expect(BigInt(flushL2Messages[0].from_address)).to.equal(BigInt(zodiacRelayer.address));
+      // expect(BigInt(flushL2Messages[0].to_address)).to.equal(BigInt(zodiacModule.address));
 
-    //   const flushL2Response = await starknet.devnet.flush();
-    //   expect(flushL2Response.consumed_messages.from_l1).to.be.empty;
-    //   const flushL2Messages = flushL2Response.consumed_messages.from_l2;
-    //   expect(flushL2Messages).to.have.a.lengthOf(1);
-    //   expect(BigInt(flushL2Messages[0].from_address)).to.equal(BigInt(zodiacRelayer.address));
-    //   expect(BigInt(flushL2Messages[0].to_address)).to.equal(BigInt(zodiacModule.address));
+  //     // -- Check that l1 can receive the proposal correctly --
 
-    //   // -- Check that l1 can receive the proposal correctly --
+  //     const proposalOutcome = BigInt(1);
+  //     const fakeTxHashes = txHashes.slice(0, -1);
+  //     const callerAddress = BigInt(space.address);
+  //     const fakeCallerAddress = BigInt(zodiacRelayer.address);
+  //     const splitExecutionHash = utils.splitUint256.SplitUint256.fromHex(executionHash);
 
-    //   const proposalOutcome = BigInt(1);
-    //   const fakeTxHashes = txHashes.slice(0, -1);
-    //   const callerAddress = BigInt(space.address);
-    //   const fakeCallerAddress = BigInt(zodiacRelayer.address);
-    //   const splitExecutionHash = utils.splitUint256.SplitUint256.fromHex(executionHash);
+  //     // Check that if the tx hash is incorrect, the transaction reverts.
+  //     await expect(
+  //       zodiacModule.receiveProposal(
+  //         callerAddress,
+  //         proposalOutcome,
+  //         splitExecutionHash.low,
+  //         splitExecutionHash.high,
+  //         fakeTxHashes
+  //       )
+  //     ).to.be.revertedWith('Invalid execution');
 
-    //   // Check that if the tx hash is incorrect, the transaction reverts.
-    //   await expect(
-    //     zodiacModule.receiveProposal(
-    //       callerAddress,
-    //       proposalOutcome,
-    //       splitExecutionHash.low,
-    //       splitExecutionHash.high,
-    //       fakeTxHashes
-    //     )
-    //   ).to.be.revertedWith('Invalid execution');
+  //     // Check that if `proposalOutcome` parameter is incorrect, transaction reverts.
+  //     await expect(
+  //       zodiacModule.receiveProposal(
+  //         callerAddress,
+  //         0,
+  //         splitExecutionHash.low,
+  //         splitExecutionHash.high,
+  //         txHashes
+  //       )
+  //     ).to.be.revertedWith('Proposal did not pass');
 
-    //   // Check that if `proposalOutcome` parameter is incorrect, transaction reverts.
-    //   await expect(
-    //     zodiacModule.receiveProposal(
-    //       callerAddress,
-    //       0,
-    //       splitExecutionHash.low,
-    //       splitExecutionHash.high,
-    //       txHashes
-    //     )
-    //   ).to.be.revertedWith('Proposal did not pass');
+  //     // Check that if `callerAddress` parameter is incorrect, transaction reverts.
+  //     await expect(
+  //       zodiacModule.receiveProposal(
+  //         fakeCallerAddress,
+  //         proposalOutcome,
+  //         splitExecutionHash.low,
+  //         splitExecutionHash.high,
+  //         txHashes
+  //       )
+  //     ).to.be.reverted;
 
-    //   // Check that if `callerAddress` parameter is incorrect, transaction reverts.
-    //   await expect(
-    //     zodiacModule.receiveProposal(
-    //       fakeCallerAddress,
-    //       proposalOutcome,
-    //       splitExecutionHash.low,
-    //       splitExecutionHash.high,
-    //       txHashes
-    //     )
-    //   ).to.be.reverted;
-
-    //   // Check that it works when provided correct parameters.
-    //   await zodiacModule.receiveProposal(
-    //     callerAddress,
-    //     proposalOutcome,
-    //     splitExecutionHash.low,
-    //     splitExecutionHash.high,
-    //     txHashes
-    //   );
+  //     // Check that it works when provided correct parameters.
+  //     await zodiacModule.receiveProposal(
+  //       callerAddress,
+  //       proposalOutcome,
+  //       splitExecutionHash.low,
+  //       splitExecutionHash.high,
+  //       txHashes
+  //     );
   });
 });
