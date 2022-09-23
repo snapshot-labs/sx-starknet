@@ -225,7 +225,7 @@ describe('Space Testing', () => {
     const failsIfRejected = await (
       await starknet.getContractFactory('./contracts/starknet/TestContracts/FailsIfRejected.cairo')
     ).deploy();
-    await controller.invoke(space, 'add_executors', {
+    await controller.invoke(space, 'add_execution_strategies', {
       to_add: [failsIfRejected.address],
     });
 

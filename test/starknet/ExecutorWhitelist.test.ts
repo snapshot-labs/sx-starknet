@@ -112,7 +112,7 @@ describe('Whitelist testing', () => {
   }).timeout(1000000);
 
   it('The controller can whitelist an executor', async () => {
-    await controller.invoke(space, 'add_executors', {
+    await controller.invoke(space, 'add_execution_strategies', {
       to_add: [BigInt(vanillaExecutionStrategy.address)],
     });
 
@@ -130,7 +130,7 @@ describe('Whitelist testing', () => {
   }).timeout(1000000);
 
   it('The controller can remove two executors', async () => {
-    await controller.invoke(space, 'remove_executors', {
+    await controller.invoke(space, 'remove_execution_strategies', {
       to_remove: [BigInt(zodiacRelayer.address), BigInt(vanillaExecutionStrategy.address)],
     });
 
@@ -147,7 +147,7 @@ describe('Whitelist testing', () => {
   }).timeout(1000000);
 
   it('The controller can add two executors', async () => {
-    await controller.invoke(space, 'add_executors', {
+    await controller.invoke(space, 'add_execution_strategies', {
       to_add: [BigInt(zodiacRelayer.address), BigInt(vanillaExecutionStrategy.address)],
     });
 

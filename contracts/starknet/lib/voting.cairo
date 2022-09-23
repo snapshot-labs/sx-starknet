@@ -226,7 +226,7 @@ namespace Voting:
             voting_strategies_len, voting_strategies, voting_strategy_params_all
         )
         unchecked_add_authenticators(authenticators_len, authenticators)
-        unchecked_add_executors(executors_len, executors)
+        unchecked_add_execution_strategies(executors_len, executors)
 
         # The first proposal in a space will have a proposal ID of 1.
         Voting_next_proposal_nonce_store.write(1)
@@ -340,28 +340,28 @@ namespace Voting:
     end
 
     @external
-    func add_executors{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr : felt}(
-        to_add_len : felt, to_add : felt*
-    ):
+    func add_execution_strategies{
+        syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr : felt
+    }(to_add_len : felt, to_add : felt*):
         alloc_locals
 
         Ownable.assert_only_owner()
 
-        unchecked_add_executors(to_add_len, to_add)
+        unchecked_add_execution_strategies(to_add_len, to_add)
 
         executors_added.emit(to_add_len, to_add)
         return ()
     end
 
     @external
-    func remove_executors{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr : felt}(
-        to_remove_len : felt, to_remove : felt*
-    ):
+    func remove_execution_strategies{
+        syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr : felt
+    }(to_remove_len : felt, to_remove : felt*):
         alloc_locals
 
         Ownable.assert_only_owner()
 
-        unchecked_remove_executors(to_remove_len, to_remove)
+        unchecked_remove_execution_strategies(to_remove_len, to_remove)
 
         executors_removed.emit(to_remove_len, to_remove)
         return ()
@@ -850,20 +850,20 @@ end
 #  Internal Functions
 #
 
-func unchecked_add_executors{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr}(
-    to_add_len : felt, to_add : felt*
-):
+func unchecked_add_execution_strategies{
+    syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr
+}(to_add_len : felt, to_add : felt*):
     if to_add_len == 0:
         return ()
     else:
         Voting_executors_store.write(to_add[0], 1)
 
-        unchecked_add_executors(to_add_len - 1, &to_add[1])
+        unchecked_add_execution_strategies(to_add_len - 1, &to_add[1])
         return ()
     end
 end
 
-func unchecked_remove_executors{
+func unchecked_remove_execution_strategies{
     syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr : felt
 }(to_remove_len : felt, to_remove : felt*):
     if to_remove_len == 0:
@@ -871,7 +871,7 @@ func unchecked_remove_executors{
     else:
         Voting_executors_store.write(to_remove[0], 0)
 
-        unchecked_remove_executors(to_remove_len - 1, &to_remove[1])
+        unchecked_remove_execution_strategies(to_remove_len - 1, &to_remove[1])
         return ()
     end
 end
