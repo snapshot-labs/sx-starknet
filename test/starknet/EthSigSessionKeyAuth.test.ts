@@ -124,9 +124,9 @@ describe('Ethereum Signature Session Key Auth testing', () => {
       );
       sessionDuration = '0x30';
       const message: SessionKey = {
-        address: utils.encoding.hexPadRight(accounts[0].address),
+        address: accounts[0].address,
         sessionPublicKey: utils.encoding.hexPadRight(sessionPublicKey),
-        sessionDuration: utils.encoding.hexPadRight(sessionDuration),
+        sessionDuration: sessionDuration,
         salt: salt.toHex(),
       };
       const sig = await account._signTypedData(domain, sessionKeyTypes, message);
@@ -155,9 +155,9 @@ describe('Ethereum Signature Session Key Auth testing', () => {
       );
       sessionDuration = '0xffff';
       const message: SessionKey = {
-        address: utils.encoding.hexPadRight(account.address),
+        address: account.address,
         sessionPublicKey: utils.encoding.hexPadRight(sessionPublicKey),
-        sessionDuration: utils.encoding.hexPadRight(sessionDuration),
+        sessionDuration: sessionDuration,
         salt: salt.toHex(),
       };
       const sig = await account._signTypedData(domain, sessionKeyTypes, message);
@@ -338,9 +338,9 @@ describe('Ethereum Signature Session Key Auth testing', () => {
       );
       sessionDuration = '0x1'; // 1 second duration session
       const message: SessionKey = {
-        address: utils.encoding.hexPadRight(accounts[1].address),
+        address: accounts[1].address,
         sessionPublicKey: utils.encoding.hexPadRight(sessionPublicKey2),
-        sessionDuration: utils.encoding.hexPadRight(sessionDuration),
+        sessionDuration: sessionDuration,
         salt: salt.toHex(),
       };
       const sig = await account2._signTypedData(domain, sessionKeyTypes, message);
@@ -471,9 +471,9 @@ describe('Ethereum Signature Session Key Auth testing', () => {
       );
       sessionDuration = '0xffff';
       const message: SessionKey = {
-        address: utils.encoding.hexPadRight(account.address),
+        address: account.address,
         sessionPublicKey: utils.encoding.hexPadRight(sessionPublicKey),
-        sessionDuration: utils.encoding.hexPadRight(sessionDuration),
+        sessionDuration: sessionDuration,
         salt: salt.toHex(),
       };
       const sig = await account._signTypedData(domain, sessionKeyTypes, message);
@@ -558,9 +558,9 @@ describe('Ethereum Signature Session Key Auth testing', () => {
     );
     sessionDuration = '0xffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff';
     const message: SessionKey = {
-      address: utils.encoding.hexPadRight(account.address),
+      address: account.address,
       sessionPublicKey: utils.encoding.hexPadRight(sessionPublicKey),
-      sessionDuration: utils.encoding.hexPadRight(sessionDuration),
+      sessionDuration: sessionDuration,
       salt: salt.toHex(),
     };
     const sig = await account._signTypedData(domain, sessionKeyTypes, message);
