@@ -8,7 +8,7 @@ export const proposeTypes = {
   Propose: [
     { name: 'authenticator', type: 'bytes32' },
     { name: 'space', type: 'bytes32' },
-    { name: 'proposerAddress', type: 'bytes32' },
+    { name: 'proposerAddress', type: 'address' },
     { name: 'metadataUri', type: 'string' },
     { name: 'executor', type: 'bytes32' },
     { name: 'executionParamsHash', type: 'bytes32' },
@@ -22,7 +22,7 @@ export const voteTypes = {
   Vote: [
     { name: 'authenticator', type: 'bytes32' },
     { name: 'space', type: 'bytes32' },
-    { name: 'voterAddress', type: 'bytes32' },
+    { name: 'voterAddress', type: 'address' },
     { name: 'proposal', type: 'uint256' },
     { name: 'choice', type: 'uint256' },
     { name: 'usedVotingStrategiesHash', type: 'bytes32' },
@@ -33,9 +33,9 @@ export const voteTypes = {
 
 export const sessionKeyTypes = {
   SessionKey: [
-    { name: 'address', type: 'bytes32' },
+    { name: 'address', type: 'address' },
     { name: 'sessionPublicKey', type: 'bytes32' },
-    { name: 'sessionDuration', type: 'bytes32' },
+    { name: 'sessionDuration', type: 'uint256' },
     { name: 'salt', type: 'uint256' },
   ],
 };

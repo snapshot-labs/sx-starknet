@@ -31,17 +31,17 @@ const ETHEREUM_PREFIX = 0x1901
 const DOMAIN_HASH_HIGH = 0x8aba6bf30572474cf5acb579ce4c27aa
 const DOMAIN_HASH_LOW = 0x01d7dbffc7a8de3d601367229ba8a687
 
-# keccak256("Propose(bytes32 authenticator,bytes32 space,bytes32 proposerAddress,string metadataUri,bytes32 executor,bytes32 executionParamsHash,bytes32 usedVotingStrategiesHash,bytes32 userVotingStrategyParamsFlatHash,uint256 salt)")
-const PROPOSAL_TYPE_HASH_HIGH = 0xdd4b6d662f476088f7bfd59cd7f3487d
-const PROPOSAL_TYPE_HASH_LOW = 0x83e72c2166a7985fb62fa23315c6db8c
+# keccak256("Propose(bytes32 authenticator,bytes32 space,address proposerAddress,string metadataUri,bytes32 executor,bytes32 executionParamsHash,bytes32 usedVotingStrategiesHash,bytes32 userVotingStrategyParamsFlatHash,uint256 salt)")
+const PROPOSAL_TYPE_HASH_HIGH = 0xe37f306268878f3eeef828fb45621b34
+const PROPOSAL_TYPE_HASH_LOW = 0x4eddf15e7e169d03d2d8e7b3b4f1d95f
 
-# keccak256("Vote(bytes32 authenticator,bytes32 space,bytes32 voterAddress,uint256 proposal,uint256 choice,bytes32 usedVotingStrategiesHash,bytes32 userVotingStrategyParamsFlatHash,uint256 salt)")
-const VOTE_TYPE_HASH_HIGH = 0x943c2de24cfb6aaea8956c0444db4921
-const VOTE_TYPE_HASH_LOW = 0xef29792e6cd3ada75d9adbd50bd9760a
+# keccak256("Vote(bytes32 authenticator,bytes32 space,address voterAddress,uint256 proposal,uint256 choice,bytes32 usedVotingStrategiesHash,bytes32 userVotingStrategyParamsFlatHash,uint256 salt)")
+const VOTE_TYPE_HASH_HIGH = 0x6f3e2bf14ba837c9e0effab557caafd5
+const VOTE_TYPE_HASH_LOW = 0xab94a418071d5eb60ca5713e90f87d3f
 
-# keccak256("SessionKey(bytes32 address,bytes32 sessionPublicKey,bytes32 sessionDuration,uint256 salt)")
-const SESSION_KEY_INIT_TYPE_HASH_HIGH = 0x233b93cc8989df29b5834cd69e96f1e9
-const SESSION_KEY_INIT_TYPE_HASH_LOW = 0x390b13389ac2a65080907f1fcf6385e8
+# keccak256("SessionKey(address address,bytes32 sessionPublicKey,uint256 sessionDuration,uint256 salt)")
+const SESSION_KEY_INIT_TYPE_HASH_HIGH = 0x53f1294cb551b4ff97c8fd4caefa8ec6
+const SESSION_KEY_INIT_TYPE_HASH_LOW = 0xaa9d835345c95b1a435ddff5ae910083
 
 # keccak256("RevokeSessionKey(bytes32 sessionPublicKey,uint256 salt)")
 const SESSION_KEY_REVOKE_TYPE_HASH_HIGH = 0x0a5ba214c2c419ff474ecb96dc30103d
@@ -85,7 +85,6 @@ namespace EIP712:
         let (space) = FeltUtils.felt_to_uint256(target)
 
         let (voter_address_u256) = FeltUtils.felt_to_uint256(voter_address)
-        let (padded_voter_address) = _pad_right(voter_address_u256)
 
         let (proposal_id) = FeltUtils.felt_to_uint256(calldata[1])
         let (choice) = FeltUtils.felt_to_uint256(calldata[2])
@@ -107,7 +106,7 @@ namespace EIP712:
         assert data[0] = Uint256(VOTE_TYPE_HASH_LOW, VOTE_TYPE_HASH_HIGH)
         assert data[1] = auth_address_u256
         assert data[2] = space
-        assert data[3] = padded_voter_address
+        assert data[3] = voter_address_u256
         assert data[4] = proposal_id
         assert data[5] = choice
         assert data[6] = used_voting_strategies_hash
@@ -188,7 +187,6 @@ namespace EIP712:
 
         # Proposer address
         let (proposer_address_u256) = FeltUtils.felt_to_uint256(proposer_address)
-        let (padded_proposer_address) = _pad_right(proposer_address_u256)
 
         # Metadata URI
         let metadata_uri_string_len = calldata[1]
@@ -227,7 +225,7 @@ namespace EIP712:
         assert data[0] = Uint256(PROPOSAL_TYPE_HASH_LOW, PROPOSAL_TYPE_HASH_HIGH)
         assert data[1] = auth_address_u256
         assert data[2] = space
-        assert data[3] = padded_proposer_address
+        assert data[3] = proposer_address_u256
         assert data[4] = metadata_uri_hash
         assert data[5] = executor_u256
         assert data[6] = execution_hash
@@ -293,18 +291,18 @@ namespace EIP712:
 
         # Encode data
         let (eth_address_u256) = FeltUtils.felt_to_uint256(eth_address)
-        let (padded_eth_address) = _pad_right(eth_address_u256)
+
         let (session_public_key_u256) = FeltUtils.felt_to_uint256(session_public_key)
         let (padded_session_public_key) = _pad_right(session_public_key_u256)
+
         let (session_duration_u256) = FeltUtils.felt_to_uint256(session_duration)
-        let (padded_session_duration) = _pad_right(session_duration_u256)
 
         # Now construct the data array
         let (data : Uint256*) = alloc()
         assert data[0] = Uint256(SESSION_KEY_INIT_TYPE_HASH_LOW, SESSION_KEY_INIT_TYPE_HASH_HIGH)
-        assert data[1] = padded_eth_address
+        assert data[1] = eth_address_u256
         assert data[2] = padded_session_public_key
-        assert data[3] = padded_session_duration
+        assert data[3] = session_duration_u256
         assert data[4] = salt
 
         # Hash the data array
