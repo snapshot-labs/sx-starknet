@@ -7,6 +7,7 @@ import { PROPOSE_SELECTOR } from '../shared/constants';
 
 describe('Active Proposal', () => {
   let space: StarknetContract;
+  let relayer: Account;
   let controller: Account;
   let user: Account;
   let vanillaVotingStrategy: StarknetContract;
@@ -18,7 +19,7 @@ describe('Active Proposal', () => {
     this.timeout(800000);
     ({ space, controller, vanillaAuthenticator, vanillaVotingStrategy, vanillaExecutionStrategy } =
       await vanillaSetup());
-    user = await starknet.deployAccount('OpenZeppelin');
+    relayer = await starknet.deployAccount('OpenZeppelin');
     proposalId = BigInt(1);
     const proposalCallData = utils.encoding.getProposeCalldata(
       user.address,
@@ -30,7 +31,7 @@ describe('Active Proposal', () => {
     );
 
     // Create a proposal
-    await user.invoke(vanillaAuthenticator, 'authenticate', {
+    await relayer.invoke(vanillaAuthenticator, 'authenticate', {
       target: space.address,
       function_selector: PROPOSE_SELECTOR,
       calldata: proposalCallData,

@@ -8,8 +8,8 @@ import { Wallet } from 'ethers';
 
 describe('Space Testing', () => {
   // Contracts
-  let relayerWallet: any; // This is a WalletConfig type but the type has not been exported
   let space: StarknetContract;
+  let relayer: Account;
   let controller: Account;
   let vanillaAuthenticator: StarknetContract;
   let vanillaVotingStrategy: StarknetContract;
@@ -35,7 +35,8 @@ describe('Space Testing', () => {
 
   before(async function () {
     this.timeout(800000);
-    relayerWallet = starknet.getWallet('OpenZeppelin');
+
+    relayer = await starknet.deployAccount('OpenZeppelin');
 
     ({ space, controller, vanillaAuthenticator, vanillaVotingStrategy, vanillaExecutionStrategy } =
       await vanillaSetup());
@@ -75,18 +76,11 @@ describe('Space Testing', () => {
   it('Users should be able to create a proposal, cast a vote, and execute it', async () => {
     // -- Creates the proposal --
     {
-      console.log(PROPOSE_SELECTOR);
-      console.log(spaceAddress);
-      await vanillaAuthenticator.invoke(
-        'authenticate',
-        {
-          target: spaceAddress,
-          function_selector: PROPOSE_SELECTOR,
-          calldata: proposeCalldata,
-        },
-        { wallet: relayerWallet }
-      );
-
+      await relayer.invoke(vanillaAuthenticator, 'authenticate', {
+        target: spaceAddress,
+        function_selector: PROPOSE_SELECTOR,
+        calldata: proposeCalldata,
+      });
       const { proposal_info } = await space.call('get_proposal_info', {
         proposal_id: proposalId,
       });
@@ -99,15 +93,11 @@ describe('Space Testing', () => {
     }
     // -- Casts a vote FOR --
     {
-      await vanillaAuthenticator.invoke(
-        'authenticate',
-        {
-          target: spaceAddress,
-          function_selector: VOTE_SELECTOR,
-          calldata: voteCalldata,
-        },
-        { wallet: relayerWallet }
-      );
+      await relayer.invoke(vanillaAuthenticator, 'authenticate', {
+        target: spaceAddress,
+        function_selector: VOTE_SELECTOR,
+        calldata: voteCalldata,
+      });
       const { proposal_info } = await space.call('get_proposal_info', {
         proposal_id: proposalId,
       });
@@ -120,36 +110,28 @@ describe('Space Testing', () => {
     }
     // -- Executes the proposal --
     {
-      await space.invoke(
-        'finalize_proposal',
-        {
-          proposal_id: proposalId,
-          execution_params: executionParams,
-        },
-        { wallet: relayerWallet }
-      );
+      await relayer.invoke(space, 'finalize_proposal', {
+        proposal_id: proposalId,
+        execution_params: executionParams,
+      });
     }
   }).timeout(6000000);
 
   it('Fails if an invalid voting strategy is used', async () => {
     // -- Creates the proposal --
     try {
-      await vanillaAuthenticator.invoke(
-        'authenticate',
-        {
-          target: spaceAddress,
-          function_selector: PROPOSE_SELECTOR,
-          calldata: utils.encoding.getProposeCalldata(
-            proposerEthAddress,
-            metadataUri,
-            executionStrategy,
-            ['0x1'],
-            userVotingParamsAll1,
-            executionParams
-          ),
-        },
-        { wallet: relayerWallet }
-      );
+      await relayer.invoke(vanillaAuthenticator, 'authenticate', {
+        target: spaceAddress,
+        function_selector: PROPOSE_SELECTOR,
+        calldata: utils.encoding.getProposeCalldata(
+          proposerEthAddress,
+          metadataUri,
+          executionStrategy,
+          ['0x1'],
+          userVotingParamsAll1,
+          executionParams
+        ),
+      });
     } catch (error: any) {
       expect(error.message).to.contain('Invalid voting strategy');
     }
@@ -173,15 +155,11 @@ describe('Space Testing', () => {
       );
 
       try {
-        await vanillaAuthenticator.invoke(
-          'authenticate',
-          {
-            target: spaceAddress,
-            function_selector: PROPOSE_SELECTOR,
-            calldata: duplicateCalldata,
-          },
-          { wallet: relayerWallet }
-        );
+        await relayer.invoke(vanillaAuthenticator, 'authenticate', {
+          target: spaceAddress,
+          function_selector: PROPOSE_SELECTOR,
+          calldata: duplicateCalldata,
+        });
       } catch (error: any) {
         expect(error.message).to.contain('Duplicate entry found');
       }
@@ -208,15 +186,11 @@ describe('Space Testing', () => {
       [[], [], []],
       executionParams
     );
-    await vanillaAuthenticator.invoke(
-      'authenticate',
-      {
-        target: spaceAddress,
-        function_selector: PROPOSE_SELECTOR,
-        calldata: proposeCalldata,
-      },
-      { wallet: relayerWallet }
-    );
+    await relayer.invoke(vanillaAuthenticator, 'authenticate', {
+      target: spaceAddress,
+      function_selector: PROPOSE_SELECTOR,
+      calldata: proposeCalldata,
+    });
 
     // -- Casts vote --
     voteCalldata = utils.encoding.getVoteCalldata(
@@ -227,15 +201,11 @@ describe('Space Testing', () => {
       [[], [], []]
     );
 
-    await vanillaAuthenticator.invoke(
-      'authenticate',
-      {
-        target: spaceAddress,
-        function_selector: VOTE_SELECTOR,
-        calldata: voteCalldata,
-      },
-      { wallet: relayerWallet }
-    );
+    await relayer.invoke(vanillaAuthenticator, 'authenticate', {
+      target: spaceAddress,
+      function_selector: VOTE_SELECTOR,
+      calldata: voteCalldata,
+    });
 
     const { proposal_info } = await space.call('get_proposal_info', {
       proposal_id: '0x2',

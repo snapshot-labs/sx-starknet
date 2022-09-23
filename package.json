@@ -32,7 +32,7 @@
     "@gnosis.pm/zodiac": "^1.1.5",
     "@openzeppelin/contracts": "^4.7.3",
     "@snapshot-labs/sx": "0.1.0-beta.12",
-    "@shardlabs/starknet-hardhat-plugin": "0.6.6-alpha.2",
+    "@shardlabs/starknet-hardhat-plugin": "0.6.6",
     "starknet": "^4.4.2",
     "concurrently": "^7.4.0",
     "wait-on": "^6.0.1"
