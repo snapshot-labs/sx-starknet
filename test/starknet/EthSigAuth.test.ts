@@ -102,12 +102,11 @@ describe('Ethereum Signature Auth testing', () => {
       const userVotingStrategyParamsFlatHashPadded1 = utils.encoding.hexPadRight(
         userVotingStrategyParamsFlatHash1
       );
-      const paddedProposerAddress = utils.encoding.hexPadRight(proposerEthAddress);
       const paddedExecutor = utils.encoding.hexPadRight(vanillaExecutionStrategy.address);
       const message: Propose = {
         authenticator: ethSigAuth.address,
         space: spaceStr,
-        proposerAddress: paddedProposerAddress,
+        proposerAddress: proposerEthAddress,
         metadataUri: METADATA_URI,
         executor: paddedExecutor,
         executionParamsHash: executionHashPadded,
@@ -151,13 +150,12 @@ describe('Ethereum Signature Auth testing', () => {
       const userVotingStrategyParamsFlatHashPadded1 = utils.encoding.hexPadRight(
         userVotingStrategyParamsFlatHash1
       );
-      const paddedProposerAddress = utils.encoding.hexPadRight(proposerEthAddress);
       const paddedExecutor = utils.encoding.hexPadRight(executionStrategy);
 
       const message: Propose = {
         authenticator: ethSigAuth.address,
         space: spaceAddress,
-        proposerAddress: paddedProposerAddress,
+        proposerAddress: proposerEthAddress,
         metadataUri: METADATA_URI,
         executor: paddedExecutor,
         executionParamsHash: executionHashPadded,
@@ -227,7 +225,7 @@ describe('Ethereum Signature Auth testing', () => {
       const userVotingStrategyParamsFlatHashPadded2 = utils.encoding.hexPadRight(
         userVotingStrategyParamsFlatHash2
       );
-      const voterEthAddressPadded = utils.encoding.hexPadRight(voterEthAddress);
+      const voterEthAddressPadded = voterEthAddress;
 
       const message: Vote = {
         authenticator: ethSigAuth.address,
