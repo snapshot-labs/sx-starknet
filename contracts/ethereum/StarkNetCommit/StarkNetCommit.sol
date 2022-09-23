@@ -19,9 +19,6 @@ contract StarkNetCommit is Initializable {
   /// Using a mock here for testing purposes
   MockStarknetMessaging public immutable starknetCore;
 
-  /// Address of the L1 tx authenticator contract
-  uint256 public starknetAuthenticatorOfL1Tx;
-
   /**
    * @dev Selector for the L1 handler in the authenticator on StarkNet, found via:
    *      from starkware.starknet.compiler.compile import get_selector_from_name
@@ -39,22 +36,13 @@ contract StarkNetCommit is Initializable {
   }
 
   /**
-   * @dev Sets the L1 tx authenticator address. Can only be called once.
-   * @param _starknetAuthenticatorOfL1Tx Address of the StarkNet authenticator for L1 interactions
-   * @notice We use the initializer pattern because this contract and the authenticator need to know the address of each other.
-   */
-  function setAuth(uint256 _starknetAuthenticatorOfL1Tx) public initializer {
-    starknetAuthenticatorOfL1Tx = _starknetAuthenticatorOfL1Tx;
-  }
-
-  /**
    * @dev Commit a hash and the sender address to StarkNet.
    * @param _hash The hash to commit
    */
-  function commit(uint256 _hash) external {
+  function commit(uint256 starknetAuthenticator, uint256 _hash) external {
     uint256[] memory payload = new uint256[](2);
     payload[0] = uint256(uint160(msg.sender));
     payload[1] = _hash;
-    starknetCore.sendMessageToL2(starknetAuthenticatorOfL1Tx, L1_COMMIT_HANDLER, payload);
+    starknetCore.sendMessageToL2(starknetAuthenticator, L1_COMMIT_HANDLER, payload);
   }
 }
