@@ -115,7 +115,7 @@ describe('Ethereum Transaction Session Keys', function () {
       );
     // Checking that the L1 -> L2 message has been propagated
     expect((await starknet.devnet.flush()).consumed_messages.from_l1).to.have.a.lengthOf(1);
-    await ethTxSessionKeyAuth.invoke('authorize_session_key_with_tx', {
+    await controller.invoke(ethTxSessionKeyAuth, 'authorize_session_key_with_tx', {
       eth_address: account.address,
       session_public_key: sessionPublicKey,
       session_duration: sessionDuration,
@@ -190,7 +190,7 @@ describe('Ethereum Transaction Session Keys', function () {
       );
     await starknet.devnet.flush();
     try {
-      await ethTxSessionKeyAuth.invoke('authorize_session_key_with_tx', {
+      await controller.invoke(ethTxSessionKeyAuth, 'authorize_session_key_with_tx', {
         eth_address: account.address,
         session_public_key: sessionPublicKey,
         session_duration: fakeSessionDuration,
@@ -210,7 +210,7 @@ describe('Ethereum Transaction Session Keys', function () {
       );
     await starknet.devnet.flush();
     try {
-      await ethTxSessionKeyAuth.invoke('authorize_session_key_with_tx', {
+      await controller.invoke(ethTxSessionKeyAuth, 'authorize_session_key_with_tx', {
         eth_address: account.address,
         session_public_key: sessionPublicKey,
         session_duration: sessionDuration,
@@ -299,7 +299,7 @@ describe('Ethereum Transaction Session Keys', function () {
         );
       // Checking that the L1 -> L2 message has been propogated
       expect((await starknet.devnet.flush()).consumed_messages.from_l1).to.have.a.lengthOf(1);
-      await ethTxSessionKeyAuth.invoke('authorize_session_key_with_tx', {
+      await controller.invoke(ethTxSessionKeyAuth, 'authorize_session_key_with_tx', {
         eth_address: account.address,
         session_public_key: sessionPublicKey,
         session_duration: sessionDuration,
