@@ -223,7 +223,9 @@ describe('Space Testing', () => {
   it('Fails if quorum has not been reached', async () => {
     // Add a special execution strategy that will fail if the outcome is not `REJECTED`.
     const failsIfRejected = await (
-      await starknet.getContractFactory('./contracts/starknet/TestContracts/FailsIfRejected.cairo')
+      await starknet.getContractFactory(
+        './contracts/starknet/TestContracts/ExecutionStrategies/FailsIfRejected.cairo'
+      )
     ).deploy();
     await controller.invoke(space, 'add_execution_strategies', {
       to_add: [failsIfRejected.address],
