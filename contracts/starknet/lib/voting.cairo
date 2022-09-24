@@ -9,6 +9,7 @@ from starkware.cairo.common.alloc import alloc
 from starkware.cairo.common.uint256 import Uint256, uint256_add, uint256_lt, uint256_le, uint256_eq
 from starkware.cairo.common.bool import TRUE, FALSE
 from starkware.cairo.common.hash_state import hash_init, hash_update
+from starkware.cairo.common.math_cmp import is_le
 from starkware.cairo.common.math import (
     assert_lt,
     assert_le,
@@ -225,7 +226,7 @@ namespace Voting:
             voting_strategies_len, voting_strategies, voting_strategy_params_all
         )
         unchecked_add_authenticators(authenticators_len, authenticators)
-        unchecked_add_executors(executors_len, executors)
+        unchecked_add_execution_strategies(executors_len, executors)
 
         # The first proposal in a space will have a proposal ID of 1.
         Voting_next_proposal_nonce_store.write(1)
@@ -339,28 +340,28 @@ namespace Voting:
     end
 
     @external
-    func add_executors{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr : felt}(
-        to_add_len : felt, to_add : felt*
-    ):
+    func add_execution_strategies{
+        syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr : felt
+    }(to_add_len : felt, to_add : felt*):
         alloc_locals
 
         Ownable.assert_only_owner()
 
-        unchecked_add_executors(to_add_len, to_add)
+        unchecked_add_execution_strategies(to_add_len, to_add)
 
         executors_added.emit(to_add_len, to_add)
         return ()
     end
 
     @external
-    func remove_executors{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr : felt}(
-        to_remove_len : felt, to_remove : felt*
-    ):
+    func remove_execution_strategies{
+        syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr : felt
+    }(to_remove_len : felt, to_remove : felt*):
         alloc_locals
 
         Ownable.assert_only_owner()
 
-        unchecked_remove_executors(to_remove_len, to_remove)
+        unchecked_remove_execution_strategies(to_remove_len, to_remove)
 
         executors_removed.emit(to_remove_len, to_remove)
         return ()
@@ -683,17 +684,32 @@ namespace Voting:
         # If `is_lower_or_equal` (meaning `_quorum` is smaller than `total_power`), then quorum has been reached (definition of quorum).
         # So if `overflow1 || overflow2 || is_lower_or_equal`, we have reached quorum. If we sum them and find `0`, then they're all equal to 0, which means
         # quorum has not been reached.
-        with_attr error_message("Quorum has not been reached"):
-            assert_not_zero(overflow1 + overflow2 + is_lower_or_equal)
-        end
+        if overflow1 + overflow2 + is_lower_or_equal == 0:
+            let (voting_period_has_ended) = is_le(proposal.max_end_timestamp, current_timestamp + 1)
+            if voting_period_has_ended == FALSE:
+                with_attr error_message("Quorum has not been reached"):
+                    assert 1 = 0
+                    return ()
+                end
+            else:
+                # Voting period has ended but quorum hasn't been reached: proposal should be `REJECTED`
+                tempvar proposal_outcome = ProposalOutcome.REJECTED
 
-        # Set proposal outcome accordingly
-        let (has_passed) = uint256_lt(against, for)
-
-        if has_passed == 1:
-            tempvar proposal_outcome = ProposalOutcome.ACCEPTED
+                # Cairo trick to prevent revoked reference
+                tempvar range_check_ptr = range_check_ptr
+            end
         else:
-            tempvar proposal_outcome = ProposalOutcome.REJECTED
+            # Quorum has been reached: set proposal outcome accordingly
+            let (has_passed) = uint256_lt(against, for)
+
+            if has_passed == 1:
+                tempvar proposal_outcome = ProposalOutcome.ACCEPTED
+            else:
+                tempvar proposal_outcome = ProposalOutcome.REJECTED
+            end
+
+            # Cairo trick to prevent revoked reference
+            tempvar range_check_ptr = range_check_ptr
         end
 
         let (is_valid) = Voting_executors_store.read(proposal.executor)
@@ -701,7 +717,7 @@ namespace Voting:
             # Executor has been removed from the whitelist. Cancel this execution.
             tempvar proposal_outcome = ProposalOutcome.CANCELLED
         else:
-            # Preventing revoked reference
+            # Cairo trick to prevent revoked reference
             tempvar proposal_outcome = proposal_outcome
         end
 
@@ -834,20 +850,20 @@ end
 #  Internal Functions
 #
 
-func unchecked_add_executors{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr}(
-    to_add_len : felt, to_add : felt*
-):
+func unchecked_add_execution_strategies{
+    syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr
+}(to_add_len : felt, to_add : felt*):
     if to_add_len == 0:
         return ()
     else:
         Voting_executors_store.write(to_add[0], 1)
 
-        unchecked_add_executors(to_add_len - 1, &to_add[1])
+        unchecked_add_execution_strategies(to_add_len - 1, &to_add[1])
         return ()
     end
 end
 
-func unchecked_remove_executors{
+func unchecked_remove_execution_strategies{
     syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr : felt
 }(to_remove_len : felt, to_remove : felt*):
     if to_remove_len == 0:
@@ -855,7 +871,7 @@ func unchecked_remove_executors{
     else:
         Voting_executors_store.write(to_remove[0], 0)
 
-        unchecked_remove_executors(to_remove_len - 1, &to_remove[1])
+        unchecked_remove_execution_strategies(to_remove_len - 1, &to_remove[1])
         return ()
     end
 end

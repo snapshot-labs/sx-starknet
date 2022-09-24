@@ -1,6 +1,6 @@
 %lang starknet
 from starkware.cairo.common.alloc import alloc
-from starknet.lib.array_2d import Array2D, Immutable2DArray
+from contracts.starknet.lib.array_2d import Array2D, Immutable2DArray
 
 @view
 func test_array2d{range_check_ptr}(flat_array_len : felt, flat_array : felt*, index : felt) -> (

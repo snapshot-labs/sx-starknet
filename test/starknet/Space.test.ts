@@ -1,5 +1,5 @@
 import { expect } from 'chai';
-import { ethers } from 'hardhat';
+import { ethers, starknet } from 'hardhat';
 import { StarknetContract, Account } from 'hardhat/types';
 import { utils } from '@snapshot-labs/sx';
 import { vanillaSetup } from '../shared/setup';
@@ -220,10 +220,65 @@ describe('Space Testing', () => {
     expect(abstain).to.deep.equal(BigInt(0));
   }).timeout(6000000);
 
+  it('Fails if quorum has not been reached', async () => {
+    // Add a special execution strategy that will fail if the outcome is not `REJECTED`.
+    const failsIfRejected = await (
+      await starknet.getContractFactory(
+        './contracts/starknet/TestContracts/ExecutionStrategies/FailsIfRejected.cairo'
+      )
+    ).deploy();
+    await controller.invoke(space, 'add_execution_strategies', {
+      to_add: [failsIfRejected.address],
+    });
+
+    const proposeCallDataWithExec = utils.encoding.getProposeCalldata(
+      proposerEthAddress,
+      metadataUri,
+      failsIfRejected.address,
+      usedVotingStrategies1,
+      userVotingParamsAll1,
+      executionParams
+    );
+
+    // Create the proposal with the new execution strategy
+    await vanillaAuthenticator.invoke('authenticate', {
+      target: spaceAddress,
+      function_selector: PROPOSE_SELECTOR,
+      calldata: proposeCallDataWithExec,
+    });
+
+    // Finalizing now should not work because quorum has not been reached
+    try {
+      await space.invoke('finalize_proposal', {
+        proposal_id: 0x3,
+        execution_params: executionParams,
+      });
+    } catch (error: any) {
+      expect(error.message).to.contain('Quorum has not been reached');
+    }
+  });
+
+  it('Finalizes if quorum has not been reached but max voting duration has elapsed', async () => {
+    // Fast forward to the end of the max voting period
+    await starknet.devnet.increaseTime(4242);
+    // Need to create an empty block if we want the time increase to be effective
+    const emptyBlock = await starknet.devnet.createBlock();
+
+    // Finalizing should now work since max voting period has elapsed
+    try {
+      await space.invoke('finalize_proposal', {
+        proposal_id: 0x3,
+        execution_params: executionParams,
+      });
+    } catch (error: any) {
+      expect(error.message).to.contain('Proposal was rejected');
+    }
+  });
+
   it('Reverts when querying an invalid proposal id', async () => {
     try {
       await space.call('get_proposal_info', {
-        proposal_id: 3,
+        proposal_id: 42,
       });
     } catch (error: any) {
       expect(error.message).to.contain('Proposal does not exist');
