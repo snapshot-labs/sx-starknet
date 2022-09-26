@@ -31,13 +31,13 @@ const ETHEREUM_PREFIX = 0x1901
 const DOMAIN_HASH_HIGH = 0x8aba6bf30572474cf5acb579ce4c27aa
 const DOMAIN_HASH_LOW = 0x01d7dbffc7a8de3d601367229ba8a687
 
-# keccak256("Propose(bytes32 authenticator,bytes32 space,address proposerAddress,string metadataUri,bytes32 executor,bytes32 executionParamsHash,bytes32 usedVotingStrategiesHash,bytes32 userVotingStrategyParamsFlatHash,uint256 salt)")
-const PROPOSAL_TYPE_HASH_HIGH = 0xe37f306268878f3eeef828fb45621b34
-const PROPOSAL_TYPE_HASH_LOW = 0x4eddf15e7e169d03d2d8e7b3b4f1d95f
+# keccak256("Propose(bytes32 authenticator,bytes32 space,address author,string metadata_uri,bytes32 executor,bytes32 execution_hash,bytes32 strategies_hash,bytes32 strategies_params_hash,uint256 salt)")
+const PROPOSAL_TYPE_HASH_HIGH = 0x53ca73f14c436dd8e4088b71987f1dad
+const PROPOSAL_TYPE_HASH_LOW = 0x4187b44b32f86ed0ba765a166eaa687e
 
-# keccak256("Vote(bytes32 authenticator,bytes32 space,address voterAddress,uint256 proposal,uint256 choice,bytes32 usedVotingStrategiesHash,bytes32 userVotingStrategyParamsFlatHash,uint256 salt)")
-const VOTE_TYPE_HASH_HIGH = 0x6f3e2bf14ba837c9e0effab557caafd5
-const VOTE_TYPE_HASH_LOW = 0xab94a418071d5eb60ca5713e90f87d3f
+# keccak256("Vote(bytes32 authenticator,bytes32 space,address voter,uint256 proposal,uint256 choice,bytes32 strategies_hash,bytes32 strategies_params_hash,uint256 salt)")
+const VOTE_TYPE_HASH_HIGH = 0x7212bf9bf030efcd01422fbf8bb82dfa
+const VOTE_TYPE_HASH_LOW = 0x2912ddb22caa1911c0773c3542b45da1
 
 # keccak256("SessionKey(address address,bytes32 sessionPublicKey,uint256 sessionDuration,uint256 salt)")
 const SESSION_KEY_INIT_TYPE_HASH_HIGH = 0x53f1294cb551b4ff97c8fd4caefa8ec6

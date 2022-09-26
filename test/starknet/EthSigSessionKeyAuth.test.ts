@@ -183,12 +183,12 @@ describe('Ethereum Signature Session Key Auth testing', () => {
 
       const message = {
         space: spaceAddress,
-        proposerAddress: account.address,
-        metadataURI: metadataUriInts.values,
+        author: account.address,
+        metadata_uri: metadataUriInts.values,
         executor: vanillaExecutionStrategy.address,
-        executionParamsHash: executionHash,
-        usedVotingStrategiesHash: usedVotingStrategiesHash1,
-        userVotingStrategyParamsFlatHash: userVotingStrategyParamsFlatHash1,
+        execution_hash: executionHash,
+        strategies_hash: usedVotingStrategiesHash1,
+        strategies_params_hash: userVotingStrategyParamsFlatHash1,
         salt: proposalSalt,
       };
       const msg: typedData.TypedData = {
@@ -237,11 +237,11 @@ describe('Ethereum Signature Session Key Auth testing', () => {
 
       const message = {
         space: spaceAddress,
-        voterAddress: account.address,
+        voter: account.address,
         proposal: proposalId,
         choice: utils.choice.Choice.FOR,
-        usedVotingStrategiesHash: usedVotingStrategiesHash2,
-        userVotingStrategyParamsFlatHash: userVotingStrategyParamsFlatHash2,
+        strategies_hash: usedVotingStrategiesHash2,
+        strategies_params_hash: userVotingStrategyParamsFlatHash2,
         salt: voteSalt,
       };
       const msg = {
@@ -303,11 +303,11 @@ describe('Ethereum Signature Session Key Auth testing', () => {
       const message = {
         authenticator: ethSigSessionKeyAuth.address,
         space: spaceAddress,
-        voterAddress: account.address,
+        voter: account.address,
         proposal: proposalId,
         choice: utils.choice.Choice.FOR,
-        usedVotingStrategiesHash: usedVotingStrategiesHash2,
-        userVotingStrategyParamsFlatHash: userVotingStrategyParamsFlatHash2,
+        strategies_hash: usedVotingStrategiesHash2,
+        strategies_params_hash: userVotingStrategyParamsFlatHash2,
         salt: voteSalt,
       };
       const msg = { types: starkTypes.voteTypes, primaryType: 'Vote', domain, message };
@@ -363,12 +363,12 @@ describe('Ethereum Signature Session Key Auth testing', () => {
       const message = {
         authenticator: ethSigSessionKeyAuth.address,
         space: spaceAddress,
-        proposerAddress: account2.address,
-        metadataURI: metadataUriInts.values,
+        author: account2.address,
+        metadata_uri: metadataUriInts.values,
         executor: vanillaExecutionStrategy.address,
-        executionParamsHash: executionHash,
-        usedVotingStrategiesHash: usedVotingStrategiesHash1,
-        userVotingStrategyParamsFlatHash: userVotingStrategyParamsFlatHash1,
+        execution_hash: executionHash,
+        strategies_hash: usedVotingStrategiesHash1,
+        strategies_params_hash: userVotingStrategyParamsFlatHash1,
         salt: proposalSalt,
       };
       const msg: typedData.TypedData = {
@@ -428,12 +428,12 @@ describe('Ethereum Signature Session Key Auth testing', () => {
 
       const message = {
         space: spaceAddress,
-        proposerAddress: account.address,
-        metadataURI: metadataUriInts.values,
+        author: account.address,
+        metadata_uri: metadataUriInts.values,
         executor: vanillaExecutionStrategy.address,
-        executionParamsHash: executionHash,
-        usedVotingStrategiesHash: usedVotingStrategiesHash1,
-        userVotingStrategyParamsFlatHash: userVotingStrategyParamsFlatHash1,
+        execution_hash: executionHash,
+        strategies_hash: usedVotingStrategiesHash1,
+        strategies_params_hash: userVotingStrategyParamsFlatHash1,
         salt: proposalSalt,
       };
       const msg: typedData.TypedData = {
@@ -517,12 +517,12 @@ describe('Ethereum Signature Session Key Auth testing', () => {
 
       const message = {
         space: spaceAddress,
-        proposerAddress: account.address,
-        metadataURI: metadataUriInts.values,
+        author: account.address,
+        metadata_uri: metadataUriInts.values,
         executor: vanillaExecutionStrategy.address,
-        executionParamsHash: executionHash,
-        usedVotingStrategiesHash: usedVotingStrategiesHash1,
-        userVotingStrategyParamsFlatHash: userVotingStrategyParamsFlatHash1,
+        execution_hash: executionHash,
+        strategies_hash: usedVotingStrategiesHash1,
+        strategies_params_hash: userVotingStrategyParamsFlatHash1,
         salt: proposalSalt,
       };
       const msg: typedData.TypedData = {

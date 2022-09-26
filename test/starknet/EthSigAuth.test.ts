@@ -106,12 +106,12 @@ describe('Ethereum Signature Auth testing', () => {
       const message: Propose = {
         authenticator: ethSigAuth.address,
         space: spaceStr,
-        proposerAddress: proposerEthAddress,
-        metadataUri: METADATA_URI,
+        author: proposerEthAddress,
+        metadata_uri: METADATA_URI,
         executor: paddedExecutor,
-        executionParamsHash: executionHashPadded,
-        usedVotingStrategiesHash: usedVotingStrategiesHashPadded1,
-        userVotingStrategyParamsFlatHash: userVotingStrategyParamsFlatHashPadded1,
+        execution_hash: executionHashPadded,
+        strategies_hash: usedVotingStrategiesHashPadded1,
+        strategies_params_hash: userVotingStrategyParamsFlatHashPadded1,
         salt: salt.toHex(),
       };
 
@@ -155,12 +155,12 @@ describe('Ethereum Signature Auth testing', () => {
       const message: Propose = {
         authenticator: ethSigAuth.address,
         space: spaceAddress,
-        proposerAddress: proposerEthAddress,
-        metadataUri: METADATA_URI,
+        author: proposerEthAddress,
+        metadata_uri: METADATA_URI,
         executor: paddedExecutor,
-        executionParamsHash: executionHashPadded,
-        usedVotingStrategiesHash: usedVotingStrategiesHashPadded1,
-        userVotingStrategyParamsFlatHash: userVotingStrategyParamsFlatHashPadded1,
+        execution_hash: executionHashPadded,
+        strategies_hash: usedVotingStrategiesHashPadded1,
+        strategies_params_hash: userVotingStrategyParamsFlatHashPadded1,
         salt: proposalSalt.toHex(),
       };
 
@@ -230,11 +230,11 @@ describe('Ethereum Signature Auth testing', () => {
       const message: Vote = {
         authenticator: ethSigAuth.address,
         space: spaceStr,
-        voterAddress: voterEthAddressPadded,
+        voter: voterEthAddressPadded,
         proposal: BigInt(proposalId).toString(16),
         choice: utils.choice.Choice.FOR,
-        usedVotingStrategiesHash: usedVotingStrategiesHashPadded2,
-        userVotingStrategyParamsFlatHash: userVotingStrategyParamsFlatHashPadded2,
+        strategies_hash: usedVotingStrategiesHashPadded2,
+        strategies_params_hash: userVotingStrategyParamsFlatHashPadded2,
         salt: voteSalt.toHex(),
       };
       const sig = await accounts[0]._signTypedData(domain, voteTypes, message);
