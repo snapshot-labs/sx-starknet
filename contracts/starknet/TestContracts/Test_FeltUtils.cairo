@@ -1,7 +1,7 @@
 %lang starknet
 from starkware.cairo.common.uint256 import Uint256
 from starkware.cairo.common.cairo_builtins import BitwiseBuiltin
-from starknet.lib.felt_utils import FeltUtils, Words
+from contracts.starknet.lib.felt_utils import FeltUtils, Words
 
 @view
 func test_words_to_uint256{range_check_ptr}(word1: felt, word2: felt, word3: felt, word4: felt) -> (

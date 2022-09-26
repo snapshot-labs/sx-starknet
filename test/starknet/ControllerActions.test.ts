@@ -197,11 +197,11 @@ describe('Controller Actions', () => {
       (await randomExecutionContractFactory.deploy()) as StarknetContract;
 
     // Add a random executor
-    await controller.invoke(space, 'add_executors', {
+    await controller.invoke(space, 'add_execution_strategies', {
       to_add: [randomExecutionContract.address],
     });
     // Remove the vanilla executor
-    await controller.invoke(space, 'remove_executors', {
+    await controller.invoke(space, 'remove_execution_strategies', {
       to_remove: [vanillaExecutionStrategy.address],
     });
 
@@ -247,10 +247,10 @@ describe('Controller Actions', () => {
     });
 
     // Revert back to initial executor
-    await controller.invoke(space, 'add_executors', {
+    await controller.invoke(space, 'add_execution_strategies', {
       to_add: [vanillaExecutionStrategy.address],
     });
-    await controller.invoke(space, 'remove_executors', {
+    await controller.invoke(space, 'remove_execution_strategies', {
       to_remove: [randomExecutionContract.address],
     });
 
