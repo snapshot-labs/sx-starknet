@@ -70,7 +70,7 @@ Note: The submodule included in the repo is the [Fossil](https://github.com/Oile
 ### Install Python and Yarn requirements: 
 
 ```bash
-python3.7 -m venv ~/cairo_venv
+python3.9 -m venv ~/cairo_venv
 source ~/cairo_venv/bin/activate
 pip3 install -r requirements.txt
 yarn
