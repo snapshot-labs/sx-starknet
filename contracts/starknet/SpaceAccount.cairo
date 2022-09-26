@@ -286,7 +286,7 @@ func add_execution_strategies{
 }
 
 @external
-func remove_add_execution_strategies{
+func remove_execution_strategies{
     syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_ptr: felt
 }(addresses_len: felt, addresses: felt*) {
     Voting.remove_execution_strategies(addresses_len, addresses);

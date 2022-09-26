@@ -428,6 +428,7 @@ export async function ethBalanceOfSetup(block: any, proofs: any) {
     }),
     vanillaExecutionStrategyFactory.deploy(),
   ];
+
   const contracts = await Promise.all(deployments);
   const vanillaAuthenticator = contracts[0] as StarknetContract;
   const ethBalanceOfVotingStrategy = contracts[1] as StarknetContract;
@@ -464,7 +465,6 @@ export async function ethBalanceOfSetup(block: any, proofs: any) {
   ); //  Quorum of one for the vanilla test
   const proposalThreshold: utils.splitUint256.SplitUint256 =
     utils.splitUint256.SplitUint256.fromUint(BigInt(1)); // Proposal threshold of 1 for the vanilla test
-
   // Deploy space with specified parameters
   const space = (await spaceFactory.deploy({
     public_key: controller.publicKey,
@@ -801,7 +801,7 @@ export async function spaceFactorySetup() {
   const spaceFactoryClass = await starknet.getContractFactory(
     './contracts/starknet/SpaceAccount.cairo'
   );
-  const spaceHash = await spaceFactoryClass.declare();
+  const spaceHash = await controller.declare(spaceFactoryClass);
 
   const vanillaVotingStrategyFactory = await starknet.getContractFactory(
     './contracts/starknet/VotingStrategies/Vanilla.cairo'

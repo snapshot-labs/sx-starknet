@@ -227,7 +227,7 @@ describe('Space Testing', () => {
       )
     ).deploy();
     await controller.invoke(space, 'add_execution_strategies', {
-      to_add: [failsIfRejected.address],
+      addresses: [failsIfRejected.address],
     });
 
     const proposeCallDataWithExec = utils.encoding.getProposeCalldata(
@@ -240,7 +240,7 @@ describe('Space Testing', () => {
     );
 
     // Create the proposal with the new execution strategy
-    await vanillaAuthenticator.invoke('authenticate', {
+    await relayer.invoke(vanillaAuthenticator, 'authenticate', {
       target: spaceAddress,
       function_selector: PROPOSE_SELECTOR,
       calldata: proposeCallDataWithExec,
@@ -248,7 +248,7 @@ describe('Space Testing', () => {
 
     // Finalizing now should not work because quorum has not been reached
     try {
-      await space.invoke('finalize_proposal', {
+      await relayer.invoke(space, 'finalize_proposal', {
         proposal_id: 0x3,
         execution_params: executionParams,
       });
@@ -265,7 +265,7 @@ describe('Space Testing', () => {
 
     // Finalizing should now work since max voting period has elapsed
     try {
-      await space.invoke('finalize_proposal', {
+      await relayer.invoke(space, 'finalize_proposal', {
         proposal_id: 0x3,
         execution_params: executionParams,
       });

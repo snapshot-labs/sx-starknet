@@ -3,7 +3,7 @@
 %lang starknet
 
 // Standard Library
-from starkware.starknet.common.syscalls import get_caller_address, get_block_timestamp
+from starkware.starknet.common.syscalls import get_caller_address, get_block_timestamp, get_tx_info
 from starkware.cairo.common.cairo_builtins import HashBuiltin, SignatureBuiltin, BitwiseBuiltin
 from starkware.cairo.common.alloc import alloc
 from starkware.cairo.common.uint256 import Uint256, uint256_add, uint256_lt, uint256_le, uint256_eq
@@ -22,7 +22,7 @@ from starkware.cairo.common.math import (
 
 // OpenZeppelin
 from openzeppelin.access.ownable.library import Ownable
-from openzeppelin.account.library import Account, AccountCallArray
+from openzeppelin.account.library import Account, AccountCallArray, Call
 
 // Interfaces
 from contracts.starknet.Interfaces.IVotingStrategy import IVotingStrategy
@@ -711,7 +711,7 @@ namespace Voting {
                 let (call_array_len, call_array, calldata_len, calldata) = decode_execution_params(
                     execution_params_len, execution_params
                 );
-                let (response_len, response) = Account.execute(
+                let (response_len, response) = execute_proposal_txs(
                     call_array_len, call_array, calldata_len, calldata
                 );
                 tempvar syscall_ptr = syscall_ptr;
@@ -1181,4 +1181,35 @@ func decode_execution_params{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, ran
     let calldata_len = execution_params_len - execution_params[0];
     let calldata = &execution_params[execution_params[0]];
     return (call_array_len, call_array, calldata_len, calldata);
+}
+
+// Same as OZ `execute` just without the assert  get_caller_address() = 0
+// This is a reentrant call guard which prevents another account calling execute
+// In the context of proposal txs, reentrancy is not an issue
+func execute_proposal_txs{
+    syscall_ptr: felt*,
+    pedersen_ptr: HashBuiltin*,
+    ecdsa_ptr: SignatureBuiltin*,
+    bitwise_ptr: BitwiseBuiltin*,
+    range_check_ptr,
+}(call_array_len: felt, call_array: AccountCallArray*, calldata_len: felt, calldata: felt*) -> (
+    response_len: felt, response: felt*
+) {
+    alloc_locals;
+
+    let (tx_info) = get_tx_info();
+    with_attr error_message("Account: invalid tx version") {
+        assert tx_info.version = 1;
+    }
+
+    // TMP: Convert `AccountCallArray` to 'Call'.
+    let (calls: Call*) = alloc();
+    Account._from_call_array_to_call(call_array_len, call_array, calldata, calls);
+    let calls_len = call_array_len;
+
+    // execute call
+    let (response: felt*) = alloc();
+    let (response_len) = Account._execute_list(calls_len, calls, response);
+
+    return (response_len=response_len, response=response);
 }

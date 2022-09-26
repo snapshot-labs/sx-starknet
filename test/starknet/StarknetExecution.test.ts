@@ -134,7 +134,7 @@ describe('Starknet execution via account contract', () => {
   it('Users should be able to create a proposal, cast a vote, and execute it', async () => {
     // -- Creates the proposal --
     {
-      await vanillaAuthenticator.invoke('authenticate', {
+      await controller.invoke(vanillaAuthenticator, 'authenticate', {
         target: spaceAddress,
         function_selector: PROPOSE_SELECTOR,
         calldata: proposeCalldata,
@@ -142,7 +142,7 @@ describe('Starknet execution via account contract', () => {
     }
     // -- Casts a vote FOR --
     {
-      await vanillaAuthenticator.invoke('authenticate', {
+      await controller.invoke(vanillaAuthenticator, 'authenticate', {
         target: spaceAddress,
         function_selector: VOTE_SELECTOR,
         calldata: voteCalldata,
@@ -151,7 +151,7 @@ describe('Starknet execution via account contract', () => {
 
     // -- Executes the proposal, which should create 3 new dummy proposal in the same space
     {
-      await space.invoke('finalize_proposal', {
+      await controller.invoke(space, 'finalize_proposal', {
         proposal_id: proposalId,
         execution_params: executionParams,
       });
