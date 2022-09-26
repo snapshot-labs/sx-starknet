@@ -326,9 +326,9 @@ namespace Voting {
         return ();
     }
 
-    func add_execution_strategies{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_ptr: felt}(
-        addresses_len: felt, addresses: felt*
-    ) {
+    func add_execution_strategies{
+        syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_ptr: felt
+    }(addresses_len: felt, addresses: felt*) {
         alloc_locals;
 
         Ownable.assert_only_owner();
@@ -339,9 +339,9 @@ namespace Voting {
         return ();
     }
 
-    func remove_execution_strategies{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_ptr: felt}(
-        addresses_len: felt, addresses: felt*
-    ) {
+    func remove_execution_strategies{
+        syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_ptr: felt
+    }(addresses_len: felt, addresses: felt*) {
         alloc_locals;
 
         Ownable.assert_only_owner();
@@ -826,9 +826,9 @@ namespace Voting {
 //  Internal Functions
 //
 
-func unchecked_add_execution_strategies{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_ptr}(
-    addresses_len: felt, addresses: felt*
-) {
+func unchecked_add_execution_strategies{
+    syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_ptr
+}(addresses_len: felt, addresses: felt*) {
     if (addresses_len == 0) {
         return ();
     } else {
