@@ -36,8 +36,8 @@ const PROPOSAL_TYPE_HASH_HIGH = 0x53ca73f14c436dd8e4088b71987f1dad
 const PROPOSAL_TYPE_HASH_LOW = 0x4187b44b32f86ed0ba765a166eaa687e
 
 # keccak256("Vote(bytes32 authenticator,bytes32 space,address voter,uint256 proposal,uint256 choice,bytes32 strategies_hash,bytes32 strategies_params_hash,uint256 salt)")
-const VOTE_TYPE_HASH_HIGH = 0x7212bf9bf030efcd01422fbf8bb82dfa
-const VOTE_TYPE_HASH_LOW = 0x2912ddb22caa1911c0773c3542b45da1
+const VOTE_TYPE_HASH_HIGH = 0x7c25de9274f16730816515e2132f9775
+const VOTE_TYPE_HASH_LOW = 0x17f55b8568b810cc267dc2999edce64a
 
 # keccak256("SessionKey(address address,bytes32 sessionPublicKey,uint256 sessionDuration,uint256 salt)")
 const SESSION_KEY_INIT_TYPE_HASH_HIGH = 0x53f1294cb551b4ff97c8fd4caefa8ec6
