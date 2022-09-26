@@ -99,7 +99,7 @@ describe('L1 interaction with Snapshot X', function () {
     });
     // Second attempt at calling authenticate should fail
     try {
-      await controller.invoke(ethTxAuth,'authenticate', {
+      await controller.invoke(ethTxAuth, 'authenticate', {
         target: spaceAddress,
         function_selector: PROPOSE_SELECTOR,
         calldata: proposeCalldata,
