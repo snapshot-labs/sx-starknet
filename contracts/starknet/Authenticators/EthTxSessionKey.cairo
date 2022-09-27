@@ -1,9 +1,6 @@
 %lang starknet
 
 from starkware.cairo.common.cairo_builtins import HashBuiltin, SignatureBuiltin
-from starkware.cairo.common.alloc import alloc
-from starkware.cairo.common.memcpy import memcpy
-from contracts.starknet.lib.hash_array import HashArray
 from contracts.starknet.lib.execute import execute
 from contracts.starknet.lib.eth_tx import EthTx
 from contracts.starknet.lib.session_key import SessionKey

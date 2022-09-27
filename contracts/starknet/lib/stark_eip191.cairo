@@ -5,10 +5,10 @@ from starkware.cairo.common.cairo_builtins import HashBuiltin, SignatureBuiltin
 from starkware.cairo.common.math import assert_not_zero
 from starkware.cairo.common.uint256 import uint256_eq, Uint256
 from starkware.cairo.common.alloc import alloc
-from contracts.starknet.lib.hash_array import HashArray
 from starkware.cairo.common.signature import verify_ecdsa_signature
 from starkware.starknet.common.syscalls import get_contract_address
 from contracts.starknet.lib.felt_utils import FeltUtils
+from contracts.starknet.lib.array_utils import ArrayUtils
 
 // Following a Starknet version of the EIP191 standard
 
@@ -63,7 +63,7 @@ namespace StarkEIP191 {
         let metadata_uri_string_len = calldata[1];
         let metadata_uri_len = calldata[2];
         let metadata_uri: felt* = &calldata[3];
-        let (metadata_uri_hash) = HashArray.hash_array(metadata_uri_len, metadata_uri);
+        let (metadata_uri_hash) = ArrayUtils.hash(metadata_uri_len, metadata_uri);
 
         // Executor
         let executor = calldata[3 + metadata_uri_len];
@@ -72,21 +72,21 @@ namespace StarkEIP191 {
         // Used voting strategies
         let used_voting_strats_len = calldata[4 + metadata_uri_len];
         let used_voting_strats = &calldata[5 + metadata_uri_len];
-        let (used_voting_strategies_hash) = HashArray.hash_array(
+        let (used_voting_strategies_hash) = ArrayUtils.hash(
             used_voting_strats_len, used_voting_strats
         );
 
         // User voting strategy params flat
         let user_voting_strat_params_flat_len = calldata[5 + metadata_uri_len + used_voting_strats_len];
         let user_voting_strat_params_flat = &calldata[6 + metadata_uri_len + used_voting_strats_len];
-        let (user_voting_strategy_params_flat_hash) = HashArray.hash_array(
+        let (user_voting_strategy_params_flat_hash) = ArrayUtils.hash(
             user_voting_strat_params_flat_len, user_voting_strat_params_flat
         );
 
         // Execution hash
         let execution_params_len = calldata[6 + metadata_uri_len + used_voting_strats_len + user_voting_strat_params_flat_len];
         let execution_params_ptr: felt* = &calldata[7 + metadata_uri_len + used_voting_strats_len + user_voting_strat_params_flat_len];
-        let (execution_hash) = HashArray.hash_array(execution_params_len, execution_params_ptr);
+        let (execution_hash) = ArrayUtils.hash(execution_params_len, execution_params_ptr);
 
         let (structure: felt*) = alloc();
 
@@ -100,7 +100,7 @@ namespace StarkEIP191 {
         assert structure[7] = user_voting_strategy_params_flat_hash;
         assert structure[8] = salt;
 
-        let (hash_struct) = HashArray.hash_array(9, structure);
+        let (hash_struct) = ArrayUtils.hash(9, structure);
 
         let (message: felt*) = alloc();
 
@@ -109,7 +109,7 @@ namespace StarkEIP191 {
         assert message[2] = authenticator;
         assert message[3] = hash_struct;
 
-        let (message_hash) = HashArray.hash_array(4, message);
+        let (message_hash) = ArrayUtils.hash(4, message);
 
         verify_ecdsa_signature(message_hash, public_key, r, s);
 
@@ -150,13 +150,13 @@ namespace StarkEIP191 {
 
         let used_voting_strategies_len = calldata[3];
         let used_voting_strategies = &calldata[4];
-        let (used_voting_strategies_hash) = HashArray.hash_array(
+        let (used_voting_strategies_hash) = ArrayUtils.hash(
             used_voting_strategies_len, used_voting_strategies
         );
 
         let user_voting_strategy_params_flat_len = calldata[4 + used_voting_strategies_len];
         let user_voting_strategy_params_flat = &calldata[5 + used_voting_strategies_len];
-        let (user_voting_strategy_params_flat_hash) = HashArray.hash_array(
+        let (user_voting_strategy_params_flat_hash) = ArrayUtils.hash(
             user_voting_strategy_params_flat_len, user_voting_strategy_params_flat
         );
 
@@ -171,7 +171,7 @@ namespace StarkEIP191 {
         assert structure[6] = user_voting_strategy_params_flat_hash;
         assert structure[7] = salt;
 
-        let (hash_struct) = HashArray.hash_array(8, structure);
+        let (hash_struct) = ArrayUtils.hash(8, structure);
 
         let (message: felt*) = alloc();
 
@@ -180,7 +180,7 @@ namespace StarkEIP191 {
         assert message[2] = authenticator;
         assert message[3] = hash_struct;
 
-        let (message_hash) = HashArray.hash_array(4, message);
+        let (message_hash) = ArrayUtils.hash(4, message);
 
         verify_ecdsa_signature(message_hash, public_key, r, s);
 
@@ -210,7 +210,7 @@ namespace StarkEIP191 {
         assert structure[0] = REVOKE_SESSION_KEY_TYPE_HASH;
         assert structure[1] = salt;
 
-        let (hash_struct) = HashArray.hash_array(2, structure);
+        let (hash_struct) = ArrayUtils.hash(2, structure);
 
         let (message: felt*) = alloc();
 
@@ -219,7 +219,7 @@ namespace StarkEIP191 {
         assert message[2] = authenticator;
         assert message[3] = hash_struct;
 
-        let (message_hash) = HashArray.hash_array(4, message);
+        let (message_hash) = ArrayUtils.hash(4, message);
 
         verify_ecdsa_signature(message_hash, public_key, r, s);
 

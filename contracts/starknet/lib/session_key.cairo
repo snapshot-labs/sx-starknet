@@ -9,7 +9,7 @@ from starkware.cairo.common.alloc import alloc
 from contracts.starknet.lib.stark_eip191 import StarkEIP191
 from contracts.starknet.lib.eip712 import EIP712
 from contracts.starknet.lib.eth_tx import EthTx
-from contracts.starknet.lib.hash_array import HashArray
+from contracts.starknet.lib.array_utils import ArrayUtils
 
 @storage_var
 func SessionKey_owner_store(session_public_key: felt) -> (eth_address: felt) {
@@ -59,7 +59,7 @@ namespace SessionKey {
         assert commit_array[0] = eth_address;
         assert commit_array[1] = session_public_key;
         assert commit_array[2] = session_duration;
-        let (commit_hash) = HashArray.hash_array(3, commit_array);
+        let (commit_hash) = ArrayUtils.hash(3, commit_array);
 
         // Checks that the hash matches a commit and that the commit was created by the correct address
         EthTx.consume_commit(commit_hash, eth_address);
@@ -112,7 +112,7 @@ namespace SessionKey {
         let (commit_array: felt*) = alloc();
         assert commit_array[0] = eth_address;
         assert commit_array[1] = session_public_key;
-        let (commit_hash) = HashArray.hash_array(2, commit_array);
+        let (commit_hash) = ArrayUtils.hash(2, commit_array);
 
         // Checks that hash maches a commit and that the commit was created by the correct address
         EthTx.consume_commit(commit_hash, eth_address);

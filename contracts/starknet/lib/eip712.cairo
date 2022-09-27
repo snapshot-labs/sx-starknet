@@ -20,7 +20,7 @@ from starkware.cairo.common.uint256 import (
     uint256_unsigned_div_rem,
 )
 from contracts.starknet.lib.felt_utils import FeltUtils
-from contracts.starknet.lib.hash_array import HashArray
+from contracts.starknet.lib.array_utils import ArrayUtils
 
 const ETHEREUM_PREFIX = 0x1901;
 
@@ -545,7 +545,7 @@ func _get_padded_hash{range_check_ptr, pedersen_ptr: HashBuiltin*}(
 ) -> (res: Uint256) {
     alloc_locals;
 
-    let (hash) = HashArray.hash_array(input_len, input);
+    let (hash) = ArrayUtils.hash(input_len, input);
     let (hash_u256) = FeltUtils.felt_to_uint256(hash);
     let (padded_hash) = _pad_right(hash_u256);
 
