@@ -17,11 +17,11 @@ const DOMAIN_HASH = 0x7b887e96718721a64b601a4873454d4a9e26a4b798d660c8d6b96d2045
 
 const STARKNET_MESSAGE = 0x537461726b4e6574204d657373616765;
 
-// getSelectorFromName("Propose(space:felt,proposerAddress:felt,metadataURI:felt*,executor:felt,executionParamsHash:felt,usedVotingStrategiesHash:felt,userVotingStrategyParamsFlatHash:felt,salt:felt)")
-const PROPOSAL_TYPE_HASH = 0x35E10EF4A95BB833EE01F14D379540B1724B76496753505D7CCEB30E133BF2;
+// getSelectorFromName("Propose(space:felt,author:felt,metadata_uri:felt*,executor:felt,execution_hash:felt,strategies_hash:felt,strategies_params_hash:felt,salt:felt)")
+const PROPOSAL_TYPE_HASH = 0x2092032d2957beaa83248292f326648fd2ad923d97f59c75296e41d924c5355;
 
-// getSelectorFromName("Vote(space:felt,voterAddress:felt,proposal:felt,choice:felt,usedVotingStrategiesHash:felt,userVotingStrategyParamsFlatHash:felt,salt:felt)")
-const VOTE_TYPE_HASH = 0x2A9A147261602C563F1C9D05CA076F6AE23A8A7A161EE8C8E3DE6E468BEAF9E;
+// getSelectorFromName("Vote(space:felt,voter:felt,proposal:felt,choice:felt,strategies_hash:felt,strategies_params_hash:felt,salt:felt)")
+const VOTE_TYPE_HASH = 0x31236321e2e03bd76ca3b07ff9544b3d50aa3e677b473a2850a894dcd983781;
 
 // getSelectorFromName("RevokeSessionKey(salt:felt)")
 const REVOKE_SESSION_KEY_TYPE_HASH = 0x31F0BF4E2BBD12ECBA02E325F0EA3231350A638FC633AF8EBF244F50663ACE8;

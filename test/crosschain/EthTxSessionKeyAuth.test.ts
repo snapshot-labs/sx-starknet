@@ -131,12 +131,12 @@ describe('Ethereum Transaction Session Keys', function () {
 
       const message = {
         space: spaceAddress,
-        proposerAddress: account.address,
-        metadataURI: metadataUriInts.values,
+        author: account.address,
+        metadata_uri: metadataUriInts.values,
         executor: vanillaExecutionStrategy.address,
-        executionParamsHash: executionHash,
-        usedVotingStrategiesHash: usedVotingStrategiesHash1,
-        userVotingStrategyParamsFlatHash: userVotingStrategyParamsFlatHash1,
+        execution_hash: executionHash,
+        strategies_hash: usedVotingStrategiesHash1,
+        strategies_params_hash: userVotingStrategyParamsFlatHash1,
         salt: proposalSalt,
       };
       const msg: typedData.TypedData = {
@@ -251,12 +251,12 @@ describe('Ethereum Transaction Session Keys', function () {
 
       const message = {
         space: spaceAddress,
-        proposerAddress: account.address,
-        metadataURI: metadataUriInts.values,
+        author: account.address,
+        metadata_uri: metadataUriInts.values,
         executor: vanillaExecutionStrategy.address,
-        executionParamsHash: executionHash,
-        usedVotingStrategiesHash: usedVotingStrategiesHash1,
-        userVotingStrategyParamsFlatHash: userVotingStrategyParamsFlatHash1,
+        execution_hash: executionHash,
+        strategies_hash: usedVotingStrategiesHash1,
+        strategies_params_hash: userVotingStrategyParamsFlatHash1,
         salt: proposalSalt,
       };
       const msg: typedData.TypedData = {
@@ -327,12 +327,12 @@ describe('Ethereum Transaction Session Keys', function () {
 
       const message = {
         space: spaceAddress,
-        proposerAddress: account.address,
-        metadataURI: metadataUriInts.values,
+        author: account.address,
+        metadata_uri: metadataUriInts.values,
         executor: vanillaExecutionStrategy.address,
-        executionParamsHash: executionHash,
-        usedVotingStrategiesHash: usedVotingStrategiesHash1,
-        userVotingStrategyParamsFlatHash: userVotingStrategyParamsFlatHash1,
+        execution_hash: executionHash,
+        strategies_hash: usedVotingStrategiesHash1,
+        strategies_params_hash: userVotingStrategyParamsFlatHash1,
         salt: proposalSalt,
       };
       const msg: typedData.TypedData = {
