@@ -22,7 +22,7 @@ contracts
 │   │  └─ Whitelist.cairo — "Predetermined voting power for members in a whitelist, otherwise zero"
 │   ├─ ExecutionStrategies
 │   │  ├─ Vanilla.cairo — "Dummy execution"
-│   │  └─ EthereumRelayer.cairo — "Strategy to execute proposal transactions on Ethereum"
+│   │  └─ EthRelayer.cairo — "Strategy to execute proposal transactions on Ethereum"
 │   ├─ Interfaces
 │   │  ├─ IAuthenticator.cairo — "Interface for all authenticators"
 │   │  ├─ IExecutionStrategy.cairo — "Interface for all execution strategies"

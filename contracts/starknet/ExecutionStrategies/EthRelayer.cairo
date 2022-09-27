@@ -13,11 +13,11 @@ func execute{syscall_ptr: felt*}(
 
     let (caller_address) = get_caller_address();
 
-    // For the zodiac execution strategy, the execution parameters has 3 elements
+    // The execution parameters array has 3 elements
     with_attr error_message("Invalid execution param array") {
         assert execution_params_len = 3;
     }
-    let l1_zodiac_address = execution_params[0];
+    let l1_destination_address = execution_params[0];
     let execution_hash_low = execution_params[1];
     let execution_hash_high = execution_params[2];
 
@@ -32,7 +32,7 @@ func execute{syscall_ptr: felt*}(
 
     // Send message to L1 Contract
     send_message_to_l1(
-        to_address=l1_zodiac_address, payload_size=payload_size, payload=message_payload
+        to_address=l1_destination_address, payload_size=payload_size, payload=message_payload
     );
     return ();
 }
