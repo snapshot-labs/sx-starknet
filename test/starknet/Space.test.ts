@@ -4,10 +4,12 @@ import { StarknetContract, Account } from 'hardhat/types';
 import { utils } from '@snapshot-labs/sx';
 import { vanillaSetup } from '../shared/setup';
 import { PROPOSE_SELECTOR, VOTE_SELECTOR } from '../shared/constants';
+import { Wallet } from 'ethers';
 
 describe('Space Testing', () => {
   // Contracts
   let space: StarknetContract;
+  let relayer: Account;
   let controller: Account;
   let vanillaAuthenticator: StarknetContract;
   let vanillaVotingStrategy: StarknetContract;
@@ -33,6 +35,8 @@ describe('Space Testing', () => {
 
   before(async function () {
     this.timeout(800000);
+
+    relayer = await starknet.deployAccount('OpenZeppelin');
 
     ({ space, controller, vanillaAuthenticator, vanillaVotingStrategy, vanillaExecutionStrategy } =
       await vanillaSetup());
@@ -72,16 +76,14 @@ describe('Space Testing', () => {
   it('Users should be able to create a proposal, cast a vote, and execute it', async () => {
     // -- Creates the proposal --
     {
-      await vanillaAuthenticator.invoke('authenticate', {
+      await relayer.invoke(vanillaAuthenticator, 'authenticate', {
         target: spaceAddress,
         function_selector: PROPOSE_SELECTOR,
         calldata: proposeCalldata,
       });
-
       const { proposal_info } = await space.call('get_proposal_info', {
         proposal_id: proposalId,
       });
-
       const _for = utils.splitUint256.SplitUint256.fromObj(proposal_info.power_for).toUint();
       expect(_for).to.deep.equal(BigInt(0));
       const against = utils.splitUint256.SplitUint256.fromObj(proposal_info.power_against).toUint();
@@ -91,16 +93,14 @@ describe('Space Testing', () => {
     }
     // -- Casts a vote FOR --
     {
-      await vanillaAuthenticator.invoke('authenticate', {
+      await relayer.invoke(vanillaAuthenticator, 'authenticate', {
         target: spaceAddress,
         function_selector: VOTE_SELECTOR,
         calldata: voteCalldata,
       });
-
       const { proposal_info } = await space.call('get_proposal_info', {
         proposal_id: proposalId,
       });
-
       const _for = utils.splitUint256.SplitUint256.fromObj(proposal_info.power_for).toUint();
       expect(_for).to.deep.equal(BigInt(1));
       const against = utils.splitUint256.SplitUint256.fromObj(proposal_info.power_against).toUint();
@@ -108,10 +108,9 @@ describe('Space Testing', () => {
       const abstain = utils.splitUint256.SplitUint256.fromObj(proposal_info.power_abstain).toUint();
       expect(abstain).to.deep.equal(BigInt(0));
     }
-
     // -- Executes the proposal --
     {
-      await space.invoke('finalize_proposal', {
+      await relayer.invoke(space, 'finalize_proposal', {
         proposal_id: proposalId,
         execution_params: executionParams,
       });
@@ -121,7 +120,7 @@ describe('Space Testing', () => {
   it('Fails if an invalid voting strategy is used', async () => {
     // -- Creates the proposal --
     try {
-      await vanillaAuthenticator.invoke('authenticate', {
+      await relayer.invoke(vanillaAuthenticator, 'authenticate', {
         target: spaceAddress,
         function_selector: PROPOSE_SELECTOR,
         calldata: utils.encoding.getProposeCalldata(
@@ -156,7 +155,7 @@ describe('Space Testing', () => {
       );
 
       try {
-        await vanillaAuthenticator.invoke('authenticate', {
+        await relayer.invoke(vanillaAuthenticator, 'authenticate', {
           target: spaceAddress,
           function_selector: PROPOSE_SELECTOR,
           calldata: duplicateCalldata,
@@ -187,7 +186,7 @@ describe('Space Testing', () => {
       [[], [], []],
       executionParams
     );
-    await vanillaAuthenticator.invoke('authenticate', {
+    await relayer.invoke(vanillaAuthenticator, 'authenticate', {
       target: spaceAddress,
       function_selector: PROPOSE_SELECTOR,
       calldata: proposeCalldata,
@@ -202,7 +201,7 @@ describe('Space Testing', () => {
       [[], [], []]
     );
 
-    await vanillaAuthenticator.invoke('authenticate', {
+    await relayer.invoke(vanillaAuthenticator, 'authenticate', {
       target: spaceAddress,
       function_selector: VOTE_SELECTOR,
       calldata: voteCalldata,
@@ -228,7 +227,7 @@ describe('Space Testing', () => {
       )
     ).deploy();
     await controller.invoke(space, 'add_execution_strategies', {
-      to_add: [failsIfRejected.address],
+      addresses: [failsIfRejected.address],
     });
 
     const proposeCallDataWithExec = utils.encoding.getProposeCalldata(
@@ -241,7 +240,7 @@ describe('Space Testing', () => {
     );
 
     // Create the proposal with the new execution strategy
-    await vanillaAuthenticator.invoke('authenticate', {
+    await relayer.invoke(vanillaAuthenticator, 'authenticate', {
       target: spaceAddress,
       function_selector: PROPOSE_SELECTOR,
       calldata: proposeCallDataWithExec,
@@ -249,7 +248,7 @@ describe('Space Testing', () => {
 
     // Finalizing now should not work because quorum has not been reached
     try {
-      await space.invoke('finalize_proposal', {
+      await relayer.invoke(space, 'finalize_proposal', {
         proposal_id: 0x3,
         execution_params: executionParams,
       });
@@ -266,7 +265,7 @@ describe('Space Testing', () => {
 
     // Finalizing should now work since max voting period has elapsed
     try {
-      await space.invoke('finalize_proposal', {
+      await relayer.invoke(space, 'finalize_proposal', {
         proposal_id: 0x3,
         execution_params: executionParams,
       });

@@ -60,7 +60,7 @@ describe('Space Deployment Testing', () => {
   });
 
   it('A user should be able to deploy a space contract', async () => {
-    const txHash = await spaceDeployer.invoke('deploy_space', {
+    const txHash = await controller.invoke(spaceDeployer, 'deploy_space', {
       public_key: BigInt(controller.publicKey),
       voting_delay: votingDelay,
       min_voting_duration: minVotingDuration,
@@ -97,7 +97,7 @@ describe('Space Deployment Testing', () => {
 
     // -- Creates the proposal --
     {
-      await vanillaAuthenticator.invoke('authenticate', {
+      await controller.invoke(vanillaAuthenticator, 'authenticate', {
         target: spaceAddress,
         function_selector: PROPOSE_SELECTOR,
         calldata: proposeCalldata,

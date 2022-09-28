@@ -5,7 +5,7 @@
   "license": "MIT",
   "scripts": {
     "compile:l1": "hardhat compile",
-    "compile:l2": "hardhat starknet-compile ./contracts/starknet && hardhat starknet-compile ./contracts/starknet/SpaceAccount.cairo --account-contract && hardhat starknet-compile ./contracts/starknet/SpaceFactory.cairo",
+    "compile:l2": "hardhat starknet-compile ./contracts/starknet/SpaceAccount.cairo --account-contract && hardhat starknet-compile ./contracts/starknet/SpaceFactory.cairo && hardhat starknet-compile ./contracts/starknet/**/",
     "compile": "yarn compile:l1 && yarn compile:l2",
     "deploy": "sh deploy.sh",
     "test:l1": "yarn hardhat test test/ethereum/*.ts",
@@ -32,7 +32,7 @@
     "@gnosis.pm/zodiac": "^1.1.5",
     "@openzeppelin/contracts": "^4.7.3",
     "@snapshot-labs/sx": "0.1.0-beta.12",
-    "@shardlabs/starknet-hardhat-plugin": "^0.6.5",
+    "@shardlabs/starknet-hardhat-plugin": "0.6.6",
     "starknet": "^4.4.2",
     "concurrently": "^7.4.0",
     "wait-on": "^6.0.1"

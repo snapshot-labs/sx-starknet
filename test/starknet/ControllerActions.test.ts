@@ -137,12 +137,12 @@ describe('Controller Actions', () => {
 
     // Add the StarknetTx auth
     await controller.invoke(space, 'add_authenticators', {
-      to_add: [starknetTxAuth.address],
+      addresses: [starknetTxAuth.address],
     });
 
     // Remove the Vanilla Auth
     await controller.invoke(space, 'remove_authenticators', {
-      to_remove: [vanillaAuthenticator.address],
+      addresses: [vanillaAuthenticator.address],
     });
 
     const proposeCalldata = getProposeCalldata(
@@ -180,16 +180,16 @@ describe('Controller Actions', () => {
 
     // Reset to initial auths
     await controller.invoke(space, 'add_authenticators', {
-      to_add: [vanillaAuthenticator.address],
+      addresses: [vanillaAuthenticator.address],
     });
     await controller.invoke(space, 'remove_authenticators', {
-      to_remove: [starknetTxAuth.address],
+      addresses: [starknetTxAuth.address],
     });
 
     proposalId += BigInt(1);
   }).timeout(600000);
 
-  it('The controller can add and remove executors', async () => {
+  it('The controller can add and remove execution strategies', async () => {
     const randomExecutionContractFactory = await starknet.getContractFactory(
       './contracts/starknet/ExecutionStrategies/Vanilla.cairo'
     );
@@ -198,11 +198,11 @@ describe('Controller Actions', () => {
 
     // Add a random executor
     await controller.invoke(space, 'add_execution_strategies', {
-      to_add: [randomExecutionContract.address],
+      addresses: [randomExecutionContract.address],
     });
     // Remove the vanilla executor
     await controller.invoke(space, 'remove_execution_strategies', {
-      to_remove: [vanillaExecutionStrategy.address],
+      addresses: [vanillaExecutionStrategy.address],
     });
 
     const incorrectProposeCalldata = getProposeCalldata(
@@ -248,10 +248,10 @@ describe('Controller Actions', () => {
 
     // Revert back to initial executor
     await controller.invoke(space, 'add_execution_strategies', {
-      to_add: [vanillaExecutionStrategy.address],
+      addresses: [vanillaExecutionStrategy.address],
     });
     await controller.invoke(space, 'remove_execution_strategies', {
-      to_remove: [randomExecutionContract.address],
+      addresses: [randomExecutionContract.address],
     });
 
     proposalId += BigInt(1);
@@ -405,7 +405,7 @@ describe('Controller Actions', () => {
   it('The controller can update the min voting duration', async () => {
     // Update the min voting duration
     await controller.invoke(space, 'update_min_voting_duration', {
-      new_min_duration: BigInt(1000),
+      new_min_voting_duration: BigInt(1000),
     });
 
     const proposeCalldata = getProposeCalldata(
@@ -467,7 +467,7 @@ describe('Controller Actions', () => {
 
     // Reset back min voting setting
     await controller.invoke(space, 'update_min_voting_duration', {
-      new_min_duration: BigInt(0),
+      new_min_voting_duration: BigInt(0),
     });
 
     proposalId += BigInt(1);
@@ -476,7 +476,7 @@ describe('Controller Actions', () => {
   it('The controller can update the max voting duration', async () => {
     // Set new max voting duration
     await controller.invoke(space, 'update_max_voting_duration', {
-      new_max_duration: BigInt(100),
+      new_max_voting_duration: BigInt(100),
     });
 
     const proposeCalldata = getProposeCalldata(
@@ -537,20 +537,20 @@ describe('Controller Actions', () => {
       expect(error.message).to.contain('Voting period has ended');
     }
 
-    await space.invoke('finalize_proposal', {
+    await controller.invoke(space, 'finalize_proposal', {
       proposal_id: proposalId,
       execution_params: [],
     });
 
     // Reset to the inital max voting delay
     await controller.invoke(space, 'update_max_voting_duration', {
-      new_max_duration: BigInt(2000),
+      new_max_voting_duration: BigInt(2000),
     });
   }).timeout(600000);
 
   it('The controller can update the proposal threshold', async () => {
     await controller.invoke(space, 'update_proposal_threshold', {
-      new_threshold: utils.splitUint256.SplitUint256.fromUint(BigInt('0x100')),
+      new_proposal_threshold: utils.splitUint256.SplitUint256.fromUint(BigInt('0x100')),
     });
 
     // Change the voting strategy to a whitelist strategy
@@ -617,7 +617,7 @@ describe('Controller Actions', () => {
     });
 
     // Ensure proposal exists
-    await controller.call(space, 'get_proposal_info', {
+    await space.call('get_proposal_info', {
       proposal_id: proposalId,
     });
   }).timeout(600000);

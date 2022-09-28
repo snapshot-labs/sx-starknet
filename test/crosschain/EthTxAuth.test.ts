@@ -11,6 +11,7 @@ describe('L1 interaction with Snapshot X', function () {
   this.timeout(5000000);
   const networkUrl: string = (network.config as HttpNetworkConfig).url;
   let signer: SignerWithAddress;
+  let controller: Account;
 
   // Contracts
   let mockStarknetMessaging: Contract;
@@ -36,6 +37,7 @@ describe('L1 interaction with Snapshot X', function () {
 
     ({
       space,
+      controller,
       ethTxAuth,
       vanillaVotingStrategy,
       vanillaExecutionStrategy,
@@ -74,7 +76,7 @@ describe('L1 interaction with Snapshot X', function () {
     // Checking that the L1 -> L2 message has been propogated
     expect((await starknet.devnet.flush()).consumed_messages.from_l1).to.have.a.lengthOf(1);
     // Creating proposal
-    await ethTxAuth.invoke('authenticate', {
+    await controller.invoke(ethTxAuth, 'authenticate', {
       target: spaceAddress,
       function_selector: PROPOSE_SELECTOR,
       calldata: proposeCalldata,
@@ -90,14 +92,14 @@ describe('L1 interaction with Snapshot X', function () {
         utils.encoding.getCommit(spaceAddress, PROPOSE_SELECTOR, proposeCalldata)
       );
     await starknet.devnet.flush();
-    await ethTxAuth.invoke('authenticate', {
+    await controller.invoke(ethTxAuth, 'authenticate', {
       target: spaceAddress,
       function_selector: PROPOSE_SELECTOR,
       calldata: proposeCalldata,
     });
     // Second attempt at calling authenticate should fail
     try {
-      await ethTxAuth.invoke('authenticate', {
+      await controller.invoke(ethTxAuth, 'authenticate', {
         target: spaceAddress,
         function_selector: PROPOSE_SELECTOR,
         calldata: proposeCalldata,
@@ -117,7 +119,7 @@ describe('L1 interaction with Snapshot X', function () {
       ); // Wrong selector
     await starknet.devnet.flush();
     try {
-      await ethTxAuth.invoke('authenticate', {
+      await controller.invoke(ethTxAuth, 'authenticate', {
         target: spaceAddress,
         function_selector: PROPOSE_SELECTOR,
         calldata: proposeCalldata,
@@ -138,7 +140,7 @@ describe('L1 interaction with Snapshot X', function () {
       );
     await starknet.devnet.flush();
     try {
-      await ethTxAuth.invoke('authenticate', {
+      await controller.invoke(ethTxAuth, 'authenticate', {
         target: spaceAddress,
         function_selector: PROPOSE_SELECTOR,
         calldata: proposeCalldata,

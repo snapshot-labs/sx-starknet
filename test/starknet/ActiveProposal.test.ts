@@ -7,8 +7,8 @@ import { PROPOSE_SELECTOR } from '../shared/constants';
 
 describe('Active Proposal', () => {
   let space: StarknetContract;
+  let relayer: Account;
   let controller: Account;
-  let user: Account;
   let vanillaVotingStrategy: StarknetContract;
   let vanillaAuthenticator: StarknetContract;
   let vanillaExecutionStrategy: StarknetContract;
@@ -18,10 +18,10 @@ describe('Active Proposal', () => {
     this.timeout(800000);
     ({ space, controller, vanillaAuthenticator, vanillaVotingStrategy, vanillaExecutionStrategy } =
       await vanillaSetup());
-    user = await starknet.deployAccount('OpenZeppelin');
+    relayer = await starknet.deployAccount('OpenZeppelin');
     proposalId = BigInt(1);
-    const proposalCallData = utils.encoding.getProposeCalldata(
-      user.address,
+    const proposalCalldata = utils.encoding.getProposeCalldata(
+      ethers.Wallet.createRandom().address,
       utils.intsSequence.IntsSequence.LEFromString(''),
       vanillaExecutionStrategy.address,
       ['0x0'],
@@ -30,10 +30,10 @@ describe('Active Proposal', () => {
     );
 
     // Create a proposal
-    await user.invoke(vanillaAuthenticator, 'authenticate', {
+    await relayer.invoke(vanillaAuthenticator, 'authenticate', {
       target: space.address,
       function_selector: PROPOSE_SELECTOR,
-      calldata: proposalCallData,
+      calldata: proposalCalldata,
     });
   });
 
@@ -63,7 +63,7 @@ describe('Active Proposal', () => {
   it('Fails to add an authenticator if a proposal is active', async () => {
     try {
       await controller.invoke(space, 'add_authenticators', {
-        to_add: [vanillaAuthenticator.address],
+        addresses: [vanillaAuthenticator.address],
       });
       throw { message: 'should not add an authenticator' };
     } catch (error: any) {
@@ -74,7 +74,7 @@ describe('Active Proposal', () => {
   it('Fails to remove an authenticator if a proposal is active', async () => {
     try {
       await controller.invoke(space, 'remove_authenticators', {
-        to_remove: [vanillaAuthenticator.address],
+        addresses: [vanillaAuthenticator.address],
       });
       throw { message: 'should not remove an authenticator' };
     } catch (error: any) {
