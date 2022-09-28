@@ -622,7 +622,7 @@ describe('Controller Actions', () => {
     });
   }).timeout(600000);
 
-  it('The controller can update the metadata ri', async () => {
+  it('The controller can update the metadata uri', async () => {
     const newMetadataUri =
       'Snapshot X Test Space 2 blah blah blah blah blah blah blah blah blah blah blah blah';
     const txHash = await controller.invoke(space, 'update_metadata_uri', {
