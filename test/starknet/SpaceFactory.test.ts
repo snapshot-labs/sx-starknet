@@ -25,6 +25,7 @@ describe('Space Deployment Testing', () => {
   let executors: string[];
   let quorum: utils.splitUint256.SplitUint256;
   let proposalThreshold: utils.splitUint256.SplitUint256;
+  let spaceMetadataUri: string;
 
   // Proposal creation parameters
   let spaceAddress: bigint;
@@ -57,6 +58,7 @@ describe('Space Deployment Testing', () => {
     executors = [vanillaExecutionStrategy.address];
     quorum = utils.splitUint256.SplitUint256.fromUint(BigInt(1)); //  Quorum of one for the vanilla test
     proposalThreshold = utils.splitUint256.SplitUint256.fromUint(BigInt(1)); // Proposal threshold of 1 for the vanilla test
+    spaceMetadataUri = 'SnapshotXTestSpace';
   });
 
   it('A user should be able to deploy a space contract', async () => {
@@ -72,6 +74,7 @@ describe('Space Deployment Testing', () => {
       voting_strategies: votingStrategies,
       authenticators: authenticators,
       executors: executors,
+      metadata_uri: utils.strings.strToShortStringArr(spaceMetadataUri),
     });
     const receipt = await starknet.getTransactionReceipt(txHash);
     // Removing first event as that's from the account contract deployment
