@@ -1,9 +1,8 @@
-from starkware.cairo.common.uint256 import Uint256
 from contracts.starknet.lib.proposal import Proposal
 
 struct ProposalInfo {
     proposal: Proposal,
-    power_for: Uint256,
-    power_against: Uint256,
-    power_abstain: Uint256,
+    power_for: felt,
+    power_against: felt,
+    power_abstain: felt,
 }

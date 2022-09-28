@@ -23,9 +23,9 @@ func constructor{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_ptr
     voting_delay: felt,
     min_voting_duration: felt,
     max_voting_duration: felt,
-    proposal_threshold: Uint256,
+    proposal_threshold: felt,
     controller: felt,
-    quorum: Uint256,
+    quorum: felt,
     voting_strategy_params_flat_len: felt,
     voting_strategy_params_flat: felt*,
     voting_strategies_len: felt,
@@ -239,7 +239,7 @@ func update_controller{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_che
 
 @external
 func update_quorum{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_ptr: felt}(
-    new_quorum: Uint256
+    new_quorum: felt
 ) {
     Voting.update_quorum(new_quorum);
     return ();
@@ -272,7 +272,7 @@ func update_max_voting_duration{
 @external
 func update_proposal_threshold{
     syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_ptr: felt
-}(new_proposal_threshold: Uint256) {
+}(new_proposal_threshold: felt) {
     Voting.update_proposal_threshold(new_proposal_threshold);
     return ();
 }
