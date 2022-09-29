@@ -836,7 +836,7 @@ namespace Voting {
 }
 
 //
-//  Internal Functions
+// Private Functions
 //
 
 func _unchecked_add_execution_strategies{
