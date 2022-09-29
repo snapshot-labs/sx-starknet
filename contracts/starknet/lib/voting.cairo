@@ -96,7 +96,7 @@ func Voting_executed_proposals_store(proposal_id: felt) -> (executed: felt) {
 }
 
 @storage_var
-func Voting_vote_registry_store(proposal_id: felt, voter_address: Address) -> (vote: Vote) {
+func Voting_vote_registry_store(proposal_id: felt, voter_address: Address) -> (voted: felt) {
 }
 
 @storage_var
@@ -478,9 +478,8 @@ namespace Voting {
 
         // Make sure voter has not already voted
         let (prev_vote) = Voting_vote_registry_store.read(proposal_id, voter_address);
-
         with_attr error_message("User already voted") {
-            assert prev_vote.choice = 0;
+            assert prev_vote = 0;
         }
 
         // Make sure `choice` is a valid choice
@@ -518,10 +517,10 @@ namespace Voting {
 
         Voting_vote_power_store.write(proposal_id, choice, new_voting_power);
 
-        let vote = Vote(choice=choice, voting_power=user_voting_power);
-        Voting_vote_registry_store.write(proposal_id, voter_address, vote);
+        Voting_vote_registry_store.write(proposal_id, voter_address, 1);
 
         // Emit event
+        let vote = Vote(choice=choice, voting_power=user_voting_power);
         vote_created.emit(proposal_id, voter_address, vote);
 
         return ();
@@ -816,14 +815,12 @@ namespace Voting {
     // View functions
     //
 
-    @view
-    func get_vote_info{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_ptr: felt}(
-        voter_address: Address, proposal_id: felt
-    ) -> (vote: Vote) {
+    func has_voted{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_ptr: felt}(
+        proposal_id: felt, voter_address: Address
+    ) -> (voted: felt) {
         return Voting_vote_registry_store.read(proposal_id, voter_address);
     }
 
-    @view
     func get_proposal_info{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_ptr: felt}(
         proposal_id: felt
     ) -> (proposal_info: ProposalInfo) {
