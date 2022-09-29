@@ -228,8 +228,8 @@ namespace Voting {
         unchecked_add_voting_strategies(
             voting_strategies_len, voting_strategies, voting_strategy_params_all
         );
-        unchecked_add_authenticators(authenticators_len, authenticators);
-        unchecked_add_execution_strategies(executors_len, executors);
+        _unchecked_add_authenticators(authenticators_len, authenticators);
+        _unchecked_add_execution_strategies(executors_len, executors);
 
         // The first proposal in a space will have a proposal ID of 1.
         Voting_next_proposal_nonce_store.write(1);
@@ -349,7 +349,7 @@ namespace Voting {
 
         Ownable.assert_only_owner();
 
-        unchecked_add_execution_strategies(addresses_len, addresses);
+        _unchecked_add_execution_strategies(addresses_len, addresses);
 
         executors_added.emit(addresses_len, addresses);
         return ();
@@ -362,7 +362,7 @@ namespace Voting {
 
         Ownable.assert_only_owner();
 
-        unchecked_remove_execution_strategies(addresses_len, addresses);
+        _unchecked_remove_execution_strategies(addresses_len, addresses);
 
         executors_removed.emit(addresses_len, addresses);
         return ();
@@ -375,7 +375,7 @@ namespace Voting {
 
         Ownable.assert_only_owner();
 
-        assert_no_active_proposal();
+        _assert_no_active_proposal();
 
         let (params_all: Immutable2DArray) = ArrayUtils.construct_array2d(
             params_flat_len, params_flat
@@ -394,9 +394,9 @@ namespace Voting {
 
         Ownable.assert_only_owner();
 
-        assert_no_active_proposal();
+        _assert_no_active_proposal();
 
-        unchecked_remove_voting_strategies(indexes_len, indexes);
+        _unchecked_remove_voting_strategies(indexes_len, indexes);
         voting_strategies_removed.emit(indexes_len, indexes);
         return ();
     }
@@ -408,9 +408,9 @@ namespace Voting {
 
         Ownable.assert_only_owner();
 
-        assert_no_active_proposal();
+        _assert_no_active_proposal();
 
-        unchecked_add_authenticators(addresses_len, addresses);
+        _unchecked_add_authenticators(addresses_len, addresses);
 
         authenticators_added.emit(addresses_len, addresses);
         return ();
@@ -423,9 +423,9 @@ namespace Voting {
 
         Ownable.assert_only_owner();
 
-        assert_no_active_proposal();
+        _assert_no_active_proposal();
 
-        unchecked_remove_authenticators(addresses_len, addresses);
+        _unchecked_remove_authenticators(addresses_len, addresses);
 
         authenticators_removed.emit(addresses_len, addresses);
         return ();
@@ -447,7 +447,7 @@ namespace Voting {
         alloc_locals;
 
         // Verify that the caller is the authenticator contract.
-        assert_valid_authenticator();
+        _assert_valid_authenticator();
 
         // Make sure proposal has not already been executed
         with_attr error_message("Proposal already executed") {
@@ -493,7 +493,7 @@ namespace Voting {
             user_voting_strategy_params_flat_len, user_voting_strategy_params_flat
         );
 
-        let (user_voting_power) = get_cumulative_voting_power(
+        let (user_voting_power) = _get_cumulative_voting_power(
             snapshot_timestamp,
             voter_address,
             used_voting_strategies_len,
@@ -542,10 +542,10 @@ namespace Voting {
         alloc_locals;
 
         // Verify that the caller is the authenticator contract.
-        assert_valid_authenticator();
+        _assert_valid_authenticator();
 
         // Verify that the executor address is one of the whitelisted addresses
-        assert_valid_executor(executor);
+        _assert_valid_executor(executor);
 
         // The snapshot for the proposal is the current timestamp at proposal creation
         // We use a timestamp instead of a block number to define a snapshot so that the system can generalize to multi-chain
@@ -566,7 +566,7 @@ namespace Voting {
             user_voting_strategy_params_flat_len, user_voting_strategy_params_flat
         );
 
-        let (voting_power) = get_cumulative_voting_power(
+        let (voting_power) = _get_cumulative_voting_power(
             snapshot_timestamp,
             proposer_address,
             used_voting_strategies_len,
@@ -723,10 +723,10 @@ namespace Voting {
         if (proposal.executor == 1) {
             // Starknet execution strategy so we execute the proposal txs directly
             if (proposal_outcome == ProposalOutcome.ACCEPTED) {
-                let (call_array_len, call_array, calldata_len, calldata) = decode_execution_params(
+                let (call_array_len, call_array, calldata_len, calldata) = _decode_execution_params(
                     execution_params_len, execution_params
                 );
-                let (response_len, response) = execute_proposal_txs(
+                let (response_len, response) = _execute_proposal_txs(
                     call_array_len, call_array, calldata_len, calldata
                 );
                 tempvar syscall_ptr = syscall_ptr;
@@ -839,7 +839,7 @@ namespace Voting {
 //  Internal Functions
 //
 
-func unchecked_add_execution_strategies{
+func _unchecked_add_execution_strategies{
     syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_ptr
 }(addresses_len: felt, addresses: felt*) {
     if (addresses_len == 0) {
@@ -847,12 +847,12 @@ func unchecked_add_execution_strategies{
     } else {
         Voting_executors_store.write(addresses[0], 1);
 
-        unchecked_add_execution_strategies(addresses_len - 1, &addresses[1]);
+        _unchecked_add_execution_strategies(addresses_len - 1, &addresses[1]);
         return ();
     }
 }
 
-func unchecked_remove_execution_strategies{
+func _unchecked_remove_execution_strategies{
     syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_ptr: felt
 }(addresses_len: felt, addresses: felt*) {
     if (addresses_len == 0) {
@@ -860,7 +860,7 @@ func unchecked_remove_execution_strategies{
     } else {
         Voting_executors_store.write(addresses[0], 0);
 
-        unchecked_remove_execution_strategies(addresses_len - 1, &addresses[1]);
+        _unchecked_remove_execution_strategies(addresses_len - 1, &addresses[1]);
         return ();
     }
 }
@@ -870,13 +870,13 @@ func unchecked_add_voting_strategies{
 }(addresses_len: felt, addresses: felt*, params_all: Immutable2DArray) {
     alloc_locals;
     let (prev_index) = Voting_num_voting_strategies_store.read();
-    unchecked_add_voting_strategies_recurse(addresses_len, addresses, params_all, prev_index, 0);
+    _unchecked_add_voting_strategies_recurse(addresses_len, addresses, params_all, prev_index, 0);
     // Incrementing the voting strategies counter by the number of strategies added
     Voting_num_voting_strategies_store.write(prev_index + addresses_len);
     return ();
 }
 
-func unchecked_add_voting_strategies_recurse{
+func _unchecked_add_voting_strategies_recurse{
     syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_ptr
 }(
     addresses_len: felt,
@@ -898,16 +898,16 @@ func unchecked_add_voting_strategies_recurse{
         Voting_voting_strategy_params_store.write(next_index, 0, params_len);
 
         // The following elements are the actual params
-        unchecked_add_voting_strategy_params(next_index, 1, params_len, params);
+        _unchecked_add_voting_strategy_params(next_index, 1, params_len, params);
 
-        unchecked_add_voting_strategies_recurse(
+        _unchecked_add_voting_strategies_recurse(
             addresses_len - 1, &addresses[1], params_all, next_index + 1, index + 1
         );
         return ();
     }
 }
 
-func unchecked_add_voting_strategy_params{
+func _unchecked_add_voting_strategy_params{
     syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_ptr
 }(strategy_index: felt, param_index: felt, params_len: felt, params: felt*) {
     if (params_len == 0) {
@@ -917,14 +917,14 @@ func unchecked_add_voting_strategy_params{
         // Store voting parameter
         Voting_voting_strategy_params_store.write(strategy_index, param_index, params[0]);
 
-        unchecked_add_voting_strategy_params(
+        _unchecked_add_voting_strategy_params(
             strategy_index, param_index + 1, params_len - 1, &params[1]
         );
         return ();
     }
 }
 
-func unchecked_remove_voting_strategies{
+func _unchecked_remove_voting_strategies{
     syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_ptr: felt
 }(indexes_len: felt, indexes: felt*) {
     if (indexes_len == 0) {
@@ -938,14 +938,14 @@ func unchecked_remove_voting_strategies{
         Voting_voting_strategy_params_store.write(indexes[0], 0, 0);
 
         // Removing voting strategy params
-        unchecked_remove_voting_strategy_params(indexes[0], params_len, 1);
+        _unchecked_remove_voting_strategy_params(indexes[0], params_len, 1);
 
-        unchecked_remove_voting_strategies(indexes_len - 1, &indexes[1]);
+        _unchecked_remove_voting_strategies(indexes_len - 1, &indexes[1]);
         return ();
     }
 }
 
-func unchecked_remove_voting_strategy_params{
+func _unchecked_remove_voting_strategy_params{
     syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_ptr
 }(strategy_index: felt, param_index: felt, params_len: felt) {
     if (params_len == 0) {
@@ -959,11 +959,11 @@ func unchecked_remove_voting_strategy_params{
     // Remove voting parameter
     Voting_voting_strategy_params_store.write(strategy_index, param_index, 0);
 
-    unchecked_remove_voting_strategy_params(strategy_index, param_index + 1, params_len);
+    _unchecked_remove_voting_strategy_params(strategy_index, param_index + 1, params_len);
     return ();
 }
 
-func unchecked_add_authenticators{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_ptr}(
+func _unchecked_add_authenticators{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_ptr}(
     addresses_len: felt, addresses: felt*
 ) {
     if (addresses_len == 0) {
@@ -971,12 +971,12 @@ func unchecked_add_authenticators{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*
     } else {
         Voting_authenticators_store.write(addresses[0], 1);
 
-        unchecked_add_authenticators(addresses_len - 1, &addresses[1]);
+        _unchecked_add_authenticators(addresses_len - 1, &addresses[1]);
         return ();
     }
 }
 
-func unchecked_remove_authenticators{
+func _unchecked_remove_authenticators{
     syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_ptr: felt
 }(addresses_len: felt, addresses: felt*) {
     if (addresses_len == 0) {
@@ -984,13 +984,14 @@ func unchecked_remove_authenticators{
     } else {
         Voting_authenticators_store.write(addresses[0], 0);
 
-        unchecked_remove_authenticators(addresses_len - 1, &addresses[1]);
+        _unchecked_remove_authenticators(addresses_len - 1, &addresses[1]);
     }
     return ();
 }
 
 // Throws if the caller address is not a member of the set of whitelisted authenticators (stored in the `authenticators` mapping)
-func assert_valid_authenticator{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_ptr}() {
+func _assert_valid_authenticator{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_ptr}(
+    ) {
     let (caller_address) = get_caller_address();
     let (is_valid) = Voting_authenticators_store.read(caller_address);
 
@@ -1003,7 +1004,7 @@ func assert_valid_authenticator{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, 
 }
 
 // Throws if `executor` is not a member of the set of whitelisted executors (stored in the `executors` mapping)
-func assert_valid_executor{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_ptr}(
+func _assert_valid_executor{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_ptr}(
     executor: felt
 ) {
     let (is_valid) = Voting_executors_store.read(executor);
@@ -1015,7 +1016,7 @@ func assert_valid_executor{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range
     return ();
 }
 
-func assert_no_active_proposal_recurse{
+func _assert_no_active_proposal_recurse{
     syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_ptr
 }(proposal_id: felt) {
     if (proposal_id == 0) {
@@ -1026,12 +1027,12 @@ func assert_no_active_proposal_recurse{
         assert has_been_executed = 1;
 
         // Recurse
-        assert_no_active_proposal_recurse(proposal_id - 1);
+        _assert_no_active_proposal_recurse(proposal_id - 1);
         return ();
     }
 }
 
-func assert_no_active_proposal{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_ptr}() {
+func _assert_no_active_proposal{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_ptr}() {
     let (next_proposal) = Voting_next_proposal_nonce_store.read();
 
     // Using `next_proposal - 1` because `next_proposal` corresponds to the *next* nonce
@@ -1040,7 +1041,7 @@ func assert_no_active_proposal{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, r
     let latest_proposal = next_proposal - 1;
 
     with_attr error_message("Some proposals are still active") {
-        assert_no_active_proposal_recurse(latest_proposal);
+        _assert_no_active_proposal_recurse(latest_proposal);
     }
     return ();
 }
@@ -1070,7 +1071,7 @@ func assert_no_duplicates{}(array_len: felt, array: felt*) {
 
 // Computes the cumulated voting power of a user by iterating over the voting strategies of `used_voting_strategies`.
 // TODO: In the future we will need to transition to an array of `voter_address` because they might be different for different voting strategies.
-func get_cumulative_voting_power{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_ptr}(
+func _get_cumulative_voting_power{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_ptr}(
     current_timestamp: felt,
     voter_address: Address,
     used_voting_strategies_len: felt,
@@ -1081,7 +1082,7 @@ func get_cumulative_voting_power{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*,
     // Make sure there are no duplicates to avoid an attack where people double count a voting strategy
     assert_no_duplicates(used_voting_strategies_len, used_voting_strategies);
 
-    return unchecked_get_cumulative_voting_power(
+    return _unchecked_get_cumulative_voting_power(
         current_timestamp,
         voter_address,
         used_voting_strategies_len,
@@ -1093,7 +1094,7 @@ func get_cumulative_voting_power{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*,
 
 // Actual computation of voting power. Unchecked because duplicates are not checked in `used_voting_strategies`. The caller is
 // expected to check for duplicates before calling this function.
-func unchecked_get_cumulative_voting_power{
+func _unchecked_get_cumulative_voting_power{
     syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_ptr
 }(
     current_timestamp: felt,
@@ -1129,7 +1130,7 @@ func unchecked_get_cumulative_voting_power{
     // Check that voting strategy params exist by the length which is stored in the first element of the array
     let (voting_strategy_params_len) = Voting_voting_strategy_params_store.read(strategy_index, 0);
 
-    let (voting_strategy_params_len, voting_strategy_params) = get_voting_strategy_params(
+    let (voting_strategy_params_len, voting_strategy_params) = _get_voting_strategy_params(
         strategy_index, voting_strategy_params_len, voting_strategy_params, 1
     );
 
@@ -1143,7 +1144,7 @@ func unchecked_get_cumulative_voting_power{
         user_params=user_voting_strategy_params,
     );
 
-    let (additional_voting_power) = get_cumulative_voting_power(
+    let (additional_voting_power) = _get_cumulative_voting_power(
         current_timestamp,
         voter_address,
         used_voting_strategies_len - 1,
@@ -1162,7 +1163,7 @@ func unchecked_get_cumulative_voting_power{
 }
 
 // Function to reconstruct voting param array for voting strategy specified
-func get_voting_strategy_params{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_ptr}(
+func _get_voting_strategy_params{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_ptr}(
     strategy_index: felt, params_len: felt, params: felt*, index: felt
 ) -> (params_len: felt, params: felt*) {
     // The are no parameters so we just return an empty array
@@ -1178,14 +1179,14 @@ func get_voting_strategy_params{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, 
         return (params_len, params);
     }
 
-    let (params_len, params) = get_voting_strategy_params(
+    let (params_len, params) = _get_voting_strategy_params(
         strategy_index, params_len, params, index + 1
     );
     return (params_len, params);
 }
 
 // Decodes an array into the data required to perform a set of calls according to the OZ account standard
-func decode_execution_params{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_ptr}(
+func _decode_execution_params{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_ptr}(
     execution_params_len: felt, execution_params: felt*
 ) -> (call_array_len: felt, call_array: AccountCallArray*, calldata_len: felt, calldata: felt*) {
     assert_nn_le(4, execution_params_len);  // Min execution params length is 4 (corresponding to 1 tx with no calldata)
@@ -1199,7 +1200,7 @@ func decode_execution_params{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, ran
 // Same as OZ `execute` just without the assert  get_caller_address() = 0
 // This is a reentrant call guard which prevents another account calling execute
 // In the context of proposal txs, reentrancy is not an issue
-func execute_proposal_txs{
+func _execute_proposal_txs{
     syscall_ptr: felt*,
     pedersen_ptr: HashBuiltin*,
     ecdsa_ptr: SignatureBuiltin*,
