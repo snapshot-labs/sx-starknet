@@ -553,13 +553,13 @@ namespace Voting {
         let (snapshot_timestamp) = get_block_timestamp();
         let (delay) = Voting_voting_delay_store.read();
 
-        let (_min_voting_duration) = Voting_min_voting_duration_store.read();
-        let (_max_voting_duration) = Voting_max_voting_duration_store.read();
+        let (min_voting_duration) = Voting_min_voting_duration_store.read();
+        let (max_voting_duration) = Voting_max_voting_duration_store.read();
 
         // Define start_timestamp, min_end and max_end
         let start_timestamp = snapshot_timestamp + delay;
-        let min_end_timestamp = start_timestamp + _min_voting_duration;
-        let max_end_timestamp = start_timestamp + _max_voting_duration;
+        let min_end_timestamp = start_timestamp + min_voting_duration;
+        let max_end_timestamp = start_timestamp + max_voting_duration;
 
         // Reconstruct the voting params 2D array (1 sub array per strategy) from the flattened version.
         let (user_voting_strategy_params_all: Immutable2DArray) = ArrayUtils.construct_array2d(
@@ -586,11 +586,11 @@ namespace Voting {
         // Storing arrays inside a struct is impossible so instead we just store a hash and then reconstruct the array in finalize_proposal
         let (execution_hash) = ArrayUtils.hash(execution_params_len, execution_params);
 
-        let (_quorum) = Voting_quorum_store.read();
+        let (quorum) = Voting_quorum_store.read();
 
         // Create the proposal and its proposal id
         let proposal = Proposal(
-            _quorum,
+            quorum,
             snapshot_timestamp,
             start_timestamp,
             min_end_timestamp,
@@ -671,8 +671,8 @@ namespace Voting {
 
         let (total_power, overflow2) = uint256_add(partial_power, against);
 
-        let _quorum = proposal.quorum;
-        let (is_lower_or_equal) = uint256_le(_quorum, total_power);
+        let quorum = proposal.quorum;
+        let (is_lower_or_equal) = uint256_le(quorum, total_power);
 
         // If overflow1 or overflow2 happened, then quorum has necessarily been reached because `quorum` is by definition smaller or equal to Uint256::MAX.
         // If `is_lower_or_equal` (meaning `_quorum` is smaller than `total_power`), then quorum has been reached (definition of quorum).
@@ -826,11 +826,11 @@ namespace Voting {
     ) -> (proposal_info: ProposalInfo) {
         let (proposal) = Voting_proposal_registry_store.read(proposal_id);
 
-        let (_power_against) = Voting_vote_power_store.read(proposal_id, Choice.AGAINST);
-        let (_power_for) = Voting_vote_power_store.read(proposal_id, Choice.FOR);
-        let (_power_abstain) = Voting_vote_power_store.read(proposal_id, Choice.ABSTAIN);
+        let (power_against) = Voting_vote_power_store.read(proposal_id, Choice.AGAINST);
+        let (power_for) = Voting_vote_power_store.read(proposal_id, Choice.FOR);
+        let (power_abstain) = Voting_vote_power_store.read(proposal_id, Choice.ABSTAIN);
         return (
-            ProposalInfo(proposal=proposal, power_for=_power_for, power_against=_power_against, power_abstain=_power_abstain),
+            ProposalInfo(proposal=proposal, power_for=power_for, power_against=power_against, power_abstain=power_abstain),
         );
     }
 }
@@ -964,27 +964,27 @@ func unchecked_remove_voting_strategy_params{
 }
 
 func unchecked_add_authenticators{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_ptr}(
-    to_add_len: felt, to_add: felt*
+    addresses_len: felt, addresses: felt*
 ) {
-    if (to_add_len == 0) {
+    if (addresses_len == 0) {
         return ();
     } else {
-        Voting_authenticators_store.write(to_add[0], 1);
+        Voting_authenticators_store.write(addresses[0], 1);
 
-        unchecked_add_authenticators(to_add_len - 1, &to_add[1]);
+        unchecked_add_authenticators(addresses_len - 1, &addresses[1]);
         return ();
     }
 }
 
 func unchecked_remove_authenticators{
     syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_ptr: felt
-}(to_remove_len: felt, to_remove: felt*) {
-    if (to_remove_len == 0) {
+}(addresses_len: felt, addresses: felt*) {
+    if (addresses_len == 0) {
         return ();
     } else {
-        Voting_authenticators_store.write(to_remove[0], 0);
+        Voting_authenticators_store.write(addresses[0], 0);
 
-        unchecked_remove_authenticators(to_remove_len - 1, &to_remove[1]);
+        unchecked_remove_authenticators(addresses_len - 1, &addresses[1]);
     }
     return ();
 }
