@@ -148,6 +148,10 @@ func proposal_threshold_updated(previous: Uint256, new_proposal_threshold: Uint2
 }
 
 @event
+func metadata_uri_updated(new_metadata_uri_len: felt, new_metadata_uri: felt*) {
+}
+
+@event
 func authenticators_added(added_len: felt, added: felt*) {
 }
 
@@ -191,6 +195,8 @@ namespace Voting {
         authenticators: felt*,
         executors_len: felt,
         executors: felt*,
+        metadata_uri_len: felt,
+        metadata_uri: felt*,
     ) {
         alloc_locals;
 
@@ -323,6 +329,16 @@ namespace Voting {
 
         proposal_threshold_updated.emit(previous_proposal_threshold, new_proposal_threshold);
 
+        return ();
+    }
+
+    // We do not store the metadata uri for the space in the contract state, we just emit it as an event
+    func update_metadata_uri{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_ptr: felt}(
+        new_metadata_uri_len: felt, new_metadata_uri: felt*
+    ) {
+        alloc_locals;
+        Ownable.assert_only_owner();
+        metadata_uri_updated.emit(new_metadata_uri_len, new_metadata_uri);
         return ();
     }
 

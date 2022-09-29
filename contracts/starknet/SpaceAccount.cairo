@@ -34,6 +34,8 @@ func constructor{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_ptr
     authenticators: felt*,
     executors_len: felt,
     executors: felt*,
+    metadata_uri_len: felt,
+    metadata_uri: felt*,
 ) {
     Account.initializer(public_key);
 
@@ -52,6 +54,8 @@ func constructor{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_ptr
         authenticators,
         executors_len,
         executors,
+        metadata_uri_len,
+        metadata_uri,
     );
     return ();
 }
@@ -274,6 +278,14 @@ func update_proposal_threshold{
     syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_ptr: felt
 }(new_proposal_threshold: Uint256) {
     Voting.update_proposal_threshold(new_proposal_threshold);
+    return ();
+}
+
+@external
+func update_metadata_uri{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_ptr: felt}(
+    new_metadata_uri_len: felt, new_metadata_uri: felt*
+) {
+    Voting.update_metadata_uri(new_metadata_uri_len, new_metadata_uri);
     return ();
 }
 

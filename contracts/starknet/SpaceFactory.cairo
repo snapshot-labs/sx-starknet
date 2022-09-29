@@ -32,6 +32,8 @@ func space_deployed(
     authenticators: felt*,
     executors_len: felt,
     executors: felt*,
+    metadata_uri_len: felt,
+    metadata_uri: felt*,
 ) {
 }
 
@@ -60,6 +62,8 @@ func deploy_space{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_pt
     authenticators: felt*,
     executors_len: felt,
     executors: felt*,
+    metadata_uri_len: felt,
+    metadata_uri: felt*,
 ) {
     alloc_locals;
     let (calldata: felt*) = alloc();
@@ -90,8 +94,14 @@ func deploy_space{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_pt
         executors,
         executors_len,
     );
+    assert calldata[13 + voting_strategies_len + voting_strategy_params_flat_len + authenticators_len + executors_len] = metadata_uri_len;
+    memcpy(
+        calldata + 14 + voting_strategies_len + voting_strategy_params_flat_len + authenticators_len + executors_len,
+        metadata_uri,
+        metadata_uri_len,
+    );
     let (deployer_address) = get_caller_address();
-    let calldata_len = 13 + voting_strategies_len + voting_strategy_params_flat_len + authenticators_len + executors_len;
+    let calldata_len = 14 + voting_strategies_len + voting_strategy_params_flat_len + authenticators_len + executors_len + metadata_uri_len;
     let (current_salt) = salt.read();
     let (space_class_hash) = space_class_hash_store.read();
     let (space_address) = deploy(
@@ -120,6 +130,8 @@ func deploy_space{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_pt
         authenticators,
         executors_len,
         executors,
+        metadata_uri_len,
+        metadata_uri,
     );
     return ();
 }

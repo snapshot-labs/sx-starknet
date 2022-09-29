@@ -621,4 +621,17 @@ describe('Controller Actions', () => {
       proposal_id: proposalId,
     });
   }).timeout(600000);
+
+  it('The controller can update the metadata uri', async () => {
+    const newMetadataUri =
+      'Snapshot X Test Space 2 blah blah blah blah blah blah blah blah blah blah blah blah';
+    const txHash = await controller.invoke(space, 'update_metadata_uri', {
+      new_metadata_uri: utils.strings.strToShortStringArr(newMetadataUri),
+    });
+    const receipt = await starknet.getTransactionReceipt(txHash);
+    const decodedEvents = await space.decodeEvents(receipt.events);
+    expect(newMetadataUri).to.deep.equal(
+      utils.strings.shortStringArrToStr(decodedEvents[0].data.new_metadata_uri)
+    );
+  }).timeout(600000);
 });
