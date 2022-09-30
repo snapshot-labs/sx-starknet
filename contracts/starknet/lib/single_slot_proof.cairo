@@ -89,7 +89,7 @@
 //         let (slot_uint256) = FeltUtils.words_to_uint256(
 //             slot.word_1, slot.word_2, slot.word_3, slot.word_4
 //         );
-//         with_attr error_message("Invalid slot proof provided") {
+//         with_attr error_message("SingleSlotProof: Invalid slot proof provided") {
 //             assert valid_slot = slot_uint256;
 //         }
 

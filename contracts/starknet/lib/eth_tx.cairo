@@ -26,7 +26,7 @@ namespace EthTx {
     ) {
         // Check L1 message origin is equal to the StarkNet commit address.
         let (origin) = EthTx_starknet_commit_address_store.read();
-        with_attr error_message("Invalid message origin address") {
+        with_attr error_message("EthTx: Invalid message origin address") {
             assert from_address = origin;
         }
         // Note: If the same hash is committed twice by the same sender, then the mapping will be overwritten but with the same value as before.
@@ -40,11 +40,11 @@ namespace EthTx {
     ) {
         // Check that the hash has been received by the contract from the StarkNet Commit contract
         let (stored_address) = EthTx_commit_store.read(hash);
-        with_attr error_message("Hash not yet committed or already executed") {
+        with_attr error_message("EthTx: Hash not yet committed or already executed") {
             assert_not_equal(stored_address, 0);
         }
         // The sender of the commit on L1 must be the same as the address in the calldata.
-        with_attr error_message("Commit made by invalid L1 address") {
+        with_attr error_message("EthTx: Commit made by invalid L1 address") {
             assert address = stored_address;
         }
         // Clear the hash from the contract by writing the zero to the mapping.

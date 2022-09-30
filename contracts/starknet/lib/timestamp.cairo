@@ -13,7 +13,7 @@ func Timestamp_l1_headers_store() -> (res: felt) {
 }
 
 @storage_var
-func Timestamp_timestamp_to_eth_block_number(timestamp: felt) -> (number: felt) {
+func Timestamp_timestamp_to_eth_block_number_store(timestamp: felt) -> (number: felt) {
 }
 
 namespace Timestamp {
@@ -39,7 +39,7 @@ namespace Timestamp {
             // being created in the same block.
             let (l1_headers_store_address) = Timestamp_l1_headers_store.read();
             let (number) = IL1HeadersStore.get_latest_l1_block(l1_headers_store_address);
-            Timestamp_timestamp_to_eth_block_number.write(timestamp, number);
+            Timestamp_timestamp_to_eth_block_number_store.write(timestamp, number);
             return (number,);
         }
     }
