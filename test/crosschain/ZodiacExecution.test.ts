@@ -175,7 +175,7 @@ describe('Create proposal, cast vote, and send execution to l1', function () {
         splitExecutionHash.high,
         fakeTxHashes
       )
-    ).to.be.revertedWith('Invalid execution');
+    ).to.be.revertedWith('INVALID_MESSAGE_TO_CONSUME');
 
     // Check that if `proposalOutcome` parameter is incorrect, transaction reverts.
     await expect(
