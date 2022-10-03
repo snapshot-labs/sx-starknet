@@ -34,13 +34,8 @@ func authenticate{
     calldata: felt*,
     session_public_key: felt,
 ) {
-    // Check session key is active
-    let (eth_address) = SessionKey.get_owner(session_public_key);
-
-    // Check user's address is equal to the owner of the session key
-    with_attr error_message("Invalid Ethereum address") {
-        assert calldata[0] = eth_address;
-    }
+    let eth_address = calldata[0];
+    SessionKey.assert_valid(session_public_key, eth_address);
 
     // Check signature with session key
     if (function_selector == PROPOSAL_SELECTOR) {

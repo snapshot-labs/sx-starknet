@@ -199,7 +199,7 @@ describe('Ethereum Signature Auth testing', () => {
         });
         throw { message: 'replay attack worked on `propose`' };
       } catch (err: any) {
-        expect(err.message).to.contain('Salt already used');
+        expect(err.message).to.contain('EIP712: Salt already used');
       }
 
       // We can't directly compare the `info` object because we don't know for sure the value of `start_block` (and hence `end_block`),
@@ -283,7 +283,7 @@ describe('Ethereum Signature Auth testing', () => {
         });
         throw { message: 'replay attack worked on `vote`' };
       } catch (err: any) {
-        expect(err.message).to.contain('Salt already used');
+        expect(err.message).to.contain('EIP712: Salt already used');
       }
     }
   }).timeout(6000000);

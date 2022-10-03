@@ -174,7 +174,7 @@ describe('Ethereum Transaction Session Keys', function () {
         });
         throw { message: 'replay attack worked on `propose`' };
       } catch (err: any) {
-        expect(err.message).to.contain('Salt already used');
+        expect(err.message).to.contain('StarkEIP191: Salt already used');
       }
     }
   });
@@ -196,7 +196,7 @@ describe('Ethereum Transaction Session Keys', function () {
         session_duration: fakeSessionDuration,
       });
     } catch (err: any) {
-      expect(err.message).to.contain('Hash not yet committed or already executed');
+      expect(err.message).to.contain('EthTx: Hash not yet committed or already executed');
     }
   });
 
@@ -216,7 +216,7 @@ describe('Ethereum Transaction Session Keys', function () {
         session_duration: sessionDuration,
       });
     } catch (err: any) {
-      expect(err.message).to.contain('Commit made by invalid L1 address');
+      expect(err.message).to.contain('EthTx: Commit made by invalid L1 address');
     }
   });
 
@@ -281,7 +281,7 @@ describe('Ethereum Transaction Session Keys', function () {
         });
         throw { message: '' };
       } catch (err: any) {
-        expect(err.message).to.contain('Session does not exist');
+        expect(err.message).to.contain('SessionKey: Session does not exist');
       }
     }
   }).timeout(6000000);
@@ -357,7 +357,7 @@ describe('Ethereum Transaction Session Keys', function () {
         });
         throw { message: '' };
       } catch (err: any) {
-        expect(err.message).to.contain('Session does not exist');
+        expect(err.message).to.contain('SessionKey: Session does not exist');
       }
     }
   }).timeout(6000000);

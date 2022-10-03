@@ -105,7 +105,7 @@ describe('L1 interaction with Snapshot X', function () {
         calldata: proposeCalldata,
       });
     } catch (err: any) {
-      expect(err.message).to.contain('Hash not yet committed or already executed');
+      expect(err.message).to.contain('EthTx: Hash not yet committed or already executed');
     }
   });
 
@@ -125,7 +125,7 @@ describe('L1 interaction with Snapshot X', function () {
         calldata: proposeCalldata,
       });
     } catch (err: any) {
-      expect(err.message).to.contain('Hash not yet committed or already executed');
+      expect(err.message).to.contain('EthTx: Hash not yet committed or already executed');
     }
   });
 
@@ -146,7 +146,7 @@ describe('L1 interaction with Snapshot X', function () {
         calldata: proposeCalldata,
       });
     } catch (err: any) {
-      expect(err.message).to.contain('Commit made by invalid L1 address');
+      expect(err.message).to.contain('EthTx: Commit made by invalid L1 address');
     }
   });
 });
