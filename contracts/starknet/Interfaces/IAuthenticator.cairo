@@ -1,7 +1,6 @@
 %lang starknet
 
+// Authenticator contracts have no standard interface, we leave this here for completeness
 @contract_interface
 namespace IAuthenticator {
-    func execute(target: felt, function_selector: felt, calldata_len: felt, calldata: felt*) {
-    }
 }
