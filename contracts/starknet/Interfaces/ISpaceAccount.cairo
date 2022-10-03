@@ -2,6 +2,7 @@
 
 from openzeppelin.account.library import AccountCallArray
 from contracts.starknet.lib.general_address import Address
+from contracts.starknet.lib.proposal_info import ProposalInfo
 from starkware.cairo.common.uint256 import Uint256
 
 @contract_interface
@@ -23,7 +24,7 @@ namespace ISpaceaccount {
     ) {
     }
 
-    func __validate_declare__(class_hash: felt) {
+    func __validate_declare__(hash: felt) {
     }
 
     func __execute__(
