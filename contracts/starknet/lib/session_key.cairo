@@ -6,9 +6,7 @@ from starkware.cairo.common.cairo_builtins import HashBuiltin, SignatureBuiltin,
 from starkware.cairo.common.math import (
     assert_le,
     assert_not_zero,
-    assert_nn,
-    assert_nn_le,
-    assert_le_felt,
+    assert_nn_le
 )
 from starkware.cairo.common.alloc import alloc
 
@@ -139,7 +137,7 @@ namespace SessionKey {
 
         let (end_timestamp) = SessionKey_end_timestamp_store.read(session_public_key);
         let (current_timestamp) = get_block_timestamp();
-        with_attr error_message("SessionKey: Session has ended") {
+        with_attr error_message("SessionKey: Session has ended") {s
             assert_le(current_timestamp, end_timestamp);
         }
         return (eth_address,);
@@ -164,7 +162,7 @@ func _register{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_ptr}(
     let (current_timestamp) = get_block_timestamp();
     let end_timestamp = current_timestamp + session_duration;
     with_attr error_message("SessionKey: Invalid session duration") {
-        // Verifies that 0 <= session_duration <= end_timestamp < RANGE_CHECK_BOUND
+        // Asserts that 0 <= session_duration <= end_timestamp < RANGE_CHECK_BOUND
         assert_nn_le(session_duration, end_timestamp);
     }
     SessionKey_owner_store.write(session_public_key, eth_address);
