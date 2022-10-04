@@ -10,11 +10,17 @@ from starkware.cairo.common.uint256 import Uint256, uint256_add, uint256_lt, uin
 from starkware.cairo.common.bool import TRUE, FALSE
 from starkware.cairo.common.hash_state import hash_init, hash_update
 from starkware.cairo.common.math_cmp import is_le
-from starkware.cairo.common.math import assert_lt, assert_le, assert_nn, assert_not_zero
+from starkware.cairo.common.math import (
+    assert_lt,
+    assert_le,
+    assert_nn,
+    assert_not_zero,
+)
 
 // OpenZeppelin
 from openzeppelin.access.ownable.library import Ownable
 from openzeppelin.account.library import Account, AccountCallArray, Call
+from openzeppelin.security.safemath.library import SafeUint256
 
 // Interfaces
 from contracts.starknet.Interfaces.IVotingStrategy import IVotingStrategy
@@ -478,7 +484,7 @@ namespace Voting {
 
         // Make sure `choice` is a valid choice
         with_attr error_message("Voting: Invalid choice") {
-            assert (x - Choice.ABSTAIN) * (x - Choice.FOR) * (x - Choice.AGAINST) = 0;
+            assert (choice - Choice.ABSTAIN)*(choice - Choice.FOR)*(choice - Choice.AGAINST) = 0;
         }
 
         // Reconstruct the voting params 2D array (1 sub array per strategy) from the flattened version.
@@ -496,20 +502,16 @@ namespace Voting {
         );
 
         let (no_voting_power) = uint256_eq(Uint256(0, 0), user_voting_power);
-
         with_attr error_message("Voting: No voting power for user") {
             assert no_voting_power = 0;
         }
 
         let (previous_voting_power) = Voting_vote_power_store.read(proposal_id, choice);
-        let (new_voting_power, overflow) = uint256_add(user_voting_power, previous_voting_power);
-
         with_attr error_message("Voting: Overflow in voting power") {
-            assert overflow = 0;
+            let (new_voting_power) = SafeUint256.add(user_voting_power, previous_voting_power);
         }
 
         Voting_vote_power_store.write(proposal_id, choice, new_voting_power);
-
         Voting_vote_registry_store.write(proposal_id, voter_address, 1);
 
         // Emit event
