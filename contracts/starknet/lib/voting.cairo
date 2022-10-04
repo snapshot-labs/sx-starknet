@@ -689,6 +689,7 @@ namespace Voting {
             }
         } else {
             // Quorum has been reached: set proposal outcome accordingly
+            // Note: The proposal is rejected if for and against votes are equal. 
             let (has_passed) = uint256_lt(against, for);
 
             if (has_passed == 1) {
