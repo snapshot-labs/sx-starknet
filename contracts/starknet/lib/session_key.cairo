@@ -3,11 +3,7 @@
 from starkware.starknet.common.syscalls import get_block_timestamp
 from starkware.cairo.common.uint256 import Uint256
 from starkware.cairo.common.cairo_builtins import HashBuiltin, SignatureBuiltin, BitwiseBuiltin
-from starkware.cairo.common.math import (
-    assert_le,
-    assert_not_zero,
-    assert_nn_le
-)
+from starkware.cairo.common.math import assert_lt, assert_not_zero, assert_nn_le
 from starkware.cairo.common.alloc import alloc
 
 from contracts.starknet.lib.stark_eip191 import StarkEIP191
@@ -137,8 +133,8 @@ namespace SessionKey {
 
         let (end_timestamp) = SessionKey_end_timestamp_store.read(session_public_key);
         let (current_timestamp) = get_block_timestamp();
-        with_attr error_message("SessionKey: Session has ended") {s
-            assert_le(current_timestamp, end_timestamp);
+        with_attr error_message("SessionKey: Session has ended") {
+            assert_lt(current_timestamp, end_timestamp);
         }
         return (eth_address,);
     }

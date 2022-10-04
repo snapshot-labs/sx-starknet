@@ -556,8 +556,7 @@ describe('Ethereum Signature Session Key Auth testing', () => {
     const salt: utils.splitUint256.SplitUint256 = utils.splitUint256.SplitUint256.fromHex(
       ethers.utils.hexlify(ethers.utils.randomBytes(4))
     );
-    sessionDuration = '0xffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff'; // 2**62 - 1
-    // sessionDuration = '0x10000000000000000000000000000000000000000000000000000000000000000'
+    sessionDuration = '0xfffffffffffffffffffffffffffffffffffffffffffffff'; // Greater than RANGE_CHECK_BOUND
     const message: SessionKey = {
       address: account.address,
       sessionPublicKey: utils.encoding.hexPadRight(sessionPublicKey),
@@ -566,39 +565,20 @@ describe('Ethereum Signature Session Key Auth testing', () => {
     };
     const sig = await account._signTypedData(domain, sessionKeyTypes, message);
     const { r, s, v } = utils.encoding.getRSVFromSig(sig);
-    // Fast forward to the end of the max voting period
-    await starknet.devnet.setTime(4242000000);
-    // Need to create an empty block if we want the time increase to be effective
-    const emptyBlock = await starknet.devnet.createBlock();
 
-    const end_timestamp = await ethSigSessionKeyAuth.call('get_add', {
-      session_duration: sessionDuration,
-    });
-    console.log(end_timestamp);
-
-    // const txhash = await controller.invoke(ethSigSessionKeyAuth, 'authorize_session_key_with_sig', {
-    //   r: r,
-    //   s: s,
-    //   v: v,
-    //   salt: salt,
-    //   eth_address: account.address,
-    //   session_public_key: sessionPublicKey,
-    //   session_duration: sessionDuration,
-    // });
-
-    // try {
-    //   await controller.invoke(ethSigSessionKeyAuth, 'authorize_session_key_with_sig', {
-    //     r: r,
-    //     s: s,
-    //     v: v,
-    //     salt: salt,
-    //     eth_address: account.address,
-    //     session_public_key: sessionPublicKey,
-    //     session_duration: sessionDuration,
-    //   });
-    //   throw { message: '' };
-    // } catch (err: any) {
-    //   expect(err.message).to.contain('SessionKey: Overflow in Session duration');
-    // }
+    try {
+      await controller.invoke(ethSigSessionKeyAuth, 'authorize_session_key_with_sig', {
+        r: r,
+        s: s,
+        v: v,
+        salt: salt,
+        eth_address: account.address,
+        session_public_key: sessionPublicKey,
+        session_duration: sessionDuration,
+      });
+      throw { message: '' };
+    } catch (err: any) {
+      expect(err.message).to.contain('SessionKey: Invalid session duration');
+    }
   }).timeout(6000000);
 });
