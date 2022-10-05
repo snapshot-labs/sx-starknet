@@ -76,14 +76,6 @@ describe('Space Testing', () => {
   it('Users should be able to create a proposal, cast a vote, and execute it', async () => {
     // -- Creates the proposal --
     {
-
-      const fee = await relayer.estimateFee(vanillaAuthenticator, 'authenticate', {
-        target: spaceAddress,
-        function_selector: PROPOSE_SELECTOR,
-        calldata: proposeCalldata,
-      });
-      console.log(fee);
-
       await relayer.invoke(vanillaAuthenticator, 'authenticate', {
         target: spaceAddress,
         function_selector: PROPOSE_SELECTOR,
