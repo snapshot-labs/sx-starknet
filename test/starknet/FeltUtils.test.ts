@@ -73,7 +73,7 @@ describe('Felt Utils:', () => {
         num4: num4,
       });
     } catch (error: any) {
-      expect(error.message).to.contain('FeltUtils: felt too big to be packed');
+      expect(error.message).to.contain('FeltUtils: number too big to be packed');
     }
   }).timeout(600000);
 });

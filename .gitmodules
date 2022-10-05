@@ -1,7 +1,3 @@
 [submodule "contracts/starknet/fossil"]
 	path = contracts/starknet/fossil
 	url = https://github.com/OilerNetwork/fossil.git
-
-[submodule "contracts/starknet/starknet-felt-packing"]
-	path = contracts/starknet/starknet-felt-packing
-	url = https://github.com/gaetbout/starknet-felt-packing.git

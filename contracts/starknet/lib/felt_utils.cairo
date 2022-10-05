@@ -33,7 +33,7 @@ namespace FeltUtils {
     func pack_4_32_bit{range_check_ptr}(num1: felt, num2: felt, num3: felt, num4: felt) -> (
         packed_felt: felt
     ) {
-        with_attr error_message("FeltUtils: felt too big to be packed") {
+        with_attr error_message("FeltUtils: number too big to be packed") {
             assert_lt(num1, SHIFT_32);
             assert_lt(num2, SHIFT_32);
             assert_lt(num3, SHIFT_32);
