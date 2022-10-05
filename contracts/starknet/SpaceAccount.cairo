@@ -168,7 +168,7 @@ func propose{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_ptr: fe
 }
 
 @external
-func vote{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_ptr: felt}(
+func vote{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, bitwise_ptr: BitwiseBuiltin*, range_check_ptr: felt}(
     voter_address: Address,
     proposal_id: felt,
     choice: felt,
