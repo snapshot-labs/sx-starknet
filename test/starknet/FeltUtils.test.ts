@@ -37,7 +37,7 @@ describe('Felt Utils:', () => {
 
   it('The library should pack 4 32 bit numbers into a felt', async () => {
     const { testFeltUtils } = await setup();
-    const num1 = utils.bytes.bytesToHex(ethers.utils.randomBytes(4));
+    const num1 = utils.bytes.bytesToHex(ethers.utils.randomBytes(1));
     const num2 = utils.bytes.bytesToHex(ethers.utils.randomBytes(4));
     const num3 = utils.bytes.bytesToHex(ethers.utils.randomBytes(4));
     const num4 = utils.bytes.bytesToHex(ethers.utils.randomBytes(4));
