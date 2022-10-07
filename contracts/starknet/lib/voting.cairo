@@ -505,7 +505,6 @@ namespace Voting {
         );
 
         let (no_voting_power) = uint256_eq(Uint256(0, 0), user_voting_power);
-
         with_attr error_message("Voting: No voting power for user") {
             assert no_voting_power = 0;
         }

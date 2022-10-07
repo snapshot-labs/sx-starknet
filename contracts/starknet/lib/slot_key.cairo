@@ -7,8 +7,8 @@ from starkware.cairo.common.math import split_felt
 // @title EVM Slot key Library
 // @author SnapshotLabs
 // @notice A library to find the key of a slot in the EVM
-// @dev Refer to this section of the Solidity compiler documentation for more information: https://docs.soliditylang.org/en/v0.8.11/internals/layout_in_storage.html
 // @notice Currently only has functionality for mappings
+// @dev Refer to this section of the Solidity compiler documentation for more information: https://docs.soliditylang.org/en/v0.8.11/internals/layout_in_storage.html
 //
 
 namespace SlotKey {
@@ -16,7 +16,9 @@ namespace SlotKey {
     // @dev UNSAFE: This is not safe to use in production code due to unsafe keccak - waiting for safe optimized version
     // @param slot_index The index of the mapping variable in the contract
     // @param mapping_key The key of the mapping in the contract. Key can be any value type as long as it fits inside a felt
-    func get_slot_key{range_check_ptr}(slot_index: felt, mapping_key: felt) -> (slot_key: Uint256) {
+    func get_mapping_slot_key{range_check_ptr}(slot_index: felt, mapping_key: felt) -> (
+        slot_key: Uint256
+    ) {
         alloc_locals;
         let (encoded_array: felt*) = alloc();
         let (slot_index_high, slot_index_low) = split_felt(slot_index);
