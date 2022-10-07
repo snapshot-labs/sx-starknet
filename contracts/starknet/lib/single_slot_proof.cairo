@@ -8,6 +8,7 @@ from starkware.cairo.common.math import assert_nn_le
 
 from contracts.starknet.lib.timestamp import Timestamp
 from contracts.starknet.lib.slot_key import SlotKey
+from contracts.starknet.lib.felt_utils import FeltUtils
 
 //
 // @title Ethereum single slot proof library
@@ -60,6 +61,7 @@ namespace SingleSlotProof {
     // @param mapping_key The key of the mapping that one wants the value from (eg. _address for balances[_address])
     // @param params Array of parameters required to verify the storage proof
     // @param proofs Array containing encoded storage proof data
+    // @return storage_slot The slot value
     func get_storage_slot{
         syscall_ptr: felt*,
         pedersen_ptr: HashBuiltin*,
