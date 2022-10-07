@@ -24,7 +24,7 @@ from contracts.starknet.lib.array_utils import ArrayUtils
 
 const ETHEREUM_PREFIX = 0x1901;
 
-// This is the domainSeparator, obtained by using those fields (see more about it in EIP712):
+// Domain Separator: (Goerli chain id)
 // name: 'snapshot-x',
 // version: '1'
 // chainId: '5'
@@ -47,11 +47,19 @@ const SESSION_KEY_INIT_TYPE_HASH_LOW = 0xaa9d835345c95b1a435ddff5ae910083;
 const SESSION_KEY_REVOKE_TYPE_HASH_HIGH = 0x0a5ba214c2c419ff474ecb96dc30103d;
 const SESSION_KEY_REVOKE_TYPE_HASH_LOW = 0x8166de3d410abc781e23aae247360fa9;
 
+// @dev Signature salts store
 @storage_var
 func EIP712_salts(eth_address: felt, salt: Uint256) -> (already_used: felt) {
 }
 
 namespace EIP712 {
+    // @dev Asserts that a signature to cast a vote is valid
+    // @param r Signature parameter
+    // @param s Signature parameter
+    // @param v Signature parameter
+    // @param salt Signature salt
+    // @param target Address of the space contract where the user is casting a vote
+    // @param calldata Vote calldata
     func verify_vote_sig{
         syscall_ptr: felt*,
         pedersen_ptr: HashBuiltin*,
@@ -69,19 +77,15 @@ namespace EIP712 {
         alloc_locals;
 
         let voter_address = calldata[0];
-
         let (authenticator_address) = get_contract_address();
         let (auth_address_u256) = FeltUtils.felt_to_uint256(authenticator_address);
 
         // Ensure voter has not already used this salt in a previous action
         let (already_used) = EIP712_salts.read(voter_address, salt);
-
         with_attr error_message("EIP712: Salt already used") {
             assert already_used = 0;
         }
 
-        // We don't need to pad because calling `.address` with starknet.js
-        // already left pads the address with 0s
         let (space) = FeltUtils.felt_to_uint256(target);
 
         let (voter_address_u256) = FeltUtils.felt_to_uint256(voter_address);
@@ -149,6 +153,13 @@ namespace EIP712 {
         return ();
     }
 
+    // @dev Asserts that a signature to create a proposal is valid
+    // @param r Signature parameter
+    // @param s Signature parameter
+    // @param v Signature parameter
+    // @param salt Signature salt
+    // @param target Address of the space contract where the user is creating a proposal
+    // @param calldata Propose calldata
     func verify_propose_sig{
         syscall_ptr: felt*,
         pedersen_ptr: HashBuiltin*,
@@ -173,7 +184,6 @@ namespace EIP712 {
 
         // Ensure proposer has not already used this salt in a previous action
         let (already_used) = EIP712_salts.read(proposer_address, salt);
-
         with_attr error_message("EIP712: Salt already used") {
             assert already_used = 0;
         }
@@ -267,7 +277,15 @@ namespace EIP712 {
         return ();
     }
 
-    func verify_session_key_init_sig{
+    // @dev Asserts that a signature to authorize a session key is valid
+    // @param r Signature parameter
+    // @param s Signature parameter
+    // @param v Signature parameter
+    // @param salt Signature salt
+    // @param eth_address Owner's Ethereum Address that was used to create the signature
+    // @param session_public_key The StarkNet session public key that should be registered
+    // @param session_duration The number of seconds that the session key is valid
+    func verify_session_key_auth_sig{
         syscall_ptr: felt*,
         pedersen_ptr: HashBuiltin*,
         bitwise_ptr: BitwiseBuiltin*,
@@ -342,6 +360,13 @@ namespace EIP712 {
         return ();
     }
 
+    // @dev Asserts that a signature to revoke a session key is valid
+    // @param r Signature parameter
+    // @param s Signature parameter
+    // @param v Signature parameter
+    // @param salt Signature salt
+    // @param eth_address Owner's Ethereum Address that was used to create the signature
+    // @param session_public_key The StarkNet session public key that should be revoked
     func verify_session_key_revoke_sig{
         syscall_ptr: felt*,
         pedersen_ptr: HashBuiltin*,

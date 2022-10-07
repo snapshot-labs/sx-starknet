@@ -59,7 +59,7 @@ namespace SessionKey {
         session_duration: felt,
     ) {
         alloc_locals;
-        EIP712.verify_session_key_init_sig(
+        EIP712.verify_session_key_auth_sig(
             r, s, v, salt, eth_address, session_public_key, session_duration
         );
         _register(eth_address, session_public_key, session_duration);
