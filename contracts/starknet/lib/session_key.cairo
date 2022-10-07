@@ -17,6 +17,7 @@ from contracts.starknet.lib.array_utils import ArrayUtils
 // @notice A library to handle the authorization and revokation of StarkNet session keys from an Ethereum account
 //
 
+// @dev Stores the owner Ethereum address for a given session key
 @storage_var
 func SessionKey_owner_store(session_public_key: felt) -> (eth_address: felt) {
 }
