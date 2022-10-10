@@ -6,7 +6,7 @@ import { zodiacRelayerSetup } from '../shared/setup';
 import { StarknetContract, Account } from 'hardhat/types';
 import { PROPOSE_SELECTOR } from '../shared/constants';
 
-describe('Whitelist testing', () => {
+describe('Execution Strategy Whitelist testing', () => {
   // Contracts
   let space: StarknetContract;
   let controller: Account;
@@ -107,7 +107,7 @@ describe('Whitelist testing', () => {
         calldata: proposeCalldata2,
       });
     } catch (err: any) {
-      expect(err.message).to.contain('Voting: Invalid execution_strategies');
+      expect(err.message).to.contain('Voting: Invalid execution_strategy');
     }
   }).timeout(1000000);
 
@@ -129,7 +129,7 @@ describe('Whitelist testing', () => {
     });
   }).timeout(1000000);
 
-  it('The controller can remove two execution_strategiess', async () => {
+  it('The controller can remove two execution_strategies', async () => {
     await controller.invoke(space, 'remove_execution_strategies', {
       addresses: [BigInt(zodiacRelayer.address), BigInt(vanillaExecutionStrategy.address)],
     });
@@ -142,7 +142,7 @@ describe('Whitelist testing', () => {
         calldata: proposeCalldata1,
       });
     } catch (err: any) {
-      expect(err.message).to.contain('Voting: Invalid execution_strategies');
+      expect(err.message).to.contain('Voting: Invalid execution_strategy');
     }
   }).timeout(1000000);
 

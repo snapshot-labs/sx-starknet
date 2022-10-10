@@ -61,7 +61,7 @@ func Voting_authenticators_store(authenticator_address: felt) -> (is_valid: felt
 }
 
 @storage_var
-func Voting_execution_strategies_store(executor_address: felt) -> (is_valid: felt) {
+func Voting_execution_strategies_store(execution_strategy_address: felt) -> (is_valid: felt) {
 }
 
 @storage_var
@@ -517,7 +517,7 @@ namespace Voting {
         metadata_uri_string_len: felt,
         metadata_uri_len: felt,
         metadata_uri: felt*,
-        executor: felt,
+        execution_strategy: felt,
         used_voting_strategies_len: felt,
         used_voting_strategies: felt*,
         user_voting_strategy_params_flat_len: felt,
@@ -530,8 +530,8 @@ namespace Voting {
         // Verify that the caller is the authenticator contract.
         assert_valid_authenticator();
 
-        // Verify that the executor address is one of the whitelisted addresses
-        assert_valid_executor(executor);
+        // Verify that the execution_strategy address is one of the whitelisted addresses
+        assert_valid_execution_strategy(execution_strategy);
 
         // The snapshot for the proposal is the current timestamp at proposal creation
         // We use a timestamp instead of a block number to define a snapshot so that the system can generalize to multi-chain
@@ -581,7 +581,7 @@ namespace Voting {
             start_timestamp,
             min_end_timestamp,
             max_end_timestamp,
-            executor,
+            execution_strategy,
             execution_hash,
         );
 
@@ -694,9 +694,9 @@ namespace Voting {
             tempvar range_check_ptr = range_check_ptr;
         }
 
-        let (is_valid) = Voting_execution_strategies_store.read(proposal.executor);
+        let (is_valid) = Voting_execution_strategies_store.read(proposal.execution_strategy);
         if (is_valid == 0) {
-            // Executor has been removed from the whitelist. Cancel this execution.
+            // execution_strategy has been removed from the whitelist. Cancel this execution.
             tempvar proposal_outcome = ProposalOutcome.CANCELLED;
         } else {
             // Cairo trick to prevent revoked reference
@@ -708,7 +708,7 @@ namespace Voting {
         // 1) Starknet execution strategy - then txs are executed directly by this contract.
         // 2) Other execution strategy - then tx are executed by the specified execution strategy contract.
 
-        if (proposal.executor == 1) {
+        if (proposal.execution_strategy == 1) {
             // Starknet execution strategy so we execute the proposal txs directly
             if (proposal_outcome == ProposalOutcome.ACCEPTED) {
                 let (call_array_len, call_array, calldata_len, calldata) = decode_execution_params(
@@ -732,7 +732,7 @@ namespace Voting {
         } else {
             // Other execution strategy, so we forward the txs to the specified execution strategy contract.
             IExecutionStrategy.execute(
-                contract_address=proposal.executor,
+                contract_address=proposal.execution_strategy,
                 proposal_outcome=proposal_outcome,
                 execution_params_len=execution_params_len,
                 execution_params=execution_params,
@@ -776,11 +776,11 @@ namespace Voting {
 
         let proposal_outcome = ProposalOutcome.CANCELLED;
 
-        if (proposal.executor != 1) {
+        if (proposal.execution_strategy != 1) {
             // Custom execution strategies may have different processes to follow when a proposal is cancelled.
             // Therefore, we still forward the execution payload to the specified strategy contract.
             IExecutionStrategy.execute(
-                contract_address=proposal.executor,
+                contract_address=proposal.execution_strategy,
                 proposal_outcome=proposal_outcome,
                 execution_params_len=execution_params_len,
                 execution_params=execution_params,
@@ -995,13 +995,13 @@ func assert_valid_authenticator{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, 
     return ();
 }
 
-// Throws if `executor` is not a member of the set of whitelisted execution_strategies (stored in the `execution_strategies` mapping)
-func assert_valid_executor{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_ptr}(
-    executor: felt
-) {
-    let (is_valid) = Voting_execution_strategies_store.read(executor);
+// Throws if `execution_strategy` is not a member of the set of whitelisted execution_strategies (stored in the `execution_strategies` mapping)
+func assert_valid_execution_strategy{
+    syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_ptr
+}(execution_strategy: felt) {
+    let (is_valid) = Voting_execution_strategies_store.read(execution_strategy);
 
-    with_attr error_message("Voting: Invalid executor") {
+    with_attr error_message("Voting: Invalid execution_strategy") {
         assert is_valid = 1;
     }
 
