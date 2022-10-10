@@ -84,7 +84,7 @@ describe('Execution Strategy Whitelist testing', () => {
     );
   });
 
-  it('Should create a proposal for a whitelisted execution_strategies', async () => {
+  it('Should create a proposal for a whitelisted execution strategy', async () => {
     await controller.invoke(vanillaAuthenticator, 'authenticate', {
       target: spaceAddress,
       function_selector: PROPOSE_SELECTOR,
@@ -98,7 +98,7 @@ describe('Execution Strategy Whitelist testing', () => {
     });
   }).timeout(1000000);
 
-  it('Should not be able to create a proposal with a non whitelisted execution_strategies', async () => {
+  it('Should not be able to create a proposal with a non whitelisted execution strategy', async () => {
     try {
       // proposeCalldata2 contains the vanilla execution strategy which is not whitelisted initially
       await controller.invoke(vanillaAuthenticator, 'authenticate', {
@@ -107,11 +107,11 @@ describe('Execution Strategy Whitelist testing', () => {
         calldata: proposeCalldata2,
       });
     } catch (err: any) {
-      expect(err.message).to.contain('Voting: Invalid execution_strategy');
+      expect(err.message).to.contain('Voting: Invalid execution strategy');
     }
   }).timeout(1000000);
 
-  it('The controller can whitelist an execution_strategies', async () => {
+  it('The controller can whitelist an execution strategy', async () => {
     await controller.invoke(space, 'add_execution_strategies', {
       addresses: [BigInt(vanillaExecutionStrategy.address)],
     });
@@ -129,7 +129,7 @@ describe('Execution Strategy Whitelist testing', () => {
     });
   }).timeout(1000000);
 
-  it('The controller can remove two execution_strategies', async () => {
+  it('The controller can remove two execution strategies', async () => {
     await controller.invoke(space, 'remove_execution_strategies', {
       addresses: [BigInt(zodiacRelayer.address), BigInt(vanillaExecutionStrategy.address)],
     });
@@ -142,11 +142,11 @@ describe('Execution Strategy Whitelist testing', () => {
         calldata: proposeCalldata1,
       });
     } catch (err: any) {
-      expect(err.message).to.contain('Voting: Invalid execution_strategy');
+      expect(err.message).to.contain('Voting: Invalid execution strategy');
     }
   }).timeout(1000000);
 
-  it('The controller can add two execution_strategiess', async () => {
+  it('The controller can add two execution strategies', async () => {
     await controller.invoke(space, 'add_execution_strategies', {
       addresses: [BigInt(zodiacRelayer.address), BigInt(vanillaExecutionStrategy.address)],
     });
