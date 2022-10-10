@@ -1001,7 +1001,7 @@ func assert_valid_execution_strategy{
 }(execution_strategy: felt) {
     let (is_valid) = Voting_execution_strategies_store.read(execution_strategy);
 
-    with_attr error_message("Voting: Invalid execution_strategy") {
+    with_attr error_message("Voting: Invalid execution strategy") {
         assert is_valid = 1;
     }
 

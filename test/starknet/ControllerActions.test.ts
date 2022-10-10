@@ -222,7 +222,7 @@ describe('Controller Actions', () => {
       });
       throw { message: "execution strategy wasn't removed" };
     } catch (error: any) {
-      expect(error.message).to.contain('Voting: Invalid executor');
+      expect(error.message).to.contain('Voting: Invalid execution strategy');
     }
 
     const correctProposeCalldata = getProposeCalldata(
