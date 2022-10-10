@@ -409,10 +409,12 @@ namespace Voting {
         return ();
     }
 
-    //
-    // Business logic
-    //
-
+    // @dev Casts a vote in a proposal
+    // @param voter_address The address of the voter
+    // @param proposal_id The ID of the proposal in the space
+    // @param choice The voter's choice (FOR, AGAINST, ABSTAIN)
+    // @used_voting_strategies The voting strategies (within the whitelist for the space) that the voter has non-zero voting power with
+    // @user_voting_strategy_params_flat Flattened 2D array of parameters for the voting strategies used
     func vote{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_ptr: felt}(
         voter_address: Address,
         proposal_id: felt,
@@ -503,6 +505,13 @@ namespace Voting {
         return ();
     }
 
+    // @dev Creates a proposal
+    // @param proposer_address The address of the proposal creator
+    // @param metadata_uri_string_len The string length of the metadata URI (required for keccak hashing)
+    // @param metadata_uri The metadata URI for the proposal
+    // @param used_voting_strategies The voting strategies (within the whitelist for the space) that the proposal creator has non-zero voting power with
+    // @param user_voting_strategy_params_flat Flattened 2D array of parameters for the voting strategies used
+    // @param execution_params Execution parameters for the proposal
     func propose{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_ptr: felt}(
         proposer_address: Address,
         metadata_uri_string_len: felt,
@@ -598,7 +607,9 @@ namespace Voting {
         return ();
     }
 
-    // Finalizes the proposal, counts the voting power, and send the corresponding result to the L1 executor contract
+    // @dev Finalizes the proposal, triggering execution via the chosen execution strategy
+    // @param proposal_id The ID of the proposal
+    // @param execution_params Execution parameters for the proposal (must be the same as those submitted during proposal creation)
     @external
     func finalize_proposal{
         syscall_ptr: felt*,
@@ -739,7 +750,9 @@ namespace Voting {
         return ();
     }
 
-    // Cancels the proposal. Only callable by the controller.
+    // @dev Cancels the proposal. Only callable by the controller.
+    // @param proposal_id The ID of the proposal
+    // @param execution_params Execution parameters for the proposal (must be the same as those submitted during proposal creation)
     func cancel_proposal{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_ptr: felt}(
         proposal_id: felt, execution_params_len: felt, execution_params: felt*
     ) {
@@ -788,16 +801,19 @@ namespace Voting {
         return ();
     }
 
-    //
-    // View functions
-    //
-
+    // @dev Checks to see whether a given address has voted in a proposal
+    // @param proposal_id The proposal ID
+    // @param voter_address The voter's address
+    // @return voted 1 if user has voted, otherwise 0
     func has_voted{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_ptr: felt}(
         proposal_id: felt, voter_address: Address
     ) -> (voted: felt) {
         return Voting_vote_registry_store.read(proposal_id, voter_address);
     }
 
+    // @dev Returns proposal information
+    // @param proposal_id The proposal ID
+    // @return proposal_info Struct containing proposal information
     func get_proposal_info{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_ptr: felt}(
         proposal_id: felt
     ) -> (proposal_info: ProposalInfo) {

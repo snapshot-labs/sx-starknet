@@ -78,7 +78,7 @@ func deploy_space{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_pt
     assert calldata[8] = quorum.high;
     assert calldata[9] = voting_strategies_len;
     memcpy(calldata + 10, voting_strategies, voting_strategies_len);
-    assert calldata[10 + voting_strategy_params_flat_len] = voting_strategy_params_flat_len;
+    assert calldata[10 + voting_strategies_len] = voting_strategy_params_flat_len;
     memcpy(
         calldata + 11 + voting_strategies_len,
         voting_strategy_params_flat,
