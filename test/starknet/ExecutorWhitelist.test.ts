@@ -84,21 +84,21 @@ describe('Whitelist testing', () => {
     );
   });
 
-  it('Should create a proposal for a whitelisted executor', async () => {
+  it('Should create a proposal for a whitelisted execution_strategies', async () => {
     await controller.invoke(vanillaAuthenticator, 'authenticate', {
       target: spaceAddress,
       function_selector: PROPOSE_SELECTOR,
       calldata: proposeCalldata1,
     });
 
-    // Cancel the proposal to be able to add / remove executors later on
+    // Cancel the proposal to be able to add / remove execution_strategies later on
     await controller.invoke(space, 'cancel_proposal', {
       proposal_id: 1,
       execution_params: executionParams1,
     });
   }).timeout(1000000);
 
-  it('Should not be able to create a proposal with a non whitelisted executor', async () => {
+  it('Should not be able to create a proposal with a non whitelisted execution_strategies', async () => {
     try {
       // proposeCalldata2 contains the vanilla execution strategy which is not whitelisted initially
       await controller.invoke(vanillaAuthenticator, 'authenticate', {
@@ -107,11 +107,11 @@ describe('Whitelist testing', () => {
         calldata: proposeCalldata2,
       });
     } catch (err: any) {
-      expect(err.message).to.contain('Voting: Invalid executor');
+      expect(err.message).to.contain('Voting: Invalid execution_strategies');
     }
   }).timeout(1000000);
 
-  it('The controller can whitelist an executor', async () => {
+  it('The controller can whitelist an execution_strategies', async () => {
     await controller.invoke(space, 'add_execution_strategies', {
       addresses: [BigInt(vanillaExecutionStrategy.address)],
     });
@@ -122,14 +122,14 @@ describe('Whitelist testing', () => {
       calldata: proposeCalldata2,
     });
 
-    // Cancel the proposal to be able to add / remove executors later on
+    // Cancel the proposal to be able to add / remove execution_strategies later on
     await controller.invoke(space, 'cancel_proposal', {
       proposal_id: 2,
       execution_params: executionParams2,
     });
   }).timeout(1000000);
 
-  it('The controller can remove two executors', async () => {
+  it('The controller can remove two execution_strategiess', async () => {
     await controller.invoke(space, 'remove_execution_strategies', {
       addresses: [BigInt(zodiacRelayer.address), BigInt(vanillaExecutionStrategy.address)],
     });
@@ -142,11 +142,11 @@ describe('Whitelist testing', () => {
         calldata: proposeCalldata1,
       });
     } catch (err: any) {
-      expect(err.message).to.contain('Voting: Invalid executor');
+      expect(err.message).to.contain('Voting: Invalid execution_strategies');
     }
   }).timeout(1000000);
 
-  it('The controller can add two executors', async () => {
+  it('The controller can add two execution_strategiess', async () => {
     await controller.invoke(space, 'add_execution_strategies', {
       addresses: [BigInt(zodiacRelayer.address), BigInt(vanillaExecutionStrategy.address)],
     });

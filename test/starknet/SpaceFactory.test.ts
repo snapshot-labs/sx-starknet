@@ -22,7 +22,7 @@ describe('Space Deployment Testing', () => {
   let votingStrategies: string[];
   let votingStrategyParamsFlat: string[];
   let authenticators: string[];
-  let executors: string[];
+  let execution_strategies: string[];
   let quorum: utils.splitUint256.SplitUint256;
   let proposalThreshold: utils.splitUint256.SplitUint256;
   let spaceMetadataUri: string;
@@ -55,7 +55,7 @@ describe('Space Deployment Testing', () => {
     votingStrategies = [vanillaVotingStrategy.address];
     votingStrategyParamsFlat = utils.encoding.flatten2DArray([[]]);
     authenticators = [vanillaAuthenticator.address];
-    executors = [vanillaExecutionStrategy.address];
+    execution_strategies = [vanillaExecutionStrategy.address];
     quorum = utils.splitUint256.SplitUint256.fromUint(BigInt(1)); //  Quorum of one for the vanilla test
     proposalThreshold = utils.splitUint256.SplitUint256.fromUint(BigInt(1)); // Proposal threshold of 1 for the vanilla test
     spaceMetadataUri = 'SnapshotXTestSpace';
@@ -70,10 +70,10 @@ describe('Space Deployment Testing', () => {
       proposal_threshold: proposalThreshold,
       controller: BigInt(controller.address),
       quorum: quorum,
-      voting_strategy_params_flat: votingStrategyParamsFlat,
       voting_strategies: votingStrategies,
+      voting_strategy_params_flat: votingStrategyParamsFlat,
       authenticators: authenticators,
-      executors: executors,
+      execution_strategies: execution_strategies,
       metadata_uri: utils.strings.strToShortStringArr(spaceMetadataUri),
     });
     const receipt = await starknet.getTransactionReceipt(txHash);
