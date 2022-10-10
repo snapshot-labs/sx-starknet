@@ -22,6 +22,13 @@ from starkware.cairo.common.uint256 import (
 from contracts.starknet.lib.felt_utils import FeltUtils
 from contracts.starknet.lib.array_utils import ArrayUtils
 
+//
+// @title EIP712 Library
+// @author SnapshotLabs
+// @notice A library for verifying Ethereum EIP712 signatures on typed data required for Snapshot X
+// @dev Refer to the official EIP for more information: https://eips.ethereum.org/EIPS/eip-712
+//
+
 const ETHEREUM_PREFIX = 0x1901;
 
 // Domain Separator: (Goerli chain id)

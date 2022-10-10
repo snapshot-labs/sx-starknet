@@ -3,7 +3,7 @@
 from starkware.cairo.common.cairo_builtins import HashBuiltin
 
 //
-// @title Timestamp Resolver
+// @title Timestamp Resolver Library
 // @author SnapshotLabs
 // @notice Snapshot X uses timestamps for a proposal snapshot, however certain voting strategies require Ethereum block numbers
 // @notice This library provides the functionality to resolve timestamps to Ethereum block numbers with a one-to-one mapping
