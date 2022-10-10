@@ -32,10 +32,8 @@ func constructor{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_ptr
     voting_strategies: felt*,
     authenticators_len: felt,
     authenticators: felt*,
-    executors_len: felt,
-    executors: felt*,
-    metadata_uri_len: felt,
-    metadata_uri: felt*,
+    execution_strategies_len: felt,
+    execution_strategies: felt*,
 ) {
     Account.initializer(public_key);
 
@@ -52,10 +50,8 @@ func constructor{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_ptr
         voting_strategies,
         authenticators_len,
         authenticators,
-        executors_len,
-        executors,
-        metadata_uri_len,
-        metadata_uri,
+        execution_strategies_len,
+        execution_strategies,
     );
     return ();
 }

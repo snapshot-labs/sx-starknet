@@ -3,7 +3,6 @@
 from starkware.starknet.common.syscalls import get_caller_address
 from starkware.cairo.common.cairo_builtins import HashBuiltin, SignatureBuiltin
 from starkware.cairo.common.math import assert_not_zero
-from starkware.cairo.common.uint256 import uint256_eq, Uint256
 from starkware.cairo.common.alloc import alloc
 from starkware.cairo.common.signature import verify_ecdsa_signature
 from starkware.starknet.common.syscalls import get_contract_address
@@ -31,7 +30,7 @@ const VOTE_TYPE_HASH = 0x31236321e2e03bd76ca3b07ff9544b3d50aa3e677b473a2850a894d
 // getSelectorFromName("RevokeSessionKey(salt:felt)")
 const REVOKE_SESSION_KEY_TYPE_HASH = 0x31F0BF4E2BBD12ECBA02E325F0EA3231350A638FC633AF8EBF244F50663ACE8;
 
-// Maps a tuple of (user, salt) to a boolean stating whether this tuple was already used or not (to prevent replay attack).
+// @dev Signature salts store
 @storage_var
 func StarkEIP191_salts(user: felt, salt: felt) -> (already_used: felt) {
 }
