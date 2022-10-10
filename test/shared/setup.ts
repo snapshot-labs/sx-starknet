@@ -64,7 +64,7 @@ export async function vanillaSetup() {
     voting_strategy_params_flat: votingStrategyParamsFlat,
     voting_strategies: votingStrategies,
     authenticators: authenticators,
-    execution_strategies: execution_strategies
+    execution_strategies: execution_strategies,
   })) as StarknetContract;
   console.log('deployed!');
 
@@ -127,7 +127,6 @@ export async function zodiacRelayerSetup() {
     voting_strategies: votingStrategies,
     authenticators: authenticators,
     execution_strategies: execution_strategies,
-    metadata_uri: metadataUri,
   })) as StarknetContract;
 
   // Deploying StarkNet core instance required for L2 -> L1 message passing
@@ -311,7 +310,6 @@ export async function ethTxAuthSetup() {
     voting_strategies: votingStrategies,
     authenticators: authenticators,
     execution_strategies: execution_strategies,
-    metadata_uri: metadataUri,
   })) as StarknetContract;
 
   return {
@@ -392,7 +390,6 @@ export async function ethTxSessionKeyAuthSetup() {
     voting_strategies: votingStrategies,
     authenticators: authenticators,
     execution_strategies: execution_strategies,
-    metadata_uri: metadataUri,
   })) as StarknetContract;
 
   return {
@@ -487,7 +484,6 @@ export async function ethBalanceOfSetup(block: any, proofs: any) {
     voting_strategies: votingStrategies,
     authenticators: authenticators,
     execution_strategies: execution_strategies,
-    metadata_uri: metadataUri,
   })) as StarknetContract;
 
   return {
@@ -611,7 +607,6 @@ export async function starkSigAuthSetup() {
     voting_strategies: votingStrategies,
     authenticators: authenticators,
     execution_strategies: execution_strategies,
-    metadata_uri: metadataUri,
   })) as StarknetContract;
 
   return {
@@ -674,7 +669,6 @@ export async function starkTxAuthSetup() {
     voting_strategies: votingStrategies,
     authenticators: authenticators,
     execution_strategies: execution_strategies,
-    metadata_uri: metadataUri,
   })) as StarknetContract;
   console.log('deployed!');
 
@@ -737,7 +731,6 @@ export async function ethSigAuthSetup() {
     voting_strategies: votingStrategies,
     authenticators: authenticators,
     execution_strategies: execution_strategies,
-    metadata_uri: metadataUri,
   })) as StarknetContract;
 
   return {
@@ -799,7 +792,6 @@ export async function starknetSigAuthSetup() {
     voting_strategies: votingStrategies,
     authenticators: authenticators,
     execution_strategies: execution_strategies,
-    metadata_uri: metadataUri,
   })) as StarknetContract;
 
   return {
@@ -901,7 +893,6 @@ export async function starknetExecutionSetup() {
     voting_strategies: votingStrategies,
     authenticators: authenticators,
     execution_strategies: execution_strategies,
-    metadata_uri: metadataUri,
   })) as StarknetContract;
   console.log('deployed!');
 
@@ -964,7 +955,6 @@ export async function ethSigSessionKeyAuthSetup() {
     voting_strategies: votingStrategies,
     authenticators: authenticators,
     execution_strategies: execution_strategies,
-    metadata_uri: metadataUri,
   })) as StarknetContract;
 
   return {
