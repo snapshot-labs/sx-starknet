@@ -18,6 +18,20 @@ const PROPOSAL_SELECTOR = 0x1bfd596ae442867ef71ca523061610682af8b00fc2738329422f
 // getSelectorFromName("vote")
 const VOTE_SELECTOR = 0x132bdf85fc8aa10ac3c22f02317f8f53d4b4f52235ed1eabb3a4cbbe08b5c41;
 
+//
+// @title Ethereum Signature Authenticator
+// @author SnapshotLabs
+// @notice Contract to allow authentication of Snapshot X users via an Ethereum signature
+//
+
+// @dev Authentication of an action (vote or propose) via an Ethereum signature
+// @param r Signature parameter
+// @param s Signature parameter
+// @param v Signature parameter
+// @param salt Signature salt
+// @param target Address of the space contract
+// @param function_selector Function selector of the action
+// @param calldata Calldata array required for the action
 @external
 func authenticate{
     syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_ptr, bitwise_ptr: BitwiseBuiltin*

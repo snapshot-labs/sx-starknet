@@ -18,10 +18,8 @@ from starkware.cairo.common.math import (
     assert_lt_felt,
     assert_not_equal,
 )
-
 from openzeppelin.access.ownable.library import Ownable
 from openzeppelin.account.library import Account, AccountCallArray, Call
-
 from contracts.starknet.Interfaces.IVotingStrategy import IVotingStrategy
 from contracts.starknet.Interfaces.IExecutionStrategy import IExecutionStrategy
 from contracts.starknet.lib.general_address import Address
@@ -31,6 +29,12 @@ from contracts.starknet.lib.vote import Vote
 from contracts.starknet.lib.choice import Choice
 from contracts.starknet.lib.proposal_outcome import ProposalOutcome
 from contracts.starknet.lib.array_utils import ArrayUtils, Immutable2DArray
+
+//
+// @title Snapshot X Voting Library
+// @author SnapshotLabs
+// @notice Library that implements the core functionality of Snapshot X
+//
 
 //
 // Storage
