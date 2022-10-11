@@ -196,11 +196,11 @@ describe('Controller Actions', () => {
     const randomExecutionContract =
       (await randomExecutionContractFactory.deploy()) as StarknetContract;
 
-    // Add a random executor
+    // Add a random execution strategy
     await controller.invoke(space, 'add_execution_strategies', {
       addresses: [randomExecutionContract.address],
     });
-    // Remove the vanilla executor
+    // Remove the vanilla execution strategy
     await controller.invoke(space, 'remove_execution_strategies', {
       addresses: [vanillaExecutionStrategy.address],
     });
@@ -233,7 +233,7 @@ describe('Controller Actions', () => {
       [[]],
       []
     );
-    // Ensure that `randomExecutionContract` is a valid executor
+    // Ensure that `randomExecutionContract` is a valid execution strategy
     await controller.invoke(vanillaAuthenticator, 'authenticate', {
       target: space.address,
       function_selector: PROPOSE_SELECTOR,
@@ -246,7 +246,7 @@ describe('Controller Actions', () => {
       execution_params: [],
     });
 
-    // Revert back to initial executor
+    // Revert back to initial execution strategy
     await controller.invoke(space, 'add_execution_strategies', {
       addresses: [vanillaExecutionStrategy.address],
     });

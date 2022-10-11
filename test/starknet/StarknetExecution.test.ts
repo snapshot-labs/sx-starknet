@@ -161,18 +161,18 @@ describe('Starknet execution via account contract', () => {
       });
       // We can check that the proposal was successfully created by checking the execution strategy
       // as it will be zero if the new proposal was not created
-      expect(proposal_info.proposal.executor).to.deep.equal(BigInt('0x1234'));
+      expect(proposal_info.proposal.execution_strategy).to.deep.equal(BigInt('0x1234'));
 
       // Same for second dummy proposal
       ({ proposal_info } = await space.call('get_proposal_info', {
         proposal_id: 3,
       }));
-      expect(proposal_info.proposal.executor).to.deep.equal(BigInt('0x4567'));
+      expect(proposal_info.proposal.execution_strategy).to.deep.equal(BigInt('0x4567'));
 
       ({ proposal_info } = await space.call('get_proposal_info', {
         proposal_id: 4,
       }));
-      expect(proposal_info.proposal.executor).to.deep.equal(BigInt('0x456789'));
+      expect(proposal_info.proposal.execution_strategy).to.deep.equal(BigInt('0x456789'));
     }
   }).timeout(6000000);
 });

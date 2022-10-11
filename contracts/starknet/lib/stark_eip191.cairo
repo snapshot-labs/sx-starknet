@@ -16,6 +16,7 @@ from contracts.starknet.lib.array_utils import ArrayUtils
 // @dev Refer to the official EIP for more information: https://eips.ethereum.org/EIPS/eip-191
 //
 
+// NOTE: We will need to update chain ID for prod
 // { name: 'snapshot-x', version: '1', chainId: '0x534e5f474f45524c49'} (chainID: SN_GOERLI)
 const DOMAIN_HASH = 0x7b887e96718721a64b601a4873454d4a9e26a4b798d660c8d6b96d2045c8404;
 
