@@ -132,7 +132,7 @@ namespace SessionKey {
         return ();
     }
 
-    // @dev Revokes a session key via authorization from an Ethereum transaction
+    // @dev Revokes a session key via authorization from an Ethereum transaction by the owner
     // @dev Users must commit a hash to the StarkNet Commit contract on L1 and wait for it to be propogated to L2 before calling this function
     // @param session_public_key The StarkNet session public key that should be revoked
     func revoke_with_owner_tx{syscall_ptr: felt*, range_check_ptr, pedersen_ptr: HashBuiltin*}(

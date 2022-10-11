@@ -30,26 +30,26 @@ namespace EthTx {
     }
 
     // @dev Stores a hash that was committed on Ethereum, this should be called by the @l1_handler in the contract only
-    // @param origin The address of the origin Ethereum contract for the L1->L2 message
-    // @param sender The Ethereum address of the user that committed the hash to the StarkNet Commit contract
+    // @param origin_address The address of the origin Ethereum contract for the L1->L2 message
+    // @param sender_address The Ethereum address of the user that committed the hash to the StarkNet Commit contract
     func commit{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_ptr: felt}(
-        origin: felt, sender: felt, hash: felt
+        origin_address: felt, sender_address: felt, hash: felt
     ) {
-        // Check L1 message origin is equal to the StarkNet Commit address.
+        // Check L1 message origin address is equal to the StarkNet Commit address.
         let (starknet_commit_address) = EthTx_starknet_commit_address_store.read();
-        with_attr error_message("EthTx: Invalid message origin address") {
-            assert origin = starknet_commit_address;
+        with_attr error_message("EthTx: Invalid message origin_address address") {
+            assert origin_address = starknet_commit_address;
         }
         // Note: If the same hash is committed twice by the same sender, then the mapping will be overwritten but with the same value as before.
-        EthTx_commit_store.write(hash, sender);
+        EthTx_commit_store.write(hash, sender_address);
         return ();
     }
 
     // @dev Checks to see if a commit exists and was made by a specified address, if so clears it from the contract. Otherwise throws
     // @param hash The commit hash to consume
-    // @param address The sender address to check the commit against
+    // @param sender_address The sender address to check the commit against
     func consume_commit{syscall_ptr: felt*, range_check_ptr, pedersen_ptr: HashBuiltin*}(
-        hash: felt, sender: felt
+        hash: felt, sender_address: felt
     ) {
         // Check that the hash has been received by the contract from the StarkNet Commit contract
         let (stored_address) = EthTx_commit_store.read(hash);
@@ -58,7 +58,7 @@ namespace EthTx {
         }
         // The sender of the commit on L1 must be the same as the address in the calldata.
         with_attr error_message("EthTx: Commit made by invalid L1 address") {
-            assert sender = stored_address;
+            assert sender_address = stored_address;
         }
         EthTx_commit_store.write(hash, 0);
         return ();
