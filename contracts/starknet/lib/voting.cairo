@@ -839,7 +839,6 @@ func unchecked_add_execution_strategies{
         return ();
     } else {
         Voting_execution_strategies_store.write(addresses[0], 1);
-
         unchecked_add_execution_strategies(addresses_len - 1, &addresses[1]);
         return ();
     }
@@ -852,7 +851,6 @@ func unchecked_remove_execution_strategies{
         return ();
     } else {
         Voting_execution_strategies_store.write(addresses[0], 0);
-
         unchecked_remove_execution_strategies(addresses_len - 1, &addresses[1]);
         return ();
     }
@@ -883,16 +881,12 @@ func unchecked_add_voting_strategies_recurse{
         return ();
     } else {
         Voting_voting_strategies_store.write(next_index, addresses[0]);
-
         // Extract voting params for the voting strategy
         let (params_len, params) = ArrayUtils.get_sub_array(params_all, index);
-
         // We store the length of the voting strategy params array at index zero
         Voting_voting_strategy_params_store.write(next_index, 0, params_len);
-
         // The following elements are the actual params
         unchecked_add_voting_strategy_params(next_index, 1, params_len, params);
-
         unchecked_add_voting_strategies_recurse(
             addresses_len - 1, &addresses[1], params_all, next_index + 1, index + 1
         );
@@ -909,7 +903,6 @@ func unchecked_add_voting_strategy_params{
     } else {
         // Store voting parameter
         Voting_voting_strategy_params_store.write(strategy_index, param_index, params[0]);
-
         unchecked_add_voting_strategy_params(
             strategy_index, param_index + 1, params_len - 1, &params[1]
         );
@@ -924,15 +917,11 @@ func unchecked_remove_voting_strategies{
         return ();
     } else {
         Voting_voting_strategies_store.write(indexes[0], 0);
-
         // The length of the voting strategy params is stored at index zero
         let (params_len) = Voting_voting_strategy_params_store.read(indexes[0], 0);
-
         Voting_voting_strategy_params_store.write(indexes[0], 0, 0);
-
         // Removing voting strategy params
         unchecked_remove_voting_strategy_params(indexes[0], params_len, 1);
-
         unchecked_remove_voting_strategies(indexes_len - 1, &indexes[1]);
         return ();
     }
@@ -951,7 +940,6 @@ func unchecked_remove_voting_strategy_params{
     }
     // Remove voting parameter
     Voting_voting_strategy_params_store.write(strategy_index, param_index, 0);
-
     unchecked_remove_voting_strategy_params(strategy_index, param_index + 1, params_len);
     return ();
 }
@@ -963,7 +951,6 @@ func unchecked_add_authenticators{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*
         return ();
     } else {
         Voting_authenticators_store.write(to_add[0], 1);
-
         unchecked_add_authenticators(to_add_len - 1, &to_add[1]);
         return ();
     }
@@ -976,7 +963,6 @@ func unchecked_remove_authenticators{
         return ();
     } else {
         Voting_authenticators_store.write(to_remove[0], 0);
-
         unchecked_remove_authenticators(to_remove_len - 1, &to_remove[1]);
     }
     return ();
@@ -986,8 +972,6 @@ func unchecked_remove_authenticators{
 func assert_valid_authenticator{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_ptr}() {
     let (caller_address) = get_caller_address();
     let (is_valid) = Voting_authenticators_store.read(caller_address);
-
-    // Ensure it has been initialized
     with_attr error_message("Voting: Invalid authenticator") {
         assert_not_zero(is_valid);
     }
@@ -1000,7 +984,6 @@ func assert_valid_execution_strategy{
     syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_ptr
 }(execution_strategy: felt) {
     let (is_valid) = Voting_execution_strategies_store.read(execution_strategy);
-
     with_attr error_message("Voting: Invalid execution strategy") {
         assert is_valid = 1;
     }
@@ -1014,11 +997,9 @@ func assert_no_active_proposal_recurse{
     if (proposal_id == 0) {
         return ();
     } else {
-        // Ensure the proposal has been executed
+        // Ensure each proposal has been executed
         let (has_been_executed) = Voting_executed_proposals_store.read(proposal_id);
         assert has_been_executed = 1;
-
-        // Recurse
         assert_no_active_proposal_recurse(proposal_id - 1);
         return ();
     }
@@ -1026,12 +1007,10 @@ func assert_no_active_proposal_recurse{
 
 func assert_no_active_proposal{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_ptr}() {
     let (next_proposal) = Voting_next_proposal_nonce_store.read();
-
     // Using `next_proposal - 1` because `next_proposal` corresponds to the *next* nonce
     // so we need to substract one. This is safe because latest_proposal is at least 1 because
     // the constructor initializes the nonce to 1.
     let latest_proposal = next_proposal - 1;
-
     with_attr error_message("Voting: Some proposals are still active") {
         assert_no_active_proposal_recurse(latest_proposal);
     }
@@ -1073,7 +1052,6 @@ func get_cumulative_voting_power{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*,
 ) -> (voting_power: Uint256) {
     // Make sure there are no duplicates to avoid an attack where people double count a voting strategy
     assert_no_duplicates(used_voting_strategies_len, used_voting_strategies);
-
     return unchecked_get_cumulative_voting_power(
         current_timestamp,
         voter_address,
@@ -1146,7 +1124,6 @@ func unchecked_get_cumulative_voting_power{
     );
 
     let (voting_power, overflow) = uint256_add(user_voting_power, additional_voting_power);
-
     with_attr error_message("Voting: Overflow while computing voting power") {
         assert overflow = 0;
     }
@@ -1158,19 +1135,16 @@ func unchecked_get_cumulative_voting_power{
 func get_voting_strategy_params{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_ptr}(
     strategy_index: felt, params_len: felt, params: felt*, index: felt
 ) -> (params_len: felt, params: felt*) {
-    // The are no parameters so we just return an empty array
+    // If there are no parameters, we just return an empty array
     if (params_len == 0) {
         return (0, params);
     }
-
     let (param) = Voting_voting_strategy_params_store.read(strategy_index, index);
     assert params[index - 1] = param;
-
     // All parameters have been added to the array so we can return it
     if (index == params_len) {
         return (params_len, params);
     }
-
     let (params_len, params) = get_voting_strategy_params(
         strategy_index, params_len, params, index + 1
     );
@@ -1191,7 +1165,7 @@ func decode_execution_params{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, ran
 
 // Same as OZ `execute` just without the assert  get_caller_address() = 0
 // This is a reentrant call guard which prevents another account calling execute
-// In the context of proposal txs, reentrancy is not an issue
+// In the context of proposal txs, reentrancy is not an issue as the transactions are trusted to be not malicious
 func execute_proposal_txs{
     syscall_ptr: felt*,
     pedersen_ptr: HashBuiltin*,
@@ -1202,20 +1176,16 @@ func execute_proposal_txs{
     response_len: felt, response: felt*
 ) {
     alloc_locals;
-
     let (tx_info) = get_tx_info();
     with_attr error_message("Voting: invalid tx version") {
         assert tx_info.version = 1;
     }
-
     // TMP: Convert `AccountCallArray` to 'Call'.
     let (calls: Call*) = alloc();
     Account._from_call_array_to_call(call_array_len, call_array, calldata, calls);
     let calls_len = call_array_len;
-
     // execute call
     let (response: felt*) = alloc();
     let (response_len) = Account._execute_list(calls_len, calls, response);
-
     return (response_len=response_len, response=response);
 }

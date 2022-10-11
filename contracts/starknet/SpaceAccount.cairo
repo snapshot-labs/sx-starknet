@@ -13,10 +13,6 @@ from contracts.starknet.lib.general_address import Address
 from contracts.starknet.lib.proposal_info import ProposalInfo
 from contracts.starknet.lib.vote import Vote
 
-//
-// Constructor
-//
-
 @constructor
 func constructor{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_ptr}(
     public_key: felt,
@@ -56,10 +52,6 @@ func constructor{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_ptr
     return ();
 }
 
-//
-// Getters
-//
-
 @view
 func getPublicKey{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_ptr}() -> (
     publicKey: felt
@@ -75,10 +67,6 @@ func supportsInterface{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_che
     return Account.supports_interface(interfaceId);
 }
 
-//
-// Setters
-//
-
 @external
 func setPublicKey{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_ptr}(
     newPublicKey: felt
@@ -86,10 +74,6 @@ func setPublicKey{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_pt
     Account.set_public_key(newPublicKey);
     return ();
 }
-
-//
-// Business logic
-//
 
 @view
 func isValidSignature{
@@ -185,7 +169,6 @@ func vote{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_ptr: felt}
     return ();
 }
 
-// Finalizes the proposal, counts the voting power, and send the corresponding result to the L1 executor contract
 @external
 func finalize_proposal{
     syscall_ptr: felt*,
@@ -198,7 +181,6 @@ func finalize_proposal{
     return ();
 }
 
-// Cancels the proposal. Only callable by the controller.
 @external
 func cancel_proposal{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_ptr: felt}(
     proposal_id: felt, execution_params_len: felt, execution_params: felt*
@@ -206,10 +188,6 @@ func cancel_proposal{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check
     Voting.cancel_proposal(proposal_id, execution_params_len, execution_params);
     return ();
 }
-
-//
-// View functions
-//
 
 @view
 func has_voted{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_ptr: felt}(
@@ -224,10 +202,6 @@ func get_proposal_info{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_che
 ) -> (proposal_info: ProposalInfo) {
     return Voting.get_proposal_info(proposal_id);
 }
-
-//
-// Setters
-//
 
 @external
 func update_controller{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_ptr: felt}(
