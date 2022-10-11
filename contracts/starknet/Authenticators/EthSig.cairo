@@ -13,16 +13,16 @@ from starkware.cairo.common.cairo_keccak.keccak import (
 )
 from contracts.starknet.lib.eip712 import EIP712
 
-// getSelectorFromName("propose")
-const PROPOSAL_SELECTOR = 0x1bfd596ae442867ef71ca523061610682af8b00fc2738329422f4ad8d220b81;
-// getSelectorFromName("vote")
-const VOTE_SELECTOR = 0x132bdf85fc8aa10ac3c22f02317f8f53d4b4f52235ed1eabb3a4cbbe08b5c41;
-
 //
 // @title Ethereum Signature Authenticator
 // @author SnapshotLabs
 // @notice Contract to allow authentication of Snapshot X users via an Ethereum signature
 //
+
+// getSelectorFromName("propose")
+const PROPOSAL_SELECTOR = 0x1bfd596ae442867ef71ca523061610682af8b00fc2738329422f4ad8d220b81;
+// getSelectorFromName("vote")
+const VOTE_SELECTOR = 0x132bdf85fc8aa10ac3c22f02317f8f53d4b4f52235ed1eabb3a4cbbe08b5c41;
 
 // @dev Authentication of an action (vote or propose) via an Ethereum signature
 // @param r Signature parameter
@@ -55,9 +55,6 @@ func authenticate{
             return ();
         }
     }
-
-    // Call the contract
     execute(target, function_selector, calldata_len, calldata);
-
     return ();
 }

@@ -14,13 +14,25 @@ from contracts.starknet.lib.eip712 import EIP712
 from contracts.starknet.lib.stark_eip191 import StarkEIP191
 from contracts.starknet.lib.session_key import SessionKey
 
+//
+// @title Session key Authenticator with Ethereum Signature Authorization
+// @author SnapshotLabs
+// @notice Contract to allow authentication with a session key that can be authorized and revoked with an Ethereum signature
+//
+
 // getSelectorFromName("propose")
 const PROPOSAL_SELECTOR = 0x1bfd596ae442867ef71ca523061610682af8b00fc2738329422f4ad8d220b81;
 // getSelectorFromName("vote")
 const VOTE_SELECTOR = 0x132bdf85fc8aa10ac3c22f02317f8f53d4b4f52235ed1eabb3a4cbbe08b5c41;
 
-// Calls get_session_key with the ethereum address (calldata[0]) to check that a session is active.
-// If so, perfoms stark signature verification to check the sig is valid. If so calls execute with the payload.
+// @dev Authentication of an action (vote or propose) via an StarkNet session key signature
+// @param r Signature parameter
+// @param s Signature parameter
+// @param salt Signature salt
+// @param target Address of the space contract
+// @param function_selector Function selector of the action
+// @param calldata Calldata array required for the action
+// @param session_public_key The StarkNet session public key that was used to generate the signature
 @external
 func authenticate{
     syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_ptr, ecdsa_ptr: SignatureBuiltin*
@@ -52,15 +64,18 @@ func authenticate{
             return ();
         }
     }
-
-    // Call the contract
     execute(target, function_selector, calldata_len, calldata);
-
     return ();
 }
 
-// Performs EC recover on the Ethereum signature and stores the session key in a
-// mapping indexed by the recovered Ethereum address
+// @dev Registers a session key via authorization from an Ethereum signature
+// @param r Signature parameter
+// @param s Signature parameter
+// @param v Signature parameter
+// @param salt Signature salt
+// @param eth_address Owner's Ethereum Address that was used to create the signature
+// @param session_public_key The StarkNet session public key that should be registered
+// @param session_duration The number of seconds that the session key is valid
 @external
 func authorize_session_key_with_sig{
     syscall_ptr: felt*,
@@ -81,7 +96,11 @@ func authorize_session_key_with_sig{
     return ();
 }
 
-// Checks signature is valid and if so, removes session key for user
+// @dev Revokes a session key via authorization from a signature from the session key itself
+// @param r Signature parameter
+// @param s Signature parameter
+// @param salt Signature salt
+// @param session_public_key The StarkNet session public key that should be revoked
 @external
 func revoke_session_key_with_session_key_sig{
     syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_ptr, ecdsa_ptr: SignatureBuiltin*
@@ -90,7 +109,12 @@ func revoke_session_key_with_session_key_sig{
     return ();
 }
 
-// Checks signature is valid and if so, removes session key for user
+// @dev Revokes a session key via authorization from a signature from the owner Ethereum account
+// @param r Signature parameter
+// @param s Signature parameter
+// @param v Signature parameter
+// @param salt Signature salt
+// @param session_public_key The StarkNet session public key that should be revoked
 @external
 func revoke_session_key_with_owner_sig{
     syscall_ptr: felt*,
@@ -103,7 +127,9 @@ func revoke_session_key_with_owner_sig{
     return ();
 }
 
-// Public view function for checking a session key
+// @dev Returns owner of a session key if it exists, otherwise throws
+// @param session_public_key The StarkNet session public key
+// return owner The owner Ethereum address
 @view
 func get_session_key_owner{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_ptr}(
     session_public_key: felt
