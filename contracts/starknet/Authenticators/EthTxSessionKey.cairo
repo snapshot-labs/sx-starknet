@@ -79,7 +79,7 @@ func authenticate{
 // @param session_public_key The StarkNet session public key that should be registered
 // @param session_duration The number of seconds that the session key is valid
 @external
-func authorize_session_key_with_tx{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_ptr}(
+func authorizeSessionKeyWithTx{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_ptr}(
     eth_address: felt, session_public_key: felt, session_duration: felt
 ) {
     SessionKey.authorize_with_tx(eth_address, session_public_key, session_duration);
@@ -92,7 +92,7 @@ func authorize_session_key_with_tx{syscall_ptr: felt*, pedersen_ptr: HashBuiltin
 // @param salt Signature salt
 // @param session_public_key The StarkNet session public key that should be revoked
 @external
-func revoke_session_key_with_session_key_sig{
+func revokeSessionKeyWithSessionKeySig{
     syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_ptr, ecdsa_ptr: SignatureBuiltin*
 }(r: felt, s: felt, salt: felt, session_public_key: felt) {
     SessionKey.revoke_with_session_key_sig(r, s, salt, session_public_key);
@@ -103,9 +103,9 @@ func revoke_session_key_with_session_key_sig{
 // @dev Users must commit a hash to the StarkNet Commit contract on L1 and wait for it to be propogated to L2 before calling this function
 // @param session_public_key The StarkNet session public key that should be revoked
 @external
-func revoke_session_key_with_owner_tx{
-    syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_ptr
-}(session_public_key: felt) {
+func revokeSessionKeyWithOwnerTx{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_ptr}(
+    session_public_key: felt
+) {
     SessionKey.revoke_with_owner_tx(session_public_key);
     return ();
 }
@@ -114,7 +114,7 @@ func revoke_session_key_with_owner_tx{
 // @param session_public_key The StarkNet session public key
 // return owner The owner Ethereum address
 @view
-func get_session_key_owner{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_ptr}(
+func getSessionKeyOwner{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_ptr}(
     session_public_key: felt
 ) -> (eth_address: felt) {
     let (eth_address) = SessionKey.get_owner(session_public_key);

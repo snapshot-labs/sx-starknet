@@ -33,7 +33,7 @@ func constructor{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_ptr
 // @param user_params Array containing storage proofs for the users balance within the token contract
 // @return voting_power The value of the balances[_address] mapping corresponding to the user's address
 @view
-func get_voting_power{
+func getVotingPower{
     syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_ptr, bitwise_ptr: BitwiseBuiltin*
 }(
     timestamp: felt,
@@ -44,7 +44,7 @@ func get_voting_power{
     user_params: felt*,
 ) -> (voting_power: Uint256) {
     let (voting_power) = SingleSlotProof.get_storage_slot(
-        timestamp, voter_address, params_len, params, user_params_len, user_params
+        timestamp, voter_address.value, params_len, params, user_params_len, user_params
     );
     return (voting_power,);
 }

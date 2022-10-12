@@ -77,7 +77,7 @@ func authenticate{
 // @param session_public_key The StarkNet session public key that should be registered
 // @param session_duration The number of seconds that the session key is valid
 @external
-func authorize_session_key_with_sig{
+func authorizeSessionKeyWithSig{
     syscall_ptr: felt*,
     pedersen_ptr: HashBuiltin*,
     ecdsa_ptr: SignatureBuiltin*,
@@ -102,7 +102,7 @@ func authorize_session_key_with_sig{
 // @param salt Signature salt
 // @param session_public_key The StarkNet session public key that should be revoked
 @external
-func revoke_session_key_with_session_key_sig{
+func revokeSessionKeyWithSessionKeySig{
     syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_ptr, ecdsa_ptr: SignatureBuiltin*
 }(r: felt, s: felt, salt: felt, session_public_key: felt) {
     SessionKey.revoke_with_session_key_sig(r, s, salt, session_public_key);
@@ -116,7 +116,7 @@ func revoke_session_key_with_session_key_sig{
 // @param salt Signature salt
 // @param session_public_key The StarkNet session public key that should be revoked
 @external
-func revoke_session_key_with_owner_sig{
+func revokeSessionKeyWithOwnerSig{
     syscall_ptr: felt*,
     pedersen_ptr: HashBuiltin*,
     bitwise_ptr: BitwiseBuiltin*,
@@ -131,7 +131,7 @@ func revoke_session_key_with_owner_sig{
 // @param session_public_key The StarkNet session public key
 // return owner The owner Ethereum address
 @view
-func get_session_key_owner{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_ptr}(
+func getSessionKeyOwner{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_ptr}(
     session_public_key: felt
 ) -> (eth_address: felt) {
     let (eth_address) = SessionKey.get_owner(session_public_key);

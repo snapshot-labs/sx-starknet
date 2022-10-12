@@ -47,12 +47,12 @@ func space_deployed(
 }
 
 // @dev Constructor
-// @param space_class_hash
+// @param space_class_hash Class hash of the space contract
 @constructor
 func constructor{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_ptr}(
     space_class_hash: felt
 ) {
-    space_class_hash_store.write(space_class_hash);
+    SpaceFactory_space_class_hash_store.write(space_class_hash);
     return ();
 }
 
@@ -70,7 +70,7 @@ func constructor{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_ptr
 // @param execution_strategies Array of whitelisted execution strategy contract addresses
 // @param metadata_uri The metadata URI for the space
 @external
-func deploy_space{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_ptr: felt}(
+func deploySpace{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_ptr: felt}(
     public_key: felt,
     voting_delay: felt,
     min_voting_duration: felt,
@@ -123,8 +123,8 @@ func deploy_space{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_pt
     // NOTE: The metadata URI is not stored in the contract state (its just emitted as an event). Therefore it does not need to be passed as a parameter in the space deployment
     let (deployer_address) = get_caller_address();
     let calldata_len = 13 + voting_strategies_len + voting_strategy_params_flat_len + authenticators_len + execution_strategies_len;
-    let (current_salt) = salt.read();
-    let (space_class_hash) = space_class_hash_store.read();
+    let (current_salt) = SpaceFactory_salt.read();
+    let (space_class_hash) = SpaceFactory_space_class_hash_store.read();
     let (space_address) = deploy(
         class_hash=space_class_hash,
         contract_address_salt=current_salt,
@@ -132,7 +132,7 @@ func deploy_space{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_pt
         constructor_calldata=calldata,
         deploy_from_zero=0,
     );
-    salt.write(value=current_salt + 1);
+    SpaceFactory_salt.write(value=current_salt + 1);
 
     space_deployed.emit(
         deployer_address,

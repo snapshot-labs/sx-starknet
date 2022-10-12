@@ -208,7 +208,7 @@ func vote{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_ptr: felt}
 // @param proposal_id The ID of the proposal
 // @param execution_params Execution parameters for the proposal (must be the same as those submitted during proposal creation)
 @external
-func finalize_proposal{
+func finalizeProposal{
     syscall_ptr: felt*,
     pedersen_ptr: HashBuiltin*,
     range_check_ptr,
@@ -223,7 +223,7 @@ func finalize_proposal{
 // @param proposal_id The ID of the proposal
 // @param execution_params Execution parameters for the proposal (must be the same as those submitted during proposal creation)
 @external
-func cancel_proposal{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_ptr: felt}(
+func cancelProposal{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_ptr: felt}(
     proposal_id: felt, execution_params_len: felt, execution_params: felt*
 ) {
     Voting.cancel_proposal(proposal_id, execution_params_len, execution_params);
@@ -235,7 +235,7 @@ func cancel_proposal{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check
 // @param voter_address The voter's address
 // @return voted 1 if user has voted, otherwise 0
 @view
-func has_voted{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_ptr: felt}(
+func hasVoted{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_ptr: felt}(
     proposal_id: felt, voter_address: Address
 ) -> (voted: felt) {
     return Voting.has_voted(proposal_id, voter_address);
@@ -245,7 +245,7 @@ func has_voted{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_ptr: 
 // @param proposal_id The proposal ID
 // @return proposal_info Struct containing proposal information
 @view
-func get_proposal_info{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_ptr: felt}(
+func getProposalInfo{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_ptr: felt}(
     proposal_id: felt
 ) -> (proposal_info: ProposalInfo) {
     return Voting.get_proposal_info(proposal_id);
@@ -254,7 +254,7 @@ func get_proposal_info{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_che
 // @dev Updates the controller
 // @param new_controller The new controller account address
 @external
-func update_controller{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_ptr: felt}(
+func updateController{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_ptr: felt}(
     new_controller: felt
 ) {
     Voting.update_controller(new_controller);
@@ -264,7 +264,7 @@ func update_controller{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_che
 // @dev Updates the quorum
 // @param new_quorum The new quorum
 @external
-func update_quorum{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_ptr: felt}(
+func updateQuorum{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_ptr: felt}(
     new_quorum: Uint256
 ) {
     Voting.update_quorum(new_quorum);
@@ -274,7 +274,7 @@ func update_quorum{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_p
 // @dev Updates the voting delay
 // @param new_voting_delay The new voting delay
 @external
-func update_voting_delay{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_ptr: felt}(
+func updateVotingDelay{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_ptr: felt}(
     new_delay: felt
 ) {
     Voting.update_voting_delay(new_delay);
@@ -284,9 +284,9 @@ func update_voting_delay{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_c
 // @dev Updates the minimum voting duration
 // @param new_min_voting_duration The new minimum voting duration
 @external
-func update_min_voting_duration{
-    syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_ptr: felt
-}(new_min_voting_duration: felt) {
+func updateMinVotingDuration{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_ptr: felt}(
+    new_min_voting_duration: felt
+) {
     Voting.update_min_voting_duration(new_min_voting_duration);
     return ();
 }
@@ -294,9 +294,9 @@ func update_min_voting_duration{
 // @dev Updates the maximum voting duration
 // @param new_max_voting_duration The new maximum voting duration
 @external
-func update_max_voting_duration{
-    syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_ptr: felt
-}(new_max_voting_duration: felt) {
+func updateMaxVotingDuration{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_ptr: felt}(
+    new_max_voting_duration: felt
+) {
     Voting.update_max_voting_duration(new_max_voting_duration);
     return ();
 }
@@ -304,9 +304,9 @@ func update_max_voting_duration{
 // @dev Updates the proposal threshold
 // @param new_proposal_threshold The new proposal threshold
 @external
-func update_proposal_threshold{
-    syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_ptr: felt
-}(new_proposal_threshold: Uint256) {
+func updateProposalThreshold{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_ptr: felt}(
+    new_proposal_threshold: Uint256
+) {
     Voting.update_proposal_threshold(new_proposal_threshold);
     return ();
 }
@@ -314,7 +314,7 @@ func update_proposal_threshold{
 // @dev Updates the metadata URI
 // @param new_metadata_uri The new metadata URI
 @external
-func update_metadata_uri{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_ptr: felt}(
+func updateMetadataUri{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_ptr: felt}(
     new_metadata_uri_len: felt, new_metadata_uri: felt*
 ) {
     Voting.update_metadata_uri(new_metadata_uri_len, new_metadata_uri);
@@ -324,9 +324,9 @@ func update_metadata_uri{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_c
 // @dev Adds execution strategy contracts to the whitelist
 // @param addresses Array of execution strategy contract addresses
 @external
-func add_execution_strategies{
-    syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_ptr: felt
-}(addresses_len: felt, addresses: felt*) {
+func addExecutionStrategies{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_ptr: felt}(
+    addresses_len: felt, addresses: felt*
+) {
     Voting.add_execution_strategies(addresses_len, addresses);
     return ();
 }
@@ -334,7 +334,7 @@ func add_execution_strategies{
 // @dev Removes execution strategy contracts from the whitelist
 // @param addresses Array of execution strategy contract addresses
 @external
-func remove_execution_strategies{
+func removeExecutionStrategies{
     syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_ptr: felt
 }(addresses_len: felt, addresses: felt*) {
     Voting.remove_execution_strategies(addresses_len, addresses);
@@ -345,7 +345,7 @@ func remove_execution_strategies{
 // @param addresses Array of voting strategy contract addresses
 // @param params_flat Flattened 2D array of voting strategy parameters
 @external
-func add_voting_strategies{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_ptr: felt}(
+func addVotingStrategies{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_ptr: felt}(
     addresses_len: felt, addresses: felt*, params_flat_len: felt, params_flat: felt*
 ) {
     Voting.add_voting_strategies(addresses_len, addresses, params_flat_len, params_flat);
@@ -355,9 +355,9 @@ func add_voting_strategies{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range
 // @dev Removes voting strategy contracts from the whitelist
 // @param indexes Array of voting strategy indexes to remove
 @external
-func remove_voting_strategies{
-    syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_ptr: felt
-}(indexes_len: felt, indexes: felt*) {
+func removeVotingStrategies{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_ptr: felt}(
+    indexes_len: felt, indexes: felt*
+) {
     Voting.remove_voting_strategies(indexes_len, indexes);
     return ();
 }
@@ -365,7 +365,7 @@ func remove_voting_strategies{
 // @dev Adds authenticator contracts to the whitelist
 // @param addresses Array of authenticator contract addresses
 @external
-func add_authenticators{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_ptr: felt}(
+func addAuthenticators{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_ptr: felt}(
     addresses_len: felt, addresses: felt*
 ) {
     Voting.add_authenticators(addresses_len, addresses);
@@ -375,7 +375,7 @@ func add_authenticators{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_ch
 // @dev Removes authenticator contracts from the whitelist
 // @param addresses Array of authenticator contract addresses
 @external
-func remove_authenticators{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_ptr: felt}(
+func removeAuthenticators{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_ptr: felt}(
     addresses_len: felt, addresses: felt*
 ) {
     Voting.remove_authenticators(addresses_len, addresses);
