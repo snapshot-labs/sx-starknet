@@ -21,14 +21,26 @@ func whitelisted(address: Address, voting_power: Uint256) {
 
 // @dev Constructor
 // @param whitelist Array containing the whitelist
+// @notice The whitelist array should be as follows:
+//    whitelist[0]: The 1st user's address
+//    whitelist[1]: The low 128 bits of the 1st user's voting power
+//    whitelist[2]: The high 128 bits of the 1st user's voting power
+//    whitelist[4]: The 2nd user's address
+//    etc...
 @constructor
 func constructor{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_ptr: felt}(
     whitelist_len: felt, whitelist: felt*
 ) {
-    register_whitelist(whitelist_len, whitelist);
+    _register_whitelist(whitelist_len, whitelist);
     return ();
 }
 
+// @dev Returns the voting power for a user
+// @param timestamp The snapshot timestamp
+// @param voter_address The address of the user
+// @param params Empty array
+// @param user_params Empty array
+// @return voting_power The voting power of the user
 @view
 func get_voting_power{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_ptr: felt}(
     timestamp: felt,
@@ -43,7 +55,7 @@ func get_voting_power{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_chec
     return (power,);
 }
 
-func register_whitelist{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_ptr: felt}(
+func _register_whitelist{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_ptr: felt}(
     _whitelist_len: felt, _whitelist: felt*
 ) {
     if (_whitelist_len == 0) {
@@ -52,16 +64,11 @@ func register_whitelist{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_ch
         let address = Address(_whitelist[0]);
         // Add it to the whitelist
         let voting_power = Uint256(_whitelist[1], _whitelist[2]);
-
         with_attr error_message("Whitelist: Invalid uint256 for voting power") {
             uint256_check(voting_power);
         }
-
         whitelist.write(address, voting_power);
-
-        // Emit event
         whitelisted.emit(address, voting_power);
-
         register_whitelist(_whitelist_len - 3, &_whitelist[3]);
         return ();
     }
