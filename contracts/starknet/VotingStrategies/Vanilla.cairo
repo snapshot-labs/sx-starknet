@@ -3,7 +3,12 @@
 from starkware.cairo.common.uint256 import Uint256
 from contracts.starknet.lib.general_address import Address
 
-// Returns a voting power of 1 for every address it is queried with.
+//
+// @title Vanilla Voting Strategy
+// @author SnapshotLabs
+// @notice Contract to every user 1 voting power
+//
+
 @view
 func get_voting_power{range_check_ptr}(
     timestamp: felt,

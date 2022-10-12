@@ -334,7 +334,7 @@ namespace Voting {
     }
 
     // @dev Adds execution strategy contracts to the whitelist
-    // @param addresses Array of addresses
+    // @param addresses Array of execution strategy contract addresses
     func add_execution_strategies{
         syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_ptr: felt
     }(addresses_len: felt, addresses: felt*) {
@@ -346,7 +346,7 @@ namespace Voting {
     }
 
     // @dev Removes execution strategy contracts from the whitelist
-    // @param addresses Array of addresses
+    // @param addresses Array of execution strategy contract addresses
     func remove_execution_strategies{
         syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_ptr: felt
     }(addresses_len: felt, addresses: felt*) {
@@ -358,7 +358,7 @@ namespace Voting {
     }
 
     // @dev Adds voting strategy contracts to the whitelist
-    // @param addresses Array of addresses
+    // @param addresses Array of voting strategy contract addresses
     // @param params_flat Flattened 2D array of voting strategy parameters
     func add_voting_strategies{
         syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_ptr: felt
@@ -388,7 +388,7 @@ namespace Voting {
     }
 
     // @dev Adds authenticator contracts to the whitelist
-    // @param addresses Array of addresses
+    // @param addresses Array of authenticator contract addresses
     func add_authenticators{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_ptr: felt}(
         addresses_len: felt, addresses: felt*
     ) {
@@ -401,7 +401,7 @@ namespace Voting {
     }
 
     // @dev Removes authenticator contracts from the whitelist
-    // @param addresses Array of addresses
+    // @param addresses Array of authenticator contract addresses
     func remove_authenticators{
         syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_ptr: felt
     }(addresses_len: felt, addresses: felt*) {
@@ -413,7 +413,7 @@ namespace Voting {
         return ();
     }
 
-    // @dev Casts a vote in a proposal
+    // @dev Casts a vote on a proposal
     // @param voter_address The address of the voter
     // @param proposal_id The ID of the proposal in the space
     // @param choice The voter's choice (FOR, AGAINST, ABSTAIN)
@@ -611,7 +611,7 @@ namespace Voting {
         return ();
     }
 
-    // @dev Finalizes the proposal, triggering execution via the chosen execution strategy
+    // @dev Finalizes a proposal, triggering execution via the chosen execution strategy
     // @param proposal_id The ID of the proposal
     // @param execution_params Execution parameters for the proposal (must be the same as those submitted during proposal creation)
     @external
@@ -754,7 +754,7 @@ namespace Voting {
         return ();
     }
 
-    // @dev Cancels the proposal. Only callable by the controller.
+    // @dev Cancels a proposal. Only callable by the controller.
     // @param proposal_id The ID of the proposal
     // @param execution_params Execution parameters for the proposal (must be the same as those submitted during proposal creation)
     func cancel_proposal{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_ptr: felt}(

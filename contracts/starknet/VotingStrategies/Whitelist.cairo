@@ -35,7 +35,7 @@ func constructor{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_ptr
     return ();
 }
 
-// @dev Returns the voting power for a user
+// @dev Returns the voting power for a user obtained from the whitelist
 // @param timestamp The snapshot timestamp
 // @param voter_address The address of the user
 // @param params Empty array
