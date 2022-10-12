@@ -20,7 +20,7 @@ describe('Felt Utils:', () => {
     const word2 = BigInt(utils.bytes.bytesToHex(ethers.utils.randomBytes(2)));
     const word3 = BigInt(utils.bytes.bytesToHex(ethers.utils.randomBytes(2)));
     const word4 = BigInt(utils.bytes.bytesToHex(ethers.utils.randomBytes(2)));
-    const { uint256: uint256 } = await testWords.call('test_words_to_uint256', {
+    const { uint256: uint256 } = await testWords.call('testWordsToUint256', {
       word1: word1,
       word2: word2,
       word3: word3,
@@ -39,7 +39,7 @@ describe('Felt Utils:', () => {
   it('The library should covert a felt into 4 words', async () => {
     const { testWords } = await setup();
     const input = BigInt(utils.bytes.bytesToHex(ethers.utils.randomBytes(31)));
-    const { words: words } = await testWords.call('test_felt_to_words', {
+    const { words: words } = await testWords.call('testFeltToWords', {
       input: input,
     });
     const uint = utils.words64.wordsToUint(words.word_1, words.word_2, words.word_3, words.word_4);

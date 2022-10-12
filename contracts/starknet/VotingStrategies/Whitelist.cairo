@@ -42,7 +42,7 @@ func constructor{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_ptr
 // @param user_params Empty array
 // @return voting_power The voting power of the user
 @view
-func get_voting_power{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_ptr: felt}(
+func getVotingPower{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_ptr: felt}(
     timestamp: felt,
     voter_address: Address,
     params_len: felt,
@@ -69,7 +69,7 @@ func _register_whitelist{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_c
         }
         whitelist.write(address, voting_power);
         whitelisted.emit(address, voting_power);
-        register_whitelist(_whitelist_len - 3, &_whitelist[3]);
+        _register_whitelist(_whitelist_len - 3, &_whitelist[3]);
         return ();
     }
 }

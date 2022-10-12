@@ -28,25 +28,25 @@ describe('Array Utilities', () => {
     const arr2d: string[][] = [arr1, arr2, arr3, arr4];
     const flatArray: string[] = utils.encoding.flatten2DArray(arr2d);
 
-    const { array: array1 } = await testArrayUtils.call('test_array2d', {
+    const { array: array1 } = await testArrayUtils.call('testArray2D', {
       flat_array: flatArray,
       index: 0,
     });
     expect(array1.map((x: any) => '0x' + x.toString(16))).to.deep.equal(arr1);
 
-    const { array: array2 } = await testArrayUtils.call('test_array2d', {
+    const { array: array2 } = await testArrayUtils.call('testArray2D', {
       flat_array: flatArray,
       index: 1,
     });
     expect(array2.map((x: any) => '0x' + x.toString(16))).to.deep.equal(arr2);
 
-    const { array: array3 } = await testArrayUtils.call('test_array2d', {
+    const { array: array3 } = await testArrayUtils.call('testArray2D', {
       flat_array: flatArray,
       index: 2,
     });
     expect(array3.map((x: any) => '0x' + x.toString(16))).to.deep.equal(arr3);
 
-    const { array: array4 } = await testArrayUtils.call('test_array2d', {
+    const { array: array4 } = await testArrayUtils.call('testArray2D', {
       flat_array: flatArray,
       index: 3,
     });
@@ -56,7 +56,7 @@ describe('Array Utilities', () => {
     // Offsets: [0]
     const arr2d2 = [arr2];
     const flatArray2 = utils.encoding.flatten2DArray(arr2d2);
-    const { array: array5 } = await testArrayUtils.call('test_array2d', {
+    const { array: array5 } = await testArrayUtils.call('testArray2D', {
       flat_array: flatArray2,
       index: 0,
     });
@@ -65,12 +65,12 @@ describe('Array Utilities', () => {
 
   it('The library should be able to hash an array correctly', async () => {
     const { testArrayUtils } = await setup();
-    const { hash: hash } = await testArrayUtils.call('test_hash_array', {
+    const { hash: hash } = await testArrayUtils.call('testHashArray', {
       array: [1, 2, 3, 4],
     });
     expect('0x' + hash.toString(16)).to.deep.equal(computeHashOnElements([1, 2, 3, 4]));
     // empty array
-    const { hash: hash2 } = await testArrayUtils.call('test_hash_array', {
+    const { hash: hash2 } = await testArrayUtils.call('testHashArray', {
       array: [],
     });
     expect('0x' + hash2.toString(16)).to.deep.equal(computeHashOnElements([]));

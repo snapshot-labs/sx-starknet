@@ -132,7 +132,7 @@ describe('Ethereum Signature Session Key Auth testing', () => {
       const sig = await account._signTypedData(domain, sessionKeyTypes, message);
       const { r, s, v } = utils.encoding.getRSVFromSig(sig);
       // Different session duration to signed data
-      await controller.invoke(ethSigSessionKeyAuth, 'authorize_session_key_with_sig', {
+      await controller.invoke(ethSigSessionKeyAuth, 'authorizeSessionKeyWithSig', {
         r: r,
         s: s,
         v: v,
@@ -162,7 +162,7 @@ describe('Ethereum Signature Session Key Auth testing', () => {
       };
       const sig = await account._signTypedData(domain, sessionKeyTypes, message);
       const { r, s, v } = utils.encoding.getRSVFromSig(sig);
-      await controller.invoke(ethSigSessionKeyAuth, 'authorize_session_key_with_sig', {
+      await controller.invoke(ethSigSessionKeyAuth, 'authorizeSessionKeyWithSig', {
         r: r,
         s: s,
         v: v,
@@ -171,7 +171,7 @@ describe('Ethereum Signature Session Key Auth testing', () => {
         session_public_key: sessionPublicKey,
         session_duration: sessionDuration,
       });
-      const { eth_address } = await ethSigSessionKeyAuth.call('get_session_key_owner', {
+      const { eth_address } = await ethSigSessionKeyAuth.call('getSessionKeyOwner', {
         session_public_key: sessionPublicKey,
       });
       expect(eth_address).to.deep.equal(BigInt(account.address));
@@ -264,7 +264,7 @@ describe('Ethereum Signature Session Key Auth testing', () => {
       });
 
       console.log('Getting proposal info...');
-      const { proposal_info } = await space.call('get_proposal_info', {
+      const { proposal_info } = await space.call('getProposalInfo', {
         proposal_id: proposalId,
       });
 
@@ -345,7 +345,7 @@ describe('Ethereum Signature Session Key Auth testing', () => {
       };
       const sig = await account2._signTypedData(domain, sessionKeyTypes, message);
       const { r, s, v } = utils.encoding.getRSVFromSig(sig);
-      await controller.invoke(ethSigSessionKeyAuth, 'authorize_session_key_with_sig', {
+      await controller.invoke(ethSigSessionKeyAuth, 'authorizeSessionKeyWithSig', {
         r: r,
         s: s,
         v: v,
@@ -414,7 +414,7 @@ describe('Ethereum Signature Session Key Auth testing', () => {
       const sig = await sessionSigner.signMessage(msg, ethSigSessionKeyAuth.address);
       const [r, s] = sig;
 
-      await controller.invoke(ethSigSessionKeyAuth, 'revoke_session_key_with_session_key_sig', {
+      await controller.invoke(ethSigSessionKeyAuth, 'revokeSessionKeyWithSessionKeySig', {
         r: r,
         s: s,
         salt: salt,
@@ -478,7 +478,7 @@ describe('Ethereum Signature Session Key Auth testing', () => {
       };
       const sig = await account._signTypedData(domain, sessionKeyTypes, message);
       const { r, s, v } = utils.encoding.getRSVFromSig(sig);
-      await controller.invoke(ethSigSessionKeyAuth, 'authorize_session_key_with_sig', {
+      await controller.invoke(ethSigSessionKeyAuth, 'authorizeSessionKeyWithSig', {
         r: r,
         s: s,
         v: v,
@@ -502,7 +502,7 @@ describe('Ethereum Signature Session Key Auth testing', () => {
       const sig = await account._signTypedData(domain, revokeSessionKeyTypes, message);
       const { r, s, v } = utils.encoding.getRSVFromSig(sig);
 
-      await controller.invoke(ethSigSessionKeyAuth, 'revoke_session_key_with_owner_sig', {
+      await controller.invoke(ethSigSessionKeyAuth, 'revokeSessionKeyWithOwnerSig', {
         r: r,
         s: s,
         v: v,
@@ -567,7 +567,7 @@ describe('Ethereum Signature Session Key Auth testing', () => {
     const { r, s, v } = utils.encoding.getRSVFromSig(sig);
 
     try {
-      await controller.invoke(ethSigSessionKeyAuth, 'authorize_session_key_with_sig', {
+      await controller.invoke(ethSigSessionKeyAuth, 'authorizeSessionKeyWithSig', {
         r: r,
         s: s,
         v: v,

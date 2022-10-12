@@ -92,7 +92,7 @@ describe('Execution Strategy Whitelist testing', () => {
     });
 
     // Cancel the proposal to be able to add / remove execution_strategies later on
-    await controller.invoke(space, 'cancel_proposal', {
+    await controller.invoke(space, 'cancelProposal', {
       proposal_id: 1,
       execution_params: executionParams1,
     });
@@ -112,7 +112,7 @@ describe('Execution Strategy Whitelist testing', () => {
   }).timeout(1000000);
 
   it('The controller can whitelist an execution strategy', async () => {
-    await controller.invoke(space, 'add_execution_strategies', {
+    await controller.invoke(space, 'addExecutionStrategies', {
       addresses: [BigInt(vanillaExecutionStrategy.address)],
     });
 
@@ -123,14 +123,14 @@ describe('Execution Strategy Whitelist testing', () => {
     });
 
     // Cancel the proposal to be able to add / remove execution_strategies later on
-    await controller.invoke(space, 'cancel_proposal', {
+    await controller.invoke(space, 'cancelProposal', {
       proposal_id: 2,
       execution_params: executionParams2,
     });
   }).timeout(1000000);
 
   it('The controller can remove two execution strategies', async () => {
-    await controller.invoke(space, 'remove_execution_strategies', {
+    await controller.invoke(space, 'removeExecutionStrategies', {
       addresses: [BigInt(zodiacRelayer.address), BigInt(vanillaExecutionStrategy.address)],
     });
 
@@ -147,7 +147,7 @@ describe('Execution Strategy Whitelist testing', () => {
   }).timeout(1000000);
 
   it('The controller can add two execution strategies', async () => {
-    await controller.invoke(space, 'add_execution_strategies', {
+    await controller.invoke(space, 'addExecutionStrategies', {
       addresses: [BigInt(zodiacRelayer.address), BigInt(vanillaExecutionStrategy.address)],
     });
 

@@ -39,7 +39,7 @@ describe('Active Proposal', () => {
 
   it('Fails to add a voting strategy if a proposal is active', async () => {
     try {
-      await controller.invoke(space, 'add_voting_strategies', {
+      await controller.invoke(space, 'addVotingStrategies', {
         addresses: [vanillaVotingStrategy.address],
         params_flat: [],
       });
@@ -51,7 +51,7 @@ describe('Active Proposal', () => {
 
   it('Fails to remove a voting strategy if a proposal is active', async () => {
     try {
-      await controller.invoke(space, 'remove_voting_strategies', {
+      await controller.invoke(space, 'removeVotingStrategies', {
         indexes: ['0x0'],
       });
       throw { message: 'should not remove a voting strategy' };
@@ -62,7 +62,7 @@ describe('Active Proposal', () => {
 
   it('Fails to add an authenticator if a proposal is active', async () => {
     try {
-      await controller.invoke(space, 'add_authenticators', {
+      await controller.invoke(space, 'addAuthenticators', {
         addresses: [vanillaAuthenticator.address],
       });
       throw { message: 'should not add an authenticator' };
@@ -73,7 +73,7 @@ describe('Active Proposal', () => {
 
   it('Fails to remove an authenticator if a proposal is active', async () => {
     try {
-      await controller.invoke(space, 'remove_authenticators', {
+      await controller.invoke(space, 'removeAuthenticators', {
         addresses: [vanillaAuthenticator.address],
       });
       throw { message: 'should not remove an authenticator' };

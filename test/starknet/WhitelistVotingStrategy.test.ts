@@ -34,7 +34,7 @@ describe('Whitelist testing', () => {
       './contracts/starknet/VotingStrategies/Whitelist.cairo'
     );
     whitelist = await whitelistFactory.deploy({
-      _whitelist: [
+      whitelist: [
         address1,
         power1.low,
         power1.high,
@@ -49,9 +49,9 @@ describe('Whitelist testing', () => {
         power4.high,
       ],
     });
-    emptyWhitelist = await whitelistFactory.deploy({ _whitelist: [] });
+    emptyWhitelist = await whitelistFactory.deploy({ whitelist: [] });
     repeatWhitelist = await whitelistFactory.deploy({
-      _whitelist: [
+      whitelist: [
         address1,
         power1.low,
         power1.high,
@@ -66,25 +66,25 @@ describe('Whitelist testing', () => {
   });
 
   it('returns the voting power for everyone in the list', async () => {
-    const { voting_power: vp1 } = await whitelist.call('get_voting_power', {
+    const { voting_power: vp1 } = await whitelist.call('getVotingPower', {
       timestamp: BigInt(0),
       voter_address: { value: address1 },
       params: [],
       user_params: [],
     });
-    const { voting_power: vp2 } = await whitelist.call('get_voting_power', {
+    const { voting_power: vp2 } = await whitelist.call('getVotingPower', {
       timestamp: BigInt(0),
       voter_address: { value: address2 },
       params: [],
       user_params: [],
     });
-    const { voting_power: vp3 } = await whitelist.call('get_voting_power', {
+    const { voting_power: vp3 } = await whitelist.call('getVotingPower', {
       timestamp: BigInt(0),
       voter_address: { value: address3 },
       params: [],
       user_params: [],
     });
-    const { voting_power: vp4 } = await whitelist.call('get_voting_power', {
+    const { voting_power: vp4 } = await whitelist.call('getVotingPower', {
       timestamp: BigInt(0),
       voter_address: { value: address4 },
       params: [],
@@ -105,7 +105,7 @@ describe('Whitelist testing', () => {
   }).timeout(1000000);
 
   it('returns 0 voting power for non-whitelisted addresses', async () => {
-    const { voting_power: vp } = await whitelist.call('get_voting_power', {
+    const { voting_power: vp } = await whitelist.call('getVotingPower', {
       timestamp: BigInt(0),
       voter_address: { value: BigInt(ethers.Wallet.createRandom().address) },
       params: [],
@@ -117,7 +117,7 @@ describe('Whitelist testing', () => {
   }).timeout(1000000);
 
   it('returns 0 for an empty whitelist', async () => {
-    const { voting_power: vp } = await emptyWhitelist.call('get_voting_power', {
+    const { voting_power: vp } = await emptyWhitelist.call('getVotingPower', {
       timestamp: BigInt(0),
       voter_address: { value: address1 },
       params: [],
@@ -129,7 +129,7 @@ describe('Whitelist testing', () => {
   }).timeout(1000000);
 
   it('returns the correct voting power even if address is repeated', async () => {
-    const { voting_power: vp } = await repeatWhitelist.call('get_voting_power', {
+    const { voting_power: vp } = await repeatWhitelist.call('getVotingPower', {
       timestamp: BigInt(0),
       voter_address: { value: address1 },
       params: [],

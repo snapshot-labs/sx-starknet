@@ -35,7 +35,6 @@ describe('Space Testing', () => {
 
   before(async function () {
     this.timeout(800000);
-
     relayer = await starknet.deployAccount('OpenZeppelin');
 
     ({ space, controller, vanillaAuthenticator, vanillaVotingStrategy, vanillaExecutionStrategy } =
@@ -81,7 +80,7 @@ describe('Space Testing', () => {
         function_selector: PROPOSE_SELECTOR,
         calldata: proposeCalldata,
       });
-      const { proposal_info } = await space.call('get_proposal_info', {
+      const { proposal_info } = await space.call('getProposalInfo', {
         proposal_id: proposalId,
       });
       const _for = utils.splitUint256.SplitUint256.fromObj(proposal_info.power_for).toUint();
@@ -98,7 +97,7 @@ describe('Space Testing', () => {
         function_selector: VOTE_SELECTOR,
         calldata: voteCalldata,
       });
-      const { proposal_info } = await space.call('get_proposal_info', {
+      const { proposal_info } = await space.call('getProposalInfo', {
         proposal_id: proposalId,
       });
       const _for = utils.splitUint256.SplitUint256.fromObj(proposal_info.power_for).toUint();
@@ -110,7 +109,7 @@ describe('Space Testing', () => {
     }
     // -- Executes the proposal --
     {
-      await relayer.invoke(space, 'finalize_proposal', {
+      await relayer.invoke(space, 'finalizeProposal', {
         proposal_id: proposalId,
         execution_params: executionParams,
       });
@@ -168,11 +167,11 @@ describe('Space Testing', () => {
 
   it('Correctly aggregates voting power when using multiple voting strategies', async () => {
     // -- Register 2nd and 3rd voting strategy --
-    await controller.invoke(space, 'add_voting_strategies', {
+    await controller.invoke(space, 'addVotingStrategies', {
       addresses: [vanillaVotingStrategy.address],
       params_flat: utils.encoding.flatten2DArray([[]]),
     });
-    await controller.invoke(space, 'add_voting_strategies', {
+    await controller.invoke(space, 'addVotingStrategies', {
       addresses: [vanillaVotingStrategy.address],
       params_flat: utils.encoding.flatten2DArray([[]]),
     });
@@ -207,7 +206,7 @@ describe('Space Testing', () => {
       calldata: voteCalldata,
     });
 
-    const { proposal_info } = await space.call('get_proposal_info', {
+    const { proposal_info } = await space.call('getProposalInfo', {
       proposal_id: '0x2',
     });
 
@@ -226,7 +225,7 @@ describe('Space Testing', () => {
         './contracts/starknet/TestContracts/ExecutionStrategies/FailsIfRejected.cairo'
       )
     ).deploy();
-    await controller.invoke(space, 'add_execution_strategies', {
+    await controller.invoke(space, 'addExecutionStrategies', {
       addresses: [failsIfRejected.address],
     });
 
@@ -248,7 +247,7 @@ describe('Space Testing', () => {
 
     // Finalizing now should not work because quorum has not been reached
     try {
-      await relayer.invoke(space, 'finalize_proposal', {
+      await relayer.invoke(space, 'finalizeProposal', {
         proposal_id: 0x3,
         execution_params: executionParams,
       });
@@ -265,7 +264,7 @@ describe('Space Testing', () => {
 
     // Finalizing should now work since max voting period has elapsed
     try {
-      await relayer.invoke(space, 'finalize_proposal', {
+      await relayer.invoke(space, 'finalizeProposal', {
         proposal_id: 0x3,
         execution_params: executionParams,
       });
@@ -276,7 +275,7 @@ describe('Space Testing', () => {
 
   it('Reverts when querying an invalid proposal id', async () => {
     try {
-      await space.call('get_proposal_info', {
+      await space.call('getProposalInfo', {
         proposal_id: 42,
       });
     } catch (error: any) {

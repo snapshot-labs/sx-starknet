@@ -5,7 +5,7 @@ from starkware.cairo.common.uint256 import Uint256
 
 @contract_interface
 namespace IVotingStrategy {
-    func get_voting_power(
+    func getVotingPower(
         timestamp: felt,
         voter_address: Address,
         params_len: felt,

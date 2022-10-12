@@ -10,7 +10,7 @@ from contracts.starknet.lib.general_address import Address
 //
 
 @view
-func get_voting_power{range_check_ptr}(
+func getVotingPower{range_check_ptr}(
     timestamp: felt,
     voter_address: Address,
     params_len: felt,

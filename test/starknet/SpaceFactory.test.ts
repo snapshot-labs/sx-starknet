@@ -62,7 +62,7 @@ describe('Space Deployment Testing', () => {
   });
 
   it('A user should be able to deploy a space contract', async () => {
-    const txHash = await controller.invoke(spaceDeployer, 'deploy_space', {
+    const txHash = await controller.invoke(spaceDeployer, 'deploySpace', {
       public_key: BigInt(controller.publicKey),
       voting_delay: votingDelay,
       min_voting_duration: minVotingDuration,
@@ -106,7 +106,7 @@ describe('Space Deployment Testing', () => {
         calldata: proposeCalldata,
       });
 
-      const { proposal_info } = await space.call('get_proposal_info', {
+      const { proposal_info } = await space.call('getProposalInfo', {
         proposal_id: '0x1',
       });
 

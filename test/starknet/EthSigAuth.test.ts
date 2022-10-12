@@ -180,7 +180,7 @@ describe('Ethereum Signature Auth testing', () => {
       });
 
       console.log('Getting proposal info...');
-      const { proposal_info } = await space.call('get_proposal_info', {
+      const { proposal_info } = await space.call('getProposalInfo', {
         proposal_id: proposalId,
       });
 
@@ -258,7 +258,7 @@ describe('Ethereum Signature Auth testing', () => {
       });
 
       console.log('Getting proposal info...');
-      const { proposal_info } = await space.call('get_proposal_info', {
+      const { proposal_info } = await space.call('getProposalInfo', {
         proposal_id: proposalId,
       });
 

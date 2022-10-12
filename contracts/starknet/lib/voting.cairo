@@ -1108,7 +1108,7 @@ func unchecked_get_cumulative_voting_power{
         strategy_index, voting_strategy_params_len, voting_strategy_params, 1
     );
 
-    let (user_voting_power) = IVotingStrategy.get_voting_power(
+    let (user_voting_power) = IVotingStrategy.getVotingPower(
         contract_address=strategy_address,
         timestamp=current_timestamp,
         voter_address=voter_address,

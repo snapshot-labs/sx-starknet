@@ -26,7 +26,6 @@ export async function vanillaSetup() {
   const vanillaExecutionStrategyFactory = await starknet.getContractFactory(
     './contracts/starknet/ExecutionStrategies/Vanilla.cairo'
   );
-
   const deployments = [
     vanillaAuthenticatorFactory.deploy(),
     vanillaVotingStrategyFactory.deploy(),
