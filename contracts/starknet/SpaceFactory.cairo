@@ -6,12 +6,21 @@ from starkware.cairo.common.alloc import alloc
 from starkware.cairo.common.memcpy import memcpy
 from starkware.starknet.common.syscalls import deploy, get_caller_address
 
+//
+// @title Snapshot X Space Factory
+// @author SnapshotLabs
+// @notice Contract to deploy space contracts in a trackable way
+// @notice The space contract needs to be declared on StarkNet first, which will return the clash hash that is passed to the constructor of this contract
+//
+
+// @dev Stores a counter to ensure a unique salt for each deployment
 @storage_var
-func salt() -> (value: felt) {
+func SpaceFactory_salt() -> (value: felt) {
 }
 
+// @dev Stores the clash hash for the space contract
 @storage_var
-func space_class_hash_store() -> (value: felt) {
+func SpaceFactory_space_class_hash_store() -> (value: felt) {
 }
 
 @event
@@ -37,6 +46,8 @@ func space_deployed(
 ) {
 }
 
+// @dev Constructor
+// @param space_class_hash
 @constructor
 func constructor{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_ptr}(
     space_class_hash: felt
@@ -45,6 +56,19 @@ func constructor{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_ptr
     return ();
 }
 
+// @dev Deploys a space contract instance
+// @param public_key The public key that can execute transactions via this account - Can set to zero if this functionality is unwanted
+// @param voting_delay The delay between when a proposal is created, and when the voting starts
+// @param min_voting_duration The minimum duration of the voting period
+// @param max_voting_duration The maximum duration of the voting period
+// @param proposal_threshold The minimum amount of voting power needed to be able to create a new proposal in the space
+// @param controller The address of the controller account for the space
+// @param quorum The minimum total voting power required for a proposal to pass
+// @param voting_strategies Array of whitelisted voting strategy contract addresses
+// @param voting_strategy_params_flat Flattened 2D array of voting strategy parameters
+// @param authenticators Array of whitelisted authenticator contract addresses
+// @param execution_strategies Array of whitelisted execution strategy contract addresses
+// @param metadata_uri The metadata URI for the space
 @external
 func deploy_space{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_ptr: felt}(
     public_key: felt,
