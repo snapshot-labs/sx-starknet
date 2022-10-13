@@ -24,13 +24,13 @@ describe('Controller Actions', () => {
   });
 
   it('The controller can update the controller', async () => {
-    await controller.invoke(space, 'updateController', {
+    await controller.invoke(space, 'setController', {
       new_controller: user.starknetContract.address,
     });
 
     // Try to update the controler with the previous account
     try {
-      await controller.invoke(space, 'updateController', {
+      await controller.invoke(space, 'setController', {
         new_controller: user.starknetContract.address,
       });
       throw { message: 'updated controller`' };
@@ -39,7 +39,7 @@ describe('Controller Actions', () => {
     }
 
     // Now updating again with the previous controller
-    await user.invoke(space, 'updateController', {
+    await user.invoke(space, 'setController', {
       new_controller: controller.starknetContract.address,
     });
   }).timeout(600000);
@@ -259,7 +259,7 @@ describe('Controller Actions', () => {
 
   it('The controller can update the quorum', async () => {
     // Update the quorum to `2`
-    await controller.invoke(space, 'updateQuorum', {
+    await controller.invoke(space, 'setQuorum', {
       new_quorum: utils.splitUint256.SplitUint256.fromUint(BigInt(2)),
     });
 
@@ -324,7 +324,7 @@ describe('Controller Actions', () => {
     });
 
     // Set back quorum to initial value
-    await controller.invoke(space, 'updateQuorum', {
+    await controller.invoke(space, 'setQuorum', {
       new_quorum: utils.splitUint256.SplitUint256.fromUint(BigInt(1)),
     });
 
@@ -333,7 +333,7 @@ describe('Controller Actions', () => {
 
   it('The controller can update the voting delay', async () => {
     // Set the voting delay to 1000
-    await controller.invoke(space, 'updateVotingDelay', {
+    await controller.invoke(space, 'setVotingDelay', {
       new_delay: BigInt(1000),
     });
 
@@ -395,7 +395,7 @@ describe('Controller Actions', () => {
     });
 
     // Reset back the voting delay
-    await controller.invoke(space, 'updateVotingDelay', {
+    await controller.invoke(space, 'setVotingDelay', {
       new_delay: BigInt(0),
     });
 
@@ -404,7 +404,7 @@ describe('Controller Actions', () => {
 
   it('The controller can update the min voting duration', async () => {
     // Update the min voting duration
-    await controller.invoke(space, 'updateMinVotingDuration', {
+    await controller.invoke(space, 'setMinVotingDuration', {
       new_min_voting_duration: BigInt(1000),
     });
 
@@ -466,7 +466,7 @@ describe('Controller Actions', () => {
     });
 
     // Reset back min voting setting
-    await controller.invoke(space, 'updateMinVotingDuration', {
+    await controller.invoke(space, 'setMinVotingDuration', {
       new_min_voting_duration: BigInt(0),
     });
 
@@ -475,7 +475,7 @@ describe('Controller Actions', () => {
 
   it('The controller can update the max voting duration', async () => {
     // Set new max voting duration
-    await controller.invoke(space, 'updateMaxVotingDuration', {
+    await controller.invoke(space, 'setMaxVotingDuration', {
       new_max_voting_duration: BigInt(100),
     });
 
@@ -543,13 +543,13 @@ describe('Controller Actions', () => {
     });
 
     // Reset to the inital max voting delay
-    await controller.invoke(space, 'updateMaxVotingDuration', {
+    await controller.invoke(space, 'setMaxVotingDuration', {
       new_max_voting_duration: BigInt(2000),
     });
   }).timeout(600000);
 
   it('The controller can update the proposal threshold', async () => {
-    await controller.invoke(space, 'updateProposalThreshold', {
+    await controller.invoke(space, 'setProposalThreshold', {
       new_proposal_threshold: utils.splitUint256.SplitUint256.fromUint(BigInt('0x100')),
     });
 
@@ -625,7 +625,7 @@ describe('Controller Actions', () => {
   it('The controller can update the metadata uri', async () => {
     const newMetadataUri =
       'Snapshot X Test Space 2 blah blah blah blah blah blah blah blah blah blah blah blah';
-    const txHash = await controller.invoke(space, 'updateMetadataUri', {
+    const txHash = await controller.invoke(space, 'setMetadataUri', {
       new_metadata_uri: utils.strings.strToShortStringArr(newMetadataUri),
     });
     const receipt = await starknet.getTransactionReceipt(txHash);

@@ -254,7 +254,7 @@ func getProposalInfo{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check
 // @dev Updates the controller
 // @param new_controller The new controller account address
 @external
-func updateController{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_ptr: felt}(
+func setController{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_ptr: felt}(
     new_controller: felt
 ) {
     Voting.update_controller(new_controller);
@@ -264,7 +264,7 @@ func updateController{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_chec
 // @dev Updates the quorum
 // @param new_quorum The new quorum
 @external
-func updateQuorum{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_ptr: felt}(
+func setQuorum{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_ptr: felt}(
     new_quorum: Uint256
 ) {
     Voting.update_quorum(new_quorum);
@@ -274,7 +274,7 @@ func updateQuorum{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_pt
 // @dev Updates the voting delay
 // @param new_voting_delay The new voting delay
 @external
-func updateVotingDelay{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_ptr: felt}(
+func setVotingDelay{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_ptr: felt}(
     new_delay: felt
 ) {
     Voting.update_voting_delay(new_delay);
@@ -284,7 +284,7 @@ func updateVotingDelay{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_che
 // @dev Updates the minimum voting duration
 // @param new_min_voting_duration The new minimum voting duration
 @external
-func updateMinVotingDuration{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_ptr: felt}(
+func setMinVotingDuration{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_ptr: felt}(
     new_min_voting_duration: felt
 ) {
     Voting.update_min_voting_duration(new_min_voting_duration);
@@ -294,7 +294,7 @@ func updateMinVotingDuration{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, ran
 // @dev Updates the maximum voting duration
 // @param new_max_voting_duration The new maximum voting duration
 @external
-func updateMaxVotingDuration{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_ptr: felt}(
+func setMaxVotingDuration{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_ptr: felt}(
     new_max_voting_duration: felt
 ) {
     Voting.update_max_voting_duration(new_max_voting_duration);
@@ -304,7 +304,7 @@ func updateMaxVotingDuration{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, ran
 // @dev Updates the proposal threshold
 // @param new_proposal_threshold The new proposal threshold
 @external
-func updateProposalThreshold{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_ptr: felt}(
+func setProposalThreshold{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_ptr: felt}(
     new_proposal_threshold: Uint256
 ) {
     Voting.update_proposal_threshold(new_proposal_threshold);
@@ -314,7 +314,7 @@ func updateProposalThreshold{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, ran
 // @dev Updates the metadata URI
 // @param new_metadata_uri The new metadata URI
 @external
-func updateMetadataUri{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_ptr: felt}(
+func setMetadataUri{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_ptr: felt}(
     new_metadata_uri_len: felt, new_metadata_uri: felt*
 ) {
     Voting.update_metadata_uri(new_metadata_uri_len, new_metadata_uri);
