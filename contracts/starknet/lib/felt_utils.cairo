@@ -1,3 +1,5 @@
+// SPDX-License-Identifier: MIT
+
 from starkware.cairo.common.cairo_builtins import BitwiseBuiltin
 from starkware.cairo.common.math import unsigned_div_rem, split_felt
 from starkware.cairo.common.bitwise import bitwise_and

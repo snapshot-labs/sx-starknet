@@ -1,3 +1,5 @@
+// SPDX-License-Identifier: MIT
+
 from starkware.starknet.common.syscalls import call_contract
 
 func execute{syscall_ptr: felt*, range_check_ptr}(

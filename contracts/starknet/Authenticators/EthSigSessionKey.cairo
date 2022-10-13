@@ -1,3 +1,5 @@
+// SPDX-License-Identifier: MIT
+
 %lang starknet
 
 from starkware.starknet.common.syscalls import get_block_timestamp
@@ -9,6 +11,7 @@ from starkware.cairo.common.cairo_keccak.keccak import (
     keccak_bigend,
     finalize_keccak,
 )
+
 from contracts.starknet.lib.execute import execute
 from contracts.starknet.lib.eip712 import EIP712
 from contracts.starknet.lib.stark_eip191 import StarkEIP191

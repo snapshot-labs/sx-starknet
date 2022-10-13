@@ -1,3 +1,5 @@
+// SPDX-License-Identifier: MIT
+
 from starkware.cairo.common.alloc import alloc
 from starkware.cairo.common.keccak import unsafe_keccak
 from starkware.cairo.common.uint256 import Uint256

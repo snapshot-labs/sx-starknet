@@ -1,3 +1,5 @@
+// SPDX-License-Identifier: MIT
+
 %lang starknet
 
 from starkware.starknet.common.syscalls import get_contract_address
@@ -19,6 +21,7 @@ from starkware.cairo.common.uint256 import (
     uint256_mul,
     uint256_unsigned_div_rem,
 )
+
 from contracts.starknet.lib.felt_utils import FeltUtils
 from contracts.starknet.lib.array_utils import ArrayUtils
 

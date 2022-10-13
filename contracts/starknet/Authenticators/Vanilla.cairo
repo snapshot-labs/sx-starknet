@@ -1,4 +1,7 @@
+// SPDX-License-Identifier: MIT
+
 %lang starknet
+
 from contracts.starknet.lib.execute import execute
 
 //

@@ -1,11 +1,13 @@
+// SPDX-License-Identifier: MIT
+
 %lang starknet
 
-from starkware.starknet.common.syscalls import get_caller_address
+from starkware.starknet.common.syscalls import get_caller_address, get_contract_address
 from starkware.cairo.common.cairo_builtins import HashBuiltin, SignatureBuiltin
 from starkware.cairo.common.math import assert_not_zero
 from starkware.cairo.common.alloc import alloc
 from starkware.cairo.common.signature import verify_ecdsa_signature
-from starkware.starknet.common.syscalls import get_contract_address
+
 from contracts.starknet.lib.felt_utils import FeltUtils
 from contracts.starknet.lib.array_utils import ArrayUtils
 

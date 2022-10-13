@@ -18,8 +18,10 @@ from starkware.cairo.common.math import (
     assert_lt_felt,
     assert_not_equal,
 )
+
 from openzeppelin.access.ownable.library import Ownable
 from openzeppelin.account.library import Account, AccountCallArray, Call
+
 from contracts.starknet.Interfaces.IVotingStrategy import IVotingStrategy
 from contracts.starknet.Interfaces.IExecutionStrategy import IExecutionStrategy
 from contracts.starknet.lib.general_address import Address

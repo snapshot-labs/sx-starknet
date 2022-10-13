@@ -1,6 +1,9 @@
+// SPDX-License-Identifier: MIT
+
 %lang starknet
 
 from starkware.cairo.common.cairo_builtins import HashBuiltin, SignatureBuiltin
+
 from contracts.starknet.lib.execute import execute
 from contracts.starknet.lib.eth_tx import EthTx
 from contracts.starknet.lib.session_key import SessionKey

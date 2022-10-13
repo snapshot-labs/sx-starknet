@@ -1,7 +1,10 @@
+// SPDX-License-Identifier: MIT
+
 %lang starknet
 
-from contracts.starknet.lib.general_address import Address
 from starkware.cairo.common.uint256 import Uint256
+
+from contracts.starknet.lib.general_address import Address
 
 @contract_interface
 namespace IVotingStrategy {

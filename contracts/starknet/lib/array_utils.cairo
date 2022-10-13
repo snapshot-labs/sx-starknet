@@ -1,3 +1,5 @@
+// SPDX-License-Identifier: MIT
+
 from starkware.cairo.common.cairo_builtins import HashBuiltin
 from starkware.cairo.common.hash_state import hash_init, hash_update, hash_finalize
 from starkware.cairo.common.bool import TRUE, FALSE

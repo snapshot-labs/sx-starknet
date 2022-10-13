@@ -1,6 +1,7 @@
+// SPDX-License-Identifier: MIT
+
 %lang starknet
-from contracts.starknet.lib.execute import execute
-from contracts.starknet.lib.felt_utils import FeltUtils
+
 from starkware.cairo.common.cairo_builtins import BitwiseBuiltin
 from starkware.cairo.common.uint256 import Uint256
 from starkware.cairo.common.alloc import alloc
@@ -11,7 +12,10 @@ from starkware.cairo.common.cairo_keccak.keccak import (
     keccak_bigend,
     finalize_keccak,
 )
+
 from contracts.starknet.lib.eip712 import EIP712
+from contracts.starknet.lib.execute import execute
+from contracts.starknet.lib.felt_utils import FeltUtils
 
 //
 // @title Ethereum Signature Authenticator

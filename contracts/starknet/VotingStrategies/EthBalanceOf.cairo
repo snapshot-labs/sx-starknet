@@ -4,6 +4,7 @@
 
 from starkware.cairo.common.cairo_builtins import HashBuiltin, BitwiseBuiltin
 from starkware.cairo.common.uint256 import Uint256
+
 from contracts.starknet.lib.general_address import Address
 from contracts.starknet.lib.single_slot_proof import SingleSlotProof
 

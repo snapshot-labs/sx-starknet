@@ -1,3 +1,5 @@
+// SPDX-License-Identifier: MIT
+
 %lang starknet
 
 from starkware.starknet.common.syscalls import get_block_timestamp

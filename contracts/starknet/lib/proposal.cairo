@@ -1,3 +1,5 @@
+// SPDX-License-Identifier: MIT
+
 from starkware.cairo.common.uint256 import Uint256
 
 struct Proposal {

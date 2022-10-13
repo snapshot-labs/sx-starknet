@@ -1,8 +1,11 @@
+// SPDX-License-Identifier: MIT
+
 %lang starknet
 
-from contracts.starknet.lib.execute import execute
 from starkware.cairo.common.cairo_builtins import HashBuiltin, SignatureBuiltin
+
 from contracts.starknet.lib.stark_eip191 import StarkEIP191
+from contracts.starknet.lib.execute import execute
 
 //
 // @title StarkNet Signature Authenticator
