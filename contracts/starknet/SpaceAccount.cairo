@@ -311,15 +311,15 @@ func setProposalThreshold{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_
     return ();
 }
 
-// @dev Updates the metadata URI
-// @param new_metadata_uri The new metadata URI
-@external
-func setMetadataUri{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_ptr: felt}(
-    new_metadata_uri_len: felt, new_metadata_uri: felt*
-) {
-    Voting.update_metadata_uri(new_metadata_uri_len, new_metadata_uri);
-    return ();
-}
+// // @dev Updates the metadata URI
+// // @param new_metadata_uri The new metadata URI
+// @external
+// func setMetadataUri{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_ptr: felt}(
+//     new_metadata_uri_len: felt, new_metadata_uri: felt*
+// ) {
+//     Voting.update_metadata_uri(new_metadata_uri_len, new_metadata_uri);
+//     return ();
+// }
 
 // @dev Adds execution strategy contracts to the whitelist
 // @param addresses Array of execution strategy contract addresses
