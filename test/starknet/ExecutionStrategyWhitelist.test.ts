@@ -6,7 +6,7 @@ import { zodiacRelayerSetup } from '../shared/setup';
 import { StarknetContract, Account } from 'hardhat/types';
 import { PROPOSE_SELECTOR } from '../shared/constants';
 
-describe('Whitelist testing', () => {
+describe('Execution Strategy Whitelist testing', () => {
   // Contracts
   let space: StarknetContract;
   let controller: Account;
@@ -84,74 +84,74 @@ describe('Whitelist testing', () => {
     );
   });
 
-  it('Should create a proposal for a whitelisted executor', async () => {
-    await vanillaAuthenticator.invoke('authenticate', {
+  it('Should create a proposal for a whitelisted execution strategy', async () => {
+    await controller.invoke(vanillaAuthenticator, 'authenticate', {
       target: spaceAddress,
       function_selector: PROPOSE_SELECTOR,
       calldata: proposeCalldata1,
     });
 
-    // Cancel the proposal to be able to add / remove executors later on
-    await controller.invoke(space, 'cancel_proposal', {
+    // Cancel the proposal to be able to add / remove execution_strategies later on
+    await controller.invoke(space, 'cancelProposal', {
       proposal_id: 1,
       execution_params: executionParams1,
     });
   }).timeout(1000000);
 
-  it('Should not be able to create a proposal with a non whitelisted executor', async () => {
+  it('Should not be able to create a proposal with a non whitelisted execution strategy', async () => {
     try {
       // proposeCalldata2 contains the vanilla execution strategy which is not whitelisted initially
-      await vanillaAuthenticator.invoke('authenticate', {
+      await controller.invoke(vanillaAuthenticator, 'authenticate', {
         target: spaceAddress,
         function_selector: PROPOSE_SELECTOR,
         calldata: proposeCalldata2,
       });
     } catch (err: any) {
-      expect(err.message).to.contain('Invalid executor');
+      expect(err.message).to.contain('Voting: Invalid execution strategy');
     }
   }).timeout(1000000);
 
-  it('The controller can whitelist an executor', async () => {
-    await controller.invoke(space, 'add_executors', {
-      to_add: [BigInt(vanillaExecutionStrategy.address)],
+  it('The controller can whitelist an execution strategy', async () => {
+    await controller.invoke(space, 'addExecutionStrategies', {
+      addresses: [BigInt(vanillaExecutionStrategy.address)],
     });
 
-    await vanillaAuthenticator.invoke('authenticate', {
+    await controller.invoke(vanillaAuthenticator, 'authenticate', {
       target: spaceAddress,
       function_selector: PROPOSE_SELECTOR,
       calldata: proposeCalldata2,
     });
 
-    // Cancel the proposal to be able to add / remove executors later on
-    await controller.invoke(space, 'cancel_proposal', {
+    // Cancel the proposal to be able to add / remove execution_strategies later on
+    await controller.invoke(space, 'cancelProposal', {
       proposal_id: 2,
       execution_params: executionParams2,
     });
   }).timeout(1000000);
 
-  it('The controller can remove two executors', async () => {
-    await controller.invoke(space, 'remove_executors', {
-      to_remove: [BigInt(zodiacRelayer.address), BigInt(vanillaExecutionStrategy.address)],
+  it('The controller can remove two execution strategies', async () => {
+    await controller.invoke(space, 'removeExecutionStrategies', {
+      addresses: [BigInt(zodiacRelayer.address), BigInt(vanillaExecutionStrategy.address)],
     });
 
     try {
       // Try to create a proposal, should fail because it just got removed from the whitelist
-      await vanillaAuthenticator.invoke('authenticate', {
+      await controller.invoke(vanillaAuthenticator, 'authenticate', {
         target: spaceAddress,
         function_selector: PROPOSE_SELECTOR,
         calldata: proposeCalldata1,
       });
     } catch (err: any) {
-      expect(err.message).to.contain('Invalid executor');
+      expect(err.message).to.contain('Voting: Invalid execution strategy');
     }
   }).timeout(1000000);
 
-  it('The controller can add two executors', async () => {
-    await controller.invoke(space, 'add_executors', {
-      to_add: [BigInt(zodiacRelayer.address), BigInt(vanillaExecutionStrategy.address)],
+  it('The controller can add two execution strategies', async () => {
+    await controller.invoke(space, 'addExecutionStrategies', {
+      addresses: [BigInt(zodiacRelayer.address), BigInt(vanillaExecutionStrategy.address)],
     });
 
-    await vanillaAuthenticator.invoke('authenticate', {
+    await controller.invoke(vanillaAuthenticator, 'authenticate', {
       target: spaceAddress,
       function_selector: PROPOSE_SELECTOR,
       calldata: proposeCalldata2,

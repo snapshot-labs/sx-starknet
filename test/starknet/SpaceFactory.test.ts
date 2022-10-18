@@ -22,9 +22,10 @@ describe('Space Deployment Testing', () => {
   let votingStrategies: string[];
   let votingStrategyParamsFlat: string[];
   let authenticators: string[];
-  let executors: string[];
+  let execution_strategies: string[];
   let quorum: utils.splitUint256.SplitUint256;
   let proposalThreshold: utils.splitUint256.SplitUint256;
+  let spaceMetadataUri: string;
 
   // Proposal creation parameters
   let spaceAddress: bigint;
@@ -54,13 +55,14 @@ describe('Space Deployment Testing', () => {
     votingStrategies = [vanillaVotingStrategy.address];
     votingStrategyParamsFlat = utils.encoding.flatten2DArray([[]]);
     authenticators = [vanillaAuthenticator.address];
-    executors = [vanillaExecutionStrategy.address];
+    execution_strategies = [vanillaExecutionStrategy.address];
     quorum = utils.splitUint256.SplitUint256.fromUint(BigInt(1)); //  Quorum of one for the vanilla test
     proposalThreshold = utils.splitUint256.SplitUint256.fromUint(BigInt(1)); // Proposal threshold of 1 for the vanilla test
+    spaceMetadataUri = 'SnapshotXTestSpace';
   });
 
   it('A user should be able to deploy a space contract', async () => {
-    const txHash = await spaceDeployer.invoke('deploy_space', {
+    const txHash = await controller.invoke(spaceDeployer, 'deploySpace', {
       public_key: BigInt(controller.publicKey),
       voting_delay: votingDelay,
       min_voting_duration: minVotingDuration,
@@ -68,10 +70,11 @@ describe('Space Deployment Testing', () => {
       proposal_threshold: proposalThreshold,
       controller: BigInt(controller.address),
       quorum: quorum,
-      voting_strategy_params_flat: votingStrategyParamsFlat,
       voting_strategies: votingStrategies,
+      voting_strategy_params_flat: votingStrategyParamsFlat,
       authenticators: authenticators,
-      executors: executors,
+      execution_strategies: execution_strategies,
+      metadata_uri: utils.strings.strToShortStringArr(spaceMetadataUri),
     });
     const receipt = await starknet.getTransactionReceipt(txHash);
     // Removing first event as that's from the account contract deployment
@@ -97,13 +100,13 @@ describe('Space Deployment Testing', () => {
 
     // -- Creates the proposal --
     {
-      await vanillaAuthenticator.invoke('authenticate', {
+      await controller.invoke(vanillaAuthenticator, 'authenticate', {
         target: spaceAddress,
         function_selector: PROPOSE_SELECTOR,
         calldata: proposeCalldata,
       });
 
-      const { proposal_info } = await space.call('get_proposal_info', {
+      const { proposal_info } = await space.call('getProposalInfo', {
         proposal_id: '0x1',
       });
 

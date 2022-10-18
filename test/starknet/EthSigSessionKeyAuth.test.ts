@@ -124,15 +124,15 @@ describe('Ethereum Signature Session Key Auth testing', () => {
       );
       sessionDuration = '0x30';
       const message: SessionKey = {
-        address: utils.encoding.hexPadRight(accounts[0].address),
+        address: accounts[0].address,
         sessionPublicKey: utils.encoding.hexPadRight(sessionPublicKey),
-        sessionDuration: utils.encoding.hexPadRight(sessionDuration),
+        sessionDuration: sessionDuration,
         salt: salt.toHex(),
       };
       const sig = await account._signTypedData(domain, sessionKeyTypes, message);
       const { r, s, v } = utils.encoding.getRSVFromSig(sig);
       // Different session duration to signed data
-      await controller.invoke(ethSigSessionKeyAuth, 'authorize_session_key_with_sig', {
+      await controller.invoke(ethSigSessionKeyAuth, 'authorizeSessionKeyWithSig', {
         r: r,
         s: s,
         v: v,
@@ -155,14 +155,14 @@ describe('Ethereum Signature Session Key Auth testing', () => {
       );
       sessionDuration = '0xffff';
       const message: SessionKey = {
-        address: utils.encoding.hexPadRight(account.address),
+        address: account.address,
         sessionPublicKey: utils.encoding.hexPadRight(sessionPublicKey),
-        sessionDuration: utils.encoding.hexPadRight(sessionDuration),
+        sessionDuration: sessionDuration,
         salt: salt.toHex(),
       };
       const sig = await account._signTypedData(domain, sessionKeyTypes, message);
       const { r, s, v } = utils.encoding.getRSVFromSig(sig);
-      await controller.invoke(ethSigSessionKeyAuth, 'authorize_session_key_with_sig', {
+      await controller.invoke(ethSigSessionKeyAuth, 'authorizeSessionKeyWithSig', {
         r: r,
         s: s,
         v: v,
@@ -171,7 +171,7 @@ describe('Ethereum Signature Session Key Auth testing', () => {
         session_public_key: sessionPublicKey,
         session_duration: sessionDuration,
       });
-      const { eth_address } = await ethSigSessionKeyAuth.call('get_session_key_owner', {
+      const { eth_address } = await ethSigSessionKeyAuth.call('getSessionKeyOwner', {
         session_public_key: sessionPublicKey,
       });
       expect(eth_address).to.deep.equal(BigInt(account.address));
@@ -183,12 +183,12 @@ describe('Ethereum Signature Session Key Auth testing', () => {
 
       const message = {
         space: spaceAddress,
-        proposerAddress: account.address,
-        metadataURI: metadataUriInts.values,
+        author: account.address,
+        metadata_uri: metadataUriInts.values,
         executor: vanillaExecutionStrategy.address,
-        executionParamsHash: executionHash,
-        usedVotingStrategiesHash: usedVotingStrategiesHash1,
-        userVotingStrategyParamsFlatHash: userVotingStrategyParamsFlatHash1,
+        execution_hash: executionHash,
+        strategies_hash: usedVotingStrategiesHash1,
+        strategies_params_hash: userVotingStrategyParamsFlatHash1,
         salt: proposalSalt,
       };
       const msg: typedData.TypedData = {
@@ -226,7 +226,7 @@ describe('Ethereum Signature Session Key Auth testing', () => {
         });
         throw { message: 'replay attack worked on `propose`' };
       } catch (err: any) {
-        expect(err.message).to.contain('Salt already used');
+        expect(err.message).to.contain('StarkEIP191: Salt already used');
       }
     }
 
@@ -237,11 +237,11 @@ describe('Ethereum Signature Session Key Auth testing', () => {
 
       const message = {
         space: spaceAddress,
-        voterAddress: account.address,
+        voter: account.address,
         proposal: proposalId,
         choice: utils.choice.Choice.FOR,
-        usedVotingStrategiesHash: usedVotingStrategiesHash2,
-        userVotingStrategyParamsFlatHash: userVotingStrategyParamsFlatHash2,
+        strategies_hash: usedVotingStrategiesHash2,
+        strategies_params_hash: userVotingStrategyParamsFlatHash2,
         salt: voteSalt,
       };
       const msg = {
@@ -264,7 +264,7 @@ describe('Ethereum Signature Session Key Auth testing', () => {
       });
 
       console.log('Getting proposal info...');
-      const { proposal_info } = await space.call('get_proposal_info', {
+      const { proposal_info } = await space.call('getProposalInfo', {
         proposal_id: proposalId,
       });
 
@@ -289,7 +289,7 @@ describe('Ethereum Signature Session Key Auth testing', () => {
         });
         throw { message: 'replay attack worked on `vote`' };
       } catch (err: any) {
-        expect(err.message).to.contain('Salt already used');
+        expect(err.message).to.contain('StarkEIP191: Salt already used');
       }
     }
   }).timeout(6000000);
@@ -303,11 +303,11 @@ describe('Ethereum Signature Session Key Auth testing', () => {
       const message = {
         authenticator: ethSigSessionKeyAuth.address,
         space: spaceAddress,
-        voterAddress: account.address,
+        voter: account.address,
         proposal: proposalId,
         choice: utils.choice.Choice.FOR,
-        usedVotingStrategiesHash: usedVotingStrategiesHash2,
-        userVotingStrategyParamsFlatHash: userVotingStrategyParamsFlatHash2,
+        strategies_hash: usedVotingStrategiesHash2,
+        strategies_params_hash: userVotingStrategyParamsFlatHash2,
         salt: voteSalt,
       };
       const msg = { types: starkTypes.voteTypes, primaryType: 'Vote', domain, message };
@@ -325,7 +325,7 @@ describe('Ethereum Signature Session Key Auth testing', () => {
       });
       throw { message: '' };
     } catch (err: any) {
-      expect(err.message).to.contain('Session does not exist');
+      expect(err.message).to.contain('SessionKey: Session does not exist');
     }
   }).timeout(6000000);
 
@@ -338,14 +338,14 @@ describe('Ethereum Signature Session Key Auth testing', () => {
       );
       sessionDuration = '0x1'; // 1 second duration session
       const message: SessionKey = {
-        address: utils.encoding.hexPadRight(accounts[1].address),
+        address: accounts[1].address,
         sessionPublicKey: utils.encoding.hexPadRight(sessionPublicKey2),
-        sessionDuration: utils.encoding.hexPadRight(sessionDuration),
+        sessionDuration: sessionDuration,
         salt: salt.toHex(),
       };
       const sig = await account2._signTypedData(domain, sessionKeyTypes, message);
       const { r, s, v } = utils.encoding.getRSVFromSig(sig);
-      await controller.invoke(ethSigSessionKeyAuth, 'authorize_session_key_with_sig', {
+      await controller.invoke(ethSigSessionKeyAuth, 'authorizeSessionKeyWithSig', {
         r: r,
         s: s,
         v: v,
@@ -363,12 +363,12 @@ describe('Ethereum Signature Session Key Auth testing', () => {
       const message = {
         authenticator: ethSigSessionKeyAuth.address,
         space: spaceAddress,
-        proposerAddress: account2.address,
-        metadataURI: metadataUriInts.values,
+        author: account2.address,
+        metadata_uri: metadataUriInts.values,
         executor: vanillaExecutionStrategy.address,
-        executionParamsHash: executionHash,
-        usedVotingStrategiesHash: usedVotingStrategiesHash1,
-        userVotingStrategyParamsFlatHash: userVotingStrategyParamsFlatHash1,
+        execution_hash: executionHash,
+        strategies_hash: usedVotingStrategiesHash1,
+        strategies_params_hash: userVotingStrategyParamsFlatHash1,
         salt: proposalSalt,
       };
       const msg: typedData.TypedData = {
@@ -392,7 +392,7 @@ describe('Ethereum Signature Session Key Auth testing', () => {
         });
         throw { message: '' };
       } catch (err: any) {
-        expect(err.message).to.contain('Session has ended');
+        expect(err.message).to.contain('SessionKey: Session has ended');
       }
     }
   }).timeout(6000000);
@@ -414,7 +414,7 @@ describe('Ethereum Signature Session Key Auth testing', () => {
       const sig = await sessionSigner.signMessage(msg, ethSigSessionKeyAuth.address);
       const [r, s] = sig;
 
-      await controller.invoke(ethSigSessionKeyAuth, 'revoke_session_key_with_session_key_sig', {
+      await controller.invoke(ethSigSessionKeyAuth, 'revokeSessionKeyWithSessionKeySig', {
         r: r,
         s: s,
         salt: salt,
@@ -428,12 +428,12 @@ describe('Ethereum Signature Session Key Auth testing', () => {
 
       const message = {
         space: spaceAddress,
-        proposerAddress: account.address,
-        metadataURI: metadataUriInts.values,
+        author: account.address,
+        metadata_uri: metadataUriInts.values,
         executor: vanillaExecutionStrategy.address,
-        executionParamsHash: executionHash,
-        usedVotingStrategiesHash: usedVotingStrategiesHash1,
-        userVotingStrategyParamsFlatHash: userVotingStrategyParamsFlatHash1,
+        execution_hash: executionHash,
+        strategies_hash: usedVotingStrategiesHash1,
+        strategies_params_hash: userVotingStrategyParamsFlatHash1,
         salt: proposalSalt,
       };
       const msg: typedData.TypedData = {
@@ -458,7 +458,7 @@ describe('Ethereum Signature Session Key Auth testing', () => {
         });
         throw { message: '' };
       } catch (err: any) {
-        expect(err.message).to.contain('Session does not exist');
+        expect(err.message).to.contain('SessionKey: Session does not exist');
       }
     }
   }).timeout(6000000);
@@ -471,14 +471,14 @@ describe('Ethereum Signature Session Key Auth testing', () => {
       );
       sessionDuration = '0xffff';
       const message: SessionKey = {
-        address: utils.encoding.hexPadRight(account.address),
+        address: account.address,
         sessionPublicKey: utils.encoding.hexPadRight(sessionPublicKey),
-        sessionDuration: utils.encoding.hexPadRight(sessionDuration),
+        sessionDuration: sessionDuration,
         salt: salt.toHex(),
       };
       const sig = await account._signTypedData(domain, sessionKeyTypes, message);
       const { r, s, v } = utils.encoding.getRSVFromSig(sig);
-      await controller.invoke(ethSigSessionKeyAuth, 'authorize_session_key_with_sig', {
+      await controller.invoke(ethSigSessionKeyAuth, 'authorizeSessionKeyWithSig', {
         r: r,
         s: s,
         v: v,
@@ -502,7 +502,7 @@ describe('Ethereum Signature Session Key Auth testing', () => {
       const sig = await account._signTypedData(domain, revokeSessionKeyTypes, message);
       const { r, s, v } = utils.encoding.getRSVFromSig(sig);
 
-      await controller.invoke(ethSigSessionKeyAuth, 'revoke_session_key_with_owner_sig', {
+      await controller.invoke(ethSigSessionKeyAuth, 'revokeSessionKeyWithOwnerSig', {
         r: r,
         s: s,
         v: v,
@@ -517,12 +517,12 @@ describe('Ethereum Signature Session Key Auth testing', () => {
 
       const message = {
         space: spaceAddress,
-        proposerAddress: account.address,
-        metadataURI: metadataUriInts.values,
+        author: account.address,
+        metadata_uri: metadataUriInts.values,
         executor: vanillaExecutionStrategy.address,
-        executionParamsHash: executionHash,
-        usedVotingStrategiesHash: usedVotingStrategiesHash1,
-        userVotingStrategyParamsFlatHash: userVotingStrategyParamsFlatHash1,
+        execution_hash: executionHash,
+        strategies_hash: usedVotingStrategiesHash1,
+        strategies_params_hash: userVotingStrategyParamsFlatHash1,
         salt: proposalSalt,
       };
       const msg: typedData.TypedData = {
@@ -547,7 +547,7 @@ describe('Ethereum Signature Session Key Auth testing', () => {
         });
         throw { message: '' };
       } catch (err: any) {
-        expect(err.message).to.contain('Session does not exist');
+        expect(err.message).to.contain('SessionKey: Session does not exist');
       }
     }
   }).timeout(6000000);
@@ -558,16 +558,16 @@ describe('Ethereum Signature Session Key Auth testing', () => {
     );
     sessionDuration = '0xffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff';
     const message: SessionKey = {
-      address: utils.encoding.hexPadRight(account.address),
+      address: account.address,
       sessionPublicKey: utils.encoding.hexPadRight(sessionPublicKey),
-      sessionDuration: utils.encoding.hexPadRight(sessionDuration),
+      sessionDuration: sessionDuration,
       salt: salt.toHex(),
     };
     const sig = await account._signTypedData(domain, sessionKeyTypes, message);
     const { r, s, v } = utils.encoding.getRSVFromSig(sig);
 
     try {
-      await controller.invoke(ethSigSessionKeyAuth, 'authorize_session_key_with_sig', {
+      await controller.invoke(ethSigSessionKeyAuth, 'authorizeSessionKeyWithSig', {
         r: r,
         s: s,
         v: v,
@@ -578,7 +578,7 @@ describe('Ethereum Signature Session Key Auth testing', () => {
       });
       throw { message: '' };
     } catch (err: any) {
-      expect(err.message).to.contain('Overflow in Session duration, use smaller value');
+      expect(err.message).to.contain('SessionKey: Overflow in Session duration');
     }
   }).timeout(6000000);
 });

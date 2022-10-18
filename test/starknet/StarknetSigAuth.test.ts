@@ -102,12 +102,12 @@ describe('Starknet Sig Auth testing', () => {
     const message = {
       authenticator: starkSigAuth.address,
       space: spaceAddress,
-      proposerAddress: proposerAddress,
-      metadataURI: metadataUriInts.values,
+      author: proposerAddress,
+      metadata_uri: metadataUriInts.values,
       executor: vanillaExecutionStrategy.address,
-      executionParamsHash: executionHash,
-      usedVotingStrategiesHash: usedVotingStrategiesHash1,
-      userVotingStrategyParamsFlatHash: userVotingStrategyParamsFlatHash1,
+      execution_hash: executionHash,
+      strategies_hash: usedVotingStrategiesHash1,
+      strategies_params_hash: userVotingStrategyParamsFlatHash1,
       salt: proposalSalt,
     };
     const data: typedData.TypedData = {
@@ -143,12 +143,12 @@ describe('Starknet Sig Auth testing', () => {
       const message = {
         authenticator: starkSigAuth.address,
         space: spaceAddress,
-        proposerAddress: proposerAddress,
-        metadataURI: metadataUriInts.values,
+        author: proposerAddress,
+        metadata_uri: metadataUriInts.values,
         executor: vanillaExecutionStrategy.address,
-        executionParamsHash: executionHash,
-        usedVotingStrategiesHash: usedVotingStrategiesHash1,
-        userVotingStrategyParamsFlatHash: userVotingStrategyParamsFlatHash1,
+        execution_hash: executionHash,
+        strategies_hash: usedVotingStrategiesHash1,
+        strategies_params_hash: userVotingStrategyParamsFlatHash1,
         salt: proposalSalt,
       };
       const data: typedData.TypedData = {
@@ -196,11 +196,11 @@ describe('Starknet Sig Auth testing', () => {
       const message = {
         authenticator: starkSigAuth.address,
         space: spaceAddress,
-        voterAddress: voterAddress,
+        voter: voterAddress,
         proposal: proposalId,
         choice: utils.choice.Choice.FOR,
-        usedVotingStrategiesHash: usedVotingStrategiesHash2,
-        userVotingStrategyParamsFlatHash: userVotingStrategyParamsFlatHash2,
+        strategies_hash: usedVotingStrategiesHash2,
+        strategies_params_hash: userVotingStrategyParamsFlatHash2,
         salt: voteSalt,
       };
       const data = { types: voteTypes, primaryType: 'Vote', domain, message };
@@ -217,7 +217,7 @@ describe('Starknet Sig Auth testing', () => {
       });
 
       console.log('Getting proposal info...');
-      const { proposal_info } = await space.call('get_proposal_info', {
+      const { proposal_info } = await space.call('getProposalInfo', {
         proposal_id: proposalId,
       });
 

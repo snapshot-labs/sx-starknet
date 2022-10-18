@@ -1,13 +1,15 @@
 import { expect } from 'chai';
-import { ethers } from 'hardhat';
+import { ethers, starknet } from 'hardhat';
 import { StarknetContract, Account } from 'hardhat/types';
 import { utils } from '@snapshot-labs/sx';
 import { vanillaSetup } from '../shared/setup';
 import { PROPOSE_SELECTOR, VOTE_SELECTOR } from '../shared/constants';
+import { Wallet } from 'ethers';
 
 describe('Space Testing', () => {
   // Contracts
   let space: StarknetContract;
+  let relayer: Account;
   let controller: Account;
   let vanillaAuthenticator: StarknetContract;
   let vanillaVotingStrategy: StarknetContract;
@@ -33,6 +35,7 @@ describe('Space Testing', () => {
 
   before(async function () {
     this.timeout(800000);
+    relayer = await starknet.deployAccount('OpenZeppelin');
 
     ({ space, controller, vanillaAuthenticator, vanillaVotingStrategy, vanillaExecutionStrategy } =
       await vanillaSetup());
@@ -72,16 +75,14 @@ describe('Space Testing', () => {
   it('Users should be able to create a proposal, cast a vote, and execute it', async () => {
     // -- Creates the proposal --
     {
-      await vanillaAuthenticator.invoke('authenticate', {
+      await relayer.invoke(vanillaAuthenticator, 'authenticate', {
         target: spaceAddress,
         function_selector: PROPOSE_SELECTOR,
         calldata: proposeCalldata,
       });
-
-      const { proposal_info } = await space.call('get_proposal_info', {
+      const { proposal_info } = await space.call('getProposalInfo', {
         proposal_id: proposalId,
       });
-
       const _for = utils.splitUint256.SplitUint256.fromObj(proposal_info.power_for).toUint();
       expect(_for).to.deep.equal(BigInt(0));
       const against = utils.splitUint256.SplitUint256.fromObj(proposal_info.power_against).toUint();
@@ -91,16 +92,14 @@ describe('Space Testing', () => {
     }
     // -- Casts a vote FOR --
     {
-      await vanillaAuthenticator.invoke('authenticate', {
+      await relayer.invoke(vanillaAuthenticator, 'authenticate', {
         target: spaceAddress,
         function_selector: VOTE_SELECTOR,
         calldata: voteCalldata,
       });
-
-      const { proposal_info } = await space.call('get_proposal_info', {
+      const { proposal_info } = await space.call('getProposalInfo', {
         proposal_id: proposalId,
       });
-
       const _for = utils.splitUint256.SplitUint256.fromObj(proposal_info.power_for).toUint();
       expect(_for).to.deep.equal(BigInt(1));
       const against = utils.splitUint256.SplitUint256.fromObj(proposal_info.power_against).toUint();
@@ -108,10 +107,9 @@ describe('Space Testing', () => {
       const abstain = utils.splitUint256.SplitUint256.fromObj(proposal_info.power_abstain).toUint();
       expect(abstain).to.deep.equal(BigInt(0));
     }
-
     // -- Executes the proposal --
     {
-      await space.invoke('finalize_proposal', {
+      await relayer.invoke(space, 'finalizeProposal', {
         proposal_id: proposalId,
         execution_params: executionParams,
       });
@@ -121,7 +119,7 @@ describe('Space Testing', () => {
   it('Fails if an invalid voting strategy is used', async () => {
     // -- Creates the proposal --
     try {
-      await vanillaAuthenticator.invoke('authenticate', {
+      await relayer.invoke(vanillaAuthenticator, 'authenticate', {
         target: spaceAddress,
         function_selector: PROPOSE_SELECTOR,
         calldata: utils.encoding.getProposeCalldata(
@@ -134,7 +132,7 @@ describe('Space Testing', () => {
         ),
       });
     } catch (error: any) {
-      expect(error.message).to.contain('Invalid voting strategy');
+      expect(error.message).to.contain('Voting: Invalid voting strategy');
     }
   }).timeout(6000000);
 
@@ -156,24 +154,24 @@ describe('Space Testing', () => {
       );
 
       try {
-        await vanillaAuthenticator.invoke('authenticate', {
+        await relayer.invoke(vanillaAuthenticator, 'authenticate', {
           target: spaceAddress,
           function_selector: PROPOSE_SELECTOR,
           calldata: duplicateCalldata,
         });
       } catch (error: any) {
-        expect(error.message).to.contain('Duplicate entry found');
+        expect(error.message).to.contain('Voting: Duplicate entry found');
       }
     }
   }).timeout(6000000);
 
   it('Correctly aggregates voting power when using multiple voting strategies', async () => {
     // -- Register 2nd and 3rd voting strategy --
-    await controller.invoke(space, 'add_voting_strategies', {
+    await controller.invoke(space, 'addVotingStrategies', {
       addresses: [vanillaVotingStrategy.address],
       params_flat: utils.encoding.flatten2DArray([[]]),
     });
-    await controller.invoke(space, 'add_voting_strategies', {
+    await controller.invoke(space, 'addVotingStrategies', {
       addresses: [vanillaVotingStrategy.address],
       params_flat: utils.encoding.flatten2DArray([[]]),
     });
@@ -187,7 +185,7 @@ describe('Space Testing', () => {
       [[], [], []],
       executionParams
     );
-    await vanillaAuthenticator.invoke('authenticate', {
+    await relayer.invoke(vanillaAuthenticator, 'authenticate', {
       target: spaceAddress,
       function_selector: PROPOSE_SELECTOR,
       calldata: proposeCalldata,
@@ -202,13 +200,13 @@ describe('Space Testing', () => {
       [[], [], []]
     );
 
-    await vanillaAuthenticator.invoke('authenticate', {
+    await relayer.invoke(vanillaAuthenticator, 'authenticate', {
       target: spaceAddress,
       function_selector: VOTE_SELECTOR,
       calldata: voteCalldata,
     });
 
-    const { proposal_info } = await space.call('get_proposal_info', {
+    const { proposal_info } = await space.call('getProposalInfo', {
       proposal_id: '0x2',
     });
 
@@ -220,13 +218,68 @@ describe('Space Testing', () => {
     expect(abstain).to.deep.equal(BigInt(0));
   }).timeout(6000000);
 
-  it('Reverts when querying an invalid proposal id', async () => {
+  it('Fails if quorum has not been reached', async () => {
+    // Add a special execution strategy that will fail if the outcome is not `REJECTED`.
+    const failsIfRejected = await (
+      await starknet.getContractFactory(
+        './contracts/starknet/TestContracts/ExecutionStrategies/FailsIfRejected.cairo'
+      )
+    ).deploy();
+    await controller.invoke(space, 'addExecutionStrategies', {
+      addresses: [failsIfRejected.address],
+    });
+
+    const proposeCallDataWithExec = utils.encoding.getProposeCalldata(
+      proposerEthAddress,
+      metadataUri,
+      failsIfRejected.address,
+      usedVotingStrategies1,
+      userVotingParamsAll1,
+      executionParams
+    );
+
+    // Create the proposal with the new execution strategy
+    await relayer.invoke(vanillaAuthenticator, 'authenticate', {
+      target: spaceAddress,
+      function_selector: PROPOSE_SELECTOR,
+      calldata: proposeCallDataWithExec,
+    });
+
+    // Finalizing now should not work because quorum has not been reached
     try {
-      await space.call('get_proposal_info', {
-        proposal_id: 3,
+      await relayer.invoke(space, 'finalizeProposal', {
+        proposal_id: 0x3,
+        execution_params: executionParams,
       });
     } catch (error: any) {
-      expect(error.message).to.contain('Proposal does not exist');
+      expect(error.message).to.contain('Voting: Quorum has not been reached');
+    }
+  });
+
+  it('Finalizes if quorum has not been reached but max voting duration has elapsed', async () => {
+    // Fast forward to the end of the max voting period
+    await starknet.devnet.increaseTime(4242);
+    // Need to create an empty block if we want the time increase to be effective
+    const emptyBlock = await starknet.devnet.createBlock();
+
+    // Finalizing should now work since max voting period has elapsed
+    try {
+      await relayer.invoke(space, 'finalizeProposal', {
+        proposal_id: 0x3,
+        execution_params: executionParams,
+      });
+    } catch (error: any) {
+      expect(error.message).to.contain('TestExecutionStrategy: Proposal was rejected');
+    }
+  });
+
+  it('Reverts when querying an invalid proposal id', async () => {
+    try {
+      await space.call('getProposalInfo', {
+        proposal_id: 42,
+      });
+    } catch (error: any) {
+      expect(error.message).to.contain('Voting: Proposal does not exist');
     }
   }).timeout(6000000);
 });

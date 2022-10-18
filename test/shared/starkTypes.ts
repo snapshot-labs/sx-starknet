@@ -25,12 +25,12 @@ export const proposeTypes = {
   StarkNetDomain: domainTypes.StarkNetDomain,
   Propose: [
     { name: 'space', type: 'felt' },
-    { name: 'proposerAddress', type: 'felt' },
-    { name: 'metadataURI', type: 'felt*' },
+    { name: 'author', type: 'felt' },
+    { name: 'metadata_uri', type: 'felt*' },
     { name: 'executor', type: 'felt' },
-    { name: 'executionParamsHash', type: 'felt' },
-    { name: 'usedVotingStrategiesHash', type: 'felt' },
-    { name: 'userVotingStrategyParamsFlatHash', type: 'felt' },
+    { name: 'execution_hash', type: 'felt' },
+    { name: 'strategies_hash', type: 'felt' },
+    { name: 'strategies_params_hash', type: 'felt' },
     { name: 'salt', type: 'felt' },
   ],
 };
@@ -39,11 +39,11 @@ export const voteTypes = {
   StarkNetDomain: domainTypes.StarkNetDomain,
   Vote: [
     { name: 'space', type: 'felt' },
-    { name: 'voterAddress', type: 'felt' },
+    { name: 'voter', type: 'felt' },
     { name: 'proposal', type: 'felt' },
     { name: 'choice', type: 'felt' },
-    { name: 'usedVotingStrategiesHash', type: 'felt' },
-    { name: 'userVotingStrategyParamsFlatHash', type: 'felt' },
+    { name: 'strategies_hash', type: 'felt' },
+    { name: 'strategies_params_hash', type: 'felt' },
     { name: 'salt', type: 'felt' },
   ],
 };
@@ -55,22 +55,22 @@ export const revokeSessionKeyTypes = {
 
 export interface Propose {
   space: string;
-  proposerAddress: string;
-  metadataURI: string[];
+  author: string;
+  metadata_uri: string[];
   executor: string;
-  executionParamsHash: string;
-  usedVotingStrategiesHash: string;
-  userVotingStrategyParamsFlatHash: string;
+  execution_hash: string;
+  strategies_hash: string;
+  strategies_params_hash: string;
   salt: string;
 }
 
 export interface Vote {
   space: string;
-  voterAddress: string;
+  voter: string;
   proposal: string;
   choice: number;
-  usedVotingStrategiesHash: string;
-  userVotingStrategyParamsFlatHash: string;
+  strategies_hash: string;
+  strategies_params_hash: string;
   salt: string;
 }
 

@@ -24,13 +24,13 @@ describe('Controller Actions', () => {
   });
 
   it('The controller can update the controller', async () => {
-    await controller.invoke(space, 'update_controller', {
+    await controller.invoke(space, 'setController', {
       new_controller: user.starknetContract.address,
     });
 
     // Try to update the controler with the previous account
     try {
-      await controller.invoke(space, 'update_controller', {
+      await controller.invoke(space, 'setController', {
         new_controller: user.starknetContract.address,
       });
       throw { message: 'updated controller`' };
@@ -39,7 +39,7 @@ describe('Controller Actions', () => {
     }
 
     // Now updating again with the previous controller
-    await user.invoke(space, 'update_controller', {
+    await user.invoke(space, 'setController', {
       new_controller: controller.starknetContract.address,
     });
   }).timeout(600000);
@@ -53,19 +53,19 @@ describe('Controller Actions', () => {
       './contracts/starknet/VotingStrategies/Whitelist.cairo'
     );
     const whitelistStrategy = await whitelistFactory.deploy({
-      _whitelist: [address, power.low, power.high],
+      whitelist: [address, power.low, power.high],
     });
     const votingStrategyParams: string[][] = [[]];
     const votingStrategyParamsFlat: string[] = utils.encoding.flatten2DArray(votingStrategyParams);
 
     // Add the whitelist strategy, which will be placed at index 1
-    await controller.invoke(space, 'add_voting_strategies', {
+    await controller.invoke(space, 'addVotingStrategies', {
       addresses: [whitelistStrategy.address],
       params_flat: votingStrategyParamsFlat,
     });
 
     // Remove the vanilla voting strategy, which is at index 0
-    await controller.invoke(space, 'remove_voting_strategies', {
+    await controller.invoke(space, 'removeVotingStrategies', {
       indexes: ['0x0'],
     });
 
@@ -86,7 +86,7 @@ describe('Controller Actions', () => {
       });
       throw { message: "voting strategy wasn't removed" };
     } catch (error: any) {
-      expect(error.message).to.contain('Invalid voting strategy');
+      expect(error.message).to.contain('Voting: Invalid voting strategy');
     }
 
     // Ensure that `address` can propose (we added the whitelist strategy)
@@ -105,24 +105,24 @@ describe('Controller Actions', () => {
     });
 
     // Ensure proposal exists (will throw if proposal id does not exist)
-    await space.call('get_proposal_info', {
+    await space.call('getProposalInfo', {
       proposal_id: proposalId,
     });
 
     // Cancel the proposal
-    await controller.invoke(space, 'cancel_proposal', {
+    await controller.invoke(space, 'cancelProposal', {
       proposal_id: proposalId,
       execution_params: [],
     });
 
     // Re-add vanilla voting strategy, which will now be at index 2
-    await controller.invoke(space, 'add_voting_strategies', {
+    await controller.invoke(space, 'addVotingStrategies', {
       addresses: [vanillaVotingStrategy.address],
       params_flat: votingStrategyParamsFlat,
     });
 
     // Remove the whitelist voting strategy
-    await controller.invoke(space, 'remove_voting_strategies', {
+    await controller.invoke(space, 'removeVotingStrategies', {
       indexes: ['0x1'],
     });
 
@@ -136,13 +136,13 @@ describe('Controller Actions', () => {
     const starknetTxAuth = (await starknetTxAuthenticatorFactory.deploy()) as StarknetContract;
 
     // Add the StarknetTx auth
-    await controller.invoke(space, 'add_authenticators', {
-      to_add: [starknetTxAuth.address],
+    await controller.invoke(space, 'addAuthenticators', {
+      addresses: [starknetTxAuth.address],
     });
 
     // Remove the Vanilla Auth
-    await controller.invoke(space, 'remove_authenticators', {
-      to_remove: [vanillaAuthenticator.address],
+    await controller.invoke(space, 'removeAuthenticators', {
+      addresses: [vanillaAuthenticator.address],
     });
 
     const proposeCalldata = getProposeCalldata(
@@ -173,36 +173,36 @@ describe('Controller Actions', () => {
     });
 
     // Cancel the proposal
-    await controller.invoke(space, 'cancel_proposal', {
+    await controller.invoke(space, 'cancelProposal', {
       proposal_id: proposalId,
       execution_params: [],
     });
 
     // Reset to initial auths
-    await controller.invoke(space, 'add_authenticators', {
-      to_add: [vanillaAuthenticator.address],
+    await controller.invoke(space, 'addAuthenticators', {
+      addresses: [vanillaAuthenticator.address],
     });
-    await controller.invoke(space, 'remove_authenticators', {
-      to_remove: [starknetTxAuth.address],
+    await controller.invoke(space, 'removeAuthenticators', {
+      addresses: [starknetTxAuth.address],
     });
 
     proposalId += BigInt(1);
   }).timeout(600000);
 
-  it('The controller can add and remove executors', async () => {
+  it('The controller can add and remove execution strategies', async () => {
     const randomExecutionContractFactory = await starknet.getContractFactory(
       './contracts/starknet/ExecutionStrategies/Vanilla.cairo'
     );
     const randomExecutionContract =
       (await randomExecutionContractFactory.deploy()) as StarknetContract;
 
-    // Add a random executor
-    await controller.invoke(space, 'add_executors', {
-      to_add: [randomExecutionContract.address],
+    // Add a random execution strategy
+    await controller.invoke(space, 'addExecutionStrategies', {
+      addresses: [randomExecutionContract.address],
     });
-    // Remove the vanilla executor
-    await controller.invoke(space, 'remove_executors', {
-      to_remove: [vanillaExecutionStrategy.address],
+    // Remove the vanilla execution strategy
+    await controller.invoke(space, 'removeExecutionStrategies', {
+      addresses: [vanillaExecutionStrategy.address],
     });
 
     const incorrectProposeCalldata = getProposeCalldata(
@@ -222,7 +222,7 @@ describe('Controller Actions', () => {
       });
       throw { message: "execution strategy wasn't removed" };
     } catch (error: any) {
-      expect(error.message).to.contain('Invalid executor');
+      expect(error.message).to.contain('Voting: Invalid execution strategy');
     }
 
     const correctProposeCalldata = getProposeCalldata(
@@ -233,7 +233,7 @@ describe('Controller Actions', () => {
       [[]],
       []
     );
-    // Ensure that `randomExecutionContract` is a valid executor
+    // Ensure that `randomExecutionContract` is a valid execution strategy
     await controller.invoke(vanillaAuthenticator, 'authenticate', {
       target: space.address,
       function_selector: PROPOSE_SELECTOR,
@@ -241,17 +241,17 @@ describe('Controller Actions', () => {
     });
 
     // Cancel the proposal
-    await controller.invoke(space, 'cancel_proposal', {
+    await controller.invoke(space, 'cancelProposal', {
       proposal_id: proposalId,
       execution_params: [],
     });
 
-    // Revert back to initial executor
-    await controller.invoke(space, 'add_executors', {
-      to_add: [vanillaExecutionStrategy.address],
+    // Revert back to initial execution strategy
+    await controller.invoke(space, 'addExecutionStrategies', {
+      addresses: [vanillaExecutionStrategy.address],
     });
-    await controller.invoke(space, 'remove_executors', {
-      to_remove: [randomExecutionContract.address],
+    await controller.invoke(space, 'removeExecutionStrategies', {
+      addresses: [randomExecutionContract.address],
     });
 
     proposalId += BigInt(1);
@@ -259,7 +259,7 @@ describe('Controller Actions', () => {
 
   it('The controller can update the quorum', async () => {
     // Update the quorum to `2`
-    await controller.invoke(space, 'update_quorum', {
+    await controller.invoke(space, 'setQuorum', {
       new_quorum: utils.splitUint256.SplitUint256.fromUint(BigInt(2)),
     });
 
@@ -294,13 +294,13 @@ describe('Controller Actions', () => {
 
     // Should not work because quorum is set to `2` and only 1 vote has been cast
     try {
-      await controller.invoke(space, 'finalize_proposal', {
+      await controller.invoke(space, 'finalizeProposal', {
         proposal_id: proposalId,
         execution_params: [],
       });
       throw { message: 'quorum has not been updated' };
     } catch (error: any) {
-      expect(error.message).to.contain('Quorum has not been reached');
+      expect(error.message).to.contain('Voting: Quorum has not been reached');
     }
 
     const user2VoteCalldata = getVoteCalldata(
@@ -318,13 +318,13 @@ describe('Controller Actions', () => {
     });
 
     // Quorum has now been reached so proposal should get finalized
-    await controller.invoke(space, 'finalize_proposal', {
+    await controller.invoke(space, 'finalizeProposal', {
       proposal_id: proposalId,
       execution_params: [],
     });
 
     // Set back quorum to initial value
-    await controller.invoke(space, 'update_quorum', {
+    await controller.invoke(space, 'setQuorum', {
       new_quorum: utils.splitUint256.SplitUint256.fromUint(BigInt(1)),
     });
 
@@ -333,7 +333,7 @@ describe('Controller Actions', () => {
 
   it('The controller can update the voting delay', async () => {
     // Set the voting delay to 1000
-    await controller.invoke(space, 'update_voting_delay', {
+    await controller.invoke(space, 'setVotingDelay', {
       new_delay: BigInt(1000),
     });
 
@@ -368,7 +368,7 @@ describe('Controller Actions', () => {
       });
       throw { message: 'voting delay has not been updated' };
     } catch (error: any) {
-      expect(error.message).to.contain('Voting has not started yet');
+      expect(error.message).to.contain('Voting: Voting has not started yet');
     }
 
     // Fast forward to end of voting delay
@@ -389,13 +389,13 @@ describe('Controller Actions', () => {
     });
 
     // Finalize proposal
-    await controller.invoke(space, 'finalize_proposal', {
+    await controller.invoke(space, 'finalizeProposal', {
       proposal_id: proposalId,
       execution_params: [],
     });
 
     // Reset back the voting delay
-    await controller.invoke(space, 'update_voting_delay', {
+    await controller.invoke(space, 'setVotingDelay', {
       new_delay: BigInt(0),
     });
 
@@ -404,8 +404,8 @@ describe('Controller Actions', () => {
 
   it('The controller can update the min voting duration', async () => {
     // Update the min voting duration
-    await controller.invoke(space, 'update_min_voting_duration', {
-      new_min_duration: BigInt(1000),
+    await controller.invoke(space, 'setMinVotingDuration', {
+      new_min_voting_duration: BigInt(1000),
     });
 
     const proposeCalldata = getProposeCalldata(
@@ -440,13 +440,13 @@ describe('Controller Actions', () => {
     // Finalize now should not work because it's too early to finalize
     // with a minimum_voting_duration of 1000 seconds
     try {
-      await controller.invoke(space, 'finalize_proposal', {
+      await controller.invoke(space, 'finalizeProposal', {
         proposal_id: proposalId,
         execution_params: [],
       });
       throw { message: 'min voting duration has not been updated' };
     } catch (error: any) {
-      expect(error.message).to.contain('Min voting period has not elapsed');
+      expect(error.message).to.contain('Voting: Min voting period has not elapsed');
     }
 
     // Fast forward in time
@@ -460,14 +460,14 @@ describe('Controller Actions', () => {
     });
 
     // Finalize proposal should work now that we've fast forwarded in time
-    await controller.invoke(space, 'finalize_proposal', {
+    await controller.invoke(space, 'finalizeProposal', {
       proposal_id: proposalId,
       execution_params: [],
     });
 
     // Reset back min voting setting
-    await controller.invoke(space, 'update_min_voting_duration', {
-      new_min_duration: BigInt(0),
+    await controller.invoke(space, 'setMinVotingDuration', {
+      new_min_voting_duration: BigInt(0),
     });
 
     proposalId += BigInt(1);
@@ -475,8 +475,8 @@ describe('Controller Actions', () => {
 
   it('The controller can update the max voting duration', async () => {
     // Set new max voting duration
-    await controller.invoke(space, 'update_max_voting_duration', {
-      new_max_duration: BigInt(100),
+    await controller.invoke(space, 'setMaxVotingDuration', {
+      new_max_voting_duration: BigInt(100),
     });
 
     const proposeCalldata = getProposeCalldata(
@@ -534,23 +534,23 @@ describe('Controller Actions', () => {
       });
       throw { message: 'max voting duration has not been updated' };
     } catch (error: any) {
-      expect(error.message).to.contain('Voting period has ended');
+      expect(error.message).to.contain('Voting: Voting period has ended');
     }
 
-    await space.invoke('finalize_proposal', {
+    await controller.invoke(space, 'finalizeProposal', {
       proposal_id: proposalId,
       execution_params: [],
     });
 
     // Reset to the inital max voting delay
-    await controller.invoke(space, 'update_max_voting_duration', {
-      new_max_duration: BigInt(2000),
+    await controller.invoke(space, 'setMaxVotingDuration', {
+      new_max_voting_duration: BigInt(2000),
     });
   }).timeout(600000);
 
   it('The controller can update the proposal threshold', async () => {
-    await controller.invoke(space, 'update_proposal_threshold', {
-      new_threshold: utils.splitUint256.SplitUint256.fromUint(BigInt('0x100')),
+    await controller.invoke(space, 'setProposalThreshold', {
+      new_proposal_threshold: utils.splitUint256.SplitUint256.fromUint(BigInt('0x100')),
     });
 
     // Change the voting strategy to a whitelist strategy
@@ -563,7 +563,7 @@ describe('Controller Actions', () => {
     // user should have enough VP to reach threshold
     const userVotingPower = utils.splitUint256.SplitUint256.fromHex('0x100');
     const whitelistStrategy = await whitelistFactory.deploy({
-      _whitelist: [
+      whitelist: [
         space.address,
         spaceVotingPower.low,
         spaceVotingPower.high,
@@ -576,7 +576,7 @@ describe('Controller Actions', () => {
     const votingStrategyParams: string[][] = [[]];
     const votingStrategyParamsFlat: string[] = utils.encoding.flatten2DArray(votingStrategyParams);
     // The whitelist strategy will be at index 3
-    await controller.invoke(space, 'add_voting_strategies', {
+    await controller.invoke(space, 'addVotingStrategies', {
       addresses: [whitelistStrategy.address],
       params_flat: votingStrategyParamsFlat,
     });
@@ -598,7 +598,7 @@ describe('Controller Actions', () => {
       });
       throw { message: 'proposal threshold not checked properly' };
     } catch (error: any) {
-      expect(error.message).to.contain('Not enough voting power');
+      expect(error.message).to.contain('Voting: Not enough voting power');
     }
 
     const userProposeCalldata = getProposeCalldata(
@@ -617,8 +617,21 @@ describe('Controller Actions', () => {
     });
 
     // Ensure proposal exists
-    await controller.call(space, 'get_proposal_info', {
+    await space.call('getProposalInfo', {
       proposal_id: proposalId,
     });
   }).timeout(600000);
+
+  // it('The controller can update the metadata uri', async () => {
+  //   const newMetadataUri =
+  //     'Snapshot X Test Space 2 blah blah blah blah blah blah blah blah blah blah blah blah';
+  //   const txHash = await controller.invoke(space, 'setMetadataUri', {
+  //     new_metadata_uri: utils.strings.strToShortStringArr(newMetadataUri),
+  //   });
+  //   const receipt = await starknet.getTransactionReceipt(txHash);
+  //   const decodedEvents = await space.decodeEvents(receipt.events);
+  //   expect(newMetadataUri).to.deep.equal(
+  //     utils.strings.shortStringArrToStr(decodedEvents[0].data.new_metadata_uri)
+  //   );
+  // }).timeout(600000);
 });

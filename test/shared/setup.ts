@@ -26,7 +26,6 @@ export async function vanillaSetup() {
   const vanillaExecutionStrategyFactory = await starknet.getContractFactory(
     './contracts/starknet/ExecutionStrategies/Vanilla.cairo'
   );
-
   const deployments = [
     vanillaAuthenticatorFactory.deploy(),
     vanillaVotingStrategyFactory.deploy(),
@@ -44,12 +43,13 @@ export async function vanillaSetup() {
   const votingStrategyParams: string[][] = [[]]; // No params for the vanilla voting strategy
   const votingStrategyParamsFlat: string[] = utils.encoding.flatten2DArray(votingStrategyParams);
   const authenticators: string[] = [vanillaAuthenticator.address];
-  const executors: string[] = [vanillaExecutionStrategy.address];
+  const execution_strategies: string[] = [vanillaExecutionStrategy.address];
   const quorum: utils.splitUint256.SplitUint256 = utils.splitUint256.SplitUint256.fromUint(
     BigInt(1)
   ); //  Quorum of one for the vanilla test
   const proposalThreshold: utils.splitUint256.SplitUint256 =
     utils.splitUint256.SplitUint256.fromUint(BigInt(1)); // Proposal threshold of 1 for the vanilla test
+  const metadataUri = utils.strings.strToShortStringArr('Snapshot X Test Space');
 
   console.log('Deploying space contract...');
   const space = (await spaceFactory.deploy({
@@ -63,7 +63,7 @@ export async function vanillaSetup() {
     voting_strategy_params_flat: votingStrategyParamsFlat,
     voting_strategies: votingStrategies,
     authenticators: authenticators,
-    executors: executors,
+    execution_strategies: execution_strategies,
   })) as StarknetContract;
   console.log('deployed!');
 
@@ -86,7 +86,7 @@ export async function zodiacRelayerSetup() {
     './contracts/starknet/Authenticators/Vanilla.cairo'
   );
   const zodiacRelayerFactory = await starknet.getContractFactory(
-    './contracts/starknet/ExecutionStrategies/ZodiacRelayer.cairo'
+    './contracts/starknet/ExecutionStrategies/EthRelayer.cairo'
   );
 
   const deployments = [
@@ -106,12 +106,13 @@ export async function zodiacRelayerSetup() {
   const votingStrategyParams: string[][] = [[]]; // No params for the vanilla voting strategy
   const votingStrategyParamsFlat: string[] = utils.encoding.flatten2DArray(votingStrategyParams);
   const authenticators: string[] = [vanillaAuthenticator.address];
-  const executors: string[] = [zodiacRelayer.address];
+  const execution_strategies: string[] = [zodiacRelayer.address];
   const quorum: utils.splitUint256.SplitUint256 = utils.splitUint256.SplitUint256.fromUint(
     BigInt(1)
   ); //  Quorum of one for the vanilla test
   const proposalThreshold: utils.splitUint256.SplitUint256 =
     utils.splitUint256.SplitUint256.fromUint(BigInt(1)); // Proposal threshold of 1 for the vanilla test
+  const metadataUri = utils.strings.strToShortStringArr('Snapshot X Test Space');
 
   const space = (await spaceFactory.deploy({
     public_key: controller.publicKey,
@@ -124,7 +125,7 @@ export async function zodiacRelayerSetup() {
     voting_strategy_params_flat: votingStrategyParamsFlat,
     voting_strategies: votingStrategies,
     authenticators: authenticators,
-    executors: executors,
+    execution_strategies: execution_strategies,
   })) as StarknetContract;
 
   // Deploying StarkNet core instance required for L2 -> L1 message passing
@@ -292,7 +293,8 @@ export async function ethTxAuthSetup() {
   const votingStrategyParams: string[][] = [[]];
   const votingStrategyParamsFlat: string[] = utils.encoding.flatten2DArray(votingStrategyParams);
   const authenticators: string[] = [ethTxAuth.address];
-  const executors: string[] = [vanillaExecutionStrategy.address];
+  const execution_strategies: string[] = [vanillaExecutionStrategy.address];
+  const metadataUri = utils.strings.strToShortStringArr('Snapshot X Test Space');
 
   console.log('Deploying space contract...');
   const space = (await spaceFactory.deploy({
@@ -306,7 +308,7 @@ export async function ethTxAuthSetup() {
     voting_strategy_params_flat: votingStrategyParamsFlat,
     voting_strategies: votingStrategies,
     authenticators: authenticators,
-    executors: executors,
+    execution_strategies: execution_strategies,
   })) as StarknetContract;
 
   return {
@@ -371,7 +373,8 @@ export async function ethTxSessionKeyAuthSetup() {
   const votingStrategyParams: string[][] = [[]];
   const votingStrategyParamsFlat: string[] = utils.encoding.flatten2DArray(votingStrategyParams);
   const authenticators: string[] = [ethTxSessionKeyAuth.address];
-  const executors: string[] = [vanillaExecutionStrategy.address];
+  const execution_strategies: string[] = [vanillaExecutionStrategy.address];
+  const metadataUri = utils.strings.strToShortStringArr('Snapshot X Test Space');
 
   console.log('Deploying space contract...');
   const space = (await spaceFactory.deploy({
@@ -385,7 +388,7 @@ export async function ethTxSessionKeyAuthSetup() {
     voting_strategy_params_flat: votingStrategyParamsFlat,
     voting_strategies: votingStrategies,
     authenticators: authenticators,
-    executors: executors,
+    execution_strategies: execution_strategies,
   })) as StarknetContract;
 
   return {
@@ -428,6 +431,7 @@ export async function ethBalanceOfSetup(block: any, proofs: any) {
     }),
     vanillaExecutionStrategyFactory.deploy(),
   ];
+
   const contracts = await Promise.all(deployments);
   const vanillaAuthenticator = contracts[0] as StarknetContract;
   const ethBalanceOfVotingStrategy = contracts[1] as StarknetContract;
@@ -458,12 +462,13 @@ export async function ethBalanceOfSetup(block: any, proofs: any) {
   const votingStrategyParams: string[][] = [[proofInputs.ethAddressFelt, '0x0']]; // For the aave erc20 contract, the balances mapping has a storage index of 0
   const votingStrategyParamsFlat: string[] = utils.encoding.flatten2DArray(votingStrategyParams);
   const authenticators: string[] = [vanillaAuthenticator.address];
-  const executors: string[] = [vanillaExecutionStrategy.address];
+  const execution_strategies: string[] = [vanillaExecutionStrategy.address];
   const quorum: utils.splitUint256.SplitUint256 = utils.splitUint256.SplitUint256.fromUint(
     BigInt(1)
   ); //  Quorum of one for the vanilla test
   const proposalThreshold: utils.splitUint256.SplitUint256 =
     utils.splitUint256.SplitUint256.fromUint(BigInt(1)); // Proposal threshold of 1 for the vanilla test
+  const metadataUri = utils.strings.strToShortStringArr('Snapshot X Test Space');
 
   // Deploy space with specified parameters
   const space = (await spaceFactory.deploy({
@@ -477,7 +482,7 @@ export async function ethBalanceOfSetup(block: any, proofs: any) {
     voting_strategy_params_flat: votingStrategyParamsFlat,
     voting_strategies: votingStrategies,
     authenticators: authenticators,
-    executors: executors,
+    execution_strategies: execution_strategies,
   })) as StarknetContract;
 
   return {
@@ -581,12 +586,14 @@ export async function starkSigAuthSetup() {
   const votingStrategyParams: string[][] = [[]]; // No params for the vanilla voting strategy
   const votingStrategyParamsFlat: string[] = utils.encoding.flatten2DArray(votingStrategyParams);
   const authenticators: string[] = [starkSigAuth.address];
-  const executors: string[] = [vanillaExecutionStrategy.address];
+  const execution_strategies: string[] = [vanillaExecutionStrategy.address];
   const quorum: utils.splitUint256.SplitUint256 = utils.splitUint256.SplitUint256.fromUint(
     BigInt(1)
   ); //  Quorum of one for the vanilla test
   const proposalThreshold: utils.splitUint256.SplitUint256 =
     utils.splitUint256.SplitUint256.fromUint(BigInt(1)); // Proposal threshold of 1 for the vanilla test
+  const metadataUri = utils.strings.strToShortStringArr('Snapshot X Test Space');
+
   const vanillaSpace = (await vanillaSpaceFactory.deploy({
     public_key: controller.publicKey,
     voting_delay: votingDelay,
@@ -598,7 +605,7 @@ export async function starkSigAuthSetup() {
     voting_strategy_params_flat: votingStrategyParamsFlat,
     voting_strategies: votingStrategies,
     authenticators: authenticators,
-    executors: executors,
+    execution_strategies: execution_strategies,
   })) as StarknetContract;
 
   return {
@@ -640,12 +647,13 @@ export async function starkTxAuthSetup() {
   const votingStrategyParams: string[][] = [[]]; // No params for the vanilla voting strategy
   const votingStrategyParamsFlat: string[] = utils.encoding.flatten2DArray(votingStrategyParams);
   const authenticators: string[] = [starknetTxAuthenticator.address];
-  const executors: string[] = [vanillaExecutionStrategy.address];
+  const execution_strategies: string[] = [vanillaExecutionStrategy.address];
   const quorum: utils.splitUint256.SplitUint256 = utils.splitUint256.SplitUint256.fromUint(
     BigInt(1)
   ); //  Quorum of one for the vanilla test
   const proposalThreshold: utils.splitUint256.SplitUint256 =
     utils.splitUint256.SplitUint256.fromUint(BigInt(1)); // Proposal threshold of 1 for the vanilla test
+  const metadataUri = utils.strings.strToShortStringArr('Snapshot X Test Space');
 
   console.log('Deploying space contract...');
   const space = (await spaceFactory.deploy({
@@ -659,7 +667,7 @@ export async function starkTxAuthSetup() {
     voting_strategy_params_flat: votingStrategyParamsFlat,
     voting_strategies: votingStrategies,
     authenticators: authenticators,
-    executors: executors,
+    execution_strategies: execution_strategies,
   })) as StarknetContract;
   console.log('deployed!');
 
@@ -702,12 +710,13 @@ export async function ethSigAuthSetup() {
   const votingStrategyParams: string[][] = [[]]; // No params for the vanilla voting strategy
   const votingStrategyParamsFlat: string[] = utils.encoding.flatten2DArray(votingStrategyParams);
   const authenticators: string[] = [ethSigAuth.address];
-  const executors: string[] = [vanillaExecutionStrategy.address];
+  const execution_strategies: string[] = [vanillaExecutionStrategy.address];
   const quorum: utils.splitUint256.SplitUint256 = utils.splitUint256.SplitUint256.fromUint(
     BigInt(1)
   ); //  Quorum of one for the vanilla test
   const proposalThreshold: utils.splitUint256.SplitUint256 =
     utils.splitUint256.SplitUint256.fromUint(BigInt(1)); // Proposal threshold of 1 for the vanilla test
+  const metadataUri = utils.strings.strToShortStringArr('Snapshot X Test Space');
 
   const space = (await spaceFactory.deploy({
     public_key: controller.publicKey,
@@ -720,7 +729,7 @@ export async function ethSigAuthSetup() {
     voting_strategy_params_flat: votingStrategyParamsFlat,
     voting_strategies: votingStrategies,
     authenticators: authenticators,
-    executors: executors,
+    execution_strategies: execution_strategies,
   })) as StarknetContract;
 
   return {
@@ -762,12 +771,13 @@ export async function starknetSigAuthSetup() {
   const votingStrategyParams: string[][] = [[]]; // No params for the vanilla voting strategy
   const votingStrategyParamsFlat: string[] = utils.encoding.flatten2DArray(votingStrategyParams);
   const authenticators: string[] = [starkSigAuth.address];
-  const executors: string[] = [vanillaExecutionStrategy.address];
+  const execution_strategies: string[] = [vanillaExecutionStrategy.address];
   const quorum: utils.splitUint256.SplitUint256 = utils.splitUint256.SplitUint256.fromUint(
     BigInt(1)
   ); //  Quorum of one for the vanilla test
   const proposalThreshold: utils.splitUint256.SplitUint256 =
     utils.splitUint256.SplitUint256.fromUint(BigInt(1)); // Proposal threshold of 1 for the vanilla test
+  const metadataUri = utils.strings.strToShortStringArr('Snapshot X Test Space');
 
   const space = (await spaceFactory.deploy({
     public_key: controller.publicKey,
@@ -780,7 +790,7 @@ export async function starknetSigAuthSetup() {
     voting_strategy_params_flat: votingStrategyParamsFlat,
     voting_strategies: votingStrategies,
     authenticators: authenticators,
-    executors: executors,
+    execution_strategies: execution_strategies,
   })) as StarknetContract;
 
   return {
@@ -801,7 +811,7 @@ export async function spaceFactorySetup() {
   const spaceFactoryClass = await starknet.getContractFactory(
     './contracts/starknet/SpaceAccount.cairo'
   );
-  const spaceHash = await spaceFactoryClass.declare();
+  const spaceHash = await controller.declare(spaceFactoryClass);
 
   const vanillaVotingStrategyFactory = await starknet.getContractFactory(
     './contracts/starknet/VotingStrategies/Vanilla.cairo'
@@ -858,12 +868,13 @@ export async function starknetExecutionSetup() {
   const votingStrategyParams: string[][] = [[]]; // No params for the vanilla voting strategy
   const votingStrategyParamsFlat: string[] = utils.encoding.flatten2DArray(votingStrategyParams);
   const authenticators: string[] = [vanillaAuthenticator.address];
-  const executors: string[] = ['0x1', '0x1234', '0x4567', '0x456789']; // We add dummy executors that get used in the test transactions
+  const execution_strategies: string[] = ['0x1', '0x1234', '0x4567', '0x456789']; // We add dummy execution_strategies that get used in the test transactions
   const quorum: utils.splitUint256.SplitUint256 = utils.splitUint256.SplitUint256.fromUint(
     BigInt(1)
   ); //  Quorum of one for the vanilla test
   const proposalThreshold: utils.splitUint256.SplitUint256 =
     utils.splitUint256.SplitUint256.fromUint(BigInt(1)); // Proposal threshold of 1 for the vanilla test
+  const metadataUri = utils.strings.strToShortStringArr('Snapshot X Test Space');
 
   console.log('Deploying space contract...');
   const space = (await spaceFactory.deploy({
@@ -877,7 +888,7 @@ export async function starknetExecutionSetup() {
     voting_strategy_params_flat: votingStrategyParamsFlat,
     voting_strategies: votingStrategies,
     authenticators: authenticators,
-    executors: executors,
+    execution_strategies: execution_strategies,
   })) as StarknetContract;
   console.log('deployed!');
 
@@ -920,12 +931,13 @@ export async function ethSigSessionKeyAuthSetup() {
   const votingStrategyParams: string[][] = [[]]; // No params for the vanilla voting strategy
   const votingStrategyParamsFlat: string[] = utils.encoding.flatten2DArray(votingStrategyParams);
   const authenticators: string[] = [ethSigSessionKeyAuth.address];
-  const executors: string[] = [vanillaExecutionStrategy.address];
+  const execution_strategies: string[] = [vanillaExecutionStrategy.address];
   const quorum: utils.splitUint256.SplitUint256 = utils.splitUint256.SplitUint256.fromUint(
     BigInt(1)
   ); //  Quorum of one for the vanilla test
   const proposalThreshold: utils.splitUint256.SplitUint256 =
     utils.splitUint256.SplitUint256.fromUint(BigInt(1)); // Proposal threshold of 1 for the vanilla test
+  const metadataUri = utils.strings.strToShortStringArr('Snapshot X Test Space');
 
   const space = (await spaceFactory.deploy({
     public_key: controller.publicKey,
@@ -938,7 +950,7 @@ export async function ethSigSessionKeyAuthSetup() {
     voting_strategy_params_flat: votingStrategyParamsFlat,
     voting_strategies: votingStrategies,
     authenticators: authenticators,
-    executors: executors,
+    execution_strategies: execution_strategies,
   })) as StarknetContract;
 
   return {

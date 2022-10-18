@@ -102,17 +102,16 @@ describe('Ethereum Signature Auth testing', () => {
       const userVotingStrategyParamsFlatHashPadded1 = utils.encoding.hexPadRight(
         userVotingStrategyParamsFlatHash1
       );
-      const paddedProposerAddress = utils.encoding.hexPadRight(proposerEthAddress);
       const paddedExecutor = utils.encoding.hexPadRight(vanillaExecutionStrategy.address);
       const message: Propose = {
         authenticator: ethSigAuth.address,
         space: spaceStr,
-        proposerAddress: paddedProposerAddress,
-        metadataUri: METADATA_URI,
+        author: proposerEthAddress,
+        metadata_uri: METADATA_URI,
         executor: paddedExecutor,
-        executionParamsHash: executionHashPadded,
-        usedVotingStrategiesHash: usedVotingStrategiesHashPadded1,
-        userVotingStrategyParamsFlatHash: userVotingStrategyParamsFlatHashPadded1,
+        execution_hash: executionHashPadded,
+        strategies_hash: usedVotingStrategiesHashPadded1,
+        strategies_params_hash: userVotingStrategyParamsFlatHashPadded1,
         salt: salt.toHex(),
       };
 
@@ -151,18 +150,17 @@ describe('Ethereum Signature Auth testing', () => {
       const userVotingStrategyParamsFlatHashPadded1 = utils.encoding.hexPadRight(
         userVotingStrategyParamsFlatHash1
       );
-      const paddedProposerAddress = utils.encoding.hexPadRight(proposerEthAddress);
       const paddedExecutor = utils.encoding.hexPadRight(executionStrategy);
 
       const message: Propose = {
         authenticator: ethSigAuth.address,
         space: spaceAddress,
-        proposerAddress: paddedProposerAddress,
-        metadataUri: METADATA_URI,
+        author: proposerEthAddress,
+        metadata_uri: METADATA_URI,
         executor: paddedExecutor,
-        executionParamsHash: executionHashPadded,
-        usedVotingStrategiesHash: usedVotingStrategiesHashPadded1,
-        userVotingStrategyParamsFlatHash: userVotingStrategyParamsFlatHashPadded1,
+        execution_hash: executionHashPadded,
+        strategies_hash: usedVotingStrategiesHashPadded1,
+        strategies_params_hash: userVotingStrategyParamsFlatHashPadded1,
         salt: proposalSalt.toHex(),
       };
 
@@ -182,7 +180,7 @@ describe('Ethereum Signature Auth testing', () => {
       });
 
       console.log('Getting proposal info...');
-      const { proposal_info } = await space.call('get_proposal_info', {
+      const { proposal_info } = await space.call('getProposalInfo', {
         proposal_id: proposalId,
       });
 
@@ -201,7 +199,7 @@ describe('Ethereum Signature Auth testing', () => {
         });
         throw { message: 'replay attack worked on `propose`' };
       } catch (err: any) {
-        expect(err.message).to.contain('Salt already used');
+        expect(err.message).to.contain('EIP712: Salt already used');
       }
 
       // We can't directly compare the `info` object because we don't know for sure the value of `start_block` (and hence `end_block`),
@@ -227,16 +225,16 @@ describe('Ethereum Signature Auth testing', () => {
       const userVotingStrategyParamsFlatHashPadded2 = utils.encoding.hexPadRight(
         userVotingStrategyParamsFlatHash2
       );
-      const voterEthAddressPadded = utils.encoding.hexPadRight(voterEthAddress);
+      const voterEthAddressPadded = voterEthAddress;
 
       const message: Vote = {
         authenticator: ethSigAuth.address,
         space: spaceStr,
-        voterAddress: voterEthAddressPadded,
+        voter: voterEthAddressPadded,
         proposal: BigInt(proposalId).toString(16),
         choice: utils.choice.Choice.FOR,
-        usedVotingStrategiesHash: usedVotingStrategiesHashPadded2,
-        userVotingStrategyParamsFlatHash: userVotingStrategyParamsFlatHashPadded2,
+        strategies_hash: usedVotingStrategiesHashPadded2,
+        strategies_params_hash: userVotingStrategyParamsFlatHashPadded2,
         salt: voteSalt.toHex(),
       };
       const sig = await accounts[0]._signTypedData(domain, voteTypes, message);
@@ -260,7 +258,7 @@ describe('Ethereum Signature Auth testing', () => {
       });
 
       console.log('Getting proposal info...');
-      const { proposal_info } = await space.call('get_proposal_info', {
+      const { proposal_info } = await space.call('getProposalInfo', {
         proposal_id: proposalId,
       });
 
@@ -285,7 +283,7 @@ describe('Ethereum Signature Auth testing', () => {
         });
         throw { message: 'replay attack worked on `vote`' };
       } catch (err: any) {
-        expect(err.message).to.contain('Salt already used');
+        expect(err.message).to.contain('EIP712: Salt already used');
       }
     }
   }).timeout(6000000);

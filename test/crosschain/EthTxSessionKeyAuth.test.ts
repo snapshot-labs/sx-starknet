@@ -115,12 +115,12 @@ describe('Ethereum Transaction Session Keys', function () {
       );
     // Checking that the L1 -> L2 message has been propagated
     expect((await starknet.devnet.flush()).consumed_messages.from_l1).to.have.a.lengthOf(1);
-    await ethTxSessionKeyAuth.invoke('authorize_session_key_with_tx', {
+    await controller.invoke(ethTxSessionKeyAuth, 'authorizeSessionKeyWithTx', {
       eth_address: account.address,
       session_public_key: sessionPublicKey,
       session_duration: sessionDuration,
     });
-    const { eth_address } = await ethTxSessionKeyAuth.call('get_session_key_owner', {
+    const { eth_address } = await ethTxSessionKeyAuth.call('getSessionKeyOwner', {
       session_public_key: sessionPublicKey,
     });
     expect(eth_address).to.deep.equal(BigInt(account.address));
@@ -131,12 +131,12 @@ describe('Ethereum Transaction Session Keys', function () {
 
       const message = {
         space: spaceAddress,
-        proposerAddress: account.address,
-        metadataURI: metadataUriInts.values,
+        author: account.address,
+        metadata_uri: metadataUriInts.values,
         executor: vanillaExecutionStrategy.address,
-        executionParamsHash: executionHash,
-        usedVotingStrategiesHash: usedVotingStrategiesHash1,
-        userVotingStrategyParamsFlatHash: userVotingStrategyParamsFlatHash1,
+        execution_hash: executionHash,
+        strategies_hash: usedVotingStrategiesHash1,
+        strategies_params_hash: userVotingStrategyParamsFlatHash1,
         salt: proposalSalt,
       };
       const msg: typedData.TypedData = {
@@ -174,7 +174,7 @@ describe('Ethereum Transaction Session Keys', function () {
         });
         throw { message: 'replay attack worked on `propose`' };
       } catch (err: any) {
-        expect(err.message).to.contain('Salt already used');
+        expect(err.message).to.contain('StarkEIP191: Salt already used');
       }
     }
   });
@@ -190,13 +190,13 @@ describe('Ethereum Transaction Session Keys', function () {
       );
     await starknet.devnet.flush();
     try {
-      await ethTxSessionKeyAuth.invoke('authorize_session_key_with_tx', {
+      await controller.invoke(ethTxSessionKeyAuth, 'authorizeSessionKeyWithTx', {
         eth_address: account.address,
         session_public_key: sessionPublicKey,
         session_duration: fakeSessionDuration,
       });
     } catch (err: any) {
-      expect(err.message).to.contain('Hash not yet committed or already executed');
+      expect(err.message).to.contain('EthTx: Hash not yet committed or already executed');
     }
   });
 
@@ -210,13 +210,13 @@ describe('Ethereum Transaction Session Keys', function () {
       );
     await starknet.devnet.flush();
     try {
-      await ethTxSessionKeyAuth.invoke('authorize_session_key_with_tx', {
+      await controller.invoke(ethTxSessionKeyAuth, 'authorizeSessionKeyWithTx', {
         eth_address: account.address,
         session_public_key: sessionPublicKey,
         session_duration: sessionDuration,
       });
     } catch (err: any) {
-      expect(err.message).to.contain('Commit made by invalid L1 address');
+      expect(err.message).to.contain('EthTx: Commit made by invalid L1 address');
     }
   });
 
@@ -237,7 +237,7 @@ describe('Ethereum Transaction Session Keys', function () {
       const sig = await sessionSigner.signMessage(msg, ethTxSessionKeyAuth.address);
       const [r, s] = sig;
 
-      await controller.invoke(ethTxSessionKeyAuth, 'revoke_session_key_with_session_key_sig', {
+      await controller.invoke(ethTxSessionKeyAuth, 'revokeSessionKeyWithSessionKeySig', {
         r: r,
         s: s,
         salt: salt,
@@ -251,12 +251,12 @@ describe('Ethereum Transaction Session Keys', function () {
 
       const message = {
         space: spaceAddress,
-        proposerAddress: account.address,
-        metadataURI: metadataUriInts.values,
+        author: account.address,
+        metadata_uri: metadataUriInts.values,
         executor: vanillaExecutionStrategy.address,
-        executionParamsHash: executionHash,
-        usedVotingStrategiesHash: usedVotingStrategiesHash1,
-        userVotingStrategyParamsFlatHash: userVotingStrategyParamsFlatHash1,
+        execution_hash: executionHash,
+        strategies_hash: usedVotingStrategiesHash1,
+        strategies_params_hash: userVotingStrategyParamsFlatHash1,
         salt: proposalSalt,
       };
       const msg: typedData.TypedData = {
@@ -281,7 +281,7 @@ describe('Ethereum Transaction Session Keys', function () {
         });
         throw { message: '' };
       } catch (err: any) {
-        expect(err.message).to.contain('Session does not exist');
+        expect(err.message).to.contain('SessionKey: Session does not exist');
       }
     }
   }).timeout(6000000);
@@ -299,7 +299,7 @@ describe('Ethereum Transaction Session Keys', function () {
         );
       // Checking that the L1 -> L2 message has been propogated
       expect((await starknet.devnet.flush()).consumed_messages.from_l1).to.have.a.lengthOf(1);
-      await ethTxSessionKeyAuth.invoke('authorize_session_key_with_tx', {
+      await controller.invoke(ethTxSessionKeyAuth, 'authorizeSessionKeyWithTx', {
         eth_address: account.address,
         session_public_key: sessionPublicKey,
         session_duration: sessionDuration,
@@ -316,7 +316,7 @@ describe('Ethereum Transaction Session Keys', function () {
           getRevokeSessionKeyCommit(account.address, sessionPublicKey)
         );
       await starknet.devnet.flush();
-      await controller.invoke(ethTxSessionKeyAuth, 'revoke_session_key_with_owner_tx', {
+      await controller.invoke(ethTxSessionKeyAuth, 'revokeSessionKeyWithOwnerTx', {
         session_public_key: sessionPublicKey,
       });
     }
@@ -327,12 +327,12 @@ describe('Ethereum Transaction Session Keys', function () {
 
       const message = {
         space: spaceAddress,
-        proposerAddress: account.address,
-        metadataURI: metadataUriInts.values,
+        author: account.address,
+        metadata_uri: metadataUriInts.values,
         executor: vanillaExecutionStrategy.address,
-        executionParamsHash: executionHash,
-        usedVotingStrategiesHash: usedVotingStrategiesHash1,
-        userVotingStrategyParamsFlatHash: userVotingStrategyParamsFlatHash1,
+        execution_hash: executionHash,
+        strategies_hash: usedVotingStrategiesHash1,
+        strategies_params_hash: userVotingStrategyParamsFlatHash1,
         salt: proposalSalt,
       };
       const msg: typedData.TypedData = {
@@ -357,7 +357,7 @@ describe('Ethereum Transaction Session Keys', function () {
         });
         throw { message: '' };
       } catch (err: any) {
-        expect(err.message).to.contain('Session does not exist');
+        expect(err.message).to.contain('SessionKey: Session does not exist');
       }
     }
   }).timeout(6000000);
