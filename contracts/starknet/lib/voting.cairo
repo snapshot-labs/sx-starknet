@@ -1042,7 +1042,6 @@ func _assert_no_active_proposal{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, 
     // the constructor initializes the nonce to 1.
     let latest_proposal = next_proposal - 1;
 
-
     with_attr error_message("Voting: Some proposals are still active") {
         _assert_no_active_proposal_recurse(latest_proposal);
     }
