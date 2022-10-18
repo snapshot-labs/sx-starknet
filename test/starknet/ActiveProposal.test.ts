@@ -45,7 +45,7 @@ describe('Active Proposal', () => {
       });
       throw { message: 'should not add a voting strategy' };
     } catch (error: any) {
-      expect(error.message).to.contain('Some proposals are still active');
+      expect(error.message).to.contain('Voting: Some proposals are still active');
     }
   });
 
@@ -56,7 +56,7 @@ describe('Active Proposal', () => {
       });
       throw { message: 'should not remove a voting strategy' };
     } catch (error: any) {
-      expect(error.message).to.contain('Some proposals are still active');
+      expect(error.message).to.contain('Voting: Some proposals are still active');
     }
   });
 
@@ -67,7 +67,7 @@ describe('Active Proposal', () => {
       });
       throw { message: 'should not add an authenticator' };
     } catch (error: any) {
-      expect(error.message).to.contain('Some proposals are still active');
+      expect(error.message).to.contain('Voting: Some proposals are still active');
     }
   });
 
@@ -78,7 +78,7 @@ describe('Active Proposal', () => {
       });
       throw { message: 'should not remove an authenticator' };
     } catch (error: any) {
-      expect(error.message).to.contain('Some proposals are still active');
+      expect(error.message).to.contain('Voting: Some proposals are still active');
     }
   });
 });

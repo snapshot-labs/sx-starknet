@@ -201,7 +201,7 @@ namespace Voting {
         alloc_locals;
 
         // Sanity checks
-        with_attr error_message("Invalid constructor parameters") {
+        with_attr error_message("Voting: Invalid constructor parameters") {
             assert_nn(voting_delay);
             assert_le(min_voting_duration, max_voting_duration);
             assert_not_zero(controller);
@@ -287,7 +287,8 @@ namespace Voting {
 
         let (max_voting_duration) = Voting_max_voting_duration_store.read();
 
-        with_attr error_message("Min voting duration must be less than max voting duration") {
+        with_attr error_message(
+                "Voting: Min voting duration must be less than max voting duration") {
             assert_le(new_min_voting_duration, max_voting_duration);
         }
 
@@ -307,7 +308,8 @@ namespace Voting {
 
         let (min_voting_duration) = Voting_min_voting_duration_store.read();
 
-        with_attr error_message("Max voting duration must be greater than min voting duration") {
+        with_attr error_message(
+                "Voting: Max voting duration must be greater than min voting duration") {
             assert_le(min_voting_duration, new_max_voting_duration);
         }
 
@@ -450,13 +452,13 @@ namespace Voting {
         _assert_valid_authenticator();
 
         // Make sure proposal has not already been executed
-        with_attr error_message("Proposal already executed") {
+        with_attr error_message("Voting: Proposal already executed") {
             let (has_been_executed) = Voting_executed_proposals_store.read(proposal_id);
             assert has_been_executed = 0;
         }
 
         let (proposal) = Voting_proposal_registry_store.read(proposal_id);
-        with_attr error_message("Proposal does not exist") {
+        with_attr error_message("Voting: Proposal does not exist") {
             // Asserting start timestamp is not zero because start timestamp
             // is necessarily > 0 when creating a new proposal.
             assert_not_zero(proposal.start_timestamp);
@@ -467,23 +469,23 @@ namespace Voting {
 
         let (current_timestamp) = get_block_timestamp();
         // Make sure proposal is still open for voting
-        with_attr error_message("Voting period has ended") {
+        with_attr error_message("Voting: Voting period has ended") {
             assert_lt(current_timestamp, proposal.max_end_timestamp);
         }
 
         // Make sure proposal has started
-        with_attr error_message("Voting has not started yet") {
+        with_attr error_message("Voting: Voting has not started yet") {
             assert_le(proposal.start_timestamp, current_timestamp);
         }
 
         // Make sure voter has not already voted
         let (prev_vote) = Voting_vote_registry_store.read(proposal_id, voter_address);
-        with_attr error_message("User already voted") {
+        with_attr error_message("Voting: User already voted") {
             assert prev_vote = 0;
         }
 
         // Make sure `choice` is a valid choice
-        with_attr error_message("Invalid choice") {
+        with_attr error_message("Voting: Invalid choice") {
             assert_le(Choice.FOR, choice);
             assert_le(choice, Choice.ABSTAIN);
         }
@@ -504,14 +506,14 @@ namespace Voting {
 
         let (no_voting_power) = uint256_eq(Uint256(0, 0), user_voting_power);
 
-        with_attr error_message("No voting power for user") {
+        with_attr error_message("Voting: No voting power for user") {
             assert no_voting_power = 0;
         }
 
         let (previous_voting_power) = Voting_vote_power_store.read(proposal_id, choice);
         let (new_voting_power, overflow) = uint256_add(user_voting_power, previous_voting_power);
 
-        with_attr error_message("Overflow in voting power") {
+        with_attr error_message("Voting: Overflow in voting power") {
             assert overflow = 0;
         }
 
@@ -578,7 +580,7 @@ namespace Voting {
         // Verify that the proposer has enough voting power to trigger a proposal
         let (threshold) = Voting_proposal_threshold_store.read();
         let (has_enough_vp) = uint256_le(threshold, voting_power);
-        with_attr error_message("Not enough voting power") {
+        with_attr error_message("Voting: Not enough voting power") {
             assert has_enough_vp = 1;
         }
 
@@ -635,12 +637,12 @@ namespace Voting {
         let (has_been_executed) = Voting_executed_proposals_store.read(proposal_id);
 
         // Make sure proposal has not already been executed
-        with_attr error_message("Proposal already executed") {
+        with_attr error_message("Voting: Proposal already executed") {
             assert has_been_executed = 0;
         }
 
         let (proposal) = Voting_proposal_registry_store.read(proposal_id);
-        with_attr error_message("Invalid proposal id") {
+        with_attr error_message("Voting: Invalid proposal id") {
             // Checks that the proposal id exists. If it doesn't exist, then the whole `Proposal` struct will
             // be set to 0, hence the snapshot timestamp will be set to 0 too.
             assert_not_zero(proposal.snapshot_timestamp);
@@ -648,13 +650,13 @@ namespace Voting {
 
         // Make sure proposal period has ended
         let (current_timestamp) = get_block_timestamp();
-        with_attr error_message("Min voting period has not elapsed") {
+        with_attr error_message("Voting: Min voting period has not elapsed") {
             assert_le(proposal.min_end_timestamp, current_timestamp);
         }
 
         // Make sure execution params match the ones sent at proposal creation by checking that the hashes match
         let (recovered_hash) = ArrayUtils.hash(execution_params_len, execution_params);
-        with_attr error_message("Invalid execution parameters") {
+        with_attr error_message("Voting: Invalid execution parameters") {
             assert recovered_hash = proposal.execution_hash;
         }
 
@@ -681,7 +683,7 @@ namespace Voting {
         if (overflow1 + overflow2 + is_lower_or_equal == 0) {
             let voting_period_has_ended = is_le(proposal.max_end_timestamp, current_timestamp + 1);
             if (voting_period_has_ended == FALSE) {
-                with_attr error_message("Quorum has not been reached") {
+                with_attr error_message("Voting: Quorum has not been reached") {
                     assert 1 = 0;
                     return ();
                 }
@@ -773,12 +775,12 @@ namespace Voting {
         let (has_been_executed) = Voting_executed_proposals_store.read(proposal_id);
 
         // Make sure proposal has not already been executed
-        with_attr error_message("Proposal already executed") {
+        with_attr error_message("Voting: Proposal already executed") {
             assert has_been_executed = 0;
         }
 
         let (proposal) = Voting_proposal_registry_store.read(proposal_id);
-        with_attr error_message("Invalid proposal id") {
+        with_attr error_message("Voting: Invalid proposal id") {
             // Checks that the proposal id exists. If it doesn't exist, then the whole `Proposal` struct will
             // be set to 0, hence the snapshot timestamp will be set to 0 too.
             assert_not_zero(proposal.snapshot_timestamp);
@@ -996,7 +998,7 @@ func _assert_valid_authenticator{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*,
     let (is_valid) = Voting_authenticators_store.read(caller_address);
 
     // Ensure it has been initialized
-    with_attr error_message("Invalid authenticator") {
+    with_attr error_message("Voting: Invalid authenticator") {
         assert_not_zero(is_valid);
     }
 
@@ -1009,7 +1011,7 @@ func _assert_valid_executor{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, rang
 ) {
     let (is_valid) = Voting_executors_store.read(executor);
 
-    with_attr error_message("Invalid executor") {
+    with_attr error_message("Voting: Invalid executor") {
         assert is_valid = 1;
     }
 
@@ -1040,7 +1042,8 @@ func _assert_no_active_proposal{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, 
     // the constructor initializes the nonce to 1.
     let latest_proposal = next_proposal - 1;
 
-    with_attr error_message("Some proposals are still active") {
+
+    with_attr error_message("Voting: Some proposals are still active") {
         _assert_no_active_proposal_recurse(latest_proposal);
     }
     return ();
@@ -1060,7 +1063,7 @@ func assert_no_duplicates{}(array_len: felt, array: felt*) {
 
         // If the element was found, we have found a duplicate.
         // Raise an error!
-        with_attr error_message("Duplicate entry found") {
+        with_attr error_message("Voting: Duplicate entry found") {
             assert found = FALSE;
         }
 
@@ -1115,7 +1118,7 @@ func _unchecked_get_cumulative_voting_power{
 
     let (strategy_address) = Voting_voting_strategies_store.read(strategy_index);
 
-    with_attr error_message("Invalid voting strategy") {
+    with_attr error_message("Voting: Invalid voting strategy") {
         assert_not_equal(strategy_address, 0);
     }
 
@@ -1155,7 +1158,7 @@ func _unchecked_get_cumulative_voting_power{
 
     let (voting_power, overflow) = uint256_add(user_voting_power, additional_voting_power);
 
-    with_attr error_message("Overflow while computing voting power") {
+    with_attr error_message("Voting: Overflow while computing voting power") {
         assert overflow = 0;
     }
 
@@ -1212,7 +1215,7 @@ func _execute_proposal_txs{
     alloc_locals;
 
     let (tx_info) = get_tx_info();
-    with_attr error_message("Account: invalid tx version") {
+    with_attr error_message("Voting: invalid tx version") {
         assert tx_info.version = 1;
     }
 

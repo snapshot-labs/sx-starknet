@@ -76,7 +76,7 @@ namespace SessionKey {
     }(r: felt, s: felt, salt: felt, session_public_key: felt) {
         alloc_locals;
         let (eth_address) = SessionKey_owner_store.read(session_public_key);
-        with_attr error_message("Session does not exist") {
+        with_attr error_message("SessionKey: Session does not exist") {
             assert_not_zero(eth_address);
         }
         StarkEIP191.verify_session_key_revoke_sig(r, s, salt, session_public_key);
@@ -93,7 +93,7 @@ namespace SessionKey {
     }(r: Uint256, s: Uint256, v: felt, salt: Uint256, session_public_key: felt) {
         alloc_locals;
         let (eth_address) = SessionKey_owner_store.read(session_public_key);
-        with_attr error_message("Session does not exist") {
+        with_attr error_message("SessionKey: Session does not exist") {
             assert_not_zero(eth_address);
         }
         EIP712.verify_session_key_revoke_sig(r, s, v, salt, eth_address, session_public_key);
@@ -106,7 +106,7 @@ namespace SessionKey {
     ) {
         alloc_locals;
         let (eth_address) = SessionKey_owner_store.read(session_public_key);
-        with_attr error_message("Session does not exist") {
+        with_attr error_message("SessionKey: Session does not exist") {
             assert_not_zero(eth_address);
         }
         let (commit_array: felt*) = alloc();
@@ -127,16 +127,27 @@ namespace SessionKey {
         session_public_key: felt
     ) -> (eth_address: felt) {
         let (eth_address) = SessionKey_owner_store.read(session_public_key);
-        with_attr error_message("Session does not exist") {
+        with_attr error_message("SessionKey: Session does not exist") {
             assert_not_zero(eth_address);
         }
 
         let (end_timestamp) = SessionKey_end_timestamp_store.read(session_public_key);
         let (current_timestamp) = get_block_timestamp();
-        with_attr error_message("Session has ended") {
+        with_attr error_message("SessionKey: Session has ended") {
             assert_le(current_timestamp, end_timestamp);
         }
         return (eth_address,);
+    }
+
+    // Checks that a session key exists and has an owner equal to _owner
+    func assert_valid{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_ptr}(
+        session_public_key: felt, _owner: felt
+    ) {
+        let (owner) = get_owner(session_public_key);
+        with_attr error_message("SessionKey: Invalid owner") {
+            assert _owner = owner;
+        }
+        return ();
     }
 }
 
@@ -150,7 +161,7 @@ func _register{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_ptr}(
     SessionKey_owner_store.write(session_public_key, eth_address);
     let (current_timestamp) = get_block_timestamp();
     let end_timestamp = current_timestamp + session_duration;
-    with_attr error_message("Overflow in Session duration, use smaller value") {
+    with_attr error_message("SessionKey: Overflow in Session duration") {
         assert_le(current_timestamp, end_timestamp);
     }
     SessionKey_end_timestamp_store.write(session_public_key, current_timestamp + session_duration);

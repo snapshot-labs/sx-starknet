@@ -14,7 +14,7 @@ func execute{syscall_ptr: felt*}(
     let (caller_address) = get_caller_address();
 
     // The execution parameters array has 3 elements
-    with_attr error_message("Invalid execution param array") {
+    with_attr error_message("EthRelayer: Invalid execution param array") {
         assert execution_params_len = 3;
     }
     let l1_destination_address = execution_params[0];
