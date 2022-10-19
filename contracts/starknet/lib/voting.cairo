@@ -10,19 +10,12 @@ from starkware.cairo.common.uint256 import Uint256, uint256_add, uint256_lt, uin
 from starkware.cairo.common.bool import TRUE, FALSE
 from starkware.cairo.common.hash_state import hash_init, hash_update
 from starkware.cairo.common.math_cmp import is_le
-from starkware.cairo.common.math import (
-    assert_lt,
-    assert_le,
-    assert_nn,
-    assert_nn_le,
-    assert_not_zero,
-    assert_lt_felt,
-    assert_not_equal,
-)
+from starkware.cairo.common.math import assert_lt, assert_le, assert_nn, assert_not_zero
 
 // OpenZeppelin
 from openzeppelin.access.ownable.library import Ownable
 from openzeppelin.account.library import Account, AccountCallArray, Call
+from openzeppelin.security.safemath.library import SafeUint256
 
 // Interfaces
 from contracts.starknet.Interfaces.IVotingStrategy import IVotingStrategy
@@ -486,8 +479,7 @@ namespace Voting {
 
         // Make sure `choice` is a valid choice
         with_attr error_message("Voting: Invalid choice") {
-            assert_le(Choice.FOR, choice);
-            assert_le(choice, Choice.ABSTAIN);
+            assert (choice - Choice.ABSTAIN) * (choice - Choice.FOR) * (choice - Choice.AGAINST) = 0;
         }
 
         // Reconstruct the voting params 2D array (1 sub array per strategy) from the flattened version.
@@ -505,20 +497,16 @@ namespace Voting {
         );
 
         let (no_voting_power) = uint256_eq(Uint256(0, 0), user_voting_power);
-
         with_attr error_message("Voting: No voting power for user") {
             assert no_voting_power = 0;
         }
 
         let (previous_voting_power) = Voting_vote_power_store.read(proposal_id, choice);
-        let (new_voting_power, overflow) = uint256_add(user_voting_power, previous_voting_power);
-
         with_attr error_message("Voting: Overflow in voting power") {
-            assert overflow = 0;
+            let (new_voting_power) = SafeUint256.add(user_voting_power, previous_voting_power);
         }
 
         Voting_vote_power_store.write(proposal_id, choice, new_voting_power);
-
         Voting_vote_registry_store.write(proposal_id, voter_address, 1);
 
         // Emit event
@@ -696,6 +684,7 @@ namespace Voting {
             }
         } else {
             // Quorum has been reached: set proposal outcome accordingly
+            // Note: The proposal is rejected if for and against votes are equal.
             let (has_passed) = uint256_lt(against, for);
 
             if (has_passed == 1) {
@@ -1117,7 +1106,7 @@ func unchecked_get_cumulative_voting_power{
     let (strategy_address) = Voting_voting_strategies_store.read(strategy_index);
 
     with_attr error_message("Voting: Invalid voting strategy") {
-        assert_not_equal(strategy_address, 0);
+        assert_not_zero(strategy_address);
     }
 
     // Extract voting params array for the voting strategy specified by the index
@@ -1190,7 +1179,7 @@ func get_voting_strategy_params{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, 
 func decode_execution_params{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_ptr}(
     execution_params_len: felt, execution_params: felt*
 ) -> (call_array_len: felt, call_array: AccountCallArray*, calldata_len: felt, calldata: felt*) {
-    assert_nn_le(4, execution_params_len);  // Min execution params length is 4 (corresponding to 1 tx with no calldata)
+    assert_le(4, execution_params_len);  // Min execution params length is 4 (corresponding to 1 tx with no calldata)
     let call_array_len = (execution_params[0] - 1) / 4;  // Number of calls in the proposal payload
     let call_array = cast(&execution_params[1], AccountCallArray*);
     let calldata_len = execution_params_len - execution_params[0];
