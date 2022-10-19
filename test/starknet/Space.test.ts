@@ -133,7 +133,7 @@ describe('Space Testing', () => {
         ),
       });
     } catch (error: any) {
-      expect(error.message).to.contain('Invalid voting strategy');
+      expect(error.message).to.contain('Voting: Invalid voting strategy');
     }
   }).timeout(6000000);
 
@@ -161,7 +161,7 @@ describe('Space Testing', () => {
           calldata: duplicateCalldata,
         });
       } catch (error: any) {
-        expect(error.message).to.contain('Duplicate entry found');
+        expect(error.message).to.contain('Voting: Duplicate entry found');
       }
     }
   }).timeout(6000000);
@@ -253,7 +253,7 @@ describe('Space Testing', () => {
         execution_params: executionParams,
       });
     } catch (error: any) {
-      expect(error.message).to.contain('Quorum has not been reached');
+      expect(error.message).to.contain('Voting: Quorum has not been reached');
     }
   });
 
@@ -270,7 +270,7 @@ describe('Space Testing', () => {
         execution_params: executionParams,
       });
     } catch (error: any) {
-      expect(error.message).to.contain('Proposal was rejected');
+      expect(error.message).to.contain('TestExecutionStrategy: Proposal was rejected');
     }
   });
 
@@ -280,7 +280,7 @@ describe('Space Testing', () => {
         proposal_id: 42,
       });
     } catch (error: any) {
-      expect(error.message).to.contain('Proposal does not exist');
+      expect(error.message).to.contain('Voting: Proposal does not exist');
     }
   }).timeout(6000000);
 });

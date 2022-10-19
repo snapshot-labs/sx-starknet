@@ -76,7 +76,7 @@ namespace EIP712 {
         // Ensure voter has not already used this salt in a previous action
         let (already_used) = EIP712_salts.read(voter_address, salt);
 
-        with_attr error_message("Salt already used") {
+        with_attr error_message("EIP712: Salt already used") {
             assert already_used = 0;
         }
 
@@ -174,7 +174,7 @@ namespace EIP712 {
         // Ensure proposer has not already used this salt in a previous action
         let (already_used) = EIP712_salts.read(proposer_address, salt);
 
-        with_attr error_message("Salt already used") {
+        with_attr error_message("EIP712: Salt already used") {
             assert already_used = 0;
         }
 
@@ -285,7 +285,7 @@ namespace EIP712 {
 
         // Ensure user has not already used this salt in a previous action
         let (already_used) = EIP712_salts.read(eth_address, salt);
-        with_attr error_message("Salt already used") {
+        with_attr error_message("EIP712: Salt already used") {
             assert already_used = 0;
         }
 
@@ -354,7 +354,7 @@ namespace EIP712 {
 
         // Ensure user has not already used this salt in a previous action
         let (already_used) = EIP712_salts.read(eth_address, salt);
-        with_attr error_message("Salt already used") {
+        with_attr error_message("EIP712: Salt already used") {
             assert already_used = 0;
         }
 
@@ -495,7 +495,7 @@ func _u256_pow{range_check_ptr}(base: felt, exp: felt) -> (res: Uint256) {
         // Multiply the result by `base`
         let (res, overflow) = uint256_mul(recursion, uint256_base);
 
-        with_attr error_message("Overflow happened") {
+        with_attr error_message("EIP712: Overflow happened") {
             let (no_overflow) = uint256_eq(overflow, Uint256(0, 0));
             assert no_overflow = 1;
         }
@@ -526,7 +526,7 @@ func _pad_right{range_check_ptr}(num: Uint256) -> (res: Uint256) {
     // Left shift
     let (low, high) = uint256_mul(num, power_16);
 
-    with_attr error_message("overflow?") {
+    with_attr error_message("EIP712: Overflow happened") {
         assert high.low = 0;
         assert high.high = 0;
     }

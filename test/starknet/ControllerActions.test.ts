@@ -86,7 +86,7 @@ describe('Controller Actions', () => {
       });
       throw { message: "voting strategy wasn't removed" };
     } catch (error: any) {
-      expect(error.message).to.contain('Invalid voting strategy');
+      expect(error.message).to.contain('Voting: Invalid voting strategy');
     }
 
     // Ensure that `address` can propose (we added the whitelist strategy)
@@ -222,7 +222,7 @@ describe('Controller Actions', () => {
       });
       throw { message: "execution strategy wasn't removed" };
     } catch (error: any) {
-      expect(error.message).to.contain('Invalid executor');
+      expect(error.message).to.contain('Voting: Invalid executor');
     }
 
     const correctProposeCalldata = getProposeCalldata(
@@ -300,7 +300,7 @@ describe('Controller Actions', () => {
       });
       throw { message: 'quorum has not been updated' };
     } catch (error: any) {
-      expect(error.message).to.contain('Quorum has not been reached');
+      expect(error.message).to.contain('Voting: Quorum has not been reached');
     }
 
     const user2VoteCalldata = getVoteCalldata(
@@ -368,7 +368,7 @@ describe('Controller Actions', () => {
       });
       throw { message: 'voting delay has not been updated' };
     } catch (error: any) {
-      expect(error.message).to.contain('Voting has not started yet');
+      expect(error.message).to.contain('Voting: Voting has not started yet');
     }
 
     // Fast forward to end of voting delay
@@ -446,7 +446,7 @@ describe('Controller Actions', () => {
       });
       throw { message: 'min voting duration has not been updated' };
     } catch (error: any) {
-      expect(error.message).to.contain('Min voting period has not elapsed');
+      expect(error.message).to.contain('Voting: Min voting period has not elapsed');
     }
 
     // Fast forward in time
@@ -534,7 +534,7 @@ describe('Controller Actions', () => {
       });
       throw { message: 'max voting duration has not been updated' };
     } catch (error: any) {
-      expect(error.message).to.contain('Voting period has ended');
+      expect(error.message).to.contain('Voting: Voting period has ended');
     }
 
     await controller.invoke(space, 'finalize_proposal', {
@@ -598,7 +598,7 @@ describe('Controller Actions', () => {
       });
       throw { message: 'proposal threshold not checked properly' };
     } catch (error: any) {
-      expect(error.message).to.contain('Not enough voting power');
+      expect(error.message).to.contain('Voting: Not enough voting power');
     }
 
     const userProposeCalldata = getProposeCalldata(

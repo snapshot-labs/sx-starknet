@@ -107,7 +107,7 @@ describe('Whitelist testing', () => {
         calldata: proposeCalldata2,
       });
     } catch (err: any) {
-      expect(err.message).to.contain('Invalid executor');
+      expect(err.message).to.contain('Voting: Invalid executor');
     }
   }).timeout(1000000);
 
@@ -142,7 +142,7 @@ describe('Whitelist testing', () => {
         calldata: proposeCalldata1,
       });
     } catch (err: any) {
-      expect(err.message).to.contain('Invalid executor');
+      expect(err.message).to.contain('Voting: Invalid executor');
     }
   }).timeout(1000000);
 

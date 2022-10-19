@@ -4,7 +4,7 @@
 
 // from starkware.cairo.common.cairo_builtins import HashBuiltin, BitwiseBuiltin
 // from starkware.cairo.common.uint256 import Uint256, uint256_add
-// from starkware.cairo.common.math import unsigned_div_rem, assert_nn_le
+// from starkware.cairo.common.math import unsigned_div_rem, assert_le
 
 // from contracts.starknet.fossil.contracts.starknet.types import StorageSlot
 // from contracts.starknet.lib.general_address import Address
@@ -89,7 +89,7 @@
 //         let (slot_uint256) = FeltUtils.words_to_uint256(
 //             slot.word_1, slot.word_2, slot.word_3, slot.word_4
 //         );
-//         with_attr error_message("Invalid slot proof provided") {
+//         with_attr error_message("SingleSlotProof: Invalid slot proof provided") {
 //             assert valid_slot = slot_uint256;
 //         }
 
@@ -122,7 +122,7 @@
 //     proofs_concat_len: felt,
 //     proofs_concat: felt*,
 // ) {
-//     assert_nn_le(5, param_array_len);
+//     assert_le(5, param_array_len);
 //     let slot: StorageSlot = StorageSlot(
 //         param_array[0], param_array[1], param_array[2], param_array[3]
 //     );
@@ -133,8 +133,6 @@
 //     let proof_sizes_words = param_array + 5 + num_nodes;
 //     let proofs_concat = param_array + 5 + 2 * num_nodes;
 //     let proofs_concat_len = param_array_len - 5 - 2 * num_nodes;
-//     // Could add check by summing proof_sizes_words array and checking that it is equal to proofs_concat_len
-//     // However this seems like unnecessary computation to do on-chain (proofs will fail if invalid params are sent anyway)
 //     return (
 //         slot,
 //         proof_sizes_bytes_len,

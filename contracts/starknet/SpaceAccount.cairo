@@ -216,10 +216,10 @@ func cancel_proposal{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check
 //
 
 @view
-func get_vote_info{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_ptr: felt}(
-    voter_address: Address, proposal_id: felt
-) -> (vote: Vote) {
-    return Voting.get_vote_info(voter_address, proposal_id);
+func has_voted{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_ptr: felt}(
+    proposal_id: felt, voter_address: Address
+) -> (voted: felt) {
+    return Voting.has_voted(proposal_id, voter_address);
 }
 
 @view

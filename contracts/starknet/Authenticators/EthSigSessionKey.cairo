@@ -1,9 +1,7 @@
 %lang starknet
 
-from starkware.starknet.common.syscalls import get_block_timestamp
 from starkware.cairo.common.cairo_builtins import HashBuiltin, SignatureBuiltin, BitwiseBuiltin
 from starkware.cairo.common.uint256 import Uint256
-from starkware.cairo.common.math import split_felt, assert_le, assert_not_zero
 from starkware.cairo.common.cairo_keccak.keccak import (
     keccak_add_uint256s,
     keccak_bigend,
@@ -34,13 +32,8 @@ func authenticate{
     calldata: felt*,
     session_public_key: felt,
 ) {
-    // Check session key is active
-    let (eth_address) = SessionKey.get_owner(session_public_key);
-
-    // Check user's address is equal to the owner of the session key
-    with_attr error_message("Invalid Ethereum address") {
-        assert calldata[0] = eth_address;
-    }
+    let eth_address = calldata[0];
+    SessionKey.assert_valid(session_public_key, eth_address);
 
     // Check signature with session key
     if (function_selector == PROPOSAL_SELECTOR) {

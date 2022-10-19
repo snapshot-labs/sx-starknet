@@ -13,7 +13,7 @@ func Timestamp_l1_headers_store() -> (res: felt) {
 }
 
 @storage_var
-func Timestamp_timestamp_to_eth_block_number(timestamp: felt) -> (number: felt) {
+func Timestamp_timestamp_to_eth_block_number_store(timestamp: felt) -> (number: felt) {
 }
 
 namespace Timestamp {
@@ -27,7 +27,7 @@ namespace Timestamp {
     func get_eth_block_number{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_ptr}(
         timestamp: felt
     ) -> (number: felt) {
-        let (number) = Timestamp_timestamp_to_eth_block_number.read(timestamp);
+        let (number) = Timestamp_timestamp_to_eth_block_number_store.read(timestamp);
         if (number != 0) {
             // The timestamp has already be queried in fossil and stored. Therefore we can just return the stored value
             // This branch will be taken whenever a vote is cast as the mapping value would be set at proposal creation.
@@ -39,7 +39,7 @@ namespace Timestamp {
             // being created in the same block.
             let (l1_headers_store_address) = Timestamp_l1_headers_store.read();
             let (number) = IL1HeadersStore.get_latest_l1_block(l1_headers_store_address);
-            Timestamp_timestamp_to_eth_block_number.write(timestamp, number);
+            Timestamp_timestamp_to_eth_block_number_store.write(timestamp, number);
             return (number,);
         }
     }

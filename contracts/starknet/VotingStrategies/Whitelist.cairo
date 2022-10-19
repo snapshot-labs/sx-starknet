@@ -45,7 +45,7 @@ func register_whitelist{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_ch
         // Add it to the whitelist
         let voting_power = Uint256(_whitelist[1], _whitelist[2]);
 
-        with_attr error_message("Invalid uin256") {
+        with_attr error_message("Whitelist: Invalid uint256 for voting power") {
             uint256_check(voting_power);
         }
 
