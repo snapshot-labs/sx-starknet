@@ -1,7 +1,7 @@
 import { expect } from 'chai';
 import { StarknetContract, Account } from 'hardhat/types';
 import { ec, typedData, hash, Signer } from 'starknet';
-import { ethers } from 'hardhat';
+import { ethers, starknet } from 'hardhat';
 import {
   domain,
   SessionKey,
@@ -552,11 +552,11 @@ describe('Ethereum Signature Session Key Auth testing', () => {
     }
   }).timeout(6000000);
 
-  it('Should fail if overflow occurs on the session duration', async () => {
+  it('Should fail if overflow occurs when calculating the session end timestamp session duration', async () => {
     const salt: utils.splitUint256.SplitUint256 = utils.splitUint256.SplitUint256.fromHex(
       ethers.utils.hexlify(ethers.utils.randomBytes(4))
     );
-    sessionDuration = '0xffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff';
+    sessionDuration = '0xfffffffffffffffffffffffffffffffffffffffffffffff'; // Greater than RANGE_CHECK_BOUND
     const message: SessionKey = {
       address: account.address,
       sessionPublicKey: utils.encoding.hexPadRight(sessionPublicKey),
@@ -578,7 +578,7 @@ describe('Ethereum Signature Session Key Auth testing', () => {
       });
       throw { message: '' };
     } catch (err: any) {
-      expect(err.message).to.contain('SessionKey: Overflow in Session duration');
+      expect(err.message).to.contain('SessionKey: Invalid session duration');
     }
   }).timeout(6000000);
 });
