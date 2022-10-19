@@ -1037,29 +1037,6 @@ func _assert_no_active_proposal{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, 
     return ();
 }
 
-// Asserts that the array does not contain any duplicates.
-// O(N^2) as it loops over each element N times.
-func assert_no_duplicates{}(array_len: felt, array: felt*) {
-    if (array_len == 0) {
-        return ();
-    } else {
-        let to_find = array[0];
-
-        // For each element in the array, try to find
-        // this element in the rest of the array
-        let (found) = ArrayUtils.find(to_find, array_len - 1, &array[1]);
-
-        // If the element was found, we have found a duplicate.
-        // Raise an error!
-        with_attr error_message("Voting: Duplicate entry found") {
-            assert found = FALSE;
-        }
-
-        assert_no_duplicates(array_len - 1, &array[1]);
-        return ();
-    }
-}
-
 // Computes the cumulated voting power of a user by iterating over the voting strategies of `used_voting_strategies`.
 // TODO: In the future we will need to transition to an array of `voter_address` because they might be different for different voting strategies.
 func _get_cumulative_voting_power{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_ptr}(
@@ -1071,7 +1048,7 @@ func _get_cumulative_voting_power{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*
     index: felt,
 ) -> (voting_power: Uint256) {
     // Make sure there are no duplicates to avoid an attack where people double count a voting strategy
-    assert_no_duplicates(used_voting_strategies_len, used_voting_strategies);
+    ArrayUtils.assert_no_duplicates(used_voting_strategies_len, used_voting_strategies);
 
     return _unchecked_get_cumulative_voting_power(
         current_timestamp,
