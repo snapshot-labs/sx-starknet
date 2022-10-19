@@ -458,7 +458,7 @@ namespace Voting {
 
         let (proposal) = Voting_proposal_registry_store.read(proposal_id);
 
-        // Unpacking the the timestamps from the packed value
+        // Unpacking the timestamps from the packed value
         let (
             snapshot_timestamp, start_timestamp, min_end_timestamp, max_end_timestamp
         ) = FeltUtils.unpack_4_32_bit(proposal.timestamps);

@@ -1,7 +1,9 @@
 from starkware.cairo.common.cairo_builtins import BitwiseBuiltin
-from starkware.cairo.common.math import unsigned_div_rem, split_felt, assert_lt
+from starkware.cairo.common.math import unsigned_div_rem, split_felt, assert_nn_le
 from starkware.cairo.common.bitwise import bitwise_and
 from starkware.cairo.common.uint256 import Uint256
+
+const MAX_32 = 2 ** 32 - 1;
 
 const SHIFT_32 = 2 ** 32;
 const SHIFT_64 = 2 ** 64;
@@ -34,10 +36,10 @@ namespace FeltUtils {
         packed_felt: felt
     ) {
         with_attr error_message("FeltUtils: number too big to be packed") {
-            assert_lt(num1, SHIFT_32);
-            assert_lt(num2, SHIFT_32);
-            assert_lt(num3, SHIFT_32);
-            assert_lt(num4, SHIFT_32);
+            assert_nn_le(num1, MAX_32);
+            assert_nn_le(num2, MAX_32);
+            assert_nn_le(num3, MAX_32);
+            assert_nn_le(num4, MAX_32);
         }
         let packed_felt = num4 + num3 * SHIFT_32 + num2 * SHIFT_64 + num1 * SHIFT_96;
         return (packed_felt,);
