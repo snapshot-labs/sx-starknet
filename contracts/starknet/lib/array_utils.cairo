@@ -45,7 +45,7 @@ namespace ArrayUtils {
 
             // If the element was found, we have found a duplicate.
             // Raise an error!
-            with_attr error_message("Duplicate entry found") {
+            with_attr error_message("ArrayUtils: Duplicate entry found") {
                 assert found = FALSE;
             }
 
