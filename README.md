@@ -24,7 +24,6 @@ contracts
 │   │  ├─ Vanilla.cairo — "Dummy execution"
 │   │  └─ EthRelayer.cairo — "Strategy to execute proposal transactions on Ethereum"
 │   ├─ Interfaces
-│   │  ├─ IAuthenticator.cairo — "Interface for all authenticators"
 │   │  ├─ IExecutionStrategy.cairo — "Interface for all execution strategies"
 │   │  ├─ IVotingStrategy.cairo — "Interface for all voting strategies"
 │   │  ├─ ISpaceAccount.cairo — "Interface for the space contract"
