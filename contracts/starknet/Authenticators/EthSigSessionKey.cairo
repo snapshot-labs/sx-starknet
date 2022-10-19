@@ -28,7 +28,7 @@ const PROPOSAL_SELECTOR = 0x1bfd596ae442867ef71ca523061610682af8b00fc2738329422f
 // getSelectorFromName("vote")
 const VOTE_SELECTOR = 0x132bdf85fc8aa10ac3c22f02317f8f53d4b4f52235ed1eabb3a4cbbe08b5c41;
 
-// @dev Authentication of an action (vote or propose) via an StarkNet session key signature
+// @dev Authentication of an action (vote or propose) via a StarkNet session key signature
 // @param r Signature parameter
 // @param s Signature parameter
 // @param salt Signature salt
