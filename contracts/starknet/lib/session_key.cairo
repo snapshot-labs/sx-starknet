@@ -151,6 +151,10 @@ namespace SessionKey {
     }
 }
 
+//
+//  Private Functions
+//
+
 func _register{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_ptr}(
     eth_address: felt, session_public_key: felt, session_duration: felt
 ) {
