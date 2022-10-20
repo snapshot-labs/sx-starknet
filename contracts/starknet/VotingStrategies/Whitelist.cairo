@@ -5,8 +5,8 @@
 from starkware.cairo.common.uint256 import Uint256
 from starkware.cairo.common.cairo_builtins import HashBuiltin
 
+from contracts.starknet.lib.math_utils import MathUtils
 from contracts.starknet.lib.general_address import Address
-from contracts.starknet.lib.uint256_utils import Uint256Utils
 
 //
 // @title Whitelist Voting Strategy
@@ -69,7 +69,7 @@ func _register_whitelist{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_c
         // Add it to the whitelist
         let voting_power = Uint256(_whitelist[1], _whitelist[2]);
 
-        Uint256Utils.assert_valid_uint256(voting_power);
+        MathUtils.assert_valid_uint256(voting_power);
 
         whitelist.write(address, voting_power);
         whitelisted.emit(address, voting_power);

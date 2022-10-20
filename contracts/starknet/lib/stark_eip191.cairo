@@ -8,7 +8,7 @@ from starkware.cairo.common.math import assert_not_zero
 from starkware.cairo.common.alloc import alloc
 from starkware.cairo.common.signature import verify_ecdsa_signature
 
-from contracts.starknet.lib.felt_utils import FeltUtils
+from contracts.starknet.lib.math_utils import MathUtils
 from contracts.starknet.lib.array_utils import ArrayUtils
 
 //
@@ -81,7 +81,7 @@ namespace StarkEIP191 {
 
         // Execution strategy
         let execution_strategy = calldata[3 + metadata_uri_len];
-        let (execution_strategy_u256) = FeltUtils.felt_to_uint256(execution_strategy);
+        let (execution_strategy_u256) = MathUtils.felt_to_uint256(execution_strategy);
 
         // Used voting strategies
         let used_voting_strats_len = calldata[4 + metadata_uri_len];

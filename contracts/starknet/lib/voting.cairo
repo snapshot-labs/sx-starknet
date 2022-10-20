@@ -24,8 +24,7 @@ from contracts.starknet.lib.vote import Vote
 from contracts.starknet.lib.choice import Choice
 from contracts.starknet.lib.proposal_outcome import ProposalOutcome
 from contracts.starknet.lib.array_utils import ArrayUtils, Immutable2DArray
-from contracts.starknet.lib.felt_utils import FeltUtils
-from contracts.starknet.lib.uint256_utils import Uint256Utils
+from contracts.starknet.lib.math_utils import MathUtils
 
 //
 // @title Snapshot X Voting Library
@@ -206,8 +205,8 @@ namespace Voting {
             assert_not_zero(voting_strategies_len);
             assert_not_zero(authenticators_len);
             assert_not_zero(execution_strategies_len);
-            Uint256Utils.assert_valid_uint256(proposal_threshold);
-            Uint256Utils.assert_valid_uint256(quorum);
+            MathUtils.assert_valid_uint256(proposal_threshold);
+            MathUtils.assert_valid_uint256(quorum);
         }
 
         // Initialize the storage variables
@@ -255,7 +254,7 @@ namespace Voting {
         new_quorum: Uint256
     ) {
         Ownable.assert_only_owner();
-        Uint256Utils.assert_valid_uint256(new_quorum);
+        MathUtils.assert_valid_uint256(new_quorum);
         let (previous_quorum) = Voting_quorum_store.read();
         Voting_quorum_store.write(new_quorum);
         quorum_updated.emit(previous_quorum, new_quorum);
@@ -314,7 +313,7 @@ namespace Voting {
         syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_ptr: felt
     }(new_proposal_threshold: Uint256) {
         Ownable.assert_only_owner();
-        Uint256Utils.assert_valid_uint256(new_proposal_threshold);
+        MathUtils.assert_valid_uint256(new_proposal_threshold);
         let (previous_proposal_threshold) = Voting_proposal_threshold_store.read();
         Voting_proposal_threshold_store.write(new_proposal_threshold);
         proposal_threshold_updated.emit(previous_proposal_threshold, new_proposal_threshold);
@@ -449,7 +448,7 @@ namespace Voting {
         // Unpacking the timestamps from the packed value
         let (
             snapshot_timestamp, start_timestamp, min_end_timestamp, max_end_timestamp
-        ) = FeltUtils.unpack_4_32_bit(proposal.timestamps);
+        ) = MathUtils.unpack_4_32_bit(proposal.timestamps);
 
         with_attr error_message("Voting: Proposal does not exist") {
             // Asserting start timestamp is not zero because start timestamp
@@ -583,7 +582,7 @@ namespace Voting {
         let (quorum) = Voting_quorum_store.read();
 
         // Packing the timestamps into a single felt to reduce storage usage
-        let (packed_timestamps) = FeltUtils.pack_4_32_bit(
+        let (packed_timestamps) = MathUtils.pack_4_32_bit(
             snapshot_timestamp, start_timestamp, min_end_timestamp, max_end_timestamp
         );
 
@@ -637,7 +636,7 @@ namespace Voting {
         // Unpacking the the timestamps from the packed value
         let (
             snapshot_timestamp, start_timestamp, min_end_timestamp, max_end_timestamp
-        ) = FeltUtils.unpack_4_32_bit(proposal.timestamps);
+        ) = MathUtils.unpack_4_32_bit(proposal.timestamps);
 
         with_attr error_message("Voting: Invalid proposal id") {
             // Checks that the proposal id exists. If it doesn't exist, then the whole `Proposal` struct will

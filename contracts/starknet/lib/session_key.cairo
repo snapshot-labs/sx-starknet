@@ -12,7 +12,6 @@ from contracts.starknet.lib.stark_eip191 import StarkEIP191
 from contracts.starknet.lib.eip712 import EIP712
 from contracts.starknet.lib.eth_tx import EthTx
 from contracts.starknet.lib.array_utils import ArrayUtils
-from contracts.starknet.lib.uint256_utils import Uint256Utils
 
 //
 // @title Session Key Library
@@ -63,7 +62,7 @@ namespace SessionKey {
     ) {
         alloc_locals;
 
-        EIP712.verify_session_key_init_sig(
+        EIP712.verify_session_key_auth_sig(
             r, s, v, salt, eth_address, session_public_key, session_duration
         );
         _register(eth_address, session_public_key, session_duration);

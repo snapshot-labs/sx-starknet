@@ -71,26 +71,6 @@ describe('Array Utilities', () => {
     expect('0x' + hash2.toString(16)).to.deep.equal(computeHashOnElements([]));
   }).timeout(600000);
 
-  it('The library should be able to find a value in an array', async () => {
-    const { found: found } = await testArrayUtils.call('test_find_in_array', {
-      to_find: 1,
-      array: [1, 2, 3, 4],
-    });
-    expect(found).to.deep.equal(BigInt(1));
-
-    const { found: found2 } = await testArrayUtils.call('test_find_in_array', {
-      to_find: 7,
-      array: [1, 2, 3, 4],
-    });
-    expect(found2).to.deep.equal(BigInt(0));
-
-    const { found: found3 } = await testArrayUtils.call('test_find_in_array', {
-      to_find: 1,
-      array: [],
-    });
-    expect(found3).to.deep.equal(BigInt(0));
-  }).timeout(600000);
-
   it('The library should be able to assert whether duplicates exist in an array', async () => {
     await testArrayUtils.call('test_assert_no_duplicates', {
       array: [1, 2, 3, 4],
