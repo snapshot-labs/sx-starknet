@@ -12,6 +12,7 @@ from contracts.starknet.lib.stark_eip191 import StarkEIP191
 from contracts.starknet.lib.eip712 import EIP712
 from contracts.starknet.lib.eth_tx import EthTx
 from contracts.starknet.lib.array_utils import ArrayUtils
+from contracts.starknet.lib.uint256_utils import Uint256Utils
 
 //
 // @title Session Key Library
@@ -61,7 +62,8 @@ namespace SessionKey {
         session_duration: felt,
     ) {
         alloc_locals;
-        EIP712.verify_session_key_auth_sig(
+
+        EIP712.verify_session_key_init_sig(
             r, s, v, salt, eth_address, session_public_key, session_duration
         );
         _register(eth_address, session_public_key, session_duration);
@@ -125,6 +127,7 @@ namespace SessionKey {
         ecdsa_ptr: SignatureBuiltin*,
     }(r: Uint256, s: Uint256, v: felt, salt: Uint256, session_public_key: felt) {
         alloc_locals;
+
         let (eth_address) = SessionKey_owner_store.read(session_public_key);
         with_attr error_message("SessionKey: Session does not exist") {
             assert_not_zero(eth_address);
@@ -192,7 +195,7 @@ namespace SessionKey {
 }
 
 //
-//  Private Functions
+//  Internal Functions
 //
 
 func _register{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_ptr}(

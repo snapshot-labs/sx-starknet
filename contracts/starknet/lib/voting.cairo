@@ -25,6 +25,7 @@ from contracts.starknet.lib.choice import Choice
 from contracts.starknet.lib.proposal_outcome import ProposalOutcome
 from contracts.starknet.lib.array_utils import ArrayUtils, Immutable2DArray
 from contracts.starknet.lib.felt_utils import FeltUtils
+from contracts.starknet.lib.uint256_utils import Uint256Utils
 
 //
 // @title Snapshot X Voting Library
@@ -205,8 +206,9 @@ namespace Voting {
             assert_not_zero(voting_strategies_len);
             assert_not_zero(authenticators_len);
             assert_not_zero(execution_strategies_len);
+            Uint256Utils.assert_valid_uint256(proposal_threshold);
+            Uint256Utils.assert_valid_uint256(quorum);
         }
-        // TODO: maybe use uint256_signed_nn to check proposal_threshold?
 
         // Initialize the storage variables
         Voting_voting_delay_store.write(voting_delay);
@@ -253,6 +255,7 @@ namespace Voting {
         new_quorum: Uint256
     ) {
         Ownable.assert_only_owner();
+        Uint256Utils.assert_valid_uint256(new_quorum);
         let (previous_quorum) = Voting_quorum_store.read();
         Voting_quorum_store.write(new_quorum);
         quorum_updated.emit(previous_quorum, new_quorum);
@@ -311,6 +314,7 @@ namespace Voting {
         syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_ptr: felt
     }(new_proposal_threshold: Uint256) {
         Ownable.assert_only_owner();
+        Uint256Utils.assert_valid_uint256(new_proposal_threshold);
         let (previous_proposal_threshold) = Voting_proposal_threshold_store.read();
         Voting_proposal_threshold_store.write(new_proposal_threshold);
         proposal_threshold_updated.emit(previous_proposal_threshold, new_proposal_threshold);
