@@ -20,3 +20,19 @@ func testHashArray{range_check_ptr, pedersen_ptr: HashBuiltin*}(array_len: felt,
     let (hash) = ArrayUtils.hash(array_len, array);
     return (hash,);
 }
+
+@view
+func test_find_in_array{range_check_ptr, pedersen_ptr: HashBuiltin*}(
+    to_find: felt, array_len: felt, array: felt*
+) -> (found: felt) {
+    let (found) = ArrayUtils.find(to_find, array_len, array);
+    return (found,);
+}
+
+@view
+func test_assert_no_duplicates{range_check_ptr, pedersen_ptr: HashBuiltin*}(
+    array_len: felt, array: felt*
+) {
+    ArrayUtils.assert_no_duplicates(array_len, array);
+    return ();
+}

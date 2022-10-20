@@ -33,6 +33,29 @@ namespace ArrayUtils {
         }
     }
 
+    // Asserts that the array does not contain any duplicates.
+    // O(N^2) as it loops over each element N times.
+    func assert_no_duplicates{}(array_len: felt, array: felt*) {
+        if (array_len == 0) {
+            return ();
+        } else {
+            let to_find = array[0];
+
+            // For each element in the array, try to find
+            // this element in the rest of the array
+            let (found) = find(to_find, array_len - 1, &array[1]);
+
+            // If the element was found, we have found a duplicate.
+            // Raise an error!
+            with_attr error_message("ArrayUtils: Duplicate entry found") {
+                assert found = FALSE;
+            }
+
+            assert_no_duplicates(array_len - 1, &array[1]);
+            return ();
+        }
+    }
+
     // Construct an Immutable2D array from a flat encoding.
     // The structure of the flat array that is passed should be as follows:
     // flat_array[0] = num_arrays

@@ -2,10 +2,8 @@
 
 %lang starknet
 
-from starkware.starknet.common.syscalls import get_block_timestamp
 from starkware.cairo.common.cairo_builtins import HashBuiltin, SignatureBuiltin, BitwiseBuiltin
 from starkware.cairo.common.uint256 import Uint256
-from starkware.cairo.common.math import split_felt, assert_le, assert_not_zero
 from starkware.cairo.common.cairo_keccak.keccak import (
     keccak_add_uint256s,
     keccak_bigend,

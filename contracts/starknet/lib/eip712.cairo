@@ -441,6 +441,10 @@ namespace EIP712 {
     }
 }
 
+//
+//  Private Functions
+//
+
 // Adds a 2 bytes (16 bits) `prefix` to a 16 bytes (128 bits) `value`.
 func _add_prefix128{range_check_ptr, bitwise_ptr: BitwiseBuiltin*}(value: felt, prefix: felt) -> (
     result: felt, carry: felt

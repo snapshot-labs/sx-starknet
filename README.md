@@ -24,9 +24,10 @@ contracts
 │   │  ├─ Vanilla.cairo — "Dummy execution"
 │   │  └─ EthRelayer.cairo — "Strategy to execute proposal transactions on Ethereum"
 │   ├─ Interfaces
-│   │  ├─ IAuthenticator.cairo — "Interface for all authenticators"
 │   │  ├─ IExecutionStrategy.cairo — "Interface for all execution strategies"
-│   │  └─ IVotingStrategy.cairo — "Interface for all voting strategies"
+│   │  ├─ IVotingStrategy.cairo — "Interface for all voting strategies"
+│   │  ├─ ISpaceAccount.cairo — "Interface for the space contract"
+│   │  └─ ISpaceFactory.cairo — "Interface for the space factory"
 │   ├─ lib
 │   │  ├─ array_utils.cairo — "Library for various array utilities"
 │   │  ├─ choice.cairo — "The set of choices one can make for a vote"

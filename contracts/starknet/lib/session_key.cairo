@@ -5,7 +5,7 @@
 from starkware.starknet.common.syscalls import get_block_timestamp
 from starkware.cairo.common.uint256 import Uint256
 from starkware.cairo.common.cairo_builtins import HashBuiltin, SignatureBuiltin, BitwiseBuiltin
-from starkware.cairo.common.math import assert_le, assert_not_zero
+from starkware.cairo.common.math import assert_lt, assert_not_zero, assert_nn_le
 from starkware.cairo.common.alloc import alloc
 
 from contracts.starknet.lib.stark_eip191 import StarkEIP191
@@ -172,7 +172,7 @@ namespace SessionKey {
         let (end_timestamp) = SessionKey_end_timestamp_store.read(session_public_key);
         let (current_timestamp) = get_block_timestamp();
         with_attr error_message("SessionKey: Session has ended") {
-            assert_le(current_timestamp, end_timestamp);
+            assert_lt(current_timestamp, end_timestamp);
         }
         return (owner,);
     }
@@ -191,16 +191,22 @@ namespace SessionKey {
     }
 }
 
+//
+//  Private Functions
+//
+
 func _register{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_ptr}(
     eth_address: felt, session_public_key: felt, session_duration: felt
 ) {
-    SessionKey_owner_store.write(session_public_key, eth_address);
+    // It is valid to give a session duration of zero - if so it means the session is only valid during the same block as when it was registered
     let (current_timestamp) = get_block_timestamp();
     let end_timestamp = current_timestamp + session_duration;
-    with_attr error_message("SessionKey: Overflow in Session duration") {
-        assert_le(current_timestamp, end_timestamp);
+    with_attr error_message("SessionKey: Invalid session duration") {
+        // Asserts that 0 <= session_duration <= end_timestamp < RANGE_CHECK_BOUND
+        assert_nn_le(session_duration, end_timestamp);
     }
-    SessionKey_end_timestamp_store.write(session_public_key, current_timestamp + session_duration);
+    SessionKey_owner_store.write(session_public_key, eth_address);
+    SessionKey_end_timestamp_store.write(session_public_key, end_timestamp);
     session_key_registered.emit(eth_address, session_public_key, session_duration);
     return ();
 }

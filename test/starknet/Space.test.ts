@@ -160,7 +160,7 @@ describe('Space Testing', () => {
           calldata: duplicateCalldata,
         });
       } catch (error: any) {
-        expect(error.message).to.contain('Voting: Duplicate entry found');
+        expect(error.message).to.contain('ArrayUtils: Duplicate entry found');
       }
     }
   }).timeout(6000000);
