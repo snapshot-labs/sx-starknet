@@ -79,9 +79,9 @@ namespace StarkEIP191 {
         let metadata_uri: felt* = &calldata[3];
         let (metadata_uri_hash) = ArrayUtils.hash(metadata_uri_len, metadata_uri);
 
-        // Executor
-        let executor = calldata[3 + metadata_uri_len];
-        let (executor_u256) = FeltUtils.felt_to_uint256(executor);
+        // Execution strategy
+        let execution_strategy = calldata[3 + metadata_uri_len];
+        let (execution_strategy_u256) = FeltUtils.felt_to_uint256(execution_strategy);
 
         // Used voting strategies
         let used_voting_strats_len = calldata[4 + metadata_uri_len];
@@ -108,7 +108,7 @@ namespace StarkEIP191 {
         assert structure[1] = target;
         assert structure[2] = proposer_address;
         assert structure[3] = metadata_uri_hash;
-        assert structure[4] = executor;
+        assert structure[4] = execution_strategy;
         assert structure[5] = execution_hash;
         assert structure[6] = used_voting_strategies_hash;
         assert structure[7] = user_voting_strategy_params_flat_hash;

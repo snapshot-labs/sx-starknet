@@ -24,6 +24,7 @@ from contracts.starknet.lib.vote import Vote
 from contracts.starknet.lib.choice import Choice
 from contracts.starknet.lib.proposal_outcome import ProposalOutcome
 from contracts.starknet.lib.array_utils import ArrayUtils, Immutable2DArray
+from contracts.starknet.lib.felt_utils import FeltUtils
 
 //
 // @title Snapshot X Voting Library
@@ -414,7 +415,12 @@ namespace Voting {
     // @param choice The voter's choice (FOR, AGAINST, ABSTAIN)
     // @used_voting_strategies The voting strategies (within the whitelist for the space) that the voter has non-zero voting power with
     // @user_voting_strategy_params_flat Flattened 2D array of parameters for the voting strategies used
-    func vote{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_ptr: felt}(
+    func vote{
+        syscall_ptr: felt*,
+        pedersen_ptr: HashBuiltin*,
+        bitwise_ptr: BitwiseBuiltin*,
+        range_check_ptr: felt,
+    }(
         voter_address: Address,
         proposal_id: felt,
         choice: felt,
@@ -435,24 +441,27 @@ namespace Voting {
         }
 
         let (proposal) = Voting_proposal_registry_store.read(proposal_id);
+
+        // Unpacking the timestamps from the packed value
+        let (
+            snapshot_timestamp, start_timestamp, min_end_timestamp, max_end_timestamp
+        ) = FeltUtils.unpack_4_32_bit(proposal.timestamps);
+
         with_attr error_message("Voting: Proposal does not exist") {
             // Asserting start timestamp is not zero because start timestamp
             // is necessarily > 0 when creating a new proposal.
-            assert_not_zero(proposal.start_timestamp);
+            assert_not_zero(start_timestamp);
         }
-
-        // The snapshot timestamp at which voting power will be taken
-        let snapshot_timestamp = proposal.snapshot_timestamp;
 
         let (current_timestamp) = get_block_timestamp();
         // Make sure proposal is still open for voting
         with_attr error_message("Voting: Voting period has ended") {
-            assert_lt(current_timestamp, proposal.max_end_timestamp);
+            assert_lt(current_timestamp, max_end_timestamp);
         }
 
         // Make sure proposal has started
         with_attr error_message("Voting: Voting has not started yet") {
-            assert_le(proposal.start_timestamp, current_timestamp);
+            assert_le(start_timestamp, current_timestamp);
         }
 
         // Make sure voter has not already voted
@@ -569,16 +578,13 @@ namespace Voting {
 
         let (quorum) = Voting_quorum_store.read();
 
-        // Create the proposal and its proposal id
-        let proposal = Proposal(
-            quorum,
-            snapshot_timestamp,
-            start_timestamp,
-            min_end_timestamp,
-            max_end_timestamp,
-            execution_strategy,
-            execution_hash,
+        // Packing the timestamps into a single felt to reduce storage usage
+        let (packed_timestamps) = FeltUtils.pack_4_32_bit(
+            snapshot_timestamp, start_timestamp, min_end_timestamp, max_end_timestamp
         );
+
+        // Create the proposal and its proposal id
+        let proposal = Proposal(quorum, packed_timestamps, execution_strategy, execution_hash);
 
         let (proposal_id) = Voting_next_proposal_nonce_store.read();
 
@@ -610,8 +616,8 @@ namespace Voting {
         syscall_ptr: felt*,
         pedersen_ptr: HashBuiltin*,
         range_check_ptr,
-        ecdsa_ptr: SignatureBuiltin*,
         bitwise_ptr: BitwiseBuiltin*,
+        ecdsa_ptr: SignatureBuiltin*,
     }(proposal_id: felt, execution_params_len: felt, execution_params: felt*) {
         alloc_locals;
 
@@ -623,16 +629,22 @@ namespace Voting {
         }
 
         let (proposal) = Voting_proposal_registry_store.read(proposal_id);
+
+        // Unpacking the the timestamps from the packed value
+        let (
+            snapshot_timestamp, start_timestamp, min_end_timestamp, max_end_timestamp
+        ) = FeltUtils.unpack_4_32_bit(proposal.timestamps);
+
         with_attr error_message("Voting: Invalid proposal id") {
             // Checks that the proposal id exists. If it doesn't exist, then the whole `Proposal` struct will
             // be set to 0, hence the snapshot timestamp will be set to 0 too.
-            assert_not_zero(proposal.snapshot_timestamp);
+            assert_not_zero(snapshot_timestamp);
         }
 
         // Make sure proposal period has ended
         let (current_timestamp) = get_block_timestamp();
         with_attr error_message("Voting: Min voting period has not elapsed") {
-            assert_le(proposal.min_end_timestamp, current_timestamp);
+            assert_le(min_end_timestamp, current_timestamp);
         }
 
         // Make sure execution params match the ones sent at proposal creation by checking that the hashes match
@@ -662,7 +674,7 @@ namespace Voting {
         // So if `overflow1 || overflow2 || is_lower_or_equal`, we have reached quorum. If we sum them and find `0`, then they're all equal to 0, which means
         // quorum has not been reached.
         if (overflow1 + overflow2 + is_lower_or_equal == 0) {
-            let voting_period_has_ended = is_le(proposal.max_end_timestamp, current_timestamp + 1);
+            let voting_period_has_ended = is_le(max_end_timestamp, current_timestamp + 1);
             if (voting_period_has_ended == FALSE) {
                 with_attr error_message("Voting: Quorum has not been reached") {
                     assert 1 = 0;
@@ -766,8 +778,8 @@ namespace Voting {
         let (proposal) = Voting_proposal_registry_store.read(proposal_id);
         with_attr error_message("Voting: Invalid proposal id") {
             // Checks that the proposal id exists. If it doesn't exist, then the whole `Proposal` struct will
-            // be set to 0, hence the snapshot timestamp will be set to 0 too.
-            assert_not_zero(proposal.snapshot_timestamp);
+            // be set to 0, hence the timestamps value will be set to 0 too.
+            assert_not_zero(proposal.timestamps);
         }
 
         let proposal_outcome = ProposalOutcome.CANCELLED;

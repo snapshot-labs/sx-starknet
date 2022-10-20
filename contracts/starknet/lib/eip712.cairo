@@ -216,9 +216,9 @@ namespace EIP712 {
             metadata_uri_string_len, metadata_uri_len, metadata_uri
         );
 
-        // Executor
-        let executor = calldata[3 + metadata_uri_len];
-        let (executor_u256) = FeltUtils.felt_to_uint256(executor);
+        // Execution Strategy
+        let execution_strategy = calldata[3 + metadata_uri_len];
+        let (execution_strategy_u256) = FeltUtils.felt_to_uint256(execution_strategy);
 
         // Used voting strategies
         let used_voting_strats_len = calldata[4 + metadata_uri_len];
@@ -247,7 +247,7 @@ namespace EIP712 {
         assert data[2] = space;
         assert data[3] = proposer_address_u256;
         assert data[4] = metadata_uri_hash;
-        assert data[5] = executor_u256;
+        assert data[5] = execution_strategy_u256;
         assert data[6] = execution_hash;
         assert data[7] = used_voting_strategies_hash;
         assert data[8] = user_voting_strategy_params_flat_hash;
