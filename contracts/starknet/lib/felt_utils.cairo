@@ -27,7 +27,7 @@ namespace FeltUtils {
 
         Uint256Utils.assert_valid_uint256(result);
 
-        return (result);
+        return (result,);
     }
 
     // Converts a felt to a Uint256.
