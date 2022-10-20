@@ -21,6 +21,7 @@ from starkware.cairo.common.uint256 import (
 )
 from contracts.starknet.lib.felt_utils import FeltUtils
 from contracts.starknet.lib.array_utils import ArrayUtils
+from contracts.starknet.lib.uint256_utils import Uint256Utils
 
 const ETHEREUM_PREFIX = 0x1901;
 
@@ -67,6 +68,10 @@ namespace EIP712 {
         calldata: felt*,
     ) {
         alloc_locals;
+
+        Uint256Utils.assert_valid_uint256(r);
+        Uint256Utils.assert_valid_uint256(s);
+        Uint256Utils.assert_valid_uint256(salt);
 
         let voter_address = calldata[0];
 
@@ -164,6 +169,10 @@ namespace EIP712 {
         calldata: felt*,
     ) {
         alloc_locals;
+
+        Uint256Utils.assert_valid_uint256(r);
+        Uint256Utils.assert_valid_uint256(s);
+        Uint256Utils.assert_valid_uint256(salt);
 
         // Proposer address should be located in calldata[0]
         let proposer_address = calldata[0];
@@ -283,6 +292,10 @@ namespace EIP712 {
     ) -> () {
         alloc_locals;
 
+        Uint256Utils.assert_valid_uint256(r);
+        Uint256Utils.assert_valid_uint256(s);
+        Uint256Utils.assert_valid_uint256(salt);
+
         // Ensure user has not already used this salt in a previous action
         let (already_used) = EIP712_salts.read(eth_address, salt);
         with_attr error_message("EIP712: Salt already used") {
@@ -351,6 +364,10 @@ namespace EIP712 {
         r: Uint256, s: Uint256, v: felt, salt: Uint256, eth_address: felt, session_public_key: felt
     ) -> () {
         alloc_locals;
+
+        Uint256Utils.assert_valid_uint256(r);
+        Uint256Utils.assert_valid_uint256(s);
+        Uint256Utils.assert_valid_uint256(salt);
 
         // Ensure user has not already used this salt in a previous action
         let (already_used) = EIP712_salts.read(eth_address, salt);

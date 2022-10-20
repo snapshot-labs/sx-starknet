@@ -12,6 +12,7 @@ from contracts.starknet.lib.voting import Voting
 from contracts.starknet.lib.general_address import Address
 from contracts.starknet.lib.proposal_info import ProposalInfo
 from contracts.starknet.lib.vote import Vote
+from contracts.starknet.lib.uint256_utils import Uint256Utils
 
 //
 // Constructor

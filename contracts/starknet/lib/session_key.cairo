@@ -10,6 +10,7 @@ from contracts.starknet.lib.stark_eip191 import StarkEIP191
 from contracts.starknet.lib.eip712 import EIP712
 from contracts.starknet.lib.eth_tx import EthTx
 from contracts.starknet.lib.array_utils import ArrayUtils
+from contracts.starknet.lib.uint256_utils import Uint256Utils
 
 @storage_var
 func SessionKey_owner_store(session_public_key: felt) -> (eth_address: felt) {
@@ -43,6 +44,11 @@ namespace SessionKey {
         session_duration: felt,
     ) {
         alloc_locals;
+
+        Uint256Utils.assert_valid_uint256(r);
+        Uint256Utils.assert_valid_uint256(s);
+        Uint256Utils.assert_valid_uint256(salt);
+
         EIP712.verify_session_key_init_sig(
             r, s, v, salt, eth_address, session_public_key, session_duration
         );
@@ -92,6 +98,11 @@ namespace SessionKey {
         ecdsa_ptr: SignatureBuiltin*,
     }(r: Uint256, s: Uint256, v: felt, salt: Uint256, session_public_key: felt) {
         alloc_locals;
+
+        Uint256Utils.assert_valid_uint256(r);
+        Uint256Utils.assert_valid_uint256(s);
+        Uint256Utils.assert_valid_uint256(salt);
+
         let (eth_address) = SessionKey_owner_store.read(session_public_key);
         with_attr error_message("SessionKey: Session does not exist") {
             assert_not_zero(eth_address);
