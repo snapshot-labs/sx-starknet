@@ -2,6 +2,7 @@ from starkware.cairo.common.cairo_builtins import BitwiseBuiltin
 from starkware.cairo.common.math import unsigned_div_rem, split_felt, assert_nn_le
 from starkware.cairo.common.bitwise import bitwise_and
 from starkware.cairo.common.uint256 import Uint256
+from contracts.starknet.lib.uint256_utils import Uint256Utils
 
 const MAX_32 = 2 ** 32 - 1;
 
@@ -22,7 +23,11 @@ namespace FeltUtils {
     ) {
         let word1_shifted = word1 * SHIFT_64;
         let word3_shifted = word3 * SHIFT_64;
-        return (Uint256(low=word3_shifted + word4, high=word1_shifted + word2),);
+        let result = Uint256(low=word3_shifted + word4, high=word1_shifted + word2);
+
+        Uint256Utils.assert_valid_uint256(result);
+
+        return (result);
     }
 
     // Converts a felt to a Uint256.

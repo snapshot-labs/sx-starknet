@@ -1,8 +1,9 @@
 %lang starknet
 
-from starkware.cairo.common.uint256 import Uint256, uint256_check
+from starkware.cairo.common.uint256 import Uint256
 from starkware.cairo.common.cairo_builtins import HashBuiltin
 from contracts.starknet.lib.general_address import Address
+from contracts.starknet.lib.uint256_utils import Uint256Utils
 
 @storage_var
 func whitelist(address: Address) -> (voting_power: Uint256) {
@@ -45,9 +46,7 @@ func register_whitelist{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_ch
         // Add it to the whitelist
         let voting_power = Uint256(_whitelist[1], _whitelist[2]);
 
-        with_attr error_message("Whitelist: Invalid uint256 for voting power") {
-            uint256_check(voting_power);
-        }
+        Uint256Utils.assert_valid_uint256(voting_power);
 
         whitelist.write(address, voting_power);
 
