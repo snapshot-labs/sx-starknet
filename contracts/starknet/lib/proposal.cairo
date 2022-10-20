@@ -2,10 +2,9 @@ from starkware.cairo.common.uint256 import Uint256
 
 struct Proposal {
     quorum: Uint256,
-    snapshot_timestamp: felt,
-    start_timestamp: felt,
-    min_end_timestamp: felt,
-    max_end_timestamp: felt,
+    // timestamps contains the following packed into a single felt (each one is 32 bit):
+    // snapshot_timestamp, start_timestamp, min_end_timestamp, max_end_timestamp
+    timestamps: felt,
     executor: felt,
     execution_hash: felt,
 }
