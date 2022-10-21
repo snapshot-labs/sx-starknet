@@ -152,7 +152,7 @@ func propose{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_ptr: fe
     metadata_uri_string_len: felt,
     metadata_uri_len: felt,
     metadata_uri: felt*,
-    executor: felt,
+    execution_strategy: felt,
     used_voting_strategies_len: felt,
     used_voting_strategies: felt*,
     user_voting_strategy_params_flat_len: felt,
@@ -165,7 +165,7 @@ func propose{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_ptr: fe
         metadata_uri_string_len,
         metadata_uri_len,
         metadata_uri,
-        executor,
+        execution_strategy,
         used_voting_strategies_len,
         used_voting_strategies,
         user_voting_strategy_params_flat_len,
@@ -180,10 +180,15 @@ func propose{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_ptr: fe
 // @param voter_address The address of the voter
 // @param proposal_id The ID of the proposal in the space
 // @param choice The voter's choice (FOR, AGAINST, ABSTAIN)
-// @used_voting_strategies The voting strategies (within the whitelist for the space) that the voter has non-zero voting power with
-// @user_voting_strategy_params_flat Flattened 2D array of parameters for the voting strategies used
+// @param used_voting_strategies The voting strategies (within the whitelist for the space) that the voter has non-zero voting power with
+// @param user_voting_strategy_params_flat Flattened 2D array of parameters for the voting strategies used
 @external
-func vote{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_ptr: felt}(
+func vote{
+    syscall_ptr: felt*,
+    pedersen_ptr: HashBuiltin*,
+    bitwise_ptr: BitwiseBuiltin*,
+    range_check_ptr: felt,
+}(
     voter_address: Address,
     proposal_id: felt,
     choice: felt,

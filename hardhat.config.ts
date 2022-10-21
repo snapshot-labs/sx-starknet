@@ -74,7 +74,10 @@ const config: HardhatUserConfig = {
     network: 'starknetLocal',
   },
   paths: {
-    cairoPaths: ['./contracts/starknet/fossil/contracts'],
+    cairoPaths: [
+      './contracts/starknet/fossil/contracts',
+      './contracts/starknet/starknet-felt-packing',
+    ],
   },
 };
 

@@ -15,7 +15,7 @@ from starkware.cairo.common.cairo_keccak.keccak import (
 
 from contracts.starknet.lib.eip712 import EIP712
 from contracts.starknet.lib.execute import execute
-from contracts.starknet.lib.felt_utils import FeltUtils
+from contracts.starknet.lib.math_utils import MathUtils
 
 //
 // @title Ethereum Signature Authenticator

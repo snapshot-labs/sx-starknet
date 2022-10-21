@@ -2,10 +2,8 @@
 
 %lang starknet
 
-from starkware.starknet.common.syscalls import get_block_timestamp
 from starkware.cairo.common.cairo_builtins import HashBuiltin, SignatureBuiltin, BitwiseBuiltin
 from starkware.cairo.common.uint256 import Uint256
-from starkware.cairo.common.math import split_felt, assert_le, assert_not_zero
 from starkware.cairo.common.cairo_keccak.keccak import (
     keccak_add_uint256s,
     keccak_bigend,
@@ -28,7 +26,7 @@ const PROPOSAL_SELECTOR = 0x1bfd596ae442867ef71ca523061610682af8b00fc2738329422f
 // getSelectorFromName("vote")
 const VOTE_SELECTOR = 0x132bdf85fc8aa10ac3c22f02317f8f53d4b4f52235ed1eabb3a4cbbe08b5c41;
 
-// @dev Authentication of an action (vote or propose) via an StarkNet session key signature
+// @dev Authentication of an action (vote or propose) via a StarkNet session key signature
 // @param r Signature parameter
 // @param s Signature parameter
 // @param salt Signature salt
@@ -132,7 +130,7 @@ func revokeSessionKeyWithOwnerSig{
 
 // @dev Returns owner of a session key if it exists, otherwise throws
 // @param session_public_key The StarkNet session public key
-// return owner The owner Ethereum address
+// @return owner The owner Ethereum address
 @view
 func getSessionKeyOwner{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_ptr}(
     session_public_key: felt

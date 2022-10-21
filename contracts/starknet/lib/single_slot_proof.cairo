@@ -8,7 +8,7 @@ from starkware.cairo.common.math import assert_nn_le
 
 from contracts.starknet.lib.timestamp import Timestamp
 from contracts.starknet.lib.slot_key import SlotKey
-from contracts.starknet.lib.felt_utils import FeltUtils
+from contracts.starknet.lib.math_utils import MathUtils
 
 //
 // @title Ethereum single slot proof library
@@ -103,7 +103,7 @@ namespace SingleSlotProof {
         let slot_index = params[1];
 
         let (valid_slot) = SlotKey.get_mapping_slot_key(slot_index, mapping_key);
-        let (slot_uint256) = FeltUtils.words_to_uint256(
+        let (slot_uint256) = MathUtils.words_to_uint256(
             slot.word_1, slot.word_2, slot.word_3, slot.word_4
         );
         with_attr error_message("SingleSlotProof: Invalid slot proof provided") {

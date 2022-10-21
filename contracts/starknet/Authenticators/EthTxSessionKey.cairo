@@ -103,7 +103,7 @@ func revokeSessionKeyWithSessionKeySig{
 }
 
 // @dev Revokes a session key via authorization from an Ethereum transaction by the owner
-// @dev Users must commit a hash to the StarkNet Commit contract on L1 and wait for it to be propogated to L2 before calling this function
+// @dev Users must commit a hash to the StarkNet Commit contract on L1 and wait for it to be propagated to L2 before calling this function
 // @param session_public_key The StarkNet session public key that should be revoked
 @external
 func revokeSessionKeyWithOwnerTx{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_ptr}(
@@ -115,7 +115,7 @@ func revokeSessionKeyWithOwnerTx{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*,
 
 // @dev Returns owner of a session key if it exists, otherwise throws
 // @param session_public_key The StarkNet session public key
-// return owner The owner Ethereum address
+// @return owner The owner Ethereum address
 @view
 func getSessionKeyOwner{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_ptr}(
     session_public_key: felt

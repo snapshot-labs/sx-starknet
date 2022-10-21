@@ -3,6 +3,13 @@
 from starkware.cairo.common.cairo_builtins import HashBuiltin
 from starkware.cairo.common.hash_state import hash_init, hash_update, hash_finalize
 from starkware.cairo.common.bool import TRUE, FALSE
+from starkware.cairo.common.math import assert_not_equal
+
+//
+// @title Array Utilities Library
+// @author SnapshotLabs
+// @notice A library containing various array utilities
+//
 
 struct Immutable2DArray {
     offsets_len: felt,  // The length of the offsets array is the number of sub arrays in the 2d array
@@ -12,7 +19,9 @@ struct Immutable2DArray {
 }
 
 namespace ArrayUtils {
-    // Hash an array of felts
+    // @dev Computes the pedersen hash of an array of felts
+    // @param array The array of felts
+    // @return hash The hash of the array
     func hash{pedersen_ptr: HashBuiltin*}(array_len: felt, array: felt*) -> (hash: felt) {
         let (hash_state_ptr) = hash_init();
         let (hash_state_ptr) = hash_update{hash_ptr=pedersen_ptr}(hash_state_ptr, array, array_len);
@@ -20,16 +29,15 @@ namespace ArrayUtils {
         return (hash,);
     }
 
-    // Tries to find `to_find` in `array`. Returns `TRUE` if it finds it, else returns `FALSE`.
-    func find{}(to_find: felt, array_len: felt, array: felt*) -> (found: felt) {
+    // Asserts that the array does not contain any duplicates.
+    // O(N^2) as it loops over each element N times.
+    func assert_no_duplicates{}(array_len: felt, array: felt*) {
         if (array_len == 0) {
-            return (FALSE,);
+            return ();
         } else {
-            if (to_find == array[0]) {
-                return (TRUE,);
-            } else {
-                return find(to_find, array_len - 1, array + 1);
-            }
+            _assert_not_in_array(array[0], array_len - 1, &array[1]);
+            assert_no_duplicates(array_len - 1, &array[1]);
+            return ();
         }
     }
 
@@ -65,4 +73,18 @@ namespace ArrayUtils {
         }
         return (array_len, array);
     }
+}
+
+// @dev Asserts that a value is not present in an array
+// @param value The value
+// @param array The array
+func _assert_not_in_array{}(value: felt, array_len: felt, array: felt*) {
+    if (array_len == 0) {
+        return ();
+    }
+    with_attr error_message("ArrayUtils: Duplicate entry found") {
+        assert_not_equal(value, array[0]);
+    }
+    _assert_not_in_array(value, array_len - 1, &array[1]);
+    return ();
 }
