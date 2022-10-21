@@ -1,17 +1,24 @@
+// SPDX-License-Identifier: MIT
+
 %lang starknet
 
-from starkware.starknet.common.syscalls import get_caller_address
+from starkware.starknet.common.syscalls import get_caller_address, get_contract_address
 from starkware.cairo.common.cairo_builtins import HashBuiltin, SignatureBuiltin
 from starkware.cairo.common.math import assert_not_zero
-from starkware.cairo.common.uint256 import uint256_eq
 from starkware.cairo.common.alloc import alloc
 from starkware.cairo.common.signature import verify_ecdsa_signature
-from starkware.starknet.common.syscalls import get_contract_address
-from contracts.starknet.lib.felt_utils import FeltUtils
+
+from contracts.starknet.lib.math_utils import MathUtils
 from contracts.starknet.lib.array_utils import ArrayUtils
 
-// Following a Starknet version of the EIP191 standard
+//
+// @title StarkNet EIP191 Library
+// @author SnapshotLabs
+// @notice A library for verifying StarkNet EIP191 signatures on typed data required for Snapshot X
+// @dev Refer to the official EIP for more information: https://eips.ethereum.org/EIPS/eip-191
+//
 
+// NOTE: We will need to update chain ID for prod
 // { name: 'snapshot-x', version: '1', chainId: '0x534e5f474f45524c49'} (chainID: SN_GOERLI)
 const DOMAIN_HASH = 0x7b887e96718721a64b601a4873454d4a9e26a4b798d660c8d6b96d2045c8404;
 
@@ -26,12 +33,19 @@ const VOTE_TYPE_HASH = 0x31236321e2e03bd76ca3b07ff9544b3d50aa3e677b473a2850a894d
 // getSelectorFromName("RevokeSessionKey(salt:felt)")
 const REVOKE_SESSION_KEY_TYPE_HASH = 0x31F0BF4E2BBD12ECBA02E325F0EA3231350A638FC633AF8EBF244F50663ACE8;
 
-// Maps a tuple of (user, salt) to a boolean stating whether this tuple was already used or not (to prevent replay attack).
+// @dev Signature salts store
 @storage_var
 func StarkEIP191_salts(user: felt, salt: felt) -> (already_used: felt) {
 }
 
 namespace StarkEIP191 {
+    // @dev Asserts that a signature to create a proposal is valid
+    // @param r Signature parameter
+    // @param s Signature parameter
+    // @param salt Signature salt
+    // @param target Address of the space contract where the user is creating a proposal
+    // @param calldata Propose calldata
+    // @public_key The StarkNet key that was used to generate the signature
     func verify_propose_sig{
         syscall_ptr: felt*,
         range_check_ptr,
@@ -65,9 +79,9 @@ namespace StarkEIP191 {
         let metadata_uri: felt* = &calldata[3];
         let (metadata_uri_hash) = ArrayUtils.hash(metadata_uri_len, metadata_uri);
 
-        // Executor
-        let executor = calldata[3 + metadata_uri_len];
-        let (executor_u256) = FeltUtils.felt_to_uint256(executor);
+        // Execution strategy
+        let execution_strategy = calldata[3 + metadata_uri_len];
+        let (execution_strategy_u256) = MathUtils.felt_to_uint256(execution_strategy);
 
         // Used voting strategies
         let used_voting_strats_len = calldata[4 + metadata_uri_len];
@@ -94,7 +108,7 @@ namespace StarkEIP191 {
         assert structure[1] = target;
         assert structure[2] = proposer_address;
         assert structure[3] = metadata_uri_hash;
-        assert structure[4] = executor;
+        assert structure[4] = execution_strategy;
         assert structure[5] = execution_hash;
         assert structure[6] = used_voting_strategies_hash;
         assert structure[7] = user_voting_strategy_params_flat_hash;
@@ -118,6 +132,13 @@ namespace StarkEIP191 {
         return ();
     }
 
+    // @dev Asserts that a signature to cast a vote is valid
+    // @param r Signature parameter
+    // @param s Signature parameter
+    // @param salt Signature salt
+    // @param target Address of the space contract where the user is casting a vote
+    // @param calldata Vote calldata
+    // @public_key The StarkNet key that was used to generate the signature
     func verify_vote_sig{
         syscall_ptr: felt*,
         range_check_ptr,
@@ -189,6 +210,11 @@ namespace StarkEIP191 {
         return ();
     }
 
+    // @dev Asserts that a signature to revoke a session key is valid
+    // @param r Signature parameter
+    // @param s Signature parameter
+    // @param salt Signature salt
+    // @public_key The StarkNet key that was used to generate the signature
     func verify_session_key_revoke_sig{
         syscall_ptr: felt*,
         range_check_ptr,

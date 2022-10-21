@@ -1,3 +1,5 @@
+// SPDX-License-Identifier: MIT
+
 %lang starknet
 
 from starkware.starknet.common.syscalls import get_block_timestamp
@@ -10,12 +12,19 @@ from contracts.starknet.lib.stark_eip191 import StarkEIP191
 from contracts.starknet.lib.eip712 import EIP712
 from contracts.starknet.lib.eth_tx import EthTx
 from contracts.starknet.lib.array_utils import ArrayUtils
-from contracts.starknet.lib.uint256_utils import Uint256Utils
 
+//
+// @title Session Key Library
+// @author SnapshotLabs
+// @notice A library to handle the authorization and revokation of StarkNet session keys from an Ethereum account
+//
+
+// @dev Stores the owner Ethereum address for a given session key
 @storage_var
 func SessionKey_owner_store(session_public_key: felt) -> (eth_address: felt) {
 }
 
+// @dev Stores the timestamp at which a session key is no longer valid
 @storage_var
 func SessionKey_end_timestamp_store(session_public_key: felt) -> (timestamp: felt) {
 }
@@ -29,6 +38,14 @@ func session_key_revoked(session_public_key: felt) {
 }
 
 namespace SessionKey {
+    // @dev Registers a session key via authorization from an Ethereum EIP712 signature
+    // @param r Signature parameter
+    // @param s Signature parameter
+    // @param v Signature parameter
+    // @param salt Signature salt
+    // @param eth_address Owner's Ethereum Address that was used to create the signature
+    // @param session_public_key The StarkNet session public key that should be registered
+    // @param session_duration The number of seconds that the session key is valid
     func authorize_with_sig{
         syscall_ptr: felt*,
         pedersen_ptr: HashBuiltin*,
@@ -45,22 +62,22 @@ namespace SessionKey {
     ) {
         alloc_locals;
 
-        Uint256Utils.assert_valid_uint256(r);
-        Uint256Utils.assert_valid_uint256(s);
-        Uint256Utils.assert_valid_uint256(salt);
-
-        EIP712.verify_session_key_init_sig(
+        EIP712.verify_session_key_auth_sig(
             r, s, v, salt, eth_address, session_public_key, session_duration
         );
         _register(eth_address, session_public_key, session_duration);
         return ();
     }
 
+    // @dev Registers a session key via authorization from an Ethereum transaction
+    // @dev Users must commit a hash to the StarkNet Commit contract on L1 and wait for it to be propogated to L2 before calling this function
+    // @param eth_address Owner's Ethereum Address that was used to commit the hash on Ethereum
+    // @param session_public_key The StarkNet session public key that should be registered
+    // @param session_duration The number of seconds that the session key is valid
     func authorize_with_tx{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_ptr}(
         eth_address: felt, session_public_key: felt, session_duration: felt
     ) {
         alloc_locals;
-        // Cast arguments to single array and hash them
         let (commit_array: felt*) = alloc();
         assert commit_array[0] = eth_address;
         assert commit_array[1] = session_public_key;
@@ -74,6 +91,11 @@ namespace SessionKey {
         return ();
     }
 
+    // @dev Revokes a session key via authorization from a signature from the session key itself
+    // @param r Signature parameter
+    // @param s Signature parameter
+    // @param salt Signature salt
+    // @param session_public_key The StarkNet session public key that should be revoked
     func revoke_with_session_key_sig{
         syscall_ptr: felt*,
         range_check_ptr,
@@ -90,6 +112,12 @@ namespace SessionKey {
         return ();
     }
 
+    // @dev Revokes a session key via authorization from a signature from the owner Ethereum account
+    // @param r Signature parameter
+    // @param s Signature parameter
+    // @param v Signature parameter
+    // @param salt Signature salt
+    // @param session_public_key The StarkNet session public key that should be revoked
     func revoke_with_owner_sig{
         syscall_ptr: felt*,
         range_check_ptr,
@@ -98,10 +126,6 @@ namespace SessionKey {
         ecdsa_ptr: SignatureBuiltin*,
     }(r: Uint256, s: Uint256, v: felt, salt: Uint256, session_public_key: felt) {
         alloc_locals;
-
-        Uint256Utils.assert_valid_uint256(r);
-        Uint256Utils.assert_valid_uint256(s);
-        Uint256Utils.assert_valid_uint256(salt);
 
         let (eth_address) = SessionKey_owner_store.read(session_public_key);
         with_attr error_message("SessionKey: Session does not exist") {
@@ -112,6 +136,9 @@ namespace SessionKey {
         return ();
     }
 
+    // @dev Revokes a session key via authorization from an Ethereum transaction by the owner
+    // @dev Users must commit a hash to the StarkNet Commit contract on L1 and wait for it to be propogated to L2 before calling this function
+    // @param session_public_key The StarkNet session public key that should be revoked
     func revoke_with_owner_tx{syscall_ptr: felt*, range_check_ptr, pedersen_ptr: HashBuiltin*}(
         session_public_key: felt
     ) {
@@ -133,13 +160,15 @@ namespace SessionKey {
         return ();
     }
 
-    // Returns owner of a session key if it exists, otherwise throws
+    // @dev Returns owner of a session key if it exists, otherwise throws
+    // @param session_public_key The StarkNet session public key
+    // return owner The owner Ethereum address
     func get_owner{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_ptr}(
         session_public_key: felt
-    ) -> (eth_address: felt) {
-        let (eth_address) = SessionKey_owner_store.read(session_public_key);
+    ) -> (owner: felt) {
+        let (owner) = SessionKey_owner_store.read(session_public_key);
         with_attr error_message("SessionKey: Session does not exist") {
-            assert_not_zero(eth_address);
+            assert_not_zero(owner);
         }
 
         let (end_timestamp) = SessionKey_end_timestamp_store.read(session_public_key);
@@ -147,10 +176,12 @@ namespace SessionKey {
         with_attr error_message("SessionKey: Session has ended") {
             assert_lt(current_timestamp, end_timestamp);
         }
-        return (eth_address,);
+        return (owner,);
     }
 
-    // Checks that a session key exists and has an owner equal to _owner
+    // @dev Asserts that a session key exists and has an owner equal to _owner
+    // @param session_public_key The StarkNet session public key
+    // @param _owner An Ethereum address
     func assert_valid{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_ptr}(
         session_public_key: felt, _owner: felt
     ) {
@@ -163,7 +194,7 @@ namespace SessionKey {
 }
 
 //
-//  Private Functions
+//  Internal Functions
 //
 
 func _register{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_ptr}(

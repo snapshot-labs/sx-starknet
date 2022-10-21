@@ -2,7 +2,6 @@
 
 %lang starknet
 
-// Standard Library
 from starkware.starknet.common.syscalls import get_caller_address, get_block_timestamp, get_tx_info
 from starkware.cairo.common.cairo_builtins import HashBuiltin, SignatureBuiltin, BitwiseBuiltin
 from starkware.cairo.common.alloc import alloc
@@ -12,27 +11,26 @@ from starkware.cairo.common.hash_state import hash_init, hash_update
 from starkware.cairo.common.math_cmp import is_le
 from starkware.cairo.common.math import assert_lt, assert_le, assert_nn, assert_not_zero
 
-// OpenZeppelin
 from openzeppelin.access.ownable.library import Ownable
 from openzeppelin.account.library import Account, AccountCallArray, Call
 from openzeppelin.security.safemath.library import SafeUint256
 
-// Interfaces
 from contracts.starknet.Interfaces.IVotingStrategy import IVotingStrategy
 from contracts.starknet.Interfaces.IExecutionStrategy import IExecutionStrategy
-
-// Types
 from contracts.starknet.lib.general_address import Address
 from contracts.starknet.lib.proposal import Proposal
 from contracts.starknet.lib.proposal_info import ProposalInfo
 from contracts.starknet.lib.vote import Vote
 from contracts.starknet.lib.choice import Choice
 from contracts.starknet.lib.proposal_outcome import ProposalOutcome
-
-// Libraries
 from contracts.starknet.lib.array_utils import ArrayUtils, Immutable2DArray
-from contracts.starknet.lib.felt_utils import FeltUtils
-from contracts.starknet.lib.uint256_utils import Uint256Utils
+from contracts.starknet.lib.math_utils import MathUtils
+
+//
+// @title Snapshot X Voting Library
+// @author SnapshotLabs
+// @notice Library that implements the core functionality of Snapshot X
+//
 
 //
 // Storage
@@ -63,7 +61,7 @@ func Voting_authenticators_store(authenticator_address: felt) -> (is_valid: felt
 }
 
 @storage_var
-func Voting_executors_store(executor_address: felt) -> (is_valid: felt) {
+func Voting_execution_strategies_store(execution_strategy_address: felt) -> (is_valid: felt) {
 }
 
 @storage_var
@@ -155,11 +153,11 @@ func authenticators_removed(removed_len: felt, removed: felt*) {
 }
 
 @event
-func executors_added(added_len: felt, added: felt*) {
+func execution_strategies_added(added_len: felt, added: felt*) {
 }
 
 @event
-func executors_removed(removed_len: felt, removed: felt*) {
+func execution_strategies_removed(removed_len: felt, removed: felt*) {
 }
 
 @event
@@ -171,10 +169,17 @@ func voting_strategies_removed(removed_len: felt, removed: felt*) {
 }
 
 namespace Voting {
-    //
-    // initializer
-    //
-
+    // @dev Initializes the library, must be called in the constructor of contracts that use the library
+    // @param voting_delay The delay between when a proposal is created, and when the voting starts
+    // @param min_voting_duration The minimum duration of the voting period
+    // @param max_voting_duration The maximum duration of the voting period
+    // @param proposal_threshold The minimum amount of voting power needed to be able to create a new proposal in the space
+    // @param controller The address of the controller account for the space
+    // @param quorum The minimum total voting power required for a proposal to pass
+    // @param voting_strategies Array of whitelisted voting strategy contract addresses
+    // @param voting_strategy_params_flat Flattened 2D array of voting strategy parameters
+    // @param authenticators Array of whitelisted authenticator contract addresses
+    // @param execution_strategies Array of whitelisted execution strategy contract addresses
     func initializer{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_ptr: felt}(
         voting_delay: felt,
         min_voting_duration: felt,
@@ -182,29 +187,26 @@ namespace Voting {
         proposal_threshold: Uint256,
         controller: felt,
         quorum: Uint256,
-        voting_strategy_params_flat_len: felt,
-        voting_strategy_params_flat: felt*,
         voting_strategies_len: felt,
         voting_strategies: felt*,
+        voting_strategy_params_flat_len: felt,
+        voting_strategy_params_flat: felt*,
         authenticators_len: felt,
         authenticators: felt*,
-        executors_len: felt,
-        executors: felt*,
-        metadata_uri_len: felt,
-        metadata_uri: felt*,
+        execution_strategies_len: felt,
+        execution_strategies: felt*,
     ) {
         alloc_locals;
 
-        // Sanity checks
         with_attr error_message("Voting: Invalid constructor parameters") {
             assert_nn(voting_delay);
             assert_le(min_voting_duration, max_voting_duration);
             assert_not_zero(controller);
             assert_not_zero(voting_strategies_len);
             assert_not_zero(authenticators_len);
-            assert_not_zero(executors_len);
-            Uint256Utils.assert_valid_uint256(proposal_threshold);
-            Uint256Utils.assert_valid_uint256(quorum);
+            assert_not_zero(execution_strategies_len);
+            MathUtils.assert_valid_uint256(proposal_threshold);
+            MathUtils.assert_valid_uint256(quorum);
         }
 
         // Initialize the storage variables
@@ -221,11 +223,11 @@ namespace Voting {
             voting_strategy_params_flat_len, voting_strategy_params_flat
         );
 
-        unchecked_add_voting_strategies(
+        _unchecked_add_voting_strategies(
             voting_strategies_len, voting_strategies, voting_strategy_params_all
         );
         _unchecked_add_authenticators(authenticators_len, authenticators);
-        _unchecked_add_execution_strategies(executors_len, executors);
+        _unchecked_add_execution_strategies(execution_strategies_len, execution_strategies);
 
         // The first proposal in a space will have a proposal ID of 1.
         Voting_next_proposal_nonce_store.write(1);
@@ -233,108 +235,94 @@ namespace Voting {
         return ();
     }
 
+    // @dev Updates the controller
+    // @param new_controller The new controller account address
     func update_controller{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_ptr: felt}(
         new_controller: felt
     ) {
         alloc_locals;
         Ownable.assert_only_owner();
-
         let (previous_controller) = Ownable.owner();
-
         Ownable.transfer_ownership(new_controller);
-
         controller_updated.emit(previous_controller, new_controller);
         return ();
     }
 
+    // @dev Updates the quorum
+    // @param new_quorum The new quorum
     func update_quorum{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_ptr: felt}(
         new_quorum: Uint256
     ) {
         Ownable.assert_only_owner();
-
-        Uint256Utils.assert_valid_uint256(new_quorum);
-
+        MathUtils.assert_valid_uint256(new_quorum);
         let (previous_quorum) = Voting_quorum_store.read();
-
         Voting_quorum_store.write(new_quorum);
-
         quorum_updated.emit(previous_quorum, new_quorum);
         return ();
     }
 
+    // @dev Updates the voting delay
+    // @param new_voting_delay The new voting delay
     func update_voting_delay{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_ptr: felt}(
         new_voting_delay: felt
     ) {
         Ownable.assert_only_owner();
-
         let (previous_delay) = Voting_voting_delay_store.read();
-
         Voting_voting_delay_store.write(new_voting_delay);
-
         voting_delay_updated.emit(previous_delay, new_voting_delay);
-
         return ();
     }
 
+    // @dev Updates the minimum voting duration
+    // @param new_min_voting_duration The new minimum voting duration
     func update_min_voting_duration{
         syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_ptr: felt
     }(new_min_voting_duration: felt) {
         Ownable.assert_only_owner();
-
         let (previous_min_voting_duration) = Voting_min_voting_duration_store.read();
-
         let (max_voting_duration) = Voting_max_voting_duration_store.read();
-
         with_attr error_message(
                 "Voting: Min voting duration must be less than max voting duration") {
             assert_le(new_min_voting_duration, max_voting_duration);
         }
-
         Voting_min_voting_duration_store.write(new_min_voting_duration);
-
         min_voting_duration_updated.emit(previous_min_voting_duration, new_min_voting_duration);
-
         return ();
     }
 
+    // @dev Updates the maximum voting duration
+    // @param new_max_voting_duration The new maximum voting duration
     func update_max_voting_duration{
         syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_ptr: felt
     }(new_max_voting_duration: felt) {
         Ownable.assert_only_owner();
-
         let (previous_max_voting_duration) = Voting_max_voting_duration_store.read();
-
         let (min_voting_duration) = Voting_min_voting_duration_store.read();
-
         with_attr error_message(
                 "Voting: Max voting duration must be greater than min voting duration") {
             assert_le(min_voting_duration, new_max_voting_duration);
         }
-
         Voting_max_voting_duration_store.write(new_max_voting_duration);
-
         max_voting_duration_updated.emit(previous_max_voting_duration, new_max_voting_duration);
-
         return ();
     }
 
+    // @dev Updates the proposal threshold
+    // @param new_proposal_threshold The new proposal threshold
     func update_proposal_threshold{
         syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_ptr: felt
     }(new_proposal_threshold: Uint256) {
         Ownable.assert_only_owner();
-
-        Uint256Utils.assert_valid_uint256(new_proposal_threshold);
-
+        MathUtils.assert_valid_uint256(new_proposal_threshold);
         let (previous_proposal_threshold) = Voting_proposal_threshold_store.read();
-
         Voting_proposal_threshold_store.write(new_proposal_threshold);
-
         proposal_threshold_updated.emit(previous_proposal_threshold, new_proposal_threshold);
-
         return ();
     }
 
-    // We do not store the metadata uri for the space in the contract state, we just emit it as an event
+    // @dev Updates the metadata URI
+    // @param new_metadata_uri The new metadata URI
+    // @notice We do not store the metadata URI in the contract state, it is just emitted as an event which allows it to be picked up by an indexer
     func update_metadata_uri{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_ptr: felt}(
         new_metadata_uri_len: felt, new_metadata_uri: felt*
     ) {
@@ -344,99 +332,92 @@ namespace Voting {
         return ();
     }
 
+    // @dev Adds execution strategy contracts to the whitelist
+    // @param addresses Array of execution strategy contract addresses
     func add_execution_strategies{
         syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_ptr: felt
     }(addresses_len: felt, addresses: felt*) {
         alloc_locals;
-
         Ownable.assert_only_owner();
-
         _unchecked_add_execution_strategies(addresses_len, addresses);
-
-        executors_added.emit(addresses_len, addresses);
+        execution_strategies_added.emit(addresses_len, addresses);
         return ();
     }
 
+    // @dev Removes execution strategy contracts from the whitelist
+    // @param addresses Array of execution strategy contract addresses
     func remove_execution_strategies{
         syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_ptr: felt
     }(addresses_len: felt, addresses: felt*) {
         alloc_locals;
-
         Ownable.assert_only_owner();
-
         _unchecked_remove_execution_strategies(addresses_len, addresses);
-
-        executors_removed.emit(addresses_len, addresses);
+        execution_strategies_removed.emit(addresses_len, addresses);
         return ();
     }
 
+    // @dev Adds voting strategy contracts to the whitelist
+    // @param addresses Array of voting strategy contract addresses
+    // @param params_flat Flattened 2D array of voting strategy parameters
     func add_voting_strategies{
         syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_ptr: felt
     }(addresses_len: felt, addresses: felt*, params_flat_len: felt, params_flat: felt*) {
         alloc_locals;
-
         Ownable.assert_only_owner();
-
         _assert_no_active_proposal();
-
         let (params_all: Immutable2DArray) = ArrayUtils.construct_array2d(
             params_flat_len, params_flat
         );
-
-        unchecked_add_voting_strategies(addresses_len, addresses, params_all);
-
+        _unchecked_add_voting_strategies(addresses_len, addresses, params_all);
         voting_strategies_added.emit(addresses_len, addresses);
         return ();
     }
 
+    // @dev Removes voting strategy contracts from the whitelist
+    // @param indexes Array of voting strategy indexes to remove
     func remove_voting_strategies{
         syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_ptr: felt
     }(indexes_len: felt, indexes: felt*) {
         alloc_locals;
-
         Ownable.assert_only_owner();
-
         _assert_no_active_proposal();
-
         _unchecked_remove_voting_strategies(indexes_len, indexes);
         voting_strategies_removed.emit(indexes_len, indexes);
         return ();
     }
 
+    // @dev Adds authenticator contracts to the whitelist
+    // @param addresses Array of authenticator contract addresses
     func add_authenticators{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_ptr: felt}(
         addresses_len: felt, addresses: felt*
     ) {
         alloc_locals;
-
         Ownable.assert_only_owner();
-
         _assert_no_active_proposal();
-
         _unchecked_add_authenticators(addresses_len, addresses);
-
         authenticators_added.emit(addresses_len, addresses);
         return ();
     }
 
+    // @dev Removes authenticator contracts from the whitelist
+    // @param addresses Array of authenticator contract addresses
     func remove_authenticators{
         syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_ptr: felt
     }(addresses_len: felt, addresses: felt*) {
         alloc_locals;
-
         Ownable.assert_only_owner();
-
         _assert_no_active_proposal();
-
         _unchecked_remove_authenticators(addresses_len, addresses);
-
         authenticators_removed.emit(addresses_len, addresses);
         return ();
     }
 
-    //
-    // Business logic
-    //
-
+    // @dev Casts a vote on a proposal
+    // @param voter_address The address of the voter
+    // @param proposal_id The ID of the proposal in the space
+    // @param choice The voter's choice (FOR, AGAINST, ABSTAIN)
+    // @used_voting_strategies The voting strategies (within the whitelist for the space) that the voter has non-zero voting power with
+    // @user_voting_strategy_params_flat Flattened 2D array of parameters for the voting strategies used
     func vote{
         syscall_ptr: felt*,
         pedersen_ptr: HashBuiltin*,
@@ -467,7 +448,7 @@ namespace Voting {
         // Unpacking the timestamps from the packed value
         let (
             snapshot_timestamp, start_timestamp, min_end_timestamp, max_end_timestamp
-        ) = FeltUtils.unpack_4_32_bit(proposal.timestamps);
+        ) = MathUtils.unpack_4_32_bit(proposal.timestamps);
 
         with_attr error_message("Voting: Proposal does not exist") {
             // Asserting start timestamp is not zero because start timestamp
@@ -531,12 +512,19 @@ namespace Voting {
         return ();
     }
 
+    // @dev Creates a proposal
+    // @param proposer_address The address of the proposal creator
+    // @param metadata_uri_string_len The string length of the metadata URI (required for keccak hashing)
+    // @param metadata_uri The metadata URI for the proposal
+    // @param used_voting_strategies The voting strategies (within the whitelist for the space) that the proposal creator has non-zero voting power with
+    // @param user_voting_strategy_params_flat Flattened 2D array of parameters for the voting strategies used
+    // @param execution_params Execution parameters for the proposal
     func propose{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_ptr: felt}(
         proposer_address: Address,
         metadata_uri_string_len: felt,
         metadata_uri_len: felt,
         metadata_uri: felt*,
-        executor: felt,
+        execution_strategy: felt,
         used_voting_strategies_len: felt,
         used_voting_strategies: felt*,
         user_voting_strategy_params_flat_len: felt,
@@ -549,8 +537,8 @@ namespace Voting {
         // Verify that the caller is the authenticator contract.
         _assert_valid_authenticator();
 
-        // Verify that the executor address is one of the whitelisted addresses
-        _assert_valid_executor(executor);
+        // Verify that the execution strategy address is one of the whitelisted addresses
+        _assert_valid_execution_strategy(execution_strategy);
 
         // The snapshot for the proposal is the current timestamp at proposal creation
         // We use a timestamp instead of a block number to define a snapshot so that the system can generalize to multi-chain
@@ -594,12 +582,12 @@ namespace Voting {
         let (quorum) = Voting_quorum_store.read();
 
         // Packing the timestamps into a single felt to reduce storage usage
-        let (packed_timestamps) = FeltUtils.pack_4_32_bit(
+        let (packed_timestamps) = MathUtils.pack_4_32_bit(
             snapshot_timestamp, start_timestamp, min_end_timestamp, max_end_timestamp
         );
 
         // Create the proposal and its proposal id
-        let proposal = Proposal(quorum, packed_timestamps, executor, execution_hash);
+        let proposal = Proposal(quorum, packed_timestamps, execution_strategy, execution_hash);
 
         let (proposal_id) = Voting_next_proposal_nonce_store.read();
 
@@ -623,7 +611,9 @@ namespace Voting {
         return ();
     }
 
-    // Finalizes the proposal, counts the voting power, and send the corresponding result to the L1 executor contract
+    // @dev Finalizes a proposal, triggering execution via the chosen execution strategy
+    // @param proposal_id The ID of the proposal
+    // @param execution_params Execution parameters for the proposal (must be the same as those submitted during proposal creation)
     @external
     func finalize_proposal{
         syscall_ptr: felt*,
@@ -646,7 +636,7 @@ namespace Voting {
         // Unpacking the the timestamps from the packed value
         let (
             snapshot_timestamp, start_timestamp, min_end_timestamp, max_end_timestamp
-        ) = FeltUtils.unpack_4_32_bit(proposal.timestamps);
+        ) = MathUtils.unpack_4_32_bit(proposal.timestamps);
 
         with_attr error_message("Voting: Invalid proposal id") {
             // Checks that the proposal id exists. If it doesn't exist, then the whole `Proposal` struct will
@@ -715,9 +705,9 @@ namespace Voting {
             tempvar range_check_ptr = range_check_ptr;
         }
 
-        let (is_valid) = Voting_executors_store.read(proposal.executor);
+        let (is_valid) = Voting_execution_strategies_store.read(proposal.execution_strategy);
         if (is_valid == 0) {
-            // Executor has been removed from the whitelist. Cancel this execution.
+            // execution_strategy has been removed from the whitelist. Cancel this execution.
             tempvar proposal_outcome = ProposalOutcome.CANCELLED;
         } else {
             // Cairo trick to prevent revoked reference
@@ -729,7 +719,7 @@ namespace Voting {
         // 1) Starknet execution strategy - then txs are executed directly by this contract.
         // 2) Other execution strategy - then tx are executed by the specified execution strategy contract.
 
-        if (proposal.executor == 1) {
+        if (proposal.execution_strategy == 1) {
             // Starknet execution strategy so we execute the proposal txs directly
             if (proposal_outcome == ProposalOutcome.ACCEPTED) {
                 let (call_array_len, call_array, calldata_len, calldata) = _decode_execution_params(
@@ -753,7 +743,7 @@ namespace Voting {
         } else {
             // Other execution strategy, so we forward the txs to the specified execution strategy contract.
             IExecutionStrategy.execute(
-                contract_address=proposal.executor,
+                contract_address=proposal.execution_strategy,
                 proposal_outcome=proposal_outcome,
                 execution_params_len=execution_params_len,
                 execution_params=execution_params,
@@ -771,7 +761,9 @@ namespace Voting {
         return ();
     }
 
-    // Cancels the proposal. Only callable by the controller.
+    // @dev Cancels a proposal. Only callable by the controller.
+    // @param proposal_id The ID of the proposal
+    // @param execution_params Execution parameters for the proposal (must be the same as those submitted during proposal creation)
     func cancel_proposal{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_ptr: felt}(
         proposal_id: felt, execution_params_len: felt, execution_params: felt*
     ) {
@@ -795,11 +787,11 @@ namespace Voting {
 
         let proposal_outcome = ProposalOutcome.CANCELLED;
 
-        if (proposal.executor != 1) {
+        if (proposal.execution_strategy != 1) {
             // Custom execution strategies may have different processes to follow when a proposal is cancelled.
             // Therefore, we still forward the execution payload to the specified strategy contract.
             IExecutionStrategy.execute(
-                contract_address=proposal.executor,
+                contract_address=proposal.execution_strategy,
                 proposal_outcome=proposal_outcome,
                 execution_params_len=execution_params_len,
                 execution_params=execution_params,
@@ -820,16 +812,19 @@ namespace Voting {
         return ();
     }
 
-    //
-    // View functions
-    //
-
+    // @dev Checks to see whether a given address has voted in a proposal
+    // @param proposal_id The proposal ID
+    // @param voter_address The voter's address
+    // @return voted 1 if user has voted, otherwise 0
     func has_voted{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_ptr: felt}(
         proposal_id: felt, voter_address: Address
     ) -> (voted: felt) {
         return Voting_vote_registry_store.read(proposal_id, voter_address);
     }
 
+    // @dev Returns proposal information
+    // @param proposal_id The proposal ID
+    // @return proposal_info Struct containing proposal information
     func get_proposal_info{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_ptr: felt}(
         proposal_id: felt
     ) -> (proposal_info: ProposalInfo) {
@@ -845,7 +840,7 @@ namespace Voting {
 }
 
 //
-// Private Functions
+// Internal Functions
 //
 
 func _unchecked_add_execution_strategies{
@@ -854,8 +849,7 @@ func _unchecked_add_execution_strategies{
     if (addresses_len == 0) {
         return ();
     } else {
-        Voting_executors_store.write(addresses[0], 1);
-
+        Voting_execution_strategies_store.write(addresses[0], 1);
         _unchecked_add_execution_strategies(addresses_len - 1, &addresses[1]);
         return ();
     }
@@ -867,14 +861,13 @@ func _unchecked_remove_execution_strategies{
     if (addresses_len == 0) {
         return ();
     } else {
-        Voting_executors_store.write(addresses[0], 0);
-
+        Voting_execution_strategies_store.write(addresses[0], 0);
         _unchecked_remove_execution_strategies(addresses_len - 1, &addresses[1]);
         return ();
     }
 }
 
-func unchecked_add_voting_strategies{
+func _unchecked_add_voting_strategies{
     syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_ptr
 }(addresses_len: felt, addresses: felt*, params_all: Immutable2DArray) {
     alloc_locals;
@@ -899,16 +892,12 @@ func _unchecked_add_voting_strategies_recurse{
         return ();
     } else {
         Voting_voting_strategies_store.write(next_index, addresses[0]);
-
         // Extract voting params for the voting strategy
         let (params_len, params) = ArrayUtils.get_sub_array(params_all, index);
-
         // We store the length of the voting strategy params array at index zero
         Voting_voting_strategy_params_store.write(next_index, 0, params_len);
-
         // The following elements are the actual params
         _unchecked_add_voting_strategy_params(next_index, 1, params_len, params);
-
         _unchecked_add_voting_strategies_recurse(
             addresses_len - 1, &addresses[1], params_all, next_index + 1, index + 1
         );
@@ -925,7 +914,6 @@ func _unchecked_add_voting_strategy_params{
     } else {
         // Store voting parameter
         Voting_voting_strategy_params_store.write(strategy_index, param_index, params[0]);
-
         _unchecked_add_voting_strategy_params(
             strategy_index, param_index + 1, params_len - 1, &params[1]
         );
@@ -940,15 +928,11 @@ func _unchecked_remove_voting_strategies{
         return ();
     } else {
         Voting_voting_strategies_store.write(indexes[0], 0);
-
         // The length of the voting strategy params is stored at index zero
         let (params_len) = Voting_voting_strategy_params_store.read(indexes[0], 0);
-
         Voting_voting_strategy_params_store.write(indexes[0], 0, 0);
-
         // Removing voting strategy params
         _unchecked_remove_voting_strategy_params(indexes[0], params_len, 1);
-
         _unchecked_remove_voting_strategies(indexes_len - 1, &indexes[1]);
         return ();
     }
@@ -967,7 +951,6 @@ func _unchecked_remove_voting_strategy_params{
     }
     // Remove voting parameter
     Voting_voting_strategy_params_store.write(strategy_index, param_index, 0);
-
     _unchecked_remove_voting_strategy_params(strategy_index, param_index + 1, params_len);
     return ();
 }
@@ -979,7 +962,6 @@ func _unchecked_add_authenticators{syscall_ptr: felt*, pedersen_ptr: HashBuiltin
         return ();
     } else {
         Voting_authenticators_store.write(addresses[0], 1);
-
         _unchecked_add_authenticators(addresses_len - 1, &addresses[1]);
         return ();
     }
@@ -992,7 +974,6 @@ func _unchecked_remove_authenticators{
         return ();
     } else {
         Voting_authenticators_store.write(addresses[0], 0);
-
         _unchecked_remove_authenticators(addresses_len - 1, &addresses[1]);
     }
     return ();
@@ -1003,8 +984,6 @@ func _assert_valid_authenticator{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*,
     ) {
     let (caller_address) = get_caller_address();
     let (is_valid) = Voting_authenticators_store.read(caller_address);
-
-    // Ensure it has been initialized
     with_attr error_message("Voting: Invalid authenticator") {
         assert_not_zero(is_valid);
     }
@@ -1012,13 +991,12 @@ func _assert_valid_authenticator{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*,
     return ();
 }
 
-// Throws if `executor` is not a member of the set of whitelisted executors (stored in the `executors` mapping)
-func _assert_valid_executor{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_ptr}(
-    executor: felt
-) {
-    let (is_valid) = Voting_executors_store.read(executor);
-
-    with_attr error_message("Voting: Invalid executor") {
+// Throws if `execution_strategy` is not a member of the set of whitelisted execution_strategies
+func _assert_valid_execution_strategy{
+    syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_ptr
+}(execution_strategy: felt) {
+    let (is_valid) = Voting_execution_strategies_store.read(execution_strategy);
+    with_attr error_message("Voting: Invalid execution strategy") {
         assert is_valid = 1;
     }
 
@@ -1031,11 +1009,9 @@ func _assert_no_active_proposal_recurse{
     if (proposal_id == 0) {
         return ();
     } else {
-        // Ensure the proposal has been executed
+        // Ensure each proposal has been executed
         let (has_been_executed) = Voting_executed_proposals_store.read(proposal_id);
         assert has_been_executed = 1;
-
-        // Recurse
         _assert_no_active_proposal_recurse(proposal_id - 1);
         return ();
     }
@@ -1043,12 +1019,10 @@ func _assert_no_active_proposal_recurse{
 
 func _assert_no_active_proposal{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_ptr}() {
     let (next_proposal) = Voting_next_proposal_nonce_store.read();
-
     // Using `next_proposal - 1` because `next_proposal` corresponds to the *next* nonce
     // so we need to substract one. This is safe because latest_proposal is at least 1 because
     // the constructor initializes the nonce to 1.
     let latest_proposal = next_proposal - 1;
-
     with_attr error_message("Voting: Some proposals are still active") {
         _assert_no_active_proposal_recurse(latest_proposal);
     }
@@ -1120,7 +1094,7 @@ func _unchecked_get_cumulative_voting_power{
         strategy_index, voting_strategy_params_len, voting_strategy_params, 1
     );
 
-    let (user_voting_power) = IVotingStrategy.get_voting_power(
+    let (user_voting_power) = IVotingStrategy.getVotingPower(
         contract_address=strategy_address,
         timestamp=current_timestamp,
         voter_address=voter_address,
@@ -1140,7 +1114,6 @@ func _unchecked_get_cumulative_voting_power{
     );
 
     let (voting_power, overflow) = uint256_add(user_voting_power, additional_voting_power);
-
     with_attr error_message("Voting: Overflow while computing voting power") {
         assert overflow = 0;
     }
@@ -1152,19 +1125,16 @@ func _unchecked_get_cumulative_voting_power{
 func _get_voting_strategy_params{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_ptr}(
     strategy_index: felt, params_len: felt, params: felt*, index: felt
 ) -> (params_len: felt, params: felt*) {
-    // The are no parameters so we just return an empty array
+    // If there are no parameters, we just return an empty array
     if (params_len == 0) {
         return (0, params);
     }
-
     let (param) = Voting_voting_strategy_params_store.read(strategy_index, index);
     assert params[index - 1] = param;
-
     // All parameters have been added to the array so we can return it
     if (index == params_len) {
         return (params_len, params);
     }
-
     let (params_len, params) = _get_voting_strategy_params(
         strategy_index, params_len, params, index + 1
     );
@@ -1185,7 +1155,7 @@ func _decode_execution_params{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, ra
 
 // Same as OZ `execute` just without the assert  get_caller_address() = 0
 // This is a reentrant call guard which prevents another account calling execute
-// In the context of proposal txs, reentrancy is not an issue
+// In the context of proposal txs, reentrancy is not an issue as the transactions are trusted to be non malicious
 func _execute_proposal_txs{
     syscall_ptr: felt*,
     pedersen_ptr: HashBuiltin*,
@@ -1196,20 +1166,16 @@ func _execute_proposal_txs{
     response_len: felt, response: felt*
 ) {
     alloc_locals;
-
     let (tx_info) = get_tx_info();
     with_attr error_message("Voting: invalid tx version") {
         assert tx_info.version = 1;
     }
-
     // TMP: Convert `AccountCallArray` to 'Call'.
     let (calls: Call*) = alloc();
     Account._from_call_array_to_call(call_array_len, call_array, calldata, calls);
     let calls_len = call_array_len;
-
     // execute call
     let (response: felt*) = alloc();
     let (response_len) = Account._execute_list(calls_len, calls, response);
-
     return (response_len=response_len, response=response);
 }

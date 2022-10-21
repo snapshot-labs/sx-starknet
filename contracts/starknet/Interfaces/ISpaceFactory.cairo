@@ -18,8 +18,8 @@ namespace ISpacefactory {
         voting_strategies: felt*,
         authenticators_len: felt,
         authenticators: felt*,
-        executors_len: felt,
-        executors: felt*,
+        execution_strategy_len: felt,
+        execution_strategy: felt*,
         metadata_uri_len: felt,
         metadata_uri: felt*,
     ) {

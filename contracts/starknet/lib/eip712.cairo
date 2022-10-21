@@ -1,3 +1,5 @@
+// SPDX-License-Identifier: MIT
+
 %lang starknet
 
 from starkware.starknet.common.syscalls import get_contract_address
@@ -19,13 +21,20 @@ from starkware.cairo.common.uint256 import (
     uint256_mul,
     uint256_unsigned_div_rem,
 )
-from contracts.starknet.lib.felt_utils import FeltUtils
+
+from contracts.starknet.lib.math_utils import MathUtils
 from contracts.starknet.lib.array_utils import ArrayUtils
-from contracts.starknet.lib.uint256_utils import Uint256Utils
+
+//
+// @title EIP712 Library
+// @author SnapshotLabs
+// @notice A library for verifying Ethereum EIP712 signatures on typed data required for Snapshot X
+// @dev Refer to the official EIP for more information: https://eips.ethereum.org/EIPS/eip-712
+//
 
 const ETHEREUM_PREFIX = 0x1901;
 
-// This is the domainSeparator, obtained by using those fields (see more about it in EIP712):
+// Domain Separator: (Goerli chain id)
 // name: 'snapshot-x',
 // version: '1'
 // chainId: '5'
@@ -48,11 +57,19 @@ const SESSION_KEY_INIT_TYPE_HASH_LOW = 0xaa9d835345c95b1a435ddff5ae910083;
 const SESSION_KEY_REVOKE_TYPE_HASH_HIGH = 0x0a5ba214c2c419ff474ecb96dc30103d;
 const SESSION_KEY_REVOKE_TYPE_HASH_LOW = 0x8166de3d410abc781e23aae247360fa9;
 
+// @dev Signature salts store
 @storage_var
 func EIP712_salts(eth_address: felt, salt: Uint256) -> (already_used: felt) {
 }
 
 namespace EIP712 {
+    // @dev Asserts that a signature to cast a vote is valid
+    // @param r Signature parameter
+    // @param s Signature parameter
+    // @param v Signature parameter
+    // @param salt Signature salt
+    // @param target Address of the space contract where the user is casting a vote
+    // @param calldata Vote calldata
     func verify_vote_sig{
         syscall_ptr: felt*,
         pedersen_ptr: HashBuiltin*,
@@ -69,30 +86,26 @@ namespace EIP712 {
     ) {
         alloc_locals;
 
-        Uint256Utils.assert_valid_uint256(r);
-        Uint256Utils.assert_valid_uint256(s);
-        Uint256Utils.assert_valid_uint256(salt);
+        MathUtils.assert_valid_uint256(r);
+        MathUtils.assert_valid_uint256(s);
+        MathUtils.assert_valid_uint256(salt);
 
         let voter_address = calldata[0];
-
         let (authenticator_address) = get_contract_address();
-        let (auth_address_u256) = FeltUtils.felt_to_uint256(authenticator_address);
+        let (auth_address_u256) = MathUtils.felt_to_uint256(authenticator_address);
 
         // Ensure voter has not already used this salt in a previous action
         let (already_used) = EIP712_salts.read(voter_address, salt);
-
         with_attr error_message("EIP712: Salt already used") {
             assert already_used = 0;
         }
 
-        // We don't need to pad because calling `.address` with starknet.js
-        // already left pads the address with 0s
-        let (space) = FeltUtils.felt_to_uint256(target);
+        let (space) = MathUtils.felt_to_uint256(target);
 
-        let (voter_address_u256) = FeltUtils.felt_to_uint256(voter_address);
+        let (voter_address_u256) = MathUtils.felt_to_uint256(voter_address);
 
-        let (proposal_id) = FeltUtils.felt_to_uint256(calldata[1]);
-        let (choice) = FeltUtils.felt_to_uint256(calldata[2]);
+        let (proposal_id) = MathUtils.felt_to_uint256(calldata[1]);
+        let (choice) = MathUtils.felt_to_uint256(calldata[2]);
 
         let used_voting_strategies_len = calldata[3];
         let used_voting_strategies = &calldata[4];
@@ -154,6 +167,13 @@ namespace EIP712 {
         return ();
     }
 
+    // @dev Asserts that a signature to create a proposal is valid
+    // @param r Signature parameter
+    // @param s Signature parameter
+    // @param v Signature parameter
+    // @param salt Signature salt
+    // @param target Address of the space contract where the user is creating a proposal
+    // @param calldata Propose calldata
     func verify_propose_sig{
         syscall_ptr: felt*,
         pedersen_ptr: HashBuiltin*,
@@ -170,19 +190,18 @@ namespace EIP712 {
     ) {
         alloc_locals;
 
-        Uint256Utils.assert_valid_uint256(r);
-        Uint256Utils.assert_valid_uint256(s);
-        Uint256Utils.assert_valid_uint256(salt);
+        MathUtils.assert_valid_uint256(r);
+        MathUtils.assert_valid_uint256(s);
+        MathUtils.assert_valid_uint256(salt);
 
         // Proposer address should be located in calldata[0]
         let proposer_address = calldata[0];
 
         let (authenticator_address) = get_contract_address();
-        let (auth_address_u256) = FeltUtils.felt_to_uint256(authenticator_address);
+        let (auth_address_u256) = MathUtils.felt_to_uint256(authenticator_address);
 
         // Ensure proposer has not already used this salt in a previous action
         let (already_used) = EIP712_salts.read(proposer_address, salt);
-
         with_attr error_message("EIP712: Salt already used") {
             assert already_used = 0;
         }
@@ -192,10 +211,10 @@ namespace EIP712 {
 
         // We don't need to pad because calling `.address` with starknet.js
         // already left pads the address with 0s
-        let (space) = FeltUtils.felt_to_uint256(target);
+        let (space) = MathUtils.felt_to_uint256(target);
 
         // Proposer address
-        let (proposer_address_u256) = FeltUtils.felt_to_uint256(proposer_address);
+        let (proposer_address_u256) = MathUtils.felt_to_uint256(proposer_address);
 
         // Metadata URI
         let metadata_uri_string_len = calldata[1];
@@ -205,9 +224,9 @@ namespace EIP712 {
             metadata_uri_string_len, metadata_uri_len, metadata_uri
         );
 
-        // Executor
-        let executor = calldata[3 + metadata_uri_len];
-        let (executor_u256) = FeltUtils.felt_to_uint256(executor);
+        // Execution Strategy
+        let execution_strategy = calldata[3 + metadata_uri_len];
+        let (execution_strategy_u256) = MathUtils.felt_to_uint256(execution_strategy);
 
         // Used voting strategies
         let used_voting_strats_len = calldata[4 + metadata_uri_len];
@@ -236,7 +255,7 @@ namespace EIP712 {
         assert data[2] = space;
         assert data[3] = proposer_address_u256;
         assert data[4] = metadata_uri_hash;
-        assert data[5] = executor_u256;
+        assert data[5] = execution_strategy_u256;
         assert data[6] = execution_hash;
         assert data[7] = used_voting_strategies_hash;
         assert data[8] = user_voting_strategy_params_flat_hash;
@@ -276,7 +295,15 @@ namespace EIP712 {
         return ();
     }
 
-    func verify_session_key_init_sig{
+    // @dev Asserts that a signature to authorize a session key is valid
+    // @param r Signature parameter
+    // @param s Signature parameter
+    // @param v Signature parameter
+    // @param salt Signature salt
+    // @param eth_address Owner's Ethereum Address that was used to create the signature
+    // @param session_public_key The StarkNet session public key that should be registered
+    // @param session_duration The number of seconds that the session key is valid
+    func verify_session_key_auth_sig{
         syscall_ptr: felt*,
         pedersen_ptr: HashBuiltin*,
         bitwise_ptr: BitwiseBuiltin*,
@@ -292,9 +319,9 @@ namespace EIP712 {
     ) -> () {
         alloc_locals;
 
-        Uint256Utils.assert_valid_uint256(r);
-        Uint256Utils.assert_valid_uint256(s);
-        Uint256Utils.assert_valid_uint256(salt);
+        MathUtils.assert_valid_uint256(r);
+        MathUtils.assert_valid_uint256(s);
+        MathUtils.assert_valid_uint256(salt);
 
         // Ensure user has not already used this salt in a previous action
         let (already_used) = EIP712_salts.read(eth_address, salt);
@@ -303,12 +330,12 @@ namespace EIP712 {
         }
 
         // Encode data
-        let (eth_address_u256) = FeltUtils.felt_to_uint256(eth_address);
+        let (eth_address_u256) = MathUtils.felt_to_uint256(eth_address);
 
-        let (session_public_key_u256) = FeltUtils.felt_to_uint256(session_public_key);
+        let (session_public_key_u256) = MathUtils.felt_to_uint256(session_public_key);
         let (padded_session_public_key) = _pad_right(session_public_key_u256);
 
-        let (session_duration_u256) = FeltUtils.felt_to_uint256(session_duration);
+        let (session_duration_u256) = MathUtils.felt_to_uint256(session_duration);
 
         // Now construct the data array
         let (data: Uint256*) = alloc();
@@ -355,6 +382,13 @@ namespace EIP712 {
         return ();
     }
 
+    // @dev Asserts that a signature to revoke a session key is valid
+    // @param r Signature parameter
+    // @param s Signature parameter
+    // @param v Signature parameter
+    // @param salt Signature salt
+    // @param eth_address Owner's Ethereum Address that was used to create the signature
+    // @param session_public_key The StarkNet session public key that should be revoked
     func verify_session_key_revoke_sig{
         syscall_ptr: felt*,
         pedersen_ptr: HashBuiltin*,
@@ -365,9 +399,9 @@ namespace EIP712 {
     ) -> () {
         alloc_locals;
 
-        Uint256Utils.assert_valid_uint256(r);
-        Uint256Utils.assert_valid_uint256(s);
-        Uint256Utils.assert_valid_uint256(salt);
+        MathUtils.assert_valid_uint256(r);
+        MathUtils.assert_valid_uint256(s);
+        MathUtils.assert_valid_uint256(salt);
 
         // Ensure user has not already used this salt in a previous action
         let (already_used) = EIP712_salts.read(eth_address, salt);
@@ -376,7 +410,7 @@ namespace EIP712 {
         }
 
         // Encode data
-        let (session_public_key_u256) = FeltUtils.felt_to_uint256(session_public_key);
+        let (session_public_key_u256) = MathUtils.felt_to_uint256(session_public_key);
         let (padded_session_public_key) = _pad_right(session_public_key_u256);
 
         // Now construct the data array
@@ -511,7 +545,7 @@ func _u256_pow{range_check_ptr}(base: felt, exp: felt) -> (res: Uint256) {
         // Compute `base ** exp - 1`
         let (recursion) = _u256_pow(base, exp - 1);
 
-        let (uint256_base) = FeltUtils.felt_to_uint256(base);
+        let (uint256_base) = MathUtils.felt_to_uint256(base);
 
         // Multiply the result by `base`
         let (res, overflow) = uint256_mul(recursion, uint256_base);
@@ -567,7 +601,7 @@ func _get_padded_hash{range_check_ptr, pedersen_ptr: HashBuiltin*}(
     alloc_locals;
 
     let (hash) = ArrayUtils.hash(input_len, input);
-    let (hash_u256) = FeltUtils.felt_to_uint256(hash);
+    let (hash_u256) = MathUtils.felt_to_uint256(hash);
     let (padded_hash) = _pad_right(hash_u256);
 
     return (res=padded_hash);

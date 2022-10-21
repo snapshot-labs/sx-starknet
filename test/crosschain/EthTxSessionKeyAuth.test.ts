@@ -115,12 +115,12 @@ describe('Ethereum Transaction Session Keys', function () {
       );
     // Checking that the L1 -> L2 message has been propagated
     expect((await starknet.devnet.flush()).consumed_messages.from_l1).to.have.a.lengthOf(1);
-    await controller.invoke(ethTxSessionKeyAuth, 'authorize_session_key_with_tx', {
+    await controller.invoke(ethTxSessionKeyAuth, 'authorizeSessionKeyWithTx', {
       eth_address: account.address,
       session_public_key: sessionPublicKey,
       session_duration: sessionDuration,
     });
-    const { eth_address } = await ethTxSessionKeyAuth.call('get_session_key_owner', {
+    const { eth_address } = await ethTxSessionKeyAuth.call('getSessionKeyOwner', {
       session_public_key: sessionPublicKey,
     });
     expect(eth_address).to.deep.equal(BigInt(account.address));
@@ -190,7 +190,7 @@ describe('Ethereum Transaction Session Keys', function () {
       );
     await starknet.devnet.flush();
     try {
-      await controller.invoke(ethTxSessionKeyAuth, 'authorize_session_key_with_tx', {
+      await controller.invoke(ethTxSessionKeyAuth, 'authorizeSessionKeyWithTx', {
         eth_address: account.address,
         session_public_key: sessionPublicKey,
         session_duration: fakeSessionDuration,
@@ -210,7 +210,7 @@ describe('Ethereum Transaction Session Keys', function () {
       );
     await starknet.devnet.flush();
     try {
-      await controller.invoke(ethTxSessionKeyAuth, 'authorize_session_key_with_tx', {
+      await controller.invoke(ethTxSessionKeyAuth, 'authorizeSessionKeyWithTx', {
         eth_address: account.address,
         session_public_key: sessionPublicKey,
         session_duration: sessionDuration,
@@ -237,7 +237,7 @@ describe('Ethereum Transaction Session Keys', function () {
       const sig = await sessionSigner.signMessage(msg, ethTxSessionKeyAuth.address);
       const [r, s] = sig;
 
-      await controller.invoke(ethTxSessionKeyAuth, 'revoke_session_key_with_session_key_sig', {
+      await controller.invoke(ethTxSessionKeyAuth, 'revokeSessionKeyWithSessionKeySig', {
         r: r,
         s: s,
         salt: salt,
@@ -299,7 +299,7 @@ describe('Ethereum Transaction Session Keys', function () {
         );
       // Checking that the L1 -> L2 message has been propogated
       expect((await starknet.devnet.flush()).consumed_messages.from_l1).to.have.a.lengthOf(1);
-      await controller.invoke(ethTxSessionKeyAuth, 'authorize_session_key_with_tx', {
+      await controller.invoke(ethTxSessionKeyAuth, 'authorizeSessionKeyWithTx', {
         eth_address: account.address,
         session_public_key: sessionPublicKey,
         session_duration: sessionDuration,
@@ -316,7 +316,7 @@ describe('Ethereum Transaction Session Keys', function () {
           getRevokeSessionKeyCommit(account.address, sessionPublicKey)
         );
       await starknet.devnet.flush();
-      await controller.invoke(ethTxSessionKeyAuth, 'revoke_session_key_with_owner_tx', {
+      await controller.invoke(ethTxSessionKeyAuth, 'revokeSessionKeyWithOwnerTx', {
         session_public_key: sessionPublicKey,
       });
     }

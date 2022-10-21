@@ -37,7 +37,7 @@ namespace ISpaceaccount {
         metadata_uri_string_len: felt,
         metadata_uri_len: felt,
         metadata_uri: felt*,
-        executor: felt,
+        execution_strategy: felt,
         used_voting_strategies_len: felt,
         used_voting_strategies: felt*,
         user_voting_strategy_params_flat_len: felt,

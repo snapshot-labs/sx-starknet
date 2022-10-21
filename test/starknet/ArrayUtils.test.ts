@@ -1,19 +1,8 @@
 import { StarknetContract } from 'hardhat/types/runtime';
 import { expect } from 'chai';
 import { starknet } from 'hardhat';
-import { hash } from 'starknet';
 import { utils } from '@snapshot-labs/sx';
 import { computeHashOnElements } from 'starknet/dist/utils/hash';
-
-async function setup() {
-  const testArrayUtilsFactory = await starknet.getContractFactory(
-    './contracts/starknet/TestContracts/Test_ArrayUtils.cairo'
-  );
-  const testArrayUtils = await testArrayUtilsFactory.deploy();
-  return {
-    testArrayUtils: testArrayUtils as StarknetContract,
-  };
-}
 
 describe('Array Utilities', () => {
   let testArrayUtils: StarknetContract;
@@ -35,25 +24,25 @@ describe('Array Utilities', () => {
     const arr2d: string[][] = [arr1, arr2, arr3, arr4];
     const flatArray: string[] = utils.encoding.flatten2DArray(arr2d);
 
-    const { array: array1 } = await testArrayUtils.call('test_array2d', {
+    const { array: array1 } = await testArrayUtils.call('testArray2D', {
       flat_array: flatArray,
       index: 0,
     });
     expect(array1.map((x: any) => '0x' + x.toString(16))).to.deep.equal(arr1);
 
-    const { array: array2 } = await testArrayUtils.call('test_array2d', {
+    const { array: array2 } = await testArrayUtils.call('testArray2D', {
       flat_array: flatArray,
       index: 1,
     });
     expect(array2.map((x: any) => '0x' + x.toString(16))).to.deep.equal(arr2);
 
-    const { array: array3 } = await testArrayUtils.call('test_array2d', {
+    const { array: array3 } = await testArrayUtils.call('testArray2D', {
       flat_array: flatArray,
       index: 2,
     });
     expect(array3.map((x: any) => '0x' + x.toString(16))).to.deep.equal(arr3);
 
-    const { array: array4 } = await testArrayUtils.call('test_array2d', {
+    const { array: array4 } = await testArrayUtils.call('testArray2D', {
       flat_array: flatArray,
       index: 3,
     });
@@ -63,7 +52,7 @@ describe('Array Utilities', () => {
     // Offsets: [0]
     const arr2d2 = [arr2];
     const flatArray2 = utils.encoding.flatten2DArray(arr2d2);
-    const { array: array5 } = await testArrayUtils.call('test_array2d', {
+    const { array: array5 } = await testArrayUtils.call('testArray2D', {
       flat_array: flatArray2,
       index: 0,
     });
@@ -71,35 +60,15 @@ describe('Array Utilities', () => {
   }).timeout(600000);
 
   it('The library should be able to hash an array correctly', async () => {
-    const { hash: hash } = await testArrayUtils.call('test_hash_array', {
+    const { hash: hash } = await testArrayUtils.call('testHashArray', {
       array: [1, 2, 3, 4],
     });
     expect('0x' + hash.toString(16)).to.deep.equal(computeHashOnElements([1, 2, 3, 4]));
     // empty array
-    const { hash: hash2 } = await testArrayUtils.call('test_hash_array', {
+    const { hash: hash2 } = await testArrayUtils.call('testHashArray', {
       array: [],
     });
     expect('0x' + hash2.toString(16)).to.deep.equal(computeHashOnElements([]));
-  }).timeout(600000);
-
-  it('The library should be able to find a value in an array', async () => {
-    const { found: found } = await testArrayUtils.call('test_find_in_array', {
-      to_find: 1,
-      array: [1, 2, 3, 4],
-    });
-    expect(found).to.deep.equal(BigInt(1));
-
-    const { found: found2 } = await testArrayUtils.call('test_find_in_array', {
-      to_find: 7,
-      array: [1, 2, 3, 4],
-    });
-    expect(found2).to.deep.equal(BigInt(0));
-
-    const { found: found3 } = await testArrayUtils.call('test_find_in_array', {
-      to_find: 1,
-      array: [],
-    });
-    expect(found3).to.deep.equal(BigInt(0));
   }).timeout(600000);
 
   it('The library should be able to assert whether duplicates exist in an array', async () => {
