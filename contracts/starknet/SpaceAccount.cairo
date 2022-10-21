@@ -180,8 +180,8 @@ func propose{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_ptr: fe
 // @param voter_address The address of the voter
 // @param proposal_id The ID of the proposal in the space
 // @param choice The voter's choice (FOR, AGAINST, ABSTAIN)
-// @used_voting_strategies The voting strategies (within the whitelist for the space) that the voter has non-zero voting power with
-// @user_voting_strategy_params_flat Flattened 2D array of parameters for the voting strategies used
+// @param used_voting_strategies The voting strategies (within the whitelist for the space) that the voter has non-zero voting power with
+// @param user_voting_strategy_params_flat Flattened 2D array of parameters for the voting strategies used
 @external
 func vote{
     syscall_ptr: felt*,
