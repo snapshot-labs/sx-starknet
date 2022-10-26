@@ -1,1 +1,23 @@
-{"authenticators":{"vanilla":"0x1adbf92ddcc94e96742b4484925030a305edf965a3a5606ee43a5afb8ed54ae","ethSig":"0x10cbe39368a023fa782c31950a1ee1b04bfd2e7b427c03f11d6aea31e5e09da"},"votingStrategies":{"vanilla":"0x510b885b57cb83ac0ac176879a9689b70b6f1f01fa81d69d195eb63643b421c","ethBalanceOf":{"address":"0x1141ae80431905e9fb8db4c801ddcb3c155c37b2c1656dacd6720e34171b294","l1MessagesSender":"0x738bfb83246156b759165d244077865B994F9d33","fossilFactRegistry":"0x363108ac1521a47b4f7d82f8ba868199bc1535216bbedfc1b071ae93cc406fd","fossilL1HeadersStore":"0x6ca3d25e901ce1fff2a7dd4079a24ff63ca6bbf8ba956efc71c1467975ab78f"}},"executionStrategies":{"vanilla":"0x71ddaae9e87674cf73335b89f1686882f25bfa44ba5389cb824be31e878f891","zodiac":"0x388cf30378fa2508640ebc584d5b5249b31a3810ff113a77532adcea4312ee0"},"spaceFactory":{"address":"0x1ecf1c2608e3fa349551eec89815eb7c50748a8993118b06ab797b729f7c137","spaceClassHash":"0x11d33854aa6fd7fee2082075bae9a16ad121f85cbd0a9f357474d7f4ba17cb7"}}
+{
+    "authenticators": {
+        "ethSig": "0x5016ed6de3baeb2faf510d156c1b227615a1e679a9bd5b485b7bd791de40976",
+        "vanilla": "0x5f3866b060694708cc06740f2eda9f280229619806de79c24ba17f82b0579c5"
+    },
+    "executionStrategies": {
+        "vanilla": "0x468c17c71d886aee5abbba6940fa6fb1924c461c2558acff8f4a28109ad08f3",
+        "zodiac": "0x1443bc5db80b4d45c7a7506fcb180dd7daa52b3245901ce626ff0c62e4d8113"
+    },
+    "spaceFactory": {
+        "address": "0x48148f95b7960cff4845a0b982e86810f6e6296f950b185c33e17efd28ba1ad",
+        "spaceClassHash": "0x591469387a06fb88dd66559f4bc91e4c0c1e61e65c259b14a4d43f274fdabd9"
+    },
+    "votingStrategies": {
+        "ethBalanceOf": {
+            "address": "0x68da98d7798439f16b63b61644e7b27c932d5c051a455a978aa95488d5dcc9b",
+            "fossilFactRegistry": "0x363108ac1521a47b4f7d82f8ba868199bc1535216bbedfc1b071ae93cc406fd",
+            "fossilL1HeadersStore": "0x6ca3d25e901ce1fff2a7dd4079a24ff63ca6bbf8ba956efc71c1467975ab78f",
+            "l1MessagesSender": "0x738bfb83246156b759165d244077865B994F9d33"
+        },
+        "vanilla": "0x60878022f32470904442fab534920ea24241e2f3e04c5845e00abeb4cb2f71c"
+    }
+}

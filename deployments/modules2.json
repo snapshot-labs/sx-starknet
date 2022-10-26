@@ -1,0 +1,23 @@
+{
+    "authenticators": {
+        "ethSig": "0x006f4cc386258965ac92643b7b269275b0b17abab1dde8c98abd16e46bef3cc8",
+        "vanilla": "0x046455126a7c66c8672681aade3874df23454ab824aada8eefcc15cff503b76f"
+    },
+    "executionStrategies": {
+        "vanilla": "0x079c70e2914d7a1c3b6f8cbf54f1803fa3c939536c34af8b2b80096415a413a5",
+        "zodiac": "0x035b8be3b0ec441d686754d065261fdc86fafc27c379007d445472f71a07bd4f"
+    },
+    "spaceFactory": {
+        "address": "0x010dfdc40a8c1a76c3a2529d8310e4200a7aaaba55a99c12ccd317a18f82979c",
+        "spaceClassHash": "0x591469387a06fb88dd66559f4bc91e4c0c1e61e65c259b14a4d43f274fdabd9"
+    },
+    "votingStrategies": {
+        "ethBalanceOf": {
+            "address": "0x04a5216876f6330a176fcbb609b4c2a3b0104e14d379a0fe112c208d1a3bef8c",
+            "fossilFactRegistry": "0x363108ac1521a47b4f7d82f8ba868199bc1535216bbedfc1b071ae93cc406fd",
+            "fossilL1HeadersStore": "0x6ca3d25e901ce1fff2a7dd4079a24ff63ca6bbf8ba956efc71c1467975ab78f",
+            "l1MessagesSender": "0x738bfb83246156b759165d244077865B994F9d33"
+        },
+        "vanilla": "0x02b9b2a5e76f308bd862c262daa716a336eece785c4244366106ae4061a3d661"
+    }
+}

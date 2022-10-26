@@ -4,20 +4,18 @@ import { utils } from '@snapshot-labs/sx';
 
 async function main() {
 
-  const provider = process.env.STARKNET_PROVIDER_BASE_URL === undefined ?
-  defaultProvider :
-    new Provider({
-      sequencer: {
-        baseUrl: process.env.STARKNET_PROVIDER_BASE_URL!,
-        feederGatewayUrl: 'feeder_gateway',
-        gatewayUrl: 'gateway',
-      }, 
+  const provider = new Provider({
+    sequencer: {
+      baseUrl: 'http://127.0.0.1:8000/',
+      feederGatewayUrl: 'feeder_gateway',
+      gatewayUrl: 'gateway',
+    }, // Similar to arguements used in docs
   });
 
   const starkAccount = new Account(
     provider,
-    process.env.ACCOUNT_ADDRESS!,
-    ec.getKeyPair(process.env.ACCOUNT_PRIVATE_KEY!)
+    '0x68fd97768680005ceeb5206be5a7d242b41c6e6307f921935b85548bb976498',
+    ec.getKeyPair('0x430804b5f3870ab9d7cd07b434255648')
   );
   const modules = JSON.parse(fs.readFileSync('./deployments/modules2.json').toString());
 
@@ -36,7 +34,8 @@ async function main() {
   const executors = [vanillaExecutionStrategyAddress, zodiacExecutionStrategyAddress];
   const quorum = utils.splitUint256.SplitUint256.fromUint(BigInt(1));
   const proposalThreshold = utils.splitUint256.SplitUint256.fromUint(BigInt(1));
-  const controllerAddress = process.env.ACCOUNT_ADDRESS!; 
+  const controllerAddress = '0x68fd97768680005ceeb5206be5a7d242b41c6e6307f921935b85548bb976498'; 
+  // const controllerAddress = '0x1f019daad09f101dec4ef7f50bc67202d88905c75a2a1545ce96e9fbee79a78'; 
 
   // Vanilla Auth + Vanilla Voting
   const votingStrategies1 = [vanillaVotingStrategyAddress];

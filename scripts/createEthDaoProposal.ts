@@ -3,35 +3,46 @@ import fs from 'fs';
 import { _TypedDataEncoder } from '@ethersproject/hash';
 import { ethers } from 'ethers';
 import { utils } from '@snapshot-labs/sx';
-import { defaultProvider, Account, ec, hash } from 'starknet';
+import { Provider, defaultProvider, Account, ec, hash } from 'starknet';
 import { domain, Propose, proposeTypes } from '../test/shared/types';
 import { PROPOSE_SELECTOR } from '../test/shared/constants';
 
 async function main() {
   global.fetch = fetch;
 
+  const provider = process.env.STARKNET_PROVIDER_BASE_URL === undefined ?
+  defaultProvider :
+    new Provider({
+      sequencer: {
+        baseUrl: process.env.STARKNET_PROVIDER_BASE_URL!,
+        feederGatewayUrl: 'feeder_gateway',
+        gatewayUrl: 'gateway',
+      }, 
+  });
+
   const starkAccount = new Account(
-    defaultProvider,
-    process.env.ARGENT_X_ADDRESS!,
-    ec.getKeyPair(process.env.ARGENT_X_PK!)
+    provider,
+    process.env.ACCOUNT_ADDRESS!,
+    ec.getKeyPair(process.env.ACCOUNT_PRIVATE_KEY!)
   );
   const ethAccount = new ethers.Wallet(process.env.ETH_PK_1!);
 
-  const deployment = JSON.parse(fs.readFileSync('./deployments/goerli3.json').toString());
-  const ethSigAuthenticatorAddress = deployment.spaces[2].authenticators.ethSig;
-  const vanillaExecutionStrategyAddress = deployment.spaces[2].executionStrategies.vanilla;
-  const spaceAddress = deployment.spaces[2].address;
+  const deployment = JSON.parse(fs.readFileSync('./deployments/goerli5.json').toString());
+  const ethSigAuthenticatorAddress = deployment.spaces[1].authenticators.ethSig;
+  const vanillaExecutionStrategyAddress = deployment.spaces[1].executionStrategies.vanilla;
+  const spaceAddress = deployment.spaces[1].address;
 
   const usedVotingStrategies = ['0x0'];
   const metadataUri = 'Hello and welcome to Snapshot X. This is the future of governance.';
   const metadataUriInts = utils.intsSequence.IntsSequence.LEFromString(metadataUri);
-  const block = JSON.parse(fs.readFileSync('./test/data/blockGoerli.json').toString());
-  const proofs = JSON.parse(fs.readFileSync('./test/data/proofsGoerli.json').toString());
-  const proofInputs: utils.storageProofs.ProofInputs = utils.storageProofs.getProofInputs(
-    block.number,
-    proofs
-  );
-  const userVotingStrategyParams = [proofInputs.storageProofs[0]];
+  // const block = JSON.parse(fs.readFileSync('./test/data/blockGoerli.json').toString());
+  // const proofs = JSON.parse(fs.readFileSync('./test/data/proofsGoerli.json').toString());
+  // const proofInputs: utils.storageProofs.ProofInputs = utils.storageProofs.getProofInputs(
+  //   block.number,
+  //   proofs
+  // );
+  // const userVotingStrategyParams = [proofInputs.storageProofs[0]];
+  const userVotingStrategyParams: string[][] = [[]];
   const executionStrategy = vanillaExecutionStrategyAddress;
   const executionParams = ['0x1']; // Random params
   const executionHash = hash.computeHashOnElements(executionParams);
@@ -48,17 +59,18 @@ async function main() {
   const salt = utils.splitUint256.SplitUint256.fromHex(
     utils.bytes.bytesToHex(ethers.utils.randomBytes(6))
   );
+
   const message: Propose = {
     authenticator: utils.encoding.hexPadRight(ethSigAuthenticatorAddress),
     space: utils.encoding.hexPadRight(spaceAddress),
-    proposerAddress: utils.encoding.hexPadRight(proposerEthAddress),
-    metadataUri: metadataUri,
+    author: proposerEthAddress,
+    metadata_uri: metadataUri,
     executor: utils.encoding.hexPadRight(vanillaExecutionStrategyAddress),
-    executionParamsHash: utils.encoding.hexPadRight(executionHash),
-    usedVotingStrategiesHash: utils.encoding.hexPadRight(
+    execution_hash: utils.encoding.hexPadRight(executionHash),
+    strategies_hash: utils.encoding.hexPadRight(
       hash.computeHashOnElements(usedVotingStrategies)
     ),
-    userVotingStrategyParamsFlatHash: utils.encoding.hexPadRight(
+    strategies_params_hash: utils.encoding.hexPadRight(
       hash.computeHashOnElements(utils.encoding.flatten2DArray(userVotingStrategyParams))
     ),
     salt: salt.toHex(),
@@ -85,10 +97,10 @@ async function main() {
       ],
     },
     undefined,
-    { maxFee: '857400005301800' }
+    { maxFee: '55818000000000000000' }
   );
   console.log('Waiting for confirmation, transaction hash: ', txHash);
-  await defaultProvider.waitForTransaction(txHash);
+  await provider.waitForTransaction(txHash);
   console.log('---- PROPOSAL CREATED ----');
 }
 

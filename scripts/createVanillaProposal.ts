@@ -3,24 +3,34 @@ import fs from 'fs';
 import { _TypedDataEncoder } from '@ethersproject/hash';
 import { ethers } from 'ethers';
 import { utils } from '@snapshot-labs/sx';
-import { defaultProvider, Account, ec, hash } from 'starknet';
+import { Provider, defaultProvider, Account, ec, hash } from 'starknet';
 import { domain, Propose, proposeTypes } from '../test/shared/types';
 import { PROPOSE_SELECTOR } from '../test/shared/constants';
 
 async function main() {
   global.fetch = fetch;
 
+  const provider = process.env.STARKNET_PROVIDER_BASE_URL === undefined ?
+  defaultProvider :
+    new Provider({
+      sequencer: {
+        baseUrl: process.env.STARKNET_PROVIDER_BASE_URL!,
+        feederGatewayUrl: 'feeder_gateway',
+        gatewayUrl: 'gateway',
+      }, 
+  });
+
   const starkAccount = new Account(
-    defaultProvider,
-    process.env.ARGENT_X_ADDRESS!,
-    ec.getKeyPair(process.env.ARGENT_X_PK!)
+    provider,
+    process.env.ACCOUNT_ADDRESS!,
+    ec.getKeyPair(process.env.ACCOUNT_PRIVATE_KEY!)
   );
   const ethAccount = new ethers.Wallet(process.env.ETH_PK_1!);
 
-  const deployment = JSON.parse(fs.readFileSync('./deployments/goerli2.json').toString());
-  const vanillaAuthenticatorAddress = deployment.space.authenticators.vanilla;
-  const zodiacExecutionStrategyAddress = deployment.space.executionStrategies.zodiac;
-  const spaceAddress = deployment.space.address;
+  const deployment = JSON.parse(fs.readFileSync('./deployments/goerli5.json').toString());
+  const vanillaAuthenticatorAddress = deployment.spaces[0].authenticators.vanilla;
+  const zodiacExecutionStrategyAddress = deployment.spaces[0].executionStrategies.zodiac;
+  const spaceAddress = deployment.spaces[0].address;
 
   const goerliChainId = 5;
   const zodiacModuleAddress = '0xa88f72e92cc519d617b684F8A78d3532E7bb61ca';
@@ -58,10 +68,10 @@ async function main() {
       calldata: [spaceAddress, PROPOSE_SELECTOR, proposeCalldata.length, ...proposeCalldata],
     },
     undefined,
-    { maxFee: '857400005301800' }
+    { maxFee: '89250000000000000' }
   );
   console.log('Waiting for confirmation, transaction hash: ', txHash);
-  await defaultProvider.waitForTransaction(txHash);
+  await provider.waitForTransaction(txHash);
   console.log('---- PROPOSAL CREATED ----');
 }
 
