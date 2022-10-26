@@ -785,6 +785,12 @@ namespace Voting {
             assert_not_zero(proposal.timestamps);
         }
 
+        // Make sure execution params match the ones sent at proposal creation by checking that the hashes match
+        let (recovered_hash) = ArrayUtils.hash(execution_params_len, execution_params);
+        with_attr error_message("Voting: Invalid execution parameters") {
+            assert recovered_hash = proposal.execution_hash;
+        }
+
         let proposal_outcome = ProposalOutcome.CANCELLED;
 
         if (proposal.execution_strategy != 1) {
