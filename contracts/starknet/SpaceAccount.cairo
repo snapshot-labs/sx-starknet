@@ -7,6 +7,7 @@ from starkware.starknet.common.syscalls import get_tx_info
 from starkware.cairo.common.uint256 import Uint256
 
 from openzeppelin.account.library import Account, AccountCallArray
+from openzeppelin.access.ownable.library import Ownable
 
 from contracts.starknet.lib.voting import Voting
 from contracts.starknet.lib.general_address import Address
@@ -50,13 +51,12 @@ func constructor{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_ptr
     execution_strategies: felt*,
 ) {
     Account.initializer(public_key);
-
+    Ownable.initializer(controller);
     Voting.initializer(
         voting_delay,
         min_voting_duration,
         max_voting_duration,
         proposal_threshold,
-        controller,
         quorum,
         voting_strategies_len,
         voting_strategies,
@@ -231,6 +231,7 @@ func finalizeProposal{
 func cancelProposal{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_ptr: felt}(
     proposal_id: felt, execution_params_len: felt, execution_params: felt*
 ) {
+    Ownable.assert_only_owner();
     Voting.cancel_proposal(proposal_id, execution_params_len, execution_params);
     return ();
 }
@@ -262,7 +263,8 @@ func getProposalInfo{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check
 func setController{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_ptr: felt}(
     new_controller: felt
 ) {
-    Voting.update_controller(new_controller);
+    Ownable.assert_only_owner();
+    Ownable.transfer_ownership(new_controller);
     return ();
 }
 
@@ -272,6 +274,7 @@ func setController{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_p
 func setQuorum{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_ptr: felt}(
     new_quorum: Uint256
 ) {
+    Ownable.assert_only_owner();
     Voting.update_quorum(new_quorum);
     return ();
 }
@@ -282,6 +285,7 @@ func setQuorum{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_ptr: 
 func setVotingDelay{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_ptr: felt}(
     new_delay: felt
 ) {
+    Ownable.assert_only_owner();
     Voting.update_voting_delay(new_delay);
     return ();
 }
@@ -292,6 +296,7 @@ func setVotingDelay{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_
 func setMinVotingDuration{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_ptr: felt}(
     new_min_voting_duration: felt
 ) {
+    Ownable.assert_only_owner();
     Voting.update_min_voting_duration(new_min_voting_duration);
     return ();
 }
@@ -302,6 +307,7 @@ func setMinVotingDuration{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_
 func setMaxVotingDuration{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_ptr: felt}(
     new_max_voting_duration: felt
 ) {
+    Ownable.assert_only_owner();
     Voting.update_max_voting_duration(new_max_voting_duration);
     return ();
 }
@@ -312,6 +318,7 @@ func setMaxVotingDuration{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_
 func setProposalThreshold{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_ptr: felt}(
     new_proposal_threshold: Uint256
 ) {
+    Ownable.assert_only_owner();
     Voting.update_proposal_threshold(new_proposal_threshold);
     return ();
 }
@@ -322,6 +329,7 @@ func setProposalThreshold{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_
 func setMetadataUri{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_ptr: felt}(
     new_metadata_uri_len: felt, new_metadata_uri: felt*
 ) {
+    Ownable.assert_only_owner();
     Voting.update_metadata_uri(new_metadata_uri_len, new_metadata_uri);
     return ();
 }
@@ -332,6 +340,7 @@ func setMetadataUri{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_
 func addExecutionStrategies{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_ptr: felt}(
     addresses_len: felt, addresses: felt*
 ) {
+    Ownable.assert_only_owner();
     Voting.add_execution_strategies(addresses_len, addresses);
     return ();
 }
@@ -342,6 +351,7 @@ func addExecutionStrategies{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, rang
 func removeExecutionStrategies{
     syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_ptr: felt
 }(addresses_len: felt, addresses: felt*) {
+    Ownable.assert_only_owner();
     Voting.remove_execution_strategies(addresses_len, addresses);
     return ();
 }
@@ -353,6 +363,7 @@ func removeExecutionStrategies{
 func addVotingStrategies{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_ptr: felt}(
     addresses_len: felt, addresses: felt*, params_flat_len: felt, params_flat: felt*
 ) {
+    Ownable.assert_only_owner();
     Voting.add_voting_strategies(addresses_len, addresses, params_flat_len, params_flat);
     return ();
 }
@@ -363,6 +374,7 @@ func addVotingStrategies{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_c
 func removeVotingStrategies{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_ptr: felt}(
     indexes_len: felt, indexes: felt*
 ) {
+    Ownable.assert_only_owner();
     Voting.remove_voting_strategies(indexes_len, indexes);
     return ();
 }
@@ -373,6 +385,7 @@ func removeVotingStrategies{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, rang
 func addAuthenticators{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_ptr: felt}(
     addresses_len: felt, addresses: felt*
 ) {
+    Ownable.assert_only_owner();
     Voting.add_authenticators(addresses_len, addresses);
     return ();
 }
@@ -383,6 +396,7 @@ func addAuthenticators{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_che
 func removeAuthenticators{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_ptr: felt}(
     addresses_len: felt, addresses: felt*
 ) {
+    Ownable.assert_only_owner();
     Voting.remove_authenticators(addresses_len, addresses);
     return ();
 }
