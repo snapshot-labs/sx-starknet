@@ -11,7 +11,6 @@ from starkware.cairo.common.hash_state import hash_init, hash_update
 from starkware.cairo.common.math_cmp import is_le
 from starkware.cairo.common.math import assert_lt, assert_le, assert_nn, assert_not_zero
 
-from openzeppelin.access.ownable.library import Ownable
 from openzeppelin.account.library import Account, AccountCallArray, Call
 from openzeppelin.security.safemath.library import SafeUint256
 
@@ -117,10 +116,6 @@ func vote_created(proposal_id: felt, voter_address: Address, vote: Vote) {
 }
 
 @event
-func controller_updated(previous: felt, new_controller: felt) {
-}
-
-@event
 func quorum_updated(previous: Uint256, new_quorum: Uint256) {
 }
 
@@ -174,7 +169,6 @@ namespace Voting {
     // @param min_voting_duration The minimum duration of the voting period
     // @param max_voting_duration The maximum duration of the voting period
     // @param proposal_threshold The minimum amount of voting power needed to be able to create a new proposal in the space
-    // @param controller The address of the controller account for the space
     // @param quorum The minimum total voting power required for a proposal to pass
     // @param voting_strategies Array of whitelisted voting strategy contract addresses
     // @param voting_strategy_params_flat Flattened 2D array of voting strategy parameters
@@ -185,7 +179,6 @@ namespace Voting {
         min_voting_duration: felt,
         max_voting_duration: felt,
         proposal_threshold: Uint256,
-        controller: felt,
         quorum: Uint256,
         voting_strategies_len: felt,
         voting_strategies: felt*,
@@ -201,7 +194,6 @@ namespace Voting {
         with_attr error_message("Voting: Invalid constructor parameters") {
             assert_nn(voting_delay);
             assert_le(min_voting_duration, max_voting_duration);
-            assert_not_zero(controller);
             assert_not_zero(voting_strategies_len);
             assert_not_zero(authenticators_len);
             assert_not_zero(execution_strategies_len);
@@ -214,7 +206,6 @@ namespace Voting {
         Voting_min_voting_duration_store.write(min_voting_duration);
         Voting_max_voting_duration_store.write(max_voting_duration);
         Voting_proposal_threshold_store.write(proposal_threshold);
-        Ownable.initializer(controller);
         Voting_quorum_store.write(quorum);
 
         // Reconstruct the voting params 2D array (1 sub array per strategy) from the flattened version.
@@ -235,25 +226,11 @@ namespace Voting {
         return ();
     }
 
-    // @dev Updates the controller
-    // @param new_controller The new controller account address
-    func update_controller{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_ptr: felt}(
-        new_controller: felt
-    ) {
-        alloc_locals;
-        Ownable.assert_only_owner();
-        let (previous_controller) = Ownable.owner();
-        Ownable.transfer_ownership(new_controller);
-        controller_updated.emit(previous_controller, new_controller);
-        return ();
-    }
-
     // @dev Updates the quorum
     // @param new_quorum The new quorum
     func update_quorum{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_ptr: felt}(
         new_quorum: Uint256
     ) {
-        Ownable.assert_only_owner();
         MathUtils.assert_valid_uint256(new_quorum);
         let (previous_quorum) = Voting_quorum_store.read();
         Voting_quorum_store.write(new_quorum);
@@ -266,7 +243,6 @@ namespace Voting {
     func update_voting_delay{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_ptr: felt}(
         new_voting_delay: felt
     ) {
-        Ownable.assert_only_owner();
         let (previous_delay) = Voting_voting_delay_store.read();
         Voting_voting_delay_store.write(new_voting_delay);
         voting_delay_updated.emit(previous_delay, new_voting_delay);
@@ -278,7 +254,6 @@ namespace Voting {
     func update_min_voting_duration{
         syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_ptr: felt
     }(new_min_voting_duration: felt) {
-        Ownable.assert_only_owner();
         let (previous_min_voting_duration) = Voting_min_voting_duration_store.read();
         let (max_voting_duration) = Voting_max_voting_duration_store.read();
         with_attr error_message(
@@ -295,7 +270,6 @@ namespace Voting {
     func update_max_voting_duration{
         syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_ptr: felt
     }(new_max_voting_duration: felt) {
-        Ownable.assert_only_owner();
         let (previous_max_voting_duration) = Voting_max_voting_duration_store.read();
         let (min_voting_duration) = Voting_min_voting_duration_store.read();
         with_attr error_message(
@@ -312,7 +286,6 @@ namespace Voting {
     func update_proposal_threshold{
         syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_ptr: felt
     }(new_proposal_threshold: Uint256) {
-        Ownable.assert_only_owner();
         MathUtils.assert_valid_uint256(new_proposal_threshold);
         let (previous_proposal_threshold) = Voting_proposal_threshold_store.read();
         Voting_proposal_threshold_store.write(new_proposal_threshold);
@@ -327,7 +300,6 @@ namespace Voting {
         new_metadata_uri_len: felt, new_metadata_uri: felt*
     ) {
         alloc_locals;
-        Ownable.assert_only_owner();
         metadata_uri_updated.emit(new_metadata_uri_len, new_metadata_uri);
         return ();
     }
@@ -338,7 +310,6 @@ namespace Voting {
         syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_ptr: felt
     }(addresses_len: felt, addresses: felt*) {
         alloc_locals;
-        Ownable.assert_only_owner();
         _unchecked_add_execution_strategies(addresses_len, addresses);
         execution_strategies_added.emit(addresses_len, addresses);
         return ();
@@ -350,7 +321,6 @@ namespace Voting {
         syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_ptr: felt
     }(addresses_len: felt, addresses: felt*) {
         alloc_locals;
-        Ownable.assert_only_owner();
         _unchecked_remove_execution_strategies(addresses_len, addresses);
         execution_strategies_removed.emit(addresses_len, addresses);
         return ();
@@ -363,7 +333,6 @@ namespace Voting {
         syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_ptr: felt
     }(addresses_len: felt, addresses: felt*, params_flat_len: felt, params_flat: felt*) {
         alloc_locals;
-        Ownable.assert_only_owner();
         _assert_no_active_proposal();
         let (params_all: Immutable2DArray) = ArrayUtils.construct_array2d(
             params_flat_len, params_flat
@@ -379,7 +348,6 @@ namespace Voting {
         syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_ptr: felt
     }(indexes_len: felt, indexes: felt*) {
         alloc_locals;
-        Ownable.assert_only_owner();
         _assert_no_active_proposal();
         _unchecked_remove_voting_strategies(indexes_len, indexes);
         voting_strategies_removed.emit(indexes_len, indexes);
@@ -392,7 +360,6 @@ namespace Voting {
         addresses_len: felt, addresses: felt*
     ) {
         alloc_locals;
-        Ownable.assert_only_owner();
         _assert_no_active_proposal();
         _unchecked_add_authenticators(addresses_len, addresses);
         authenticators_added.emit(addresses_len, addresses);
@@ -405,7 +372,6 @@ namespace Voting {
         syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_ptr: felt
     }(addresses_len: felt, addresses: felt*) {
         alloc_locals;
-        Ownable.assert_only_owner();
         _assert_no_active_proposal();
         _unchecked_remove_authenticators(addresses_len, addresses);
         authenticators_removed.emit(addresses_len, addresses);
@@ -761,15 +727,13 @@ namespace Voting {
         return ();
     }
 
-    // @dev Cancels a proposal. Only callable by the controller.
+    // @dev Cancels a proposal
     // @param proposal_id The ID of the proposal
     // @param execution_params Execution parameters for the proposal (must be the same as those submitted during proposal creation)
     func cancel_proposal{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_ptr: felt}(
         proposal_id: felt, execution_params_len: felt, execution_params: felt*
     ) {
         alloc_locals;
-
-        Ownable.assert_only_owner();
 
         let (has_been_executed) = Voting_executed_proposals_store.read(proposal_id);
 
