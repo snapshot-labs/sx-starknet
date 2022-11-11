@@ -2,18 +2,10 @@
 
 %lang starknet
 
-from starkware.starknet.common.syscalls import get_block_timestamp
-from starkware.cairo.common.uint256 import Uint256
-from starkware.cairo.common.cairo_builtins import HashBuiltin, SignatureBuiltin, BitwiseBuiltin
-from starkware.cairo.common.math import assert_lt, assert_not_zero, assert_nn_le
-from starkware.cairo.common.alloc import alloc
-
+from starkware.cairo.common.cairo_builtins import HashBuiltin
 from starkware.cairo.common.math_cmp import is_le_felt
 from starkware.cairo.common.hash import hash2
 
-from contracts.starknet.lib.stark_eip191 import StarkEIP191
-from contracts.starknet.lib.eip712 import EIP712
-from contracts.starknet.lib.eth_tx import EthTx
 from contracts.starknet.lib.array_utils import ArrayUtils
 
 //
@@ -35,23 +27,24 @@ namespace Merkle {
     }
 
     func compute_merkle_root{pedersen_ptr: HashBuiltin*, range_check_ptr}(
-        node: felt, proof_len: felt, proof: felt*
+        curr: felt, proof_len: felt, proof: felt*
     ) -> (root: felt) {
         alloc_locals;
 
         if (proof_len == 0) {
-            return (node,);
+            return (curr,);
         }
-        let (le) = is_le_felt(node, proof[0]);
+        // local node;
+        let le = is_le_felt(curr, proof[0]);
         if (le == 1) {
-            let (n) = hash2{hash_ptr=pedersen_ptr}(node, proof[0]);
-            node = n;
+            let (n) = hash2{hash_ptr=pedersen_ptr}(curr, proof[0]);
+            tempvar node = n;
         } else {
-            let (n) = hash2{hash_ptr=pedersen_ptr}(proof[0], node);
-            node = n;
+            let (n) = hash2{hash_ptr=pedersen_ptr}(proof[0], curr);
+            tempvar node = n;
         }
 
-        let (root) = compute_merkle_root(node, proof_len - 1, &proof);
+        let (root) = compute_merkle_root(node, proof_len - 1, &proof[1]);
         return (root,);
     }
 }
