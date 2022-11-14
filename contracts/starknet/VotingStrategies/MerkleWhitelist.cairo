@@ -8,7 +8,6 @@ from starkware.cairo.common.memcpy import memcpy
 from starkware.cairo.common.alloc import alloc
 from starkware.cairo.common.math import assert_nn_le
 
-from contracts.starknet.lib.math_utils import MathUtils
 from contracts.starknet.lib.general_address import Address
 from contracts.starknet.lib.merkle import Merkle
 
