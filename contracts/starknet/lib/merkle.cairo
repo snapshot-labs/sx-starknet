@@ -34,7 +34,7 @@ namespace Merkle {
         if (proof_len == 0) {
             return (curr,);
         }
-        // local node;
+
         let le = is_le_felt(curr, proof[0]);
         if (le == 1) {
             let (n) = hash2{hash_ptr=pedersen_ptr}(curr, proof[0]);
