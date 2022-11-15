@@ -49,6 +49,6 @@ func _compute_merkle_root{pedersen_ptr: HashBuiltin*, range_check_ptr}(
         tempvar node = n;
     }
 
-    let (root) = compute_merkle_root(node, proof_len - 1, &proof[1]);
+    let (root) = _compute_merkle_root(node, proof_len - 1, &proof[1]);
     return (root,);
 }
