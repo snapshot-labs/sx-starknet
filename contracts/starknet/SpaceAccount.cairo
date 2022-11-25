@@ -72,6 +72,10 @@ func constructor{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_ptr
 
 // ----- OZ Account Functionality -----
 
+//
+// Getters
+//
+
 @view
 func getPublicKey{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_ptr}() -> (
     publicKey: felt
@@ -87,6 +91,10 @@ func supportsInterface{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_che
     return Account.supports_interface(interfaceId);
 }
 
+//
+// Setters
+//
+
 @external
 func setPublicKey{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_ptr}(
     newPublicKey: felt
@@ -94,6 +102,10 @@ func setPublicKey{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_pt
     Account.set_public_key(newPublicKey);
     return ();
 }
+
+//
+// Business logic
+//
 
 @view
 func isValidSignature{
@@ -116,6 +128,15 @@ func __validate__{
 func __validate_declare__{
     syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, ecdsa_ptr: SignatureBuiltin*, range_check_ptr
 }(class_hash: felt) {
+    let (tx_info) = get_tx_info();
+    Account.is_valid_signature(tx_info.transaction_hash, tx_info.signature_len, tx_info.signature);
+    return ();
+}
+
+@external
+func __validate_deploy__{
+    syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, ecdsa_ptr: SignatureBuiltin*, range_check_ptr
+}(class_hash: felt, salt: felt, publicKey: felt) {
     let (tx_info) = get_tx_info();
     Account.is_valid_signature(tx_info.transaction_hash, tx_info.signature_len, tx_info.signature);
     return ();
