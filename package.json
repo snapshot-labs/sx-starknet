@@ -1,5 +1,5 @@
 {
-  "name": "snapshot-x",
+  "name": "@snapshot-labs/sx-core",
   "version": "0.0.1-beta.1",
   "repository": "snapshot-labs/snapshot-x",
   "license": "MIT",
