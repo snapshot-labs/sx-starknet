@@ -1,7 +1,7 @@
 {
   "name": "@snapshot-labs/sx-core",
   "version": "0.1.0-beta.2",
-  "repository": "snapshot-labs/snapshot-x",
+  "repository": "snapshot-labs/sx-core",
   "license": "MIT",
   "files": [
     "contracts",
