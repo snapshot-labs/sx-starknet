@@ -1,8 +1,13 @@
 {
   "name": "snapshot-x",
-  "version": "1.0.0",
+  "version": "0.0.1-beta.1",
   "repository": "snapshot-labs/snapshot-x",
   "license": "MIT",
+  "files": [
+    "contracts",
+    "artifacts",
+    "starknet-artifacts"
+  ],
   "scripts": {
     "compile:l1": "hardhat compile",
     "compile:l2": "hardhat starknet-compile ./contracts/starknet/SpaceAccount.cairo --account-contract && hardhat starknet-compile ./contracts/starknet/SpaceFactory.cairo && hardhat starknet-compile ./contracts/starknet/**/",
