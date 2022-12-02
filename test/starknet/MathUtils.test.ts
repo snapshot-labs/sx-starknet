@@ -59,7 +59,7 @@ describe('Felt Utils:', () => {
 
   it('Packing should fail if a number greater than 32 bits is used', async () => {
     const num1 = utils.bytes.bytesToHex(ethers.utils.randomBytes(4));
-    const num2 = '0xfffff'; // 36 bits
+    const num2 = '0xfffffffff'; // 36 bits
     const num3 = utils.bytes.bytesToHex(ethers.utils.randomBytes(4));
     const num4 = utils.bytes.bytesToHex(ethers.utils.randomBytes(4));
     try {
@@ -69,6 +69,7 @@ describe('Felt Utils:', () => {
         num3: num3,
         num4: num4,
       });
+      throw { message: 'packing succeeded with a number greater than 32 bits' };
     } catch (error: any) {
       expect(error.message).to.contain('MathUtils: number too big to be packed');
     }

@@ -84,6 +84,7 @@ describe('Array Utilities', () => {
       await testArrayUtils.call('test_assert_no_duplicates', {
         array: [1, 0, 3, 4, 2, 0],
       });
+      throw { message: 'duplicate was allowed' };
     } catch (error: any) {
       expect(error.message).to.contain('Duplicate entry found');
     }

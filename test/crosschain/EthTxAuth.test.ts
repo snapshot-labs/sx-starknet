@@ -104,6 +104,7 @@ describe('L1 interaction with Snapshot X', function () {
         function_selector: PROPOSE_SELECTOR,
         calldata: proposeCalldata,
       });
+      throw { message: 'committed multiple times' };
     } catch (err: any) {
       expect(err.message).to.contain('EthTx: Hash not yet committed or already executed');
     }
@@ -124,6 +125,7 @@ describe('L1 interaction with Snapshot X', function () {
         function_selector: PROPOSE_SELECTOR,
         calldata: proposeCalldata,
       });
+      throw { message: 'succeeded without hash commit' };
     } catch (err: any) {
       expect(err.message).to.contain('EthTx: Hash not yet committed or already executed');
     }
@@ -145,6 +147,7 @@ describe('L1 interaction with Snapshot X', function () {
         function_selector: PROPOSE_SELECTOR,
         calldata: proposeCalldata,
       });
+      throw { message: 'succeeded with invalid commit sender' };
     } catch (err: any) {
       expect(err.message).to.contain('EthTx: Commit made by invalid L1 address');
     }
