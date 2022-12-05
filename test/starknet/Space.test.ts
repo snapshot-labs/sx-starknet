@@ -277,15 +277,14 @@ describe('Space Testing', () => {
     }
   });
 
-  it('Returns empty proposal info when querying an invalid proposal id', async () => {
-    const { proposal_info } = await space.call('getProposalInfo', {
-      proposal_id: 42,
-    });
-    const _for = utils.splitUint256.SplitUint256.fromObj(proposal_info.power_for).toUint();
-    expect(_for).to.deep.equal(BigInt(0));
-    const against = utils.splitUint256.SplitUint256.fromObj(proposal_info.power_against).toUint();
-    expect(against).to.deep.equal(BigInt(0));
-    const abstain = utils.splitUint256.SplitUint256.fromObj(proposal_info.power_abstain).toUint();
-    expect(abstain).to.deep.equal(BigInt(0));
+  it('Reverts when querying an invalid proposal id', async () => {
+    try {
+      await space.call('getProposalInfo', {
+        proposal_id: 42,
+      });
+      throw { message: 'invalid proposal id query did not revert' };
+    } catch (error: any) {
+      expect(error.message).to.contain('Voting: Proposal does not exist');
+    }
   }).timeout(6000000);
 });
