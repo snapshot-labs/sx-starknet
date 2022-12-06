@@ -799,6 +799,9 @@ namespace Voting {
         proposal_id: felt
     ) -> (proposal_info: ProposalInfo) {
         let (proposal) = Voting_proposal_registry_store.read(proposal_id);
+        with_attr error_message("Voting: Proposal does not exist") {
+            assert_not_zero(proposal.timestamps);
+        }
 
         let (power_against) = Voting_vote_power_store.read(proposal_id, Choice.AGAINST);
         let (power_for) = Voting_vote_power_store.read(proposal_id, Choice.FOR);

@@ -118,6 +118,7 @@ describe('Merkle Whitelist testing', () => {
           ...tree.getProof(leaves, Number(leaf1[3])),
         ],
       });
+      throw { message: 'voting power returned for invalid proof' };
     } catch (err: any) {
       expect(err.message).to.contain('MerkleWhitelist: Invalid proof supplied');
     }

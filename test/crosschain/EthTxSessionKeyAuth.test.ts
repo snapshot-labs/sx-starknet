@@ -195,6 +195,7 @@ describe('Ethereum Transaction Session Keys', function () {
         session_public_key: sessionPublicKey,
         session_duration: fakeSessionDuration,
       });
+      throw { message: 'succeeded without hash commit' };
     } catch (err: any) {
       expect(err.message).to.contain('EthTx: Hash not yet committed or already executed');
     }
@@ -215,6 +216,7 @@ describe('Ethereum Transaction Session Keys', function () {
         session_public_key: sessionPublicKey,
         session_duration: sessionDuration,
       });
+      throw { message: 'succeeded with invalid commit sender' };
     } catch (err: any) {
       expect(err.message).to.contain('EthTx: Commit made by invalid L1 address');
     }

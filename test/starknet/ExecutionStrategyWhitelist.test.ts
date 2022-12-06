@@ -106,6 +106,7 @@ describe('Execution Strategy Whitelist testing', () => {
         function_selector: PROPOSE_SELECTOR,
         calldata: proposeCalldata2,
       });
+      throw { message: 'proposal created with non whitelisted execution strategy' };
     } catch (err: any) {
       expect(err.message).to.contain('Voting: Invalid execution strategy');
     }
@@ -141,6 +142,7 @@ describe('Execution Strategy Whitelist testing', () => {
         function_selector: PROPOSE_SELECTOR,
         calldata: proposeCalldata1,
       });
+      throw { message: 'proposal not removed from whitelist' };
     } catch (err: any) {
       expect(err.message).to.contain('Voting: Invalid execution strategy');
     }

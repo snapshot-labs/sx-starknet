@@ -145,6 +145,7 @@ describe('Merkle:', () => {
           leaf: [leafData[1], leafData[2]],
           proof: corruptedProof,
         });
+        throw { message: 'invalid leaf asserted to be valid' };
       } catch (error: any) {
         expect(error.message).to.contain('Merkle: Invalid proof');
       }
@@ -157,6 +158,7 @@ describe('Merkle:', () => {
           leaf: ['0x0', '0x0'],
           proof: '0x0',
         });
+        throw { message: 'invalid leaf asserted to be valid' };
       } catch (error: any) {
         expect(error.message).to.contain('Merkle: Invalid proof');
       }

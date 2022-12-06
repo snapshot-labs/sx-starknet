@@ -131,6 +131,7 @@ describe('Space Testing', () => {
           executionParams
         ),
       });
+      throw { message: 'succeeded with invalid voting strategy' };
     } catch (error: any) {
       expect(error.message).to.contain('Voting: Invalid voting strategy');
     }
@@ -159,6 +160,7 @@ describe('Space Testing', () => {
           function_selector: PROPOSE_SELECTOR,
           calldata: duplicateCalldata,
         });
+        throw { message: 'same voting strategy was used multiple times' };
       } catch (error: any) {
         expect(error.message).to.contain('ArrayUtils: Duplicate entry found');
       }
@@ -251,6 +253,7 @@ describe('Space Testing', () => {
         proposal_id: 0x3,
         execution_params: executionParams,
       });
+      throw { message: 'proposal finalized with insufficient quorum' };
     } catch (error: any) {
       expect(error.message).to.contain('Voting: Quorum has not been reached');
     }
@@ -268,6 +271,7 @@ describe('Space Testing', () => {
         proposal_id: 0x3,
         execution_params: executionParams,
       });
+      throw { message: 'proposal passed with insufficient quorum' };
     } catch (error: any) {
       expect(error.message).to.contain('TestExecutionStrategy: Proposal was rejected');
     }
@@ -278,6 +282,7 @@ describe('Space Testing', () => {
       await space.call('getProposalInfo', {
         proposal_id: 42,
       });
+      throw { message: 'invalid proposal id query did not revert' };
     } catch (error: any) {
       expect(error.message).to.contain('Voting: Proposal does not exist');
     }

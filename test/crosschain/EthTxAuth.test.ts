@@ -5,7 +5,7 @@ import { starknet, network, ethers } from 'hardhat';
 import { StarknetContract, Account, HttpNetworkConfig } from 'hardhat/types';
 import { utils } from '@snapshot-labs/sx';
 import { ethTxAuthSetup } from '../shared/setup';
-import { PROPOSE_SELECTOR } from '../shared/constants';
+import { PROPOSE_SELECTOR, VOTE_SELECTOR } from '../shared/constants';
 
 describe('L1 interaction with Snapshot X', function () {
   this.timeout(5000000);
@@ -104,6 +104,7 @@ describe('L1 interaction with Snapshot X', function () {
         function_selector: PROPOSE_SELECTOR,
         calldata: proposeCalldata,
       });
+      throw { message: 'committed multiple times' };
     } catch (err: any) {
       expect(err.message).to.contain('EthTx: Hash not yet committed or already executed');
     }
@@ -115,7 +116,7 @@ describe('L1 interaction with Snapshot X', function () {
       .connect(signer)
       .commit(
         ethTxAuth.address,
-        utils.encoding.getCommit(spaceAddress, PROPOSE_SELECTOR, proposeCalldata)
+        utils.encoding.getCommit(spaceAddress, VOTE_SELECTOR, proposeCalldata)
       ); // Wrong selector
     await starknet.devnet.flush();
     try {
@@ -124,6 +125,7 @@ describe('L1 interaction with Snapshot X', function () {
         function_selector: PROPOSE_SELECTOR,
         calldata: proposeCalldata,
       });
+      throw { message: 'succeeded without hash commit' };
     } catch (err: any) {
       expect(err.message).to.contain('EthTx: Hash not yet committed or already executed');
     }
@@ -145,6 +147,7 @@ describe('L1 interaction with Snapshot X', function () {
         function_selector: PROPOSE_SELECTOR,
         calldata: proposeCalldata,
       });
+      throw { message: 'succeeded with invalid commit sender' };
     } catch (err: any) {
       expect(err.message).to.contain('EthTx: Commit made by invalid L1 address');
     }
