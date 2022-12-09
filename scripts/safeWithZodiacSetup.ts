@@ -1,35 +1,47 @@
-import { expect } from 'chai';
+import dotenv from 'dotenv';
 import fs from 'fs';
 import fetch from 'cross-fetch';
 import { ethers } from 'ethers';
 import { Contract } from 'starknet';
 import { executeContractCallWithSigners } from '../test/shared/safeUtils';
 
+// import {Safe} from '@gnosis.pm/safe-contracts';
+
+dotenv.config();
+
 async function main() {
   global.fetch = fetch;
-  const provider = new ethers.providers.JsonRpcProvider(process.env.GOERLI_NODE_URL);
+  console.log(1);
+  const provider = new ethers.providers.JsonRpcProvider(process.env.GOERLI_NODE_URL!);
+
   const ethAccount = new ethers.Wallet(process.env.ETH_PK_1!, provider);
 
   const safeAddress = '0x11455A53117B5142A8Bf5E6DcaFcD504eb633Ae1';
-  const starknetCoreAddress = '0xde29d060D45901Fb19ED6C6e959EB22d8626708e';
-  const spaceAddress = '0x324fb879af5b650e31f7513bd19cf093f826ae3211022919cafcd08fca17700';
-  const zodiacRelayerAddress = '0x7a0c890e6dc4dc445fb42c70579813ea33e7d3c37c2cfdbcb47cc059503747d';
+  //   const starknetCoreAddress = '0xde29d060D45901Fb19ED6C6e959EB22d8626708e'; // Goerli1
+  const starknetCoreAddress = '0xa4eD3aD27c294565cB0DCc993BDdCC75432D498c'; // Goerli2
+
+  const spaceAddress = '0x7e6e9047eb910f84f7e3b86cea7b1d7779c109c970a39b54379c1f4fa395b28';
+  const zodiacRelayerAddress = '0x21dda40770f4317582251cffd5a0202d6b223dc167e5c8db25dc887d11eba81';
   const moduleProxyFactoryAddress = '0x00000000000DC7F163742Eb4aBEf650037b1f588';
   const zodiacModuleMasterAddress = '0xC61BF210c37150B39FB97ae1C9f74e9B00E64620';
 
   const safeInterface = new ethers.utils.Interface(
-    fs
-      .readFileSync('./abi/@gnosis.pm/safe-contracts/contracts/GnosisSafeL2.sol/GnosisSafeL2.json')
-      .toString()
+    JSON.parse(
+      fs.readFileSync(
+        'node_modules/@gnosis.pm/safe-contracts/build/artifacts/contracts/GnosisSafeL2.sol/GnosisSafeL2.json',
+        'utf8'
+      )
+    ).abi
   );
   const safe = new ethers.Contract(safeAddress, safeInterface, ethAccount);
 
   const moduleProxyFactoryInterface = new ethers.utils.Interface(
-    fs
-      .readFileSync(
-        './abi/@gnosis.pm/zodiac/contracts/factory/ModuleProxyFactory.sol/ModuleProxyFactory.json'
+    JSON.parse(
+      fs.readFileSync(
+        'artifacts/@gnosis.pm/zodiac/contracts/factory/ModuleProxyFactory.sol/ModuleProxyFactory.json',
+        'utf8'
       )
-      .toString()
+    ).abi
   );
   const moduleProxyFactory = new ethers.Contract(
     moduleProxyFactoryAddress,
@@ -38,11 +50,12 @@ async function main() {
   );
 
   const zodiacModuleMasterInterface = new ethers.utils.Interface(
-    fs
-      .readFileSync(
-        './abi/contracts/ethereum/ZodiacModule/SnapshotXL1Executor.sol/SnapshotXL1Executor.json'
+    JSON.parse(
+      fs.readFileSync(
+        './artifacts/contracts/ethereum/ZodiacModule/SnapshotXL1Executor.sol/SnapshotXL1Executor.json',
+        'utf8'
       )
-      .toString()
+    ).abi
   );
   const zodiacModuleMaster = new ethers.Contract(
     zodiacModuleMasterAddress,
