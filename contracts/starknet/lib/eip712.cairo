@@ -18,6 +18,7 @@ from starkware.cairo.common.cairo_keccak.keccak import (
 from starkware.cairo.common.uint256 import (
     Uint256,
     uint256_eq,
+    uint256_le,
     uint256_mul,
     uint256_unsigned_div_rem,
 )
@@ -525,13 +526,44 @@ func _get_base16_len{range_check_ptr}(num: Uint256) -> (res: felt) {
     let (is_eq) = uint256_eq(num, Uint256(0, 0));
     if (is_eq == 1) {
         return (0,);
-    } else {
-        // Divide by 16
-        let (divided, _) = uint256_unsigned_div_rem(num, Uint256(16, 0));
-
+    }
+    let (lt) = uint256_le(Uint256(16 ** 32, 0), num);
+    if (lt == 1) {
+        let (divided, _) = uint256_unsigned_div_rem(num, Uint256(16 ** 32, 0));
+        let (res_len) = _get_base16_len(divided);
+        return (res_len + 32,);
+    }
+    let (lt) = uint256_le(Uint256(16 ** 16, 0), num);
+    if (lt == 1) {
+        let (divided, _) = uint256_unsigned_div_rem(num, Uint256(16 ** 16, 0));
+        let (res_len) = _get_base16_len(divided);
+        return (res_len + 16,);
+    }
+    let (lt) = uint256_le(Uint256(16 ** 8, 0), num);
+    if (lt == 1) {
+        let (divided, _) = uint256_unsigned_div_rem(num, Uint256(16 ** 8, 0));
+        let (res_len) = _get_base16_len(divided);
+        return (res_len + 8,);
+    }
+    let (lt) = uint256_le(Uint256(16 ** 4, 0), num);
+    if (lt == 1) {
+        let (divided, _) = uint256_unsigned_div_rem(num, Uint256(16 ** 4, 0));
+        let (res_len) = _get_base16_len(divided);
+        return (res_len + 4,);
+    }
+    let (lt) = uint256_le(Uint256(16 ** 2, 0), num);
+    if (lt == 1) {
+        let (divided, _) = uint256_unsigned_div_rem(num, Uint256(16 ** 2, 0));
+        let (res_len) = _get_base16_len(divided);
+        return (res_len + 2,);
+    }
+    let (lt) = uint256_le(Uint256(16 ** 1, 0), num);
+    if (lt == 1) {
+        let (divided, _) = uint256_unsigned_div_rem(num, Uint256(16 ** 1, 0));
         let (res_len) = _get_base16_len(divided);
         return (res_len + 1,);
     }
+    return (1,);
 }
 
 // Computes `base ** exp` where `base` and `exp` are both `felts` and returns the result as a `Uint256`.
