@@ -112,6 +112,10 @@ func proposal_created(
 }
 
 @event
+func proposal_finalized(proposal_id: felt, outcome: felt) {
+}
+
+@event
 func vote_created(proposal_id: felt, voter_address: Address, vote: Vote) {
 }
 
@@ -724,6 +728,9 @@ namespace Voting {
         // Flag this proposal as executed
         Voting_executed_proposals_store.write(proposal_id, 1);
 
+        // Emit event
+        proposal_finalized.emit(proposal_id, proposal_outcome);
+
         return ();
     }
 
@@ -778,6 +785,9 @@ namespace Voting {
 
         // Flag this proposal as executed
         Voting_executed_proposals_store.write(proposal_id, 1);
+
+        // Emit the event
+        proposal_finalized.emit(proposal_id, proposal_outcome);
 
         return ();
     }
