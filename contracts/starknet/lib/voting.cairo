@@ -685,9 +685,6 @@ namespace Voting {
         // 1) Starknet execution strategy - then txs are executed directly by this contract.
         // 2) Other execution strategy - then tx are executed by the specified execution strategy contract.
 
-        // Emit event
-        proposal_finalized.emit(proposal_id, proposal_outcome);
-
         if (proposal.execution_strategy == 1) {
             // Starknet execution strategy so we execute the proposal txs directly
             if (proposal_outcome == ProposalOutcome.ACCEPTED) {
