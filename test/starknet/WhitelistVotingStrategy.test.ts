@@ -2,6 +2,7 @@ import { expect } from 'chai';
 import { starknet, ethers } from 'hardhat';
 import { StarknetContract } from 'hardhat/types';
 import { utils } from '@snapshot-labs/sx';
+import { declareAndDeployContract } from '../utils/deploy';
 
 describe('Whitelist testing', () => {
   let whitelist: StarknetContract;
@@ -30,39 +31,44 @@ describe('Whitelist testing', () => {
     power3 = utils.splitUint256.SplitUint256.fromUint(BigInt('2'));
     power4 = utils.splitUint256.SplitUint256.fromUint(BigInt('3'));
 
-    const whitelistFactory = await starknet.getContractFactory(
+    whitelist = await declareAndDeployContract(
+      './contracts/starknet/VotingStrategies/Whitelist.cairo',
+      {
+        whitelist: [
+          address1,
+          power1.low,
+          power1.high,
+          address2,
+          power2.low,
+          power2.high,
+          address3,
+          power3.low,
+          power3.high,
+          address4,
+          power4.low,
+          power4.high,
+        ],
+      }
+    );
+    emptyWhitelist = await declareAndDeployContract(
       './contracts/starknet/VotingStrategies/Whitelist.cairo'
     );
-    whitelist = await whitelistFactory.deploy({
-      whitelist: [
-        address1,
-        power1.low,
-        power1.high,
-        address2,
-        power2.low,
-        power2.high,
-        address3,
-        power3.low,
-        power3.high,
-        address4,
-        power4.low,
-        power4.high,
-      ],
-    });
-    emptyWhitelist = await whitelistFactory.deploy({ whitelist: [] });
-    repeatWhitelist = await whitelistFactory.deploy({
-      whitelist: [
-        address1,
-        power1.low,
-        power1.high,
-        address1,
-        power1.low,
-        power1.high,
-        address2,
-        power2.low,
-        power2.high,
-      ],
-    });
+    repeatWhitelist = await declareAndDeployContract(
+      './contracts/starknet/VotingStrategies/Whitelist.cairo',
+      {
+        whitelist: [
+          address1,
+          power1.low,
+          power1.high,
+          address1,
+          power1.low,
+          power1.high,
+          address2,
+          power2.low,
+          power2.high,
+        ],
+      }
+    );
   });
 
   it('returns the voting power for everyone in the list', async () => {

@@ -3,16 +3,16 @@ import { expect } from 'chai';
 import { ethers, starknet } from 'hardhat';
 import { computeHashOnElements } from 'starknet/dist/utils/hash';
 import { MerkleTree } from '../shared/merkle';
+import { declareAndDeployContract } from '../utils/deploy';
 
 describe('Merkle:', () => {
   let testMerkle: StarknetContract;
 
   before(async function () {
     this.timeout(800000);
-    const testMerkleFactory = await starknet.getContractFactory(
+    testMerkle = await declareAndDeployContract(
       './contracts/starknet/TestContracts/Test_Merkle.cairo'
     );
-    testMerkle = await testMerkleFactory.deploy();
   });
 
   it('The library should handle a tree with one leaf', async () => {

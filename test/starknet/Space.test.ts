@@ -5,6 +5,7 @@ import { utils } from '@snapshot-labs/sx';
 import { vanillaSetup } from '../shared/setup';
 import { PROPOSE_SELECTOR, VOTE_SELECTOR } from '../shared/constants';
 import { Wallet } from 'ethers';
+import { declareAndDeployContract, getAccount } from '../utils/deploy';
 
 describe('Space Testing', () => {
   // Contracts
@@ -35,7 +36,7 @@ describe('Space Testing', () => {
 
   before(async function () {
     this.timeout(800000);
-    relayer = await starknet.deployAccount('OpenZeppelin');
+    relayer = await getAccount(5);
 
     ({ space, controller, vanillaAuthenticator, vanillaVotingStrategy, vanillaExecutionStrategy } =
       await vanillaSetup());
@@ -222,11 +223,9 @@ describe('Space Testing', () => {
 
   it('Fails if quorum has not been reached', async () => {
     // Add a special execution strategy that will fail if the outcome is not `REJECTED`.
-    const failsIfRejected = await (
-      await starknet.getContractFactory(
-        './contracts/starknet/TestContracts/ExecutionStrategies/FailsIfRejected.cairo'
-      )
-    ).deploy();
+    const failsIfRejected = await declareAndDeployContract(
+      './contracts/starknet/TestContracts/ExecutionStrategies/FailsIfRejected.cairo'
+    );
     await controller.invoke(space, 'addExecutionStrategies', {
       addresses: [failsIfRejected.address],
     });

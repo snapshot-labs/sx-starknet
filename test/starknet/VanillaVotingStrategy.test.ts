@@ -2,12 +2,12 @@ import { StarknetContract } from 'hardhat/types/runtime';
 import { expect } from 'chai';
 import { starknet, ethers } from 'hardhat';
 import { utils } from '@snapshot-labs/sx';
+import { declareAndDeployContract } from '../utils/deploy';
 
 async function setup() {
-  const vanillaVotingStrategyFactory = await starknet.getContractFactory(
+  const vanillaVotingStrategy = await declareAndDeployContract(
     './contracts/starknet/VotingStrategies/Vanilla.cairo'
   );
-  const vanillaVotingStrategy = await vanillaVotingStrategyFactory.deploy();
   return {
     vanillaVotingStrategy: vanillaVotingStrategy as StarknetContract,
   };

@@ -3,13 +3,15 @@ import { starknet, ethers } from 'hardhat';
 import { vanillaSetup } from '../shared/setup';
 import { StarknetContract, Account } from 'hardhat/types';
 import { utils } from '@snapshot-labs/sx';
+import { declareAndDeployContract, getAccount } from '../utils/deploy';
 import { getProposeCalldata, getVoteCalldata } from '@snapshot-labs/sx/dist/utils/encoding';
 import { PROPOSE_SELECTOR, VOTE_SELECTOR } from '../shared/constants';
+import { OpenZeppelinAccount } from '@shardlabs/starknet-hardhat-plugin/dist/src/account';
 
 describe('Controller Actions', () => {
   let space: StarknetContract;
   let controller: Account;
-  let user: Account;
+  let user: OpenZeppelinAccount;
   let vanillaVotingStrategy: StarknetContract;
   let vanillaAuthenticator: StarknetContract;
   let vanillaExecutionStrategy: StarknetContract;
@@ -19,7 +21,8 @@ describe('Controller Actions', () => {
     this.timeout(800000);
     ({ space, controller, vanillaAuthenticator, vanillaVotingStrategy, vanillaExecutionStrategy } =
       await vanillaSetup());
-    user = await starknet.deployAccount('OpenZeppelin');
+
+    user = await getAccount(1);
     proposalId = BigInt(1);
   });
 
@@ -30,7 +33,7 @@ describe('Controller Actions', () => {
 
     // Try to update the controler with the previous account
     try {
-      await controller.invoke(space, 'setController', {
+      await user.invoke(space, 'setController', {
         new_controller: user.starknetContract.address,
       });
       throw { message: 'updated controller`' };
@@ -49,12 +52,11 @@ describe('Controller Actions', () => {
 
     const power = utils.splitUint256.SplitUint256.fromUint(BigInt('1000'));
 
-    const whitelistFactory = await starknet.getContractFactory(
-      './contracts/starknet/VotingStrategies/Whitelist.cairo'
+    const whitelistStrategy = await declareAndDeployContract(
+      './contracts/starknet/VotingStrategies/Whitelist.cairo',
+      { whitelist: [address, power.low, power.high] }
     );
-    const whitelistStrategy = await whitelistFactory.deploy({
-      whitelist: [address, power.low, power.high],
-    });
+
     const votingStrategyParams: string[][] = [[]];
     const votingStrategyParamsFlat: string[] = utils.encoding.flatten2DArray(votingStrategyParams);
 
@@ -130,10 +132,10 @@ describe('Controller Actions', () => {
   }).timeout(600000);
 
   it('The controller can add and remove authenticators', async () => {
-    const starknetTxAuthenticatorFactory = await starknet.getContractFactory(
-      './contracts/starknet/Authenticators/StarkTx.cairo'
+    const starknetTxAuth = await declareAndDeployContract(
+      './contracts/starknet/Authenticators/StarkTx.cairo',
+      {}
     );
-    const starknetTxAuth = (await starknetTxAuthenticatorFactory.deploy()) as StarknetContract;
 
     // Add the StarknetTx auth
     await controller.invoke(space, 'addAuthenticators', {
@@ -190,11 +192,10 @@ describe('Controller Actions', () => {
   }).timeout(600000);
 
   it('The controller can add and remove execution strategies', async () => {
-    const randomExecutionContractFactory = await starknet.getContractFactory(
-      './contracts/starknet/ExecutionStrategies/Vanilla.cairo'
+    const randomExecutionContract = await declareAndDeployContract(
+      './contracts/starknet/ExecutionStrategies/Vanilla.cairo',
+      {}
     );
-    const randomExecutionContract =
-      (await randomExecutionContractFactory.deploy()) as StarknetContract;
 
     // Add a random execution strategy
     await controller.invoke(space, 'addExecutionStrategies', {
@@ -553,16 +554,12 @@ describe('Controller Actions', () => {
       new_proposal_threshold: utils.splitUint256.SplitUint256.fromUint(BigInt('0x100')),
     });
 
-    // Change the voting strategy to a whitelist strategy
-    // Used to have specific amounts of voting power for specific addresses
-    const whitelistFactory = await starknet.getContractFactory(
-      './contracts/starknet/VotingStrategies/Whitelist.cairo'
-    );
     // space should not have enough VP to reach threshold
     const spaceVotingPower = utils.splitUint256.SplitUint256.fromHex('0x1');
     // user should have enough VP to reach threshold
     const userVotingPower = utils.splitUint256.SplitUint256.fromHex('0x100');
-    const whitelistStrategy = await whitelistFactory.deploy({
+
+    const args = {
       whitelist: [
         space.address,
         spaceVotingPower.low,
@@ -571,7 +568,14 @@ describe('Controller Actions', () => {
         userVotingPower.low,
         userVotingPower.high,
       ],
-    });
+    };
+
+    // Change the voting strategy to a whitelist strategy
+    // Used to have specific amounts of voting power for specific addresses
+    const whitelistStrategy = await declareAndDeployContract(
+      './contracts/starknet/VotingStrategies/Whitelist.cairo',
+      args
+    );
 
     const votingStrategyParams: string[][] = [[]];
     const votingStrategyParamsFlat: string[] = utils.encoding.flatten2DArray(votingStrategyParams);

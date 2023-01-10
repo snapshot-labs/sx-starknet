@@ -3,17 +3,18 @@ import { expect } from 'chai';
 import { starknet } from 'hardhat';
 import { utils } from '@snapshot-labs/sx';
 import { computeHashOnElements } from 'starknet/dist/utils/hash';
+import { declareAndDeployContract, getAccount } from '../utils/deploy';
 
 describe('Array Utilities', () => {
   let testArrayUtils: StarknetContract;
 
   before(async function () {
     this.timeout(800000);
-    const testArrayUtilsFactory = await starknet.getContractFactory(
+    testArrayUtils = await declareAndDeployContract(
       './contracts/starknet/TestContracts/Test_ArrayUtils.cairo'
     );
-    testArrayUtils = await testArrayUtilsFactory.deploy();
   });
+
   it('The library should be able to construct the 2D array type from a flat array and then retrieve the sub arrays individually.', async () => {
     // Sub Arrays: [[5],[],[1,2,3],[7,9]]
     // Offsets: [0,1,1,4]

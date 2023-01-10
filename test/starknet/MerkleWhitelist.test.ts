@@ -4,6 +4,7 @@ import { StarknetContract } from 'hardhat/types';
 import { utils } from '@snapshot-labs/sx';
 import { computeHashOnElements } from 'starknet/dist/utils/hash';
 import { MerkleTree } from '../shared/merkle';
+import { declareAndDeployContract } from '../utils/deploy';
 
 describe('Merkle Whitelist testing', () => {
   let whitelist: StarknetContract;
@@ -25,10 +26,9 @@ describe('Merkle Whitelist testing', () => {
   before(async function () {
     this.timeout(800000);
 
-    const merkleWhitelistFactory = await starknet.getContractFactory(
+    whitelist = await declareAndDeployContract(
       './contracts/starknet/VotingStrategies/MerkleWhitelist.cairo'
     );
-    whitelist = await merkleWhitelistFactory.deploy();
 
     address1 = ethers.Wallet.createRandom().address;
     address2 = ethers.Wallet.createRandom().address;

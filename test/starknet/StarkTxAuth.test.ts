@@ -4,6 +4,7 @@ import { StarknetContract, Account } from 'hardhat/types';
 import { utils } from '@snapshot-labs/sx';
 import { starkTxAuthSetup } from '../shared/setup';
 import { PROPOSE_SELECTOR, VOTE_SELECTOR } from '../shared/constants';
+import { getAccount } from '../utils/deploy';
 
 const VITALIK_ADDRESS = '0xd8da6bf26964af9d7eed9e03e53415d37aa96045';
 
@@ -37,8 +38,8 @@ describe('StarkNet Tx Auth testing', () => {
 
   before(async function () {
     this.timeout(800000);
-    proposerAccount = (await starknet.deployAccount('OpenZeppelin')) as Account;
-    voterAccount = (await starknet.deployAccount('OpenZeppelin')) as Account;
+    proposerAccount = await getAccount(5);
+    voterAccount = await getAccount(6);
     ({
       space,
       controller,

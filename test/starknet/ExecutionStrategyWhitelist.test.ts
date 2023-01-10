@@ -5,6 +5,7 @@ import { utils } from '@snapshot-labs/sx';
 import { zodiacRelayerSetup } from '../shared/setup';
 import { StarknetContract, Account } from 'hardhat/types';
 import { PROPOSE_SELECTOR } from '../shared/constants';
+import { declareAndDeployContract } from '../utils/deploy';
 
 describe('Execution Strategy Whitelist testing', () => {
   // Contracts
@@ -44,10 +45,9 @@ describe('Execution Strategy Whitelist testing', () => {
       zodiacModule,
     } = await zodiacRelayerSetup());
 
-    const vanillaExecutionStrategyFactory = await starknet.getContractFactory(
+    vanillaExecutionStrategy = await declareAndDeployContract(
       './contracts/starknet/ExecutionStrategies/Vanilla.cairo'
     );
-    vanillaExecutionStrategy = await vanillaExecutionStrategyFactory.deploy();
 
     spaceAddress = space.address;
     metadataUri = utils.intsSequence.IntsSequence.LEFromString(

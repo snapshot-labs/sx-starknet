@@ -14,6 +14,7 @@ import { PROPOSE_SELECTOR, VOTE_SELECTOR } from '../shared/constants';
 import { utils } from '@snapshot-labs/sx';
 import { ethSigSessionKeyAuthSetup } from '../shared/setup';
 import { SignerWithAddress } from '@nomiclabs/hardhat-ethers/signers';
+import { padLeft } from '../utils/padLeft';
 
 function sleep(milliseconds: number) {
   const date = Date.now();
@@ -35,7 +36,6 @@ describe('Ethereum Signature Session Key Auth testing', () => {
   let vanillaExecutionStrategy: StarknetContract;
 
   // Proposal creation parameters
-  let spaceAddress: string;
   let executionHash: string;
   let metadataUri: string;
   let metadataUriInts: utils.intsSequence.IntsSequence;
@@ -83,7 +83,6 @@ describe('Ethereum Signature Session Key Auth testing', () => {
     usedVotingStrategies1 = ['0x0'];
     userVotingParamsAll1 = [[]];
     executionStrategy = vanillaExecutionStrategy.address;
-    spaceAddress = space.address;
 
     executionParams = ['0x01']; // Random params
     executionHash = hash.computeHashOnElements(executionParams);
@@ -182,7 +181,7 @@ describe('Ethereum Signature Session Key Auth testing', () => {
       const proposalSalt = ethers.utils.hexlify(ethers.utils.randomBytes(4));
 
       const message = {
-        space: spaceAddress,
+        space: padLeft(space.address),
         author: account.address,
         metadata_uri: metadataUriInts.values,
         executor: vanillaExecutionStrategy.address,
@@ -205,7 +204,7 @@ describe('Ethereum Signature Session Key Auth testing', () => {
         r: r,
         s: s,
         salt: proposalSalt,
-        target: spaceAddress,
+        target: space.address,
         function_selector: PROPOSE_SELECTOR,
         calldata: proposeCalldata,
         session_public_key: sessionPublicKey,
@@ -219,7 +218,7 @@ describe('Ethereum Signature Session Key Auth testing', () => {
           r: r,
           s: s,
           salt: proposalSalt,
-          target: spaceAddress,
+          target: space.address,
           function_selector: PROPOSE_SELECTOR,
           calldata: proposeCalldata,
           session_public_key: sessionPublicKey,
@@ -236,7 +235,7 @@ describe('Ethereum Signature Session Key Auth testing', () => {
       const voteSalt = ethers.utils.hexlify(ethers.utils.randomBytes(4));
 
       const message = {
-        space: spaceAddress,
+        space: padLeft(space.address),
         voter: account.address,
         proposal: proposalId,
         choice: utils.choice.Choice.FOR,
@@ -257,7 +256,7 @@ describe('Ethereum Signature Session Key Auth testing', () => {
         r: r,
         s: s,
         salt: voteSalt,
-        target: spaceAddress,
+        target: space.address,
         function_selector: VOTE_SELECTOR,
         calldata: voteCalldata,
         session_public_key: sessionPublicKey,
@@ -282,7 +281,7 @@ describe('Ethereum Signature Session Key Auth testing', () => {
           r: r,
           s: s,
           salt: voteSalt,
-          target: spaceAddress,
+          target: space.address,
           function_selector: VOTE_SELECTOR,
           calldata: voteCalldata,
           session_public_key: sessionPublicKey,
@@ -301,8 +300,8 @@ describe('Ethereum Signature Session Key Auth testing', () => {
       const sessionPublicKey2 = await sessionSigner2.getPubKey();
       const voteSalt = ethers.utils.hexlify(ethers.utils.randomBytes(4));
       const message = {
-        authenticator: ethSigSessionKeyAuth.address,
-        space: spaceAddress,
+        authenticator: padLeft(ethSigSessionKeyAuth.address),
+        space: padLeft(space.address),
         voter: account.address,
         proposal: proposalId,
         choice: utils.choice.Choice.FOR,
@@ -318,7 +317,7 @@ describe('Ethereum Signature Session Key Auth testing', () => {
         r: r,
         s: s,
         salt: voteSalt,
-        target: spaceAddress,
+        target: space.address,
         function_selector: VOTE_SELECTOR,
         calldata: voteCalldata,
         session_public_key: sessionPublicKey2,
@@ -361,8 +360,8 @@ describe('Ethereum Signature Session Key Auth testing', () => {
       const proposalSalt = ethers.utils.hexlify(ethers.utils.randomBytes(4));
 
       const message = {
-        authenticator: ethSigSessionKeyAuth.address,
-        space: spaceAddress,
+        authenticator: padLeft(ethSigSessionKeyAuth.address),
+        space: padLeft(space.address),
         author: account2.address,
         metadata_uri: metadataUriInts.values,
         executor: vanillaExecutionStrategy.address,
@@ -385,7 +384,7 @@ describe('Ethereum Signature Session Key Auth testing', () => {
           r: r,
           s: s,
           salt: proposalSalt,
-          target: spaceAddress,
+          target: space.address,
           function_selector: PROPOSE_SELECTOR,
           calldata: proposeCalldata,
           session_public_key: sessionPublicKey2,
@@ -427,8 +426,8 @@ describe('Ethereum Signature Session Key Auth testing', () => {
       const proposalSalt = ethers.utils.hexlify(ethers.utils.randomBytes(4));
 
       const message = {
-        space: spaceAddress,
-        author: account.address,
+        space: padLeft(space.address),
+        author: padLeft(account.address),
         metadata_uri: metadataUriInts.values,
         executor: vanillaExecutionStrategy.address,
         execution_hash: executionHash,
@@ -451,7 +450,7 @@ describe('Ethereum Signature Session Key Auth testing', () => {
           r: r,
           s: s,
           salt: proposalSalt,
-          target: spaceAddress,
+          target: space.address,
           function_selector: PROPOSE_SELECTOR,
           calldata: proposeCalldata,
           session_public_key: sessionPublicKey,
@@ -516,8 +515,8 @@ describe('Ethereum Signature Session Key Auth testing', () => {
       const proposalSalt = ethers.utils.hexlify(ethers.utils.randomBytes(4));
 
       const message = {
-        space: spaceAddress,
-        author: account.address,
+        space: padLeft(space.address),
+        author: padLeft(account.address),
         metadata_uri: metadataUriInts.values,
         executor: vanillaExecutionStrategy.address,
         execution_hash: executionHash,
@@ -540,7 +539,7 @@ describe('Ethereum Signature Session Key Auth testing', () => {
           r: r,
           s: s,
           salt: proposalSalt,
-          target: spaceAddress,
+          target: space.address,
           function_selector: PROPOSE_SELECTOR,
           calldata: proposeCalldata,
           session_public_key: sessionPublicKey,

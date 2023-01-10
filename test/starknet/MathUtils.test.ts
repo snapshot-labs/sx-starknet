@@ -2,16 +2,16 @@ import { StarknetContract } from 'hardhat/types/runtime';
 import { expect } from 'chai';
 import { starknet, ethers } from 'hardhat';
 import { utils } from '@snapshot-labs/sx';
+import { declareAndDeployContract } from '../utils/deploy';
 
 describe('Felt Utils:', () => {
   let testMathUtils: StarknetContract;
 
   before(async function () {
     this.timeout(800000);
-    const testMathUtilsFactory = await starknet.getContractFactory(
+    testMathUtils = await declareAndDeployContract(
       './contracts/starknet/TestContracts/Test_MathUtils.cairo'
     );
-    testMathUtils = await testMathUtilsFactory.deploy();
   });
 
   it('The library should covert 4 64 bit words to a Uint256', async () => {
