@@ -684,6 +684,9 @@ namespace Voting {
             tempvar proposal_outcome = proposal_outcome;
         }
 
+        // Emit event
+        proposal_finalized.emit(proposal_id, proposal_outcome);
+
         // Execute proposal Transactions
         // There are 2 situations:
         // 1) Starknet execution strategy - then txs are executed directly by this contract.
@@ -728,9 +731,6 @@ namespace Voting {
         // Flag this proposal as executed
         Voting_executed_proposals_store.write(proposal_id, 1);
 
-        // Emit event
-        proposal_finalized.emit(proposal_id, proposal_outcome);
-
         return ();
     }
 
@@ -764,6 +764,9 @@ namespace Voting {
 
         let proposal_outcome = ProposalOutcome.CANCELLED;
 
+        // Emit the event
+        proposal_finalized.emit(proposal_id, proposal_outcome);
+
         if (proposal.execution_strategy != 1) {
             // Custom execution strategies may have different processes to follow when a proposal is cancelled.
             // Therefore, we still forward the execution payload to the specified strategy contract.
@@ -785,9 +788,6 @@ namespace Voting {
 
         // Flag this proposal as executed
         Voting_executed_proposals_store.write(proposal_id, 1);
-
-        // Emit the event
-        proposal_finalized.emit(proposal_id, proposal_outcome);
 
         return ();
     }
