@@ -237,15 +237,23 @@ namespace EIP712 {
         );
 
         // User voting strategy params flat
-        let user_voting_strat_params_flat_len = calldata[5 + metadata_uri_len + used_voting_strats_len];
-        let user_voting_strat_params_flat = &calldata[6 + metadata_uri_len + used_voting_strats_len];
+        let user_voting_strat_params_flat_len = calldata[
+            5 + metadata_uri_len + used_voting_strats_len
+        ];
+        let user_voting_strat_params_flat = &calldata[
+            6 + metadata_uri_len + used_voting_strats_len
+        ];
         let (user_voting_strategy_params_flat_hash) = _get_padded_hash(
             user_voting_strat_params_flat_len, user_voting_strat_params_flat
         );
 
         // Execution hash
-        let execution_params_len = calldata[6 + metadata_uri_len + used_voting_strats_len + user_voting_strat_params_flat_len];
-        let execution_params_ptr: felt* = &calldata[7 + metadata_uri_len + used_voting_strats_len + user_voting_strat_params_flat_len];
+        let execution_params_len = calldata[
+            6 + metadata_uri_len + used_voting_strats_len + user_voting_strat_params_flat_len
+        ];
+        let execution_params_ptr: felt* = &calldata[
+            7 + metadata_uri_len + used_voting_strats_len + user_voting_strat_params_flat_len
+        ];
         let (execution_hash) = _get_padded_hash(execution_params_len, execution_params_ptr);
 
         // Now construct the data hash (hashStruct)
@@ -416,7 +424,9 @@ namespace EIP712 {
 
         // Now construct the data array
         let (data: Uint256*) = alloc();
-        assert data[0] = Uint256(SESSION_KEY_REVOKE_TYPE_HASH_LOW, SESSION_KEY_REVOKE_TYPE_HASH_HIGH);
+        assert data[0] = Uint256(
+            SESSION_KEY_REVOKE_TYPE_HASH_LOW, SESSION_KEY_REVOKE_TYPE_HASH_HIGH
+        );
         assert data[1] = padded_session_public_key;
         assert data[2] = salt;
 

@@ -110,21 +110,27 @@ func deploySpace{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_ptr
         voting_strategy_params_flat,
         voting_strategy_params_flat_len,
     );
-    assert calldata[11 + voting_strategies_len + voting_strategy_params_flat_len] = authenticators_len;
+    assert calldata[
+        11 + voting_strategies_len + voting_strategy_params_flat_len
+    ] = authenticators_len;
     memcpy(
         calldata + 12 + voting_strategies_len + voting_strategy_params_flat_len,
         authenticators,
         authenticators_len,
     );
-    assert calldata[12 + voting_strategies_len + voting_strategy_params_flat_len + authenticators_len] = execution_strategies_len;
+    assert calldata[
+        12 + voting_strategies_len + voting_strategy_params_flat_len + authenticators_len
+    ] = execution_strategies_len;
     memcpy(
-        calldata + 13 + voting_strategies_len + voting_strategy_params_flat_len + authenticators_len,
+        calldata + 13 + voting_strategies_len + voting_strategy_params_flat_len +
+        authenticators_len,
         execution_strategies,
         execution_strategies_len,
     );
     // NOTE: The metadata URI is not stored in the contract state (its just emitted as an event). Therefore it does not need to be passed as a parameter in the space deployment
     let (deployer_address) = get_caller_address();
-    let calldata_len = 13 + voting_strategies_len + voting_strategy_params_flat_len + authenticators_len + execution_strategies_len;
+    let calldata_len = 13 + voting_strategies_len + voting_strategy_params_flat_len +
+        authenticators_len + execution_strategies_len;
     let (current_salt) = SpaceFactory_salt.read();
     let (space_class_hash) = SpaceFactory_space_class_hash_store.read();
     let (space_address) = deploy(

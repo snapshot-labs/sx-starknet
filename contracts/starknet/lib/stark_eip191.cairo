@@ -91,15 +91,23 @@ namespace StarkEIP191 {
         );
 
         // User voting strategy params flat
-        let user_voting_strat_params_flat_len = calldata[5 + metadata_uri_len + used_voting_strats_len];
-        let user_voting_strat_params_flat = &calldata[6 + metadata_uri_len + used_voting_strats_len];
+        let user_voting_strat_params_flat_len = calldata[
+            5 + metadata_uri_len + used_voting_strats_len
+        ];
+        let user_voting_strat_params_flat = &calldata[
+            6 + metadata_uri_len + used_voting_strats_len
+        ];
         let (user_voting_strategy_params_flat_hash) = ArrayUtils.hash(
             user_voting_strat_params_flat_len, user_voting_strat_params_flat
         );
 
         // Execution hash
-        let execution_params_len = calldata[6 + metadata_uri_len + used_voting_strats_len + user_voting_strat_params_flat_len];
-        let execution_params_ptr: felt* = &calldata[7 + metadata_uri_len + used_voting_strats_len + user_voting_strat_params_flat_len];
+        let execution_params_len = calldata[
+            6 + metadata_uri_len + used_voting_strats_len + user_voting_strat_params_flat_len
+        ];
+        let execution_params_ptr: felt* = &calldata[
+            7 + metadata_uri_len + used_voting_strats_len + user_voting_strat_params_flat_len
+        ];
         let (execution_hash) = ArrayUtils.hash(execution_params_len, execution_params_ptr);
 
         let (structure: felt*) = alloc();
