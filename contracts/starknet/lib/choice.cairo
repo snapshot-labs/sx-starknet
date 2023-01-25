@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: MIT
 
 namespace Choice {
+    const AGAINST = 0;
     const FOR = 1;
-    const AGAINST = 2;
-    const ABSTAIN = 3;
+    const ABSTAIN = 2;
 }
