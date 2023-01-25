@@ -22,7 +22,7 @@ describe('Controller Actions', () => {
     ({ space, controller, vanillaAuthenticator, vanillaVotingStrategy, vanillaExecutionStrategy } =
       await vanillaSetup());
 
-    user = await getAccount(1);
+    user = await getAccount(2);
     proposalId = BigInt(1);
   });
 
