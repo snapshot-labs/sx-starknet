@@ -51,7 +51,10 @@ describe('Whitelist testing', () => {
       }
     );
     emptyWhitelist = await declareAndDeployContract(
-      './contracts/starknet/VotingStrategies/Whitelist.cairo'
+      './contracts/starknet/VotingStrategies/Whitelist.cairo',
+      {
+        whitelist: [],
+      }
     );
     repeatWhitelist = await declareAndDeployContract(
       './contracts/starknet/VotingStrategies/Whitelist.cairo',

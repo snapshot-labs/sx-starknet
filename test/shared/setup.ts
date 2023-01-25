@@ -738,6 +738,7 @@ export async function spaceFactorySetup() {
   const spaceFactoryClass = await starknet.getContractFactory(
     './contracts/starknet/SpaceAccount.cairo'
   );
+  const spaceHash = await controller.declare(spaceFactoryClass);
 
   const vanillaAuthenticator = await declareAndDeployContract(
     './contracts/starknet/Authenticators/Vanilla.cairo'
@@ -748,7 +749,9 @@ export async function spaceFactorySetup() {
   const vanillaExecutionStrategy = await declareAndDeployContract(
     './contracts/starknet/ExecutionStrategies/Vanilla.cairo'
   );
-  const spaceDeployer = await declareAndDeployContract('./contracts/starknet/SpaceFactory.cairo');
+  const spaceDeployer = await declareAndDeployContract('./contracts/starknet/SpaceFactory.cairo', {
+    space_class_hash: spaceHash,
+  });
 
   return {
     spaceDeployer,
