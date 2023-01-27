@@ -158,5 +158,5 @@ describe('Execution Strategy Whitelist testing', () => {
       function_selector: PROPOSE_SELECTOR,
       calldata: proposeCalldata2,
     });
-  }).timeout(1000000);
-});
+  });
+}).timeout(1000000);
