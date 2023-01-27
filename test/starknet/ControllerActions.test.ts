@@ -33,7 +33,7 @@ describe('Controller Actions', () => {
 
     // Try to update the controler with the previous account
     try {
-      await user.invoke(space, 'setController', {
+      await controller.invoke(space, 'setController', {
         new_controller: user.starknetContract.address,
       });
       throw { message: 'updated controller`' };
