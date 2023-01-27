@@ -111,7 +111,7 @@ describe('Whitelist testing', () => {
     expect(
       new utils.splitUint256.SplitUint256(`0x${vp4.low.toString(16)}`, `0x${vp4.high.toString(16)}`)
     ).to.deep.equal(power4);
-  }).timeout(1000000);
+  });
 
   it('returns 0 voting power for non-whitelisted addresses', async () => {
     const { voting_power: vp } = await whitelist.call('getVotingPower', {
@@ -123,7 +123,7 @@ describe('Whitelist testing', () => {
     expect(
       new utils.splitUint256.SplitUint256(`0x${vp.low.toString(16)}`, `0x${vp.high.toString(16)}`)
     ).to.deep.equal(utils.splitUint256.SplitUint256.fromUint(BigInt(0)));
-  }).timeout(1000000);
+  });
 
   it('returns 0 for an empty whitelist', async () => {
     const { voting_power: vp } = await emptyWhitelist.call('getVotingPower', {
@@ -135,7 +135,7 @@ describe('Whitelist testing', () => {
     expect(
       new utils.splitUint256.SplitUint256(`0x${vp.low.toString(16)}`, `0x${vp.high.toString(16)}`)
     ).to.deep.equal(utils.splitUint256.SplitUint256.fromUint(BigInt(0)));
-  }).timeout(1000000);
+  });
 
   it('returns the correct voting power even if address is repeated', async () => {
     const { voting_power: vp } = await repeatWhitelist.call('getVotingPower', {
@@ -147,5 +147,5 @@ describe('Whitelist testing', () => {
     expect(
       new utils.splitUint256.SplitUint256(`0x${vp.low.toString(16)}`, `0x${vp.high.toString(16)}`)
     ).to.deep.equal(power1);
-  }).timeout(1000000);
-});
+  });
+}).timeout(1000000);
