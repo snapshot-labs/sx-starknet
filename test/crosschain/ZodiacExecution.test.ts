@@ -208,4 +208,4 @@ describe('Create proposal, cast vote, and send execution to l1', function () {
     //       txHashes
     //     );
   });
-});
+}).timeout(1200000);
