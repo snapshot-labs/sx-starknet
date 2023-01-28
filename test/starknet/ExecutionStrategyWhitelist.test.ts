@@ -35,6 +35,7 @@ describe('Execution Strategy Whitelist testing', function() {
   let proposeCalldata2: string[];
 
   before(async function () {
+    this.timeout(1000000);
     ({
       space,
       controller,
