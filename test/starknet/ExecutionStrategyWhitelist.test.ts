@@ -34,8 +34,6 @@ describe('Execution Strategy Whitelist testing', () => {
   let proposeCalldata2: string[];
 
   before(async function () {
-    this.timeout(800000);
-
     ({
       space,
       controller,
@@ -96,7 +94,7 @@ describe('Execution Strategy Whitelist testing', () => {
       proposal_id: 1,
       execution_params: executionParams1,
     });
-  }).timeout(1000000);
+  });
 
   it('Should not be able to create a proposal with a non whitelisted execution strategy', async () => {
     try {
@@ -110,7 +108,7 @@ describe('Execution Strategy Whitelist testing', () => {
     } catch (err: any) {
       expect(err.message).to.contain('Voting: Invalid execution strategy');
     }
-  }).timeout(1000000);
+  });
 
   it('The controller can whitelist an execution strategy', async () => {
     await controller.invoke(space, 'addExecutionStrategies', {
@@ -128,7 +126,7 @@ describe('Execution Strategy Whitelist testing', () => {
       proposal_id: 2,
       execution_params: executionParams2,
     });
-  }).timeout(1000000);
+  });
 
   it('The controller can remove two execution strategies', async () => {
     await controller.invoke(space, 'removeExecutionStrategies', {
@@ -146,7 +144,7 @@ describe('Execution Strategy Whitelist testing', () => {
     } catch (err: any) {
       expect(err.message).to.contain('Voting: Invalid execution strategy');
     }
-  }).timeout(1000000);
+  });
 
   it('The controller can add two execution strategies', async () => {
     await controller.invoke(space, 'addExecutionStrategies', {
