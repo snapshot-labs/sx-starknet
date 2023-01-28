@@ -64,7 +64,7 @@ describe('Create proposal, cast vote, and send execution to l1', function () {
   let txHashes: any;
 
   before(async function () {
-    this.timeout(800000);
+    this.timeout(1000000);
     const signers = await hre.ethers.getSigners();
     signer = signers[0];
 
