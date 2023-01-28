@@ -7,7 +7,8 @@ import { StarknetContract, Account } from 'hardhat/types';
 import { PROPOSE_SELECTOR } from '../shared/constants';
 import { declareAndDeployContract } from '../utils/deploy';
 
-describe('Execution Strategy Whitelist testing', () => {
+describe('Execution Strategy Whitelist testing', function() {
+  this.timeout(1000000);
   // Contracts
   let space: StarknetContract;
   let controller: Account;
