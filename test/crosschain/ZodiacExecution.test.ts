@@ -28,7 +28,6 @@ const tx2: utils.encoding.MetaTransaction = {
 };
 
 describe('Create proposal, cast vote, and send execution to l1', function () {
-  this.timeout(12000000);
   const networkUrl: string = (network.config as HttpNetworkConfig).url;
   let signer: SignerWithAddress;
   let relayerWallet: Wallet;
@@ -208,4 +207,4 @@ describe('Create proposal, cast vote, and send execution to l1', function () {
     //       txHashes
     //     );
   });
-}).timeout(1200000);
+}).timeout(1000000);
