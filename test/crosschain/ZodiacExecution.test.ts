@@ -122,8 +122,6 @@ describe('Create proposal, cast vote, and send execution to l1', function () {
   });
 
   it('should correctly receive and accept a finalized proposal on l1', async () => {
-    this.timeout(1200000);
-
     // -- Creates a proposal --
     await controller.invoke(vanillaAuthenticator, 'authenticate', {
       target: spaceAddress,
