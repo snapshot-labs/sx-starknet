@@ -21,7 +21,7 @@ contract StarknetSpaceManager is OwnableUpgradeable {
 
   /// @notice Initialize the contract with a list of spaces. Called only once.
   /// @param _spaces List of spaces.
-  function __SpaceManager_init(uint256[] memory _spaces) internal initializer {
+  function __SpaceManager_init(uint256[] memory _spaces) internal onlyInitializing {
     for (uint256 i = 0; i < _spaces.length; i++) {
       if (_spaces[i] == 0 || isSpaceEnabled(_spaces[i])) revert InvalidSpace();
       spaces[_spaces[i]] = true;
@@ -52,7 +52,7 @@ contract StarknetSpaceManager is OwnableUpgradeable {
   }
 
   modifier onlySpace(uint256 callerAddress) {
-    if (!spaces[callerAddress]) revert InvalidSpace();
+    if (!isSpaceEnabled(callerAddress)) revert InvalidSpace();
     _;
   }
 }
