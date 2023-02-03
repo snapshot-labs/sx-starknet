@@ -3,7 +3,7 @@ import hre, { ethers, network } from 'hardhat';
 import { _TypedDataEncoder } from '@ethersproject/hash';
 import { executeContractCallWithSigners, EIP712_TYPES } from '../shared/safeUtils';
 import { Contract } from 'ethers';
-import { safeWithZodiacSetup2 } from '../shared/setup';
+import { safeWithZodiacSetup } from '../shared/setup';
 import { SignerWithAddress } from '@nomiclabs/hardhat-ethers/signers';
 
 // Proposal States
@@ -26,7 +26,7 @@ describe('Snapshot X Avatar Executor:', () => {
 
   beforeEach(async () => {
     [wallet_0, wallet_1, wallet_2, wallet_3] = await hre.ethers.getSigners(); //waffle.provider.getWallets();
-    ({ zodiacModule, safe, safeSigner } = await safeWithZodiacSetup2());
+    ({ zodiacModule, safe, safeSigner } = await safeWithZodiacSetup());
 
     tx1 = {
       to: wallet_1.address,
