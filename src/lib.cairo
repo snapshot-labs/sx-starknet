@@ -1,1 +1,3 @@
-mod hello_scarb;
+mod space;
+
+mod types;
