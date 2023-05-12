@@ -1,8 +1,8 @@
-use core::traits::AddEq;
 use starknet::{
     ContractAddress, StorageAccess, StorageBaseAddress, SyscallResult, storage_write_syscall,
     storage_read_syscall, storage_address_from_base_and_offset, storage_base_address_from_felt252,
-    contract_address::Felt252TryIntoContractAddress
+    contract_address::Felt252TryIntoContractAddress, syscalls::deploy_syscall,
+    class_hash::Felt252TryIntoClassHash
 };
 use array::ArrayTrait;
 use serde::Serde;
@@ -33,24 +33,19 @@ impl StorageAccessU8Array of StorageAccess<Array<u8>> {
     fn read(address_domain: u32, base: StorageBaseAddress) -> SyscallResult<Array<u8>> {
         let length = storage_read_syscall(
             address_domain, storage_address_from_base_and_offset(base, 0_u8)
-        )?
-            .try_into()
-            .unwrap();
+        )?.try_into().unwrap();
         let mut a = ArrayTrait::<u8>::new();
         let mut i = 0_usize;
         loop {
             if i >= length {
                 break ();
             }
-            a
-                .append(
-                    storage_read_syscall(
-                        address_domain,
-                        storage_address_from_base_and_offset(base, i.try_into().unwrap())
-                    )?
-                        .try_into()
-                        .unwrap()
-                );
+            a.append(
+                storage_read_syscall(
+                    address_domain,
+                    storage_address_from_base_and_offset(base, i.try_into().unwrap())
+                )?.try_into().unwrap()
+            );
             i += 1;
         };
         Result::Ok(a)
@@ -79,21 +74,16 @@ impl StorageAccessU8Array of StorageAccess<Array<u8>> {
 impl StorageAccessStrategy of StorageAccess<Strategy> {
     fn read(address_domain: u32, base: StorageBaseAddress) -> SyscallResult<Strategy> {
         let mut a = ArrayTrait::<u8>::new();
-        a
-            .append(
-                storage_read_syscall(
-                    address_domain, storage_address_from_base_and_offset(base, 1_u8)
-                )?
-                    .try_into()
-                    .unwrap()
-            );
+        a.append(
+            storage_read_syscall(
+                address_domain, storage_address_from_base_and_offset(base, 1_u8)
+            )?.try_into().unwrap()
+        );
         Result::Ok(
             Strategy {
                 address: storage_read_syscall(
                     address_domain, storage_address_from_base_and_offset(base, 0_u8)
-                )?
-                    .try_into()
-                    .unwrap(),
+                )?.try_into().unwrap(),
                 params: a
             }
         )
@@ -136,7 +126,7 @@ mod space {
     use super::ISpace;
     use starknet::ContractAddress;
     use super::Strategy;
-
+    use starknet::syscalls::deploy_syscall;
 
     struct Storage {
         _owner: ContractAddress,
@@ -160,14 +150,14 @@ mod space {
         _max_voting_duration: u256,
         _min_voting_duration: u256,
         _voting_delay: u256,
-        _voting_strategies: Array<Strategy>,
         _proposal_validation_strategy: Strategy
     ) {
         _owner::write(_owner);
         _set_max_voting_duration(_max_voting_duration);
         _set_min_voting_duration(_min_voting_duration);
         _set_voting_delay(_voting_delay);
-        _set_proposal_validation_strategy(_proposal_validation_strategy);
+    // TODO: FIX THIS
+    // _set_proposal_validation_strategy(_proposal_validation_strategy);
     }
 
     #[view]
@@ -242,4 +232,39 @@ mod space {
 //         authenticators::write(authenticator, false);
 //     }
 // }
+
+}
+
+mod Tests {
+    use array::ArrayTrait;
+    use starknet::class_hash::Felt252TryIntoClassHash;
+    use starknet::ContractAddress;
+    use starknet::syscalls::deploy_syscall;
+    use starknet::contract_address_const;
+    use super::space;
+    use super::Strategy;
+    use traits::{Into, TryInto};
+    use core::result::ResultTrait;
+    use option::OptionTrait;
+    use integer::u256_from_felt252;
+
+    #[test]
+    #[available_gas(1000000)]
+    fn test_constructor() {
+        let owner = contract_address_const::<1>();
+        let max_voting_duration = u256_from_felt252(1);
+        let min_voting_duration = u256_from_felt252(1);
+        let voting_delay = u256_from_felt252(1);
+        let proposal_validation_strategy = Strategy {
+            address: contract_address_const::<1>(), params: ArrayTrait::<u8>::new()
+        };
+
+        space::constructor(
+            owner,
+            max_voting_duration,
+            min_voting_duration,
+            voting_delay,
+            proposal_validation_strategy
+        );
+    }
 }
