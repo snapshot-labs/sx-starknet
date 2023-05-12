@@ -15,6 +15,19 @@ struct Strategy {
     params: Array<u8>,
 }
 
+#[derive(Drop, Serde)]
+struct Proposal {
+    snapshot_timestamp: u32,
+    start_timestamp: u32,
+    min_end_timestamp: u32,
+    max_end_timestamp: u32,
+    execution_payload_hash: bytes32,
+    execution_strategy: ContractAddress,
+    author: ContractAddress,
+    finalization_status: u8,
+    active_voting_strategies: u256
+}
+
 // TODO: Implement proper storage for params bytes array
 impl StorageAccessStrategy of StorageAccess<Strategy> {
     fn read(address_domain: u32, base: StorageBaseAddress) -> SyscallResult<Strategy> {
@@ -44,6 +57,7 @@ impl StorageAccessStrategy of StorageAccess<Strategy> {
         storage_write_syscall(
             address_domain, storage_address_from_base_and_offset(base, 0_u8), value.address.into()
         )?;
+
         storage_write_syscall(
             address_domain,
             storage_address_from_base_and_offset(base, 1_u8),
