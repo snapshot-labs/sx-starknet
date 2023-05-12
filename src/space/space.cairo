@@ -1,3 +1,4 @@
+use core::traits::AddEq;
 use starknet::{
     ContractAddress, StorageAccess, StorageBaseAddress, SyscallResult, storage_write_syscall,
     storage_read_syscall, storage_address_from_base_and_offset,
@@ -21,11 +22,58 @@ struct Proposal {
     start_timestamp: u32,
     min_end_timestamp: u32,
     max_end_timestamp: u32,
-    execution_payload_hash: bytes32,
+    execution_payload_hash: u256,
     execution_strategy: ContractAddress,
     author: ContractAddress,
     finalization_status: u8,
     active_voting_strategies: u256
+}
+
+impl StorageAccessU8Array of StorageAccess<Array<u8>> {
+    fn read(address_domain: u32, base: StorageBaseAddress) -> SyscallResult<Array<u8>> {
+        let length = storage_read_syscall(
+            address_domain, storage_address_from_base_and_offset(base, 0_u8)
+        )?
+            .try_into()
+            .unwrap();
+        let mut a = ArrayTrait::<u8>::new();
+        let mut i = 0_usize;
+        loop {
+            if i >= length {
+                break ();
+            }
+            a
+                .append(
+                    storage_read_syscall(
+                        address_domain,
+                        storage_address_from_base_and_offset(base, i.try_into().unwrap())
+                    )?
+                        .try_into()
+                        .unwrap()
+                );
+            i += 1;
+        };
+        Result::Ok(a)
+    }
+
+    fn write(address_domain: u32, base: StorageBaseAddress, value: Array<u8>) -> SyscallResult<()> {
+        // Write length at offset 0
+        storage_write_syscall(
+            address_domain, storage_address_from_base_and_offset(base, 0_u8), value.len().into()
+        )?;
+        let mut i = 1_usize;
+        loop {
+            if i >= value.len() {
+                break ();
+            }
+            storage_write_syscall(
+                address_domain,
+                storage_address_from_base_and_offset(base, i.try_into().unwrap()),
+                (*value.at(i)).into()
+            )?;
+        };
+        Result::Ok(())
+    }
 }
 
 // TODO: Implement proper storage for params bytes array
