@@ -1,7 +1,7 @@
 use core::traits::AddEq;
 use starknet::{
     ContractAddress, StorageAccess, StorageBaseAddress, SyscallResult, storage_write_syscall,
-    storage_read_syscall, storage_address_from_base_and_offset,
+    storage_read_syscall, storage_address_from_base_and_offset, storage_base_address_from_felt252,
     contract_address::Felt252TryIntoContractAddress
 };
 use array::ArrayTrait;
@@ -76,10 +76,8 @@ impl StorageAccessU8Array of StorageAccess<Array<u8>> {
     }
 }
 
-// TODO: Implement proper storage for params bytes array
 impl StorageAccessStrategy of StorageAccess<Strategy> {
     fn read(address_domain: u32, base: StorageBaseAddress) -> SyscallResult<Strategy> {
-        // Dummy implementation
         let mut a = ArrayTrait::<u8>::new();
         a
             .append(
@@ -106,10 +104,12 @@ impl StorageAccessStrategy of StorageAccess<Strategy> {
             address_domain, storage_address_from_base_and_offset(base, 0_u8), value.address.into()
         )?;
 
-        storage_write_syscall(
+        StorageAccess::write(
             address_domain,
-            storage_address_from_base_and_offset(base, 1_u8),
-            (*value.params.at(0)).into()
+            storage_base_address_from_felt252(
+                storage_address_from_base_and_offset(base, 1_u8).into()
+            ),
+            value.params
         )
     }
 }
