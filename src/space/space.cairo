@@ -8,9 +8,11 @@ use array::ArrayTrait;
 use serde::Serde;
 use traits::Into;
 use traits::TryInto;
+use traits::PartialEq;
 use option::OptionTrait;
+use clone::Clone;
 
-#[derive(Drop, Serde)]
+#[derive(Clone, Drop, Serde)]
 struct Strategy {
     address: ContractAddress,
     params: Array<u8>,
@@ -31,69 +33,92 @@ struct Proposal {
 
 impl StorageAccessU8Array of StorageAccess<Array<u8>> {
     fn read(address_domain: u32, base: StorageBaseAddress) -> SyscallResult<Array<u8>> {
-        let length = storage_read_syscall(
-            address_domain, storage_address_from_base_and_offset(base, 0_u8)
-        )?.try_into().unwrap();
-        let mut a = ArrayTrait::<u8>::new();
+        let length = StorageAccess::read(
+            address_domain,
+            storage_base_address_from_felt252(
+                storage_address_from_base_and_offset(base, 0_u8).into()
+            )
+        )?;
+
+        let mut arr = ArrayTrait::<u8>::new();
         let mut i = 0_usize;
         loop {
             if i >= length {
                 break ();
             }
-            a.append(
-                storage_read_syscall(
+            arr.append(
+                StorageAccess::read(
                     address_domain,
-                    storage_address_from_base_and_offset(base, i.try_into().unwrap())
-                )?.try_into().unwrap()
+                    storage_base_address_from_felt252(
+                        storage_address_from_base_and_offset(base, i.try_into().unwrap()).into()
+                    )
+                )?
             );
             i += 1;
         };
-        Result::Ok(a)
+
+        Result::Ok(arr)
     }
 
     fn write(address_domain: u32, base: StorageBaseAddress, value: Array<u8>) -> SyscallResult<()> {
         // Write length at offset 0
-        storage_write_syscall(
-            address_domain, storage_address_from_base_and_offset(base, 0_u8), value.len().into()
-        )?;
+        StorageAccess::write(
+            address_domain,
+            storage_base_address_from_felt252(
+                storage_address_from_base_and_offset(base, 0_u8).into()
+            ),
+            value.len()
+        );
+
+        // Write values at offsets 1..value.len()
         let mut i = 1_usize;
         loop {
             if i >= value.len() {
                 break ();
             }
-            storage_write_syscall(
+            StorageAccess::write(
                 address_domain,
-                storage_address_from_base_and_offset(base, i.try_into().unwrap()),
-                (*value.at(i)).into()
+                storage_base_address_from_felt252(
+                    storage_address_from_base_and_offset(base, i.try_into().unwrap()).into()
+                ),
+                *value.at(i)
             )?;
         };
-        Result::Ok(())
+        Result::Ok(()) //TODO: what to return here? 
     }
 }
 
 impl StorageAccessStrategy of StorageAccess<Strategy> {
     fn read(address_domain: u32, base: StorageBaseAddress) -> SyscallResult<Strategy> {
-        let mut a = ArrayTrait::<u8>::new();
-        a.append(
-            storage_read_syscall(
-                address_domain, storage_address_from_base_and_offset(base, 1_u8)
-            )?.try_into().unwrap()
-        );
         Result::Ok(
             Strategy {
-                address: storage_read_syscall(
-                    address_domain, storage_address_from_base_and_offset(base, 0_u8)
-                )?.try_into().unwrap(),
-                params: a
+                address: StorageAccess::read(
+                    address_domain,
+                    storage_base_address_from_felt252(
+                        storage_address_from_base_and_offset(base, 0_u8).into()
+                    )
+                )?,
+                params: StorageAccess::read(
+                    address_domain,
+                    storage_base_address_from_felt252(
+                        storage_address_from_base_and_offset(base, 1_u8).into()
+                    )
+                )?
             }
         )
     }
     #[inline(always)]
     fn write(address_domain: u32, base: StorageBaseAddress, value: Strategy) -> SyscallResult<()> {
-        storage_write_syscall(
-            address_domain, storage_address_from_base_and_offset(base, 0_u8), value.address.into()
-        )?;
+        // Write value.address at offset 0
+        StorageAccess::write(
+            address_domain,
+            storage_base_address_from_felt252(
+                storage_address_from_base_and_offset(base, 0_u8).into()
+            ),
+            value.address
+        );
 
+        // Write value.params at offset 1
         StorageAccess::write(
             address_domain,
             storage_base_address_from_felt252(
@@ -104,6 +129,64 @@ impl StorageAccessStrategy of StorageAccess<Strategy> {
     }
 }
 
+impl StorageAccessStrategyArray of StorageAccess<Array<Strategy>> {
+    fn read(address_domain: u32, base: StorageBaseAddress) -> SyscallResult<Array<Strategy>> {
+        let length = StorageAccess::read(
+            address_domain,
+            storage_base_address_from_felt252(
+                storage_address_from_base_and_offset(base, 0_u8).into()
+            )
+        )?;
+
+        let mut arr = ArrayTrait::<Strategy>::new();
+        let mut i = 1_usize;
+        loop {
+            if i >= length {
+                break ();
+            }
+            arr.append(
+                StorageAccess::read(
+                    address_domain,
+                    storage_base_address_from_felt252(
+                        storage_address_from_base_and_offset(base, i.try_into().unwrap()).into()
+                    )
+                )?
+            );
+            i += 1;
+        };
+        Result::Ok(arr)
+    }
+
+    fn write(
+        address_domain: u32, base: StorageBaseAddress, value: Array<Strategy>
+    ) -> SyscallResult<()> {
+        // Write length at offset 0
+        StorageAccess::write(
+            address_domain,
+            storage_base_address_from_felt252(
+                storage_address_from_base_and_offset(base, 0_u8).into()
+            ),
+            value.len()
+        );
+
+        // Write values at offsets 1.. 
+        let mut i = 1_usize;
+        loop {
+            if i >= value.len() {
+                break ();
+            }
+            // TODO: maybe I dont need to clone here? could use a span but need to impl that on Strategy
+            StorageAccess::write(
+                address_domain,
+                storage_base_address_from_felt252(
+                    storage_address_from_base_and_offset(base, i.try_into().unwrap()).into()
+                ),
+                value.at(i).clone()
+            )?;
+        };
+        Result::Ok(())
+    }
+}
 #[abi]
 trait ISpace {
     fn max_voting_duration() -> u256;
@@ -247,6 +330,7 @@ mod Tests {
     use core::result::ResultTrait;
     use option::OptionTrait;
     use integer::u256_from_felt252;
+    use clone::Clone;
 
     #[test]
     #[available_gas(1000000)]
@@ -264,7 +348,17 @@ mod Tests {
             max_voting_duration,
             min_voting_duration,
             voting_delay,
-            proposal_validation_strategy
+            proposal_validation_strategy.clone()
         );
+
+        assert(space::owner() == owner, 'owner should be set');
+        assert(space::max_voting_duration() == max_voting_duration, 'max');
+        assert(space::min_voting_duration() == min_voting_duration, 'min');
+        assert(space::voting_delay() == voting_delay, 'voting_delay');
+        // TODO: impl PartialEq for Strategy
+        // assert(space::proposal_validation_strategy() == proposal_validation_strategy, 'proposal_validation_strategy');
+
     }
 }
+
+
