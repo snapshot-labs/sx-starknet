@@ -1,0 +1,195 @@
+use array::ArrayTrait;
+use serde::Serde;
+use traits::Into;
+use traits::TryInto;
+use traits::PartialEq;
+use option::OptionTrait;
+use clone::Clone;
+use starknet::{
+    ContractAddress, StorageAccess, StorageBaseAddress, SyscallResult, storage_write_syscall,
+    storage_read_syscall, storage_address_from_base_and_offset, storage_base_address_from_felt252,
+    contract_address::Felt252TryIntoContractAddress, syscalls::deploy_syscall,
+    class_hash::Felt252TryIntoClassHash
+};
+
+#[derive(Clone, Drop, Serde)]
+struct Strategy {
+    address: ContractAddress,
+    params: Array<u8>,
+}
+
+#[derive(Drop, Serde)]
+struct Proposal {
+    snapshot_timestamp: u32,
+    start_timestamp: u32,
+    min_end_timestamp: u32,
+    max_end_timestamp: u32,
+    execution_payload_hash: u256,
+    execution_strategy: ContractAddress,
+    author: ContractAddress,
+    finalization_status: u8,
+    active_voting_strategies: u256
+}
+
+impl StorageAccessU8Array of StorageAccess<Array<u8>> {
+    fn read(address_domain: u32, base: StorageBaseAddress) -> SyscallResult<Array<u8>> {
+        let length = StorageAccess::read(
+            address_domain,
+            storage_base_address_from_felt252(
+                storage_address_from_base_and_offset(base, 0_u8).into()
+            )
+        )?;
+
+        let mut arr = ArrayTrait::<u8>::new();
+        let mut i = 0_usize;
+        loop {
+            if i >= length {
+                break ();
+            }
+
+            match StorageAccess::read(
+                address_domain,
+                storage_base_address_from_felt252(
+                    storage_address_from_base_and_offset(base, 0).into()
+                )
+            ) {
+                Result::Ok(b) => arr.append(b),
+                Result::Err(_) => {
+                    break ();
+                }
+            }
+
+            i += 1;
+        };
+        Result::Ok(arr)
+    }
+
+    fn write(address_domain: u32, base: StorageBaseAddress, value: Array<u8>) -> SyscallResult<()> {
+        // Write length at offset 0
+        StorageAccess::write(
+            address_domain,
+            storage_base_address_from_felt252(
+                storage_address_from_base_and_offset(base, 0_u8).into()
+            ),
+            value.len()
+        );
+
+        // Write values at offsets 1..value.len()
+        let mut i = 1_usize;
+        loop {
+            if i >= value.len() {
+                break ();
+            }
+            StorageAccess::write(
+                address_domain,
+                storage_base_address_from_felt252(
+                    storage_address_from_base_and_offset(base, i.try_into().unwrap()).into()
+                ),
+                *value.at(i)
+            );
+            i += 1;
+        };
+        Result::Ok(()) //TODO: what to return here? 
+    }
+}
+
+impl StorageAccessStrategy of StorageAccess<Strategy> {
+    // #[inline(always)]
+    fn read(address_domain: u32, base: StorageBaseAddress) -> SyscallResult<Strategy> {
+        Result::Ok(
+            Strategy {
+                address: StorageAccess::read(
+                    address_domain,
+                    storage_base_address_from_felt252(
+                        storage_address_from_base_and_offset(base, 0_u8).into()
+                    )
+                )?,
+                params: StorageAccess::read(
+                    address_domain,
+                    storage_base_address_from_felt252(
+                        storage_address_from_base_and_offset(base, 1_u8).into()
+                    )
+                )?
+            }
+        )
+    }
+    // #[inline(always)]
+    fn write(address_domain: u32, base: StorageBaseAddress, value: Strategy) -> SyscallResult<()> {
+        // Write value.address at offset 0
+        StorageAccess::write(
+            address_domain,
+            storage_base_address_from_felt252(
+                storage_address_from_base_and_offset(base, 0_u8).into()
+            ),
+            value.address
+        );
+
+        // Write value.params at offset 1
+        StorageAccess::write(
+            address_domain,
+            storage_base_address_from_felt252(
+                storage_address_from_base_and_offset(base, 1_u8).into()
+            ),
+            value.params
+        )
+    }
+}
+
+impl StorageAccessStrategyArray of StorageAccess<Array<Strategy>> {
+    fn read(address_domain: u32, base: StorageBaseAddress) -> SyscallResult<Array<Strategy>> {
+        let length = StorageAccess::read(
+            address_domain,
+            storage_base_address_from_felt252(
+                storage_address_from_base_and_offset(base, 0_u8).into()
+            )
+        )?;
+
+        let mut arr = ArrayTrait::<Strategy>::new();
+        let mut i = 1_usize;
+        loop {
+            if i >= length {
+                break ();
+            }
+            arr.append(
+                StorageAccess::read(
+                    address_domain,
+                    storage_base_address_from_felt252(
+                        storage_address_from_base_and_offset(base, i.try_into().unwrap()).into()
+                    )
+                )?
+            );
+            i += 1;
+        };
+        Result::Ok(arr)
+    }
+
+    fn write(
+        address_domain: u32, base: StorageBaseAddress, value: Array<Strategy>
+    ) -> SyscallResult<()> {
+        // Write length at offset 0
+        StorageAccess::write(
+            address_domain,
+            storage_base_address_from_felt252(
+                storage_address_from_base_and_offset(base, 0_u8).into()
+            ),
+            value.len()
+        );
+
+        // Write values at offsets 1.. 
+        let mut i = 1_usize;
+        loop {
+            if i >= value.len() {
+                break ();
+            }
+            // TODO: maybe I dont need to clone here? could use a span but need to impl that on Strategy
+            StorageAccess::write(
+                address_domain,
+                storage_base_address_from_felt252(
+                    storage_address_from_base_and_offset(base, i.try_into().unwrap()).into()
+                ),
+                value.at(i).clone()
+            )?;
+        };
+        Result::Ok(())
+    }
+}

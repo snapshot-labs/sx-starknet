@@ -4,8 +4,10 @@ version = "0.1.0"
 
 # See more keys and their definitions at https://docs.swmansion.com/scarb/docs/reference/manifest
 
+[[target.starknet-contract]]
+
 [dependencies]
-# foo = { path = "vendor/foo" }
+quaireaux_data_structures = { git = "https://github.com/keep-starknet-strange/quaireaux.git" }
 
 [scripts]
 run-lib = "cairo-run src/lib.cairo"
