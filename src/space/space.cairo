@@ -18,18 +18,18 @@ struct Strategy {
     params: Array<u8>,
 }
 
-#[derive(Drop, Serde)]
-struct Proposal {
-    snapshot_timestamp: u32,
-    start_timestamp: u32,
-    min_end_timestamp: u32,
-    max_end_timestamp: u32,
-    execution_payload_hash: u256,
-    execution_strategy: ContractAddress,
-    author: ContractAddress,
-    finalization_status: u8,
-    active_voting_strategies: u256
-}
+// #[derive(Drop, Serde)]
+// struct Proposal {
+//     snapshot_timestamp: u32,
+//     start_timestamp: u32,
+//     min_end_timestamp: u32,
+//     max_end_timestamp: u32,
+//     execution_payload_hash: u256,
+//     execution_strategy: ContractAddress,
+//     author: ContractAddress,
+//     finalization_status: u8,
+//     active_voting_strategies: u256
+// }
 
 impl StorageAccessU8Array of StorageAccess<Array<u8>> {
     fn read(address_domain: u32, base: StorageBaseAddress) -> SyscallResult<Array<u8>> {
@@ -46,17 +46,21 @@ impl StorageAccessU8Array of StorageAccess<Array<u8>> {
             if i >= length {
                 break ();
             }
-            arr.append(
-                StorageAccess::read(
-                    address_domain,
-                    storage_base_address_from_felt252(
-                        storage_address_from_base_and_offset(base, i.try_into().unwrap()).into()
-                    )
-                )?
-            );
+
+            match StorageAccess::read(
+                address_domain,
+                storage_base_address_from_felt252(
+                    storage_address_from_base_and_offset(base, 0).into()
+                )
+            ) {
+                Result::Ok(b) => arr.append(b),
+                Result::Err(_) => {
+                    break ();
+                }
+            }
+
             i += 1;
         };
-
         Result::Ok(arr)
     }
 
@@ -82,13 +86,15 @@ impl StorageAccessU8Array of StorageAccess<Array<u8>> {
                     storage_address_from_base_and_offset(base, i.try_into().unwrap()).into()
                 ),
                 *value.at(i)
-            )?;
+            );
+            i += 1;
         };
         Result::Ok(()) //TODO: what to return here? 
     }
 }
 
 impl StorageAccessStrategy of StorageAccess<Strategy> {
+    // #[inline(always)]
     fn read(address_domain: u32, base: StorageBaseAddress) -> SyscallResult<Strategy> {
         Result::Ok(
             Strategy {
@@ -107,7 +113,7 @@ impl StorageAccessStrategy of StorageAccess<Strategy> {
             }
         )
     }
-    #[inline(always)]
+    // #[inline(always)]
     fn write(address_domain: u32, base: StorageBaseAddress, value: Strategy) -> SyscallResult<()> {
         // Write value.address at offset 0
         StorageAccess::write(
@@ -211,6 +217,9 @@ mod space {
     use super::Strategy;
     use starknet::syscalls::deploy_syscall;
 
+    use super::StorageAccessU8Array;
+    use super::StorageAccessStrategy;
+
     struct Storage {
         _owner: ContractAddress,
         _max_voting_duration: u256,
@@ -239,8 +248,9 @@ mod space {
         _set_max_voting_duration(_max_voting_duration);
         _set_min_voting_duration(_min_voting_duration);
         _set_voting_delay(_voting_delay);
-    // TODO: FIX THIS
-    // _set_proposal_validation_strategy(_proposal_validation_strategy);
+        // TODO: FIX THIS
+        _set_proposal_validation_strategy(_proposal_validation_strategy);
+    // _proposal_validation_strategy::write(_proposal_validation_strategy);
     }
 
     #[view]
@@ -268,6 +278,7 @@ mod space {
         _voting_delay::read()
     }
 
+    // TODO: wont compile
     #[view]
     fn proposal_validation_strategy() -> Strategy {
         _proposal_validation_strategy::read()
@@ -355,10 +366,9 @@ mod Tests {
         assert(space::max_voting_duration() == max_voting_duration, 'max');
         assert(space::min_voting_duration() == min_voting_duration, 'min');
         assert(space::voting_delay() == voting_delay, 'voting_delay');
-        // TODO: impl PartialEq for Strategy
-        // assert(space::proposal_validation_strategy() == proposal_validation_strategy, 'proposal_validation_strategy');
+    // TODO: impl PartialEq for Strategy
+    // assert(space::proposal_validation_strategy() == proposal_validation_strategy, 'proposal_validation_strategy');
 
     }
 }
-
 
