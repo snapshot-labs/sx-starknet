@@ -1,3 +1,4 @@
+use core::option::OptionTrait;
 use starknet::ContractAddress;
 use sx::utils::types::Strategy;
 
@@ -22,7 +23,11 @@ trait ISpace {
 mod Space {
     use super::ISpace;
     use starknet::ContractAddress;
-    use sx::utils::types::Strategy;
+    use sx::utils::types::{Strategy, Strategies};
+    use zeroable::Zeroable;
+    use array::{ArrayTrait, SpanTrait};
+    use sx::utils::bit_packer; // idiomatic imports? 
+    use clone::Clone;
 
     struct Storage {
         _owner: ContractAddress,
@@ -112,6 +117,28 @@ mod Space {
         // TODO: checks
         let cachedActiveVotingStrategies = _active_voting_strategies::read();
         let cachedNextVotingStrategyIndex = _next_voting_strategy_index::read();
+
+        let mut _voting_strategies_span = _voting_strategies.span();
+        let mut i = 0_usize;
+        loop {
+            if i >= _voting_strategies.len() {
+                break ();
+            }
+
+            match _voting_strategies_span.pop_front() {
+                Option::Some(strategy) => {
+                    assert((*strategy.address).is_zero(), 'Invalid voting strategy');
+                    bit_packer::set_bit(
+                        cachedActiveVotingStrategies, cachedNextVotingStrategyIndex, true
+                    );
+                    _voting_strategies::write(cachedNextVotingStrategyIndex, strategy.clone());
+                },
+                Option::None(_) => {
+                    break ();
+                }
+            }
+            i += 1;
+        }
     }
 // fn _remove_voting_strategies(_voting_strategies: Array<Strategy>) {
 //     let index = next_voting_strategy_index::read();
