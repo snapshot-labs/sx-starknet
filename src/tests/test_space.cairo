@@ -15,9 +15,9 @@ use clone::Clone;
 #[available_gas(1000000)]
 fn test_constructor() {
     let owner = contract_address_const::<1>();
-    let max_voting_duration = u256_from_felt252(1);
-    let min_voting_duration = u256_from_felt252(1);
-    let voting_delay = u256_from_felt252(1);
+    let max_voting_duration = 1_u64;
+    let min_voting_duration = 1_u64;
+    let voting_delay = 1_u64;
     let proposal_validation_strategy = Strategy {
         address: contract_address_const::<1>(), params: ArrayTrait::<u8>::new()
     };
