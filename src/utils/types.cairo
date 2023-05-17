@@ -12,18 +12,34 @@ use starknet::{
     class_hash::Felt252TryIntoClassHash
 };
 
+impl U8ArrayIntoFelt252Array of Into<Array<u8>, Array<felt252>> {
+    fn into(self: Array<u8>) -> Array<felt252> {
+        let mut arr = ArrayTrait::<felt252>::new();
+        let mut i = 0_usize;
+        loop {
+            if i >= self.len() {
+                break ();
+            }
+            arr.append((*self.at(i)).into());
+            i += 1;
+        };
+        arr
+    }
+}
+
 #[derive(Option, Clone, Drop, Serde)]
 struct Strategy {
     address: ContractAddress,
     params: Array<u8>,
 }
 
+/// NOTE: Using u64 for timestamps instead of u32 which we use in sx-evm. can change if needed.
 #[derive(Drop, Serde)]
 struct Proposal {
-    snapshot_timestamp: u32,
-    start_timestamp: u32,
-    min_end_timestamp: u32,
-    max_end_timestamp: u32,
+    snapshot_timestamp: u64,
+    start_timestamp: u64,
+    min_end_timestamp: u64,
+    max_end_timestamp: u64,
     execution_payload_hash: felt252,
     execution_strategy: ContractAddress,
     author: ContractAddress,
