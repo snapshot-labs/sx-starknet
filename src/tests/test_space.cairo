@@ -21,13 +21,17 @@ fn test_constructor() {
     let proposal_validation_strategy = Strategy {
         address: contract_address_const::<1>(), params: ArrayTrait::<u8>::new()
     };
+    let voting_strategies = ArrayTrait::<Strategy>::new();
+    let authenticators = ArrayTrait::<ContractAddress>::new();
 
     Space::constructor(
         owner,
         max_voting_duration,
         min_voting_duration,
         voting_delay,
-        proposal_validation_strategy.clone()
+        proposal_validation_strategy.clone(),
+        voting_strategies.clone(),
+        authenticators.clone()
     );
 
     assert(Space::owner() == owner, 'owner should be set');

@@ -52,15 +52,18 @@ mod Space {
         _max_voting_duration: u256,
         _min_voting_duration: u256,
         _voting_delay: u256,
-        _proposal_validation_strategy: Strategy
+        _proposal_validation_strategy: Strategy,
+        _voting_strategies: Array<Strategy>,
+        _authenticators: Array<ContractAddress>,
     ) {
         _owner::write(_owner);
         _set_max_voting_duration(_max_voting_duration);
         _set_min_voting_duration(_min_voting_duration);
         _set_voting_delay(_voting_delay);
-        // TODO: FIX THIS
         _set_proposal_validation_strategy(_proposal_validation_strategy);
-    // _proposal_validation_strategy::write(_proposal_validation_strategy);
+        _add_voting_strategies(_voting_strategies);
+        _add_authenticators(_authenticators);
+        _next_proposal_id::write(u256 { low: 1_u128, high: 0_u128 }); // Maybe easier way to do this?
     }
 
     #[view]
