@@ -12,7 +12,7 @@ use starknet::{
     class_hash::Felt252TryIntoClassHash
 };
 
-#[derive(Clone, Drop, Serde)]
+#[derive(Option, Clone, Drop, Serde)]
 struct Strategy {
     address: ContractAddress,
     params: Array<u8>,
