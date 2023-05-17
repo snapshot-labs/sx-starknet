@@ -1,4 +1,3 @@
-use core::option::OptionTrait;
 use starknet::ContractAddress;
 use sx::utils::types::Strategy;
 
@@ -28,6 +27,8 @@ mod Space {
     use array::{ArrayTrait, SpanTrait};
     use sx::utils::bits::{BitSetter}; // idiomatic imports? 
     use clone::Clone;
+    use core::option::OptionTrait;
+
 
     struct Storage {
         _owner: ContractAddress,
@@ -141,22 +142,35 @@ mod Space {
         _active_voting_strategies::write(cachedActiveVotingStrategies);
         _next_voting_strategy_index::write(cachedNextVotingStrategyIndex);
     }
-// fn _remove_voting_strategies(_voting_strategies: Array<Strategy>) {
-//     let index = next_voting_strategy_index::read();
-//     voting_strategies::write(index, _voting_strategy);
-//     next_voting_strategy_index::write(index + 1_u8);
-// }
+    // TODO: need to impl set_bit to false first
+    // fn _remove_voting_strategies(_voting_strategies: Array<Strategy>) {
+    //     let index = next_voting_strategy_index::read();
+    //     voting_strategies::write(index, _voting_strategy);
+    //     next_voting_strategy_index::write(index + 1_u8);
+    // }
 
-// fn _add_authenticators(_authenticators: Array<ContractAddress>) {
-//     for authenticator in _authenticators.iter() {
-//         authenticators::write(authenticator, true);
-//     }
-// }
+    fn _add_authenticators(_authenticators: Array<ContractAddress>) {
+        let mut _authenticators_span = _authenticators.span();
+        let mut i = 0_usize;
+        loop {
+            if i >= _authenticators.len() {
+                break ();
+            }
+            _authenticators::write(*_authenticators_span.pop_front().unwrap(), true);
+            i += 1;
+        }
+    }
 
-// fn _remove_authenticators(_authenticators: Array<ContractAddress>) {
-//     for authenticator in _authenticators.iter() {
-//         authenticators::write(authenticator, false);
-//     }
-// }
+    fn _remove_authenticators(_authenticators: Array<ContractAddress>) {
+        let mut _authenticators_span = _authenticators.span();
+        let mut i = 0_usize;
+        loop {
+            if i >= _authenticators.len() {
+                break ();
+            }
+            _authenticators::write(*_authenticators_span.pop_front().unwrap(), false);
+            i += 1;
+        }
+    }
 }
 
