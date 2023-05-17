@@ -126,16 +126,10 @@ mod Space {
                 break ();
             }
 
-            match _voting_strategies_span.pop_front() {
-                Option::Some(strategy) => {
-                    assert((*strategy.address).is_zero(), 'Invalid voting strategy');
-                    cachedActiveVotingStrategies.set_bit(cachedNextVotingStrategyIndex, true);
-                    _voting_strategies::write(cachedNextVotingStrategyIndex, strategy.clone());
-                },
-                Option::None(_) => {
-                    break ();
-                }
-            }
+            let strategy = _voting_strategies_span.pop_front().unwrap().clone();
+            assert(strategy.address.is_zero(), 'Invalid voting strategy');
+            cachedActiveVotingStrategies.set_bit(cachedNextVotingStrategyIndex, true);
+            _voting_strategies::write(cachedNextVotingStrategyIndex, strategy);
             cachedNextVotingStrategyIndex += 1_u8;
             i += 1;
         };
