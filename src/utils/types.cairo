@@ -24,11 +24,148 @@ struct Proposal {
     start_timestamp: u32,
     min_end_timestamp: u32,
     max_end_timestamp: u32,
-    execution_payload_hash: u256,
+    execution_payload_hash: felt252,
     execution_strategy: ContractAddress,
     author: ContractAddress,
     finalization_status: u8,
     active_voting_strategies: u256
+}
+
+impl StorageAccessProposal of StorageAccess<Proposal> {
+    fn read(address_domain: u32, base: StorageBaseAddress) -> SyscallResult<Proposal> {
+        Result::Ok(
+            Proposal {
+                snapshot_timestamp: StorageAccess::read(
+                    address_domain,
+                    storage_base_address_from_felt252(
+                        storage_address_from_base_and_offset(base, 0_u8).into()
+                    )
+                )?,
+                start_timestamp: StorageAccess::read(
+                    address_domain,
+                    storage_base_address_from_felt252(
+                        storage_address_from_base_and_offset(base, 1_u8).into()
+                    )
+                )?,
+                min_end_timestamp: StorageAccess::read(
+                    address_domain,
+                    storage_base_address_from_felt252(
+                        storage_address_from_base_and_offset(base, 2_u8).into()
+                    )
+                )?,
+                max_end_timestamp: StorageAccess::read(
+                    address_domain,
+                    storage_base_address_from_felt252(
+                        storage_address_from_base_and_offset(base, 3_u8).into()
+                    )
+                )?,
+                execution_payload_hash: StorageAccess::read(
+                    address_domain,
+                    storage_base_address_from_felt252(
+                        storage_address_from_base_and_offset(base, 4_u8).into()
+                    )
+                )?,
+                execution_strategy: StorageAccess::read(
+                    address_domain,
+                    storage_base_address_from_felt252(
+                        storage_address_from_base_and_offset(base, 5_u8).into()
+                    )
+                )?,
+                author: StorageAccess::read(
+                    address_domain,
+                    storage_base_address_from_felt252(
+                        storage_address_from_base_and_offset(base, 6_u8).into()
+                    )
+                )?,
+                finalization_status: StorageAccess::read(
+                    address_domain,
+                    storage_base_address_from_felt252(
+                        storage_address_from_base_and_offset(base, 7_u8).into()
+                    )
+                )?,
+                active_voting_strategies: StorageAccess::read(
+                    address_domain,
+                    storage_base_address_from_felt252(
+                        storage_address_from_base_and_offset(base, 8_u8).into()
+                    )
+                )?
+            }
+        )
+    }
+
+    fn write(address_domain: u32, base: StorageBaseAddress, value: Proposal) -> SyscallResult<()> {
+        StorageAccess::write(
+            address_domain,
+            storage_base_address_from_felt252(
+                storage_address_from_base_and_offset(base, 0_u8).into()
+            ),
+            value.snapshot_timestamp
+        );
+
+        StorageAccess::write(
+            address_domain,
+            storage_base_address_from_felt252(
+                storage_address_from_base_and_offset(base, 1_u8).into()
+            ),
+            value.start_timestamp
+        );
+
+        StorageAccess::write(
+            address_domain,
+            storage_base_address_from_felt252(
+                storage_address_from_base_and_offset(base, 2_u8).into()
+            ),
+            value.min_end_timestamp
+        );
+
+        StorageAccess::write(
+            address_domain,
+            storage_base_address_from_felt252(
+                storage_address_from_base_and_offset(base, 3_u8).into()
+            ),
+            value.max_end_timestamp
+        );
+
+        StorageAccess::write(
+            address_domain,
+            storage_base_address_from_felt252(
+                storage_address_from_base_and_offset(base, 4_u8).into()
+            ),
+            value.execution_payload_hash
+        );
+
+        StorageAccess::write(
+            address_domain,
+            storage_base_address_from_felt252(
+                storage_address_from_base_and_offset(base, 5_u8).into()
+            ),
+            value.execution_strategy
+        );
+
+        StorageAccess::write(
+            address_domain,
+            storage_base_address_from_felt252(
+                storage_address_from_base_and_offset(base, 6_u8).into()
+            ),
+            value.author
+        );
+
+        StorageAccess::write(
+            address_domain,
+            storage_base_address_from_felt252(
+                storage_address_from_base_and_offset(base, 7_u8).into()
+            ),
+            value.finalization_status
+        );
+
+        StorageAccess::write(
+            address_domain,
+            storage_base_address_from_felt252(
+                storage_address_from_base_and_offset(base, 8_u8).into()
+            ),
+            value.active_voting_strategies
+        )
+    }
 }
 
 impl StorageAccessU8Array of StorageAccess<Array<u8>> {
