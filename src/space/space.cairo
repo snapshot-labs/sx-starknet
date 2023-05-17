@@ -23,10 +23,10 @@ trait ISpace {
 mod Space {
     use super::ISpace;
     use starknet::ContractAddress;
-    use sx::utils::types::{Strategy, Strategies};
+    use sx::utils::types::{Strategy};
     use zeroable::Zeroable;
     use array::{ArrayTrait, SpanTrait};
-    use sx::utils::bit_packer; // idiomatic imports? 
+    use sx::utils::bits::{BitSetter}; // idiomatic imports? 
     use clone::Clone;
 
     struct Storage {
@@ -115,8 +115,8 @@ mod Space {
 
     fn _add_voting_strategies(_voting_strategies: Array<Strategy>) {
         // TODO: checks
-        let cachedActiveVotingStrategies = _active_voting_strategies::read();
-        let cachedNextVotingStrategyIndex = _next_voting_strategy_index::read();
+        let mut cachedActiveVotingStrategies = _active_voting_strategies::read();
+        let mut cachedNextVotingStrategyIndex = _next_voting_strategy_index::read();
 
         let mut _voting_strategies_span = _voting_strategies.span();
         let mut i = 0_usize;
@@ -128,17 +128,18 @@ mod Space {
             match _voting_strategies_span.pop_front() {
                 Option::Some(strategy) => {
                     assert((*strategy.address).is_zero(), 'Invalid voting strategy');
-                    bit_packer::set_bit(
-                        cachedActiveVotingStrategies, cachedNextVotingStrategyIndex, true
-                    );
+                    cachedActiveVotingStrategies.set_bit(cachedNextVotingStrategyIndex, true);
                     _voting_strategies::write(cachedNextVotingStrategyIndex, strategy.clone());
                 },
                 Option::None(_) => {
                     break ();
                 }
             }
+            cachedNextVotingStrategyIndex += 1_u8;
             i += 1;
-        }
+        };
+        _active_voting_strategies::write(cachedActiveVotingStrategies);
+        _next_voting_strategy_index::write(cachedNextVotingStrategyIndex);
     }
 // fn _remove_voting_strategies(_voting_strategies: Array<Strategy>) {
 //     let index = next_voting_strategy_index::read();

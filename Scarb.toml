@@ -7,7 +7,8 @@ version = "0.1.0"
 [[target.starknet-contract]]
 
 [dependencies]
-quaireaux_data_structures = { git = "https://github.com/keep-starknet-strange/quaireaux.git" }
+quaireaux_math = { git = "https://github.com/keep-starknet-strange/quaireaux.git" }
+
 
 [scripts]
 run-lib = "cairo-run src/lib.cairo"
