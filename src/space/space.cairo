@@ -32,7 +32,7 @@ mod Space {
     use hash::LegacyHash;
     use traits::Into;
     use sx::proposal_validation_strategies::vanilla::{
-        IPropsalValidationStrategyDispatcher, IPropsalValidationStrategyDispatcherTrait
+        IProposalValidationStrategyDispatcher, IProposalValidationStrategyDispatcherTrait
     };
 
     struct Storage {
@@ -87,7 +87,7 @@ mod Space {
         let emptyArr = ArrayTrait::<u8>::new();
 
         let proposal_validation_strategy = _proposal_validation_strategy::read();
-        let valid = IPropsalValidationStrategyDispatcher {
+        let valid = IProposalValidationStrategyDispatcher {
             contract_address: proposal_validation_strategy.address
         }.validate(_author, emptyArr.clone(), emptyArr);
         assert(valid, 'Proposal is not valid');
