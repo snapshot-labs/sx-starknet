@@ -31,6 +31,9 @@ mod Space {
     use core::option::OptionTrait;
     use hash::LegacyHash;
     use traits::Into;
+    use sx::proposal_validation_strategies::vanilla::{
+        IPropsalValidationStrategyDispatcher, IPropsalValidationStrategyDispatcherTrait
+    };
 
     struct Storage {
         _owner: ContractAddress,
@@ -81,6 +84,13 @@ mod Space {
         let proposal_id = _next_proposal_id::read();
 
         // Proposal Validation
+        let emptyArr = ArrayTrait::<u8>::new();
+
+        let proposal_validation_strategy = _proposal_validation_strategy::read();
+        let valid = IPropsalValidationStrategyDispatcher {
+            contract_address: proposal_validation_strategy.address
+        }.validate(_author, emptyArr.clone(), emptyArr);
+        assert(valid, 'Proposal is not valid');
 
         let snapshot_timestamp = info::get_block_timestamp();
         let min_end_timestamp = snapshot_timestamp + _min_voting_duration::read();
