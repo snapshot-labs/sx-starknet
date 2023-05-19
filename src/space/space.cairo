@@ -18,9 +18,12 @@ trait ISpace {
     fn vote_registry(proposal_id: u256, voter: ContractAddress) -> bool;
     fn proposals(proposal_id: u256) -> ContractAddress;
     fn get_proposal_status(proposal_id: u256) -> u8;
-
     // Actions 
-    fn propose(author: ContractAddress, execution_strategy: Strategy, user_proposal_validation_params: Array<u8>);
+    fn propose(
+        author: ContractAddress,
+        execution_strategy: Strategy,
+        user_proposal_validation_params: Array<u8>
+    );
 }
 
 #[contract]
