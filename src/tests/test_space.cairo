@@ -5,7 +5,7 @@ use starknet::syscalls::deploy_syscall;
 use starknet::testing::set_caller_address;
 use starknet::contract_address_const;
 use sx::space::space::{Space, ISpaceDispatcher, ISpaceDispatcherTrait};
-use sx::proposal_validation_strategies::vanilla::VanillaProposalValidationStrategy; // rexport would be good
+use sx::proposal_validation_strategies::vanilla::VanillaProposalValidationStrategy;
 use sx::utils::types::Strategy;
 use traits::{Into, TryInto};
 use core::result::ResultTrait;
@@ -107,4 +107,7 @@ fn test_propose() {
         vanilla_proposal_validation_strategy_params
     );
     assert(space.next_proposal_id() == 2, 'next_proposal_id should be 2');
+
+    let proposal = space.proposals(1);
+// TODO: impl PartialEq for Proposal and check here
 }
