@@ -13,6 +13,8 @@ use option::OptionTrait;
 use integer::u256_from_felt252;
 use clone::Clone;
 use debug::PrintTrait;
+use serde::ArraySerde;
+use serde::Serde;
 
 fn setup() -> ContractAddress {
     let owner = contract_address_const::<1>();
@@ -38,16 +40,21 @@ fn setup() -> ContractAddress {
     };
 
     // Deploy Space 
-    Space::constructor(
-        owner,
-        max_voting_duration,
-        min_voting_duration,
-        voting_delay,
-        proposal_validation_strategy.clone(),
-        voting_strategies.clone(),
-        authenticators.clone()
-    );
-    owner
+    let mut constructor_calldata2 = array::ArrayTrait::<felt252>::new();
+    constructor_calldata2.append(owner.into());
+    constructor_calldata2.append(max_voting_duration.into());
+    constructor_calldata2.append(min_voting_duration.into());
+    constructor_calldata2.append(voting_delay.into());
+    proposal_validation_strategy.serialize(ref constructor_calldata2);
+    voting_strategies.serialize(ref constructor_calldata2);
+    authenticators.serialize(ref constructor_calldata2);
+    // constructor_calldata2.print();
+
+    let (space_address, _) = deploy_syscall(
+        Space::TEST_CLASS_HASH.try_into().unwrap(), 6, constructor_calldata2.span(), true
+    ).unwrap();
+
+    space_address
 }
 
 #[test]
@@ -85,6 +92,6 @@ fn test_constructor() {
 #[test]
 #[available_gas(1000000)]
 fn test_propose() {
-    let owner = setup();
+    let space = setup();
     let proposal = ArrayTrait::<u8>::new();
 }
