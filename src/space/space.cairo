@@ -151,10 +151,14 @@ mod Space {
         _voting_delay::read()
     }
 
-    // TODO: wont compile
     #[view]
     fn proposal_validation_strategy() -> Strategy {
         _proposal_validation_strategy::read()
+    }
+
+    #[view]
+    fn proposals(proposal_id: u256) -> Proposal {
+        _proposals::read(proposal_id)
     }
 
     /// 
