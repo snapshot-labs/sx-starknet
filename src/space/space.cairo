@@ -3,6 +3,8 @@ use sx::utils::types::Strategy;
 
 #[abi]
 trait ISpace {
+    // State 
+    fn owner() -> ContractAddress;
     fn max_voting_duration() -> u256;
     fn min_voting_duration() -> u256;
     fn next_proposal_id() -> u256;
@@ -16,11 +18,13 @@ trait ISpace {
     fn vote_registry(proposal_id: u256, voter: ContractAddress) -> bool;
     fn proposals(proposal_id: u256) -> ContractAddress;
     fn get_proposal_status(proposal_id: u256) -> u8;
+
+    // Actions 
+    fn propose(author: ContractAddress, execution_strategy: Strategy, user_proposal_validation_params: Array<u8>);
 }
 
 #[contract]
 mod Space {
-    use super::ISpace;
     use starknet::ContractAddress;
     use starknet::info;
     use sx::utils::types::{Strategy, Proposal, U8ArrayIntoFelt252Array};
