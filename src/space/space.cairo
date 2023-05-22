@@ -37,19 +37,19 @@ trait ISpace {
 
 #[contract]
 mod Space {
-    use starknet::ContractAddress;
-    use starknet::info;
-    use sx::utils::types::{Strategy, Proposal, U8ArrayIntoFelt252Array};
+    use starknet::{ContractAddress, info};
     use zeroable::Zeroable;
     use array::{ArrayTrait, SpanTrait};
-    use sx::utils::bits::{BitSetter}; // idiomatic imports? 
     use clone::Clone;
-    use core::option::OptionTrait;
+    use option::OptionTrait;
     use hash::LegacyHash;
     use traits::Into;
+
     use sx::proposal_validation_strategies::vanilla::{
         IProposalValidationStrategyDispatcher, IProposalValidationStrategyDispatcherTrait
     };
+    use sx::utils::types::{Strategy, Proposal, U8ArrayIntoFelt252Array};
+    use sx::utils::bits::BitSetter;
     use sx::external::ownable::Ownable;
 
     struct Storage {
@@ -63,7 +63,7 @@ mod Space {
         _proposal_validation_strategy: Strategy,
         _authenticators: LegacyMap::<ContractAddress, bool>,
         _proposals: LegacyMap::<u256, Proposal>,
-        _vote_power: LegacyMap::<(u256, u8), u256>, // TODO choice enum
+        _vote_power: LegacyMap::<(u256, u8), u256>, // TODO: choice enum
         _vote_registry: LegacyMap::<(u256, ContractAddress), bool>,
     }
 
@@ -125,9 +125,7 @@ mod Space {
         _set_proposal_validation_strategy(_proposal_validation_strategy.clone());
         _add_voting_strategies(_voting_strategies.clone());
         _add_authenticators(_authenticators.clone());
-        _next_proposal_id::write(
-            u256 { low: 1_u128, high: 0_u128 }
-        ); // Maybe easier way to do this?
+        _next_proposal_id::write(u256 { low: 1_u128, high: 0_u128 }); 
         SpaceCreated(
             info::get_contract_address(),
             _owner,
@@ -151,10 +149,8 @@ mod Space {
 
         // Proposal Validation
         let emptyArr = ArrayTrait::<u8>::new();
-
-        let proposal_validation_strategy = _proposal_validation_strategy::read();
         let valid = IProposalValidationStrategyDispatcher {
-            contract_address: proposal_validation_strategy.address
+            contract_address: _proposal_validation_strategy::read().address
         }.validate(_author, emptyArr.clone(), emptyArr);
         assert(valid, 'Proposal is not valid');
 
@@ -164,6 +160,8 @@ mod Space {
 
         // Casting execution params array from u8 to felt and hashing
         let params_felt: Array<felt252> = _execution_strategy.params.into();
+        // TODO: we use a felt252 for the hash despite felts being discouraged 
+        // a new field would just replace the hash. Might be worth casting to a Uint256 though? 
         let execution_payload_hash = poseidon::poseidon_hash_span(params_felt.span());
 
         let proposal = Proposal {
@@ -178,6 +176,7 @@ mod Space {
             active_voting_strategies: _active_voting_strategies::read()
         };
 
+        // TODO: Lots of copying, maybe figure out how to pass snapshots to events/storage writers. 
         _proposals::write(proposal_id, proposal.clone());
 
         _next_proposal_id::write(proposal_id + u256 { low: 1_u128, high: 0_u128 });

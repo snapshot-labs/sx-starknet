@@ -1,8 +1,6 @@
 use array::ArrayTrait;
 use serde::Serde;
-use traits::Into;
-use traits::TryInto;
-use traits::PartialEq;
+use traits::{PartialEq, TryInto, Into};
 use option::OptionTrait;
 use clone::Clone;
 use starknet::{

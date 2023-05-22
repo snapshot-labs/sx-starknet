@@ -1,21 +1,20 @@
 use array::ArrayTrait;
-use starknet::class_hash::Felt252TryIntoClassHash;
-use starknet::ContractAddress;
-use starknet::syscalls::deploy_syscall;
-use starknet::testing;
-use starknet::contract_address_const;
-use sx::space::space::{Space, ISpaceDispatcher, ISpaceDispatcherTrait};
-use sx::proposal_validation_strategies::vanilla::VanillaProposalValidationStrategy;
-use sx::tests::mocks::proposal_validation_always_fail::AlwaysFailProposalValidationStrategy;
-use sx::utils::types::Strategy;
+use starknet::{
+    class_hash::Felt252TryIntoClassHash, ContractAddress, syscalls::deploy_syscall, testing,
+    contract_address_const
+};
 use traits::{Into, TryInto};
-use core::result::ResultTrait;
+use result::ResultTrait;
 use option::OptionTrait;
 use integer::u256_from_felt252;
 use clone::Clone;
 use debug::PrintTrait;
-use serde::ArraySerde;
-use serde::Serde;
+use serde::{Serde, ArraySerde};
+
+use sx::space::space::{Space, ISpaceDispatcher, ISpaceDispatcherTrait};
+use sx::proposal_validation_strategies::vanilla::VanillaProposalValidationStrategy;
+use sx::tests::mocks::proposal_validation_always_fail::AlwaysFailProposalValidationStrategy;
+use sx::utils::types::Strategy;
 
 fn setup() -> (ContractAddress, ContractAddress) {
     let owner = contract_address_const::<0x123456789>();
@@ -24,14 +23,14 @@ fn setup() -> (ContractAddress, ContractAddress) {
     let voting_delay = 1_u64;
     let voting_strategies = ArrayTrait::<Strategy>::new();
     let authenticators = ArrayTrait::<ContractAddress>::new();
-    // Set account as default caller
+
     testing::set_caller_address(owner);
     testing::set_contract_address(owner);
 
     // Deploy Vanilla Proposal Validation Strategy
     let (vanilla_address, _) = deploy_syscall(
         VanillaProposalValidationStrategy::TEST_CLASS_HASH.try_into().unwrap(),
-        6,
+        0,
         array::ArrayTrait::<felt252>::new().span(),
         false
     ).unwrap();
@@ -41,17 +40,17 @@ fn setup() -> (ContractAddress, ContractAddress) {
     };
 
     // Deploy Space 
-    let mut constructor_calldata2 = array::ArrayTrait::<felt252>::new();
-    constructor_calldata2.append(owner.into());
-    constructor_calldata2.append(max_voting_duration.into());
-    constructor_calldata2.append(min_voting_duration.into());
-    constructor_calldata2.append(voting_delay.into());
-    proposal_validation_strategy.serialize(ref constructor_calldata2);
-    voting_strategies.serialize(ref constructor_calldata2);
-    authenticators.serialize(ref constructor_calldata2);
+    let mut constructor_calldata = array::ArrayTrait::<felt252>::new();
+    constructor_calldata.append(owner.into());
+    constructor_calldata.append(max_voting_duration.into());
+    constructor_calldata.append(min_voting_duration.into());
+    constructor_calldata.append(voting_delay.into());
+    proposal_validation_strategy.serialize(ref constructor_calldata);
+    voting_strategies.serialize(ref constructor_calldata);
+    authenticators.serialize(ref constructor_calldata);
 
     let (space_address, _) = deploy_syscall(
-        Space::TEST_CLASS_HASH.try_into().unwrap(), 6, constructor_calldata2.span(), false
+        Space::TEST_CLASS_HASH.try_into().unwrap(), 0, constructor_calldata.span(), false
     ).unwrap();
 
     (space_address, owner)
