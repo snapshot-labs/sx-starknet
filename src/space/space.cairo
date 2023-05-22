@@ -18,6 +18,15 @@ trait ISpace {
     fn vote_registry(proposal_id: u256, voter: ContractAddress) -> bool;
     fn proposals(proposal_id: u256) -> ContractAddress;
     fn get_proposal_status(proposal_id: u256) -> u8;
+    // Owner Actions 
+    fn set_max_voting_duration(max_voting_duration: u256);
+    fn set_min_voting_duration(min_voting_duration: u256);
+    fn set_voting_delay(voting_delay: u256);
+    fn set_proposal_validation_strategy(proposal_validation_strategy: Strategy);
+    fn add_voting_strategies(new_voting_strategies: Array<Strategy>);
+    fn remove_voting_strategies(voting_strategy_indices: Array<u8>);
+    fn add_authenticators(new_authenticators: Array<ContractAddress>);
+    fn remove_authenticators(authenticators: Array<ContractAddress>);
     // Actions 
     fn propose(
         author: ContractAddress,
