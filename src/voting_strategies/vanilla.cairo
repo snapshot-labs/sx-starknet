@@ -17,6 +17,6 @@ mod VanillaVotingStrategy {
     fn getVotingPower(
         timestamp: u64, voter: ContractAddress, params: Array<u8>, user_params: Array<u8>, 
     ) -> u256 {
-        return 1;
+        return u256 { low: 1_u128, high: 0_u128 };
     }
 }

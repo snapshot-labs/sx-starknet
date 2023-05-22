@@ -94,7 +94,10 @@ fn test_constructor() {
 fn test_propose() {
     let space_address = setup();
     let space = ISpaceDispatcher { contract_address: space_address };
-    assert(space.next_proposal_id() == 1, 'next_proposal_id should be 1');
+    assert(
+        space.next_proposal_id() == u256 { low: 1_u128, high: 0_u128 },
+        'next_proposal_id should be 1'
+    );
 
     // TODO: impl vanilla execution strategy and use here
     let vanilla_execution_strategy = Strategy {
@@ -106,8 +109,41 @@ fn test_propose() {
         vanilla_execution_strategy,
         vanilla_proposal_validation_strategy_params
     );
-    assert(space.next_proposal_id() == 2, 'next_proposal_id should be 2');
+    assert(
+        space.next_proposal_id() == u256 { low: 2_u128, high: 0_u128 },
+        'next_proposal_id should be 2'
+    );
 
-    let proposal = space.proposals(1);
+    let proposal = space.proposals(u256 { low: 1_u128, high: 0_u128 });
 // TODO: impl PartialEq for Proposal and check here
 }
+
+#[test]
+#[available_gas(100000000)]
+fn test_propose_failed_validation() {
+    let space_address = setup();
+    let space = ISpaceDispatcher { contract_address: space_address };
+    assert(
+        space.next_proposal_id() == u256 { low: 1_u128, high: 0_u128 },
+        'next_proposal_id should be 1'
+    );
+
+    // TODO: impl vanilla execution strategy and use here
+    let vanilla_execution_strategy = Strategy {
+        address: contract_address_const::<1>(), params: ArrayTrait::<u8>::new()
+    };
+    let vanilla_proposal_validation_strategy_params = ArrayTrait::<u8>::new();
+    space.propose(
+        contract_address_const::<5678>(),
+        vanilla_execution_strategy,
+        vanilla_proposal_validation_strategy_params
+    );
+    assert(
+        space.next_proposal_id() == u256 { low: 2_u128, high: 0_u128 },
+        'next_proposal_id should be 2'
+    );
+
+    let proposal = space.proposals(u256 { low: 1_u128, high: 0_u128 });
+// TODO: impl PartialEq for Proposal and check here
+}
+
