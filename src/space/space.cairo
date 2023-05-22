@@ -41,9 +41,9 @@ mod Space {
     use sx::proposal_validation_strategies::vanilla::{
         IProposalValidationStrategyDispatcher, IProposalValidationStrategyDispatcherTrait
     };
+    use sx::external::ownable::Ownable;
 
     struct Storage {
-        _owner: ContractAddress,
         _max_voting_duration: u64,
         _min_voting_duration: u64,
         _next_proposal_id: u256,
@@ -68,7 +68,8 @@ mod Space {
         _voting_strategies: Array<Strategy>,
         _authenticators: Array<ContractAddress>,
     ) {
-        _owner::write(_owner);
+        Ownable::initializer();
+        Ownable::transfer_ownership(_owner);
         _set_max_voting_duration(_max_voting_duration);
         _set_min_voting_duration(_min_voting_duration);
         _set_voting_delay(_voting_delay);
@@ -128,7 +129,7 @@ mod Space {
 
     #[view]
     fn owner() -> ContractAddress {
-        _owner::read()
+        Ownable::owner()
     }
 
     #[view]

@@ -70,6 +70,9 @@ fn test_constructor() {
     let voting_strategies = ArrayTrait::<Strategy>::new();
     let authenticators = ArrayTrait::<ContractAddress>::new();
 
+    // Set account as default caller
+    set_caller_address(owner);
+
     Space::constructor(
         owner,
         max_voting_duration,
