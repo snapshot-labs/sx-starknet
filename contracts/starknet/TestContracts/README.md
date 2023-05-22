@@ -1,1 +1,0 @@
-These contracts are used to test library functionality in isolation.
