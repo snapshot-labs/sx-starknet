@@ -166,23 +166,23 @@ mod Space {
         let params_felt: Array<felt252> = _execution_strategy.params.into();
         let execution_payload_hash = poseidon::poseidon_hash_span(params_felt.span());
 
-        _proposals::write(
-            proposal_id,
-            Proposal {
-                snapshot_timestamp: snapshot_timestamp,
-                start_timestamp: snapshot_timestamp + _voting_delay::read(),
-                min_end_timestamp: min_end_timestamp,
-                max_end_timestamp: max_end_timestamp,
-                execution_payload_hash: execution_payload_hash,
-                execution_strategy: _execution_strategy.address,
-                author: _author,
-                finalization_status: 0_u8,
-                active_voting_strategies: _active_voting_strategies::read()
-            }
-        );
+        let proposal = Proposal {
+            snapshot_timestamp: snapshot_timestamp,
+            start_timestamp: snapshot_timestamp + _voting_delay::read(),
+            min_end_timestamp: min_end_timestamp,
+            max_end_timestamp: max_end_timestamp,
+            execution_payload_hash: execution_payload_hash,
+            execution_strategy: _execution_strategy.address,
+            author: _author,
+            finalization_status: 0_u8,
+            active_voting_strategies: _active_voting_strategies::read()
+        };
+
+        _proposals::write(proposal_id, proposal.clone());
 
         _next_proposal_id::write(proposal_id + u256 { low: 1_u128, high: 0_u128 });
-    // TODO: event
+
+        ProposalCreated(proposal_id, _author, proposal, _user_proposal_validation_params);
     }
 
     #[view]

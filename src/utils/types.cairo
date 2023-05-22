@@ -34,7 +34,7 @@ struct Strategy {
 }
 
 /// NOTE: Using u64 for timestamps instead of u32 which we use in sx-evm. can change if needed.
-#[derive(Drop, Serde)]
+#[derive(Clone, Drop, Serde)]
 struct Proposal {
     snapshot_timestamp: u64,
     start_timestamp: u64,
