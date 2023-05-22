@@ -125,7 +125,7 @@ mod Space {
         _set_proposal_validation_strategy(_proposal_validation_strategy.clone());
         _add_voting_strategies(_voting_strategies.clone());
         _add_authenticators(_authenticators.clone());
-        _next_proposal_id::write(u256 { low: 1_u128, high: 0_u128 }); 
+        _next_proposal_id::write(u256 { low: 1_u128, high: 0_u128 });
         SpaceCreated(
             info::get_contract_address(),
             _owner,
@@ -297,10 +297,12 @@ mod Space {
     }
 
     fn _add_voting_strategies(_voting_strategies: Array<Strategy>) {
-        // TODO: checks
         let mut cachedActiveVotingStrategies = _active_voting_strategies::read();
         let mut cachedNextVotingStrategyIndex = _next_voting_strategy_index::read();
-
+        assert(
+            cachedNextVotingStrategyIndex.into() < 256_u32 - _voting_strategies.len(),
+            'Exceeds Voting Strategy Limit'
+        );
         let mut _voting_strategies_span = _voting_strategies.span();
         let mut i = 0_usize;
         loop {
