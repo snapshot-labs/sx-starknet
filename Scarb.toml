@@ -7,9 +7,7 @@ version = "0.1.0"
 [[target.starknet-contract]]
 
 [dependencies]
-alexandria_data_structures = { git = "https://github.com/keep-starknet-strange/alexandria.git" }
 alexandria_math = { git = "https://github.com/keep-starknet-strange/alexandria.git" }
-
 
 [scripts]
 run-lib = "cairo-run src/lib.cairo"
