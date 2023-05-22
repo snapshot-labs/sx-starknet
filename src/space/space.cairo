@@ -58,6 +58,46 @@ mod Space {
         _vote_registry: LegacyMap::<(u256, ContractAddress), bool>,
     }
 
+    #[event]
+    fn SpaceCreated(
+        _space: ContractAddress,
+        _owner: ContractAddress,
+        _voting_delay: u64,
+        _min_voting_duration: u64,
+        _max_voting_duration: u64,
+        _proposal_validation_strategy: Strategy,
+        _voting_strategies: Array<Strategy>,
+        _authenticators: Array<ContractAddress>
+    ) {}
+
+    #[event]
+    fn ProposalCreated(
+        _proposal_id: u256, _author: ContractAddress, _proposal: Proposal, _payload: Array<u8>
+    ) {}
+
+    fn VotingStrategiesAdded(_new_voting_strategies: Array<Strategy>) {}
+
+    #[event]
+    fn VotingStrategiesRemoved(_voting_strategy_indices: Array<u8>) {}
+
+    #[event]
+    fn AuthenticatorsAdded(_new_authenticators: Array<ContractAddress>) {}
+
+    #[event]
+    fn AuthenticatorsRemoved(_authenticators: Array<ContractAddress>) {}
+
+    #[event]
+    fn MaxVotingDurationUpdated(_new_max_voting_duration: u64) {}
+
+    #[event]
+    fn MinVotingDurationUpdated(_new_min_voting_duration: u64) {}
+
+    #[event]
+    fn ProposalValidationStrategyUpdated(_new_proposal_validation_strategy: Strategy) {}
+
+    #[event]
+    fn VotingDelayUpdated(_new_voting_delay: u64) {}
+
     #[constructor]
     fn constructor(
         _owner: ContractAddress,
@@ -73,13 +113,22 @@ mod Space {
         _set_max_voting_duration(_max_voting_duration);
         _set_min_voting_duration(_min_voting_duration);
         _set_voting_delay(_voting_delay);
-        _set_proposal_validation_strategy(_proposal_validation_strategy);
-        _add_voting_strategies(_voting_strategies);
-        _add_authenticators(_authenticators);
+        _set_proposal_validation_strategy(_proposal_validation_strategy.clone());
+        _add_voting_strategies(_voting_strategies.clone());
+        _add_authenticators(_authenticators.clone());
         _next_proposal_id::write(
             u256 { low: 1_u128, high: 0_u128 }
         ); // Maybe easier way to do this?
-    // TODO: event
+        SpaceCreated(
+            info::get_contract_address(),
+            _owner,
+            _voting_delay,
+            _min_voting_duration,
+            _max_voting_duration,
+            _proposal_validation_strategy,
+            _voting_strategies,
+            _authenticators
+        );
     }
 
     #[external]
@@ -160,6 +209,63 @@ mod Space {
     #[view]
     fn proposals(proposal_id: u256) -> Proposal {
         _proposals::read(proposal_id)
+    }
+
+    #[external]
+    fn set_max_voting_duration(_max_voting_duration: u64) {
+        Ownable::assert_only_owner();
+        _set_max_voting_duration(_max_voting_duration);
+        MaxVotingDurationUpdated(_max_voting_duration);
+    }
+
+    #[external]
+    fn set_min_voting_duration(_min_voting_duration: u64) {
+        Ownable::assert_only_owner();
+        _set_min_voting_duration(_min_voting_duration);
+        MinVotingDurationUpdated(_min_voting_duration);
+    }
+
+    #[external]
+    fn set_voting_delay(_voting_delay: u64) {
+        Ownable::assert_only_owner();
+        _set_voting_delay(_voting_delay);
+        VotingDelayUpdated(_voting_delay);
+    }
+
+    #[external]
+    fn set_proposal_validation_strategy(_proposal_validation_strategy: Strategy) {
+        Ownable::assert_only_owner();
+        // TODO: might be possible to remove need to clone by defining the event or setter on a snapshot.
+        // Similarly for all non value types.
+        _set_proposal_validation_strategy(_proposal_validation_strategy.clone());
+        ProposalValidationStrategyUpdated(_proposal_validation_strategy);
+    }
+
+    #[external]
+    fn add_voting_strategies(_voting_strategies: Array<Strategy>) {
+        Ownable::assert_only_owner();
+        _add_voting_strategies(_voting_strategies.clone());
+        VotingStrategiesAdded(_voting_strategies);
+    }
+
+    #[external]
+    fn remove_voting_strategies(_voting_strategy_indices: Array<u8>) {
+        Ownable::assert_only_owner();
+    // TODO: impl once we have set_bit to false
+    }
+
+    #[external]
+    fn add_authenticators(_authenticators: Array<ContractAddress>) {
+        Ownable::assert_only_owner();
+        _add_authenticators(_authenticators.clone());
+        AuthenticatorsAdded(_authenticators);
+    }
+
+    #[external]
+    fn remove_authenticators(_authenticators: Array<ContractAddress>) {
+        Ownable::assert_only_owner();
+        _remove_authenticators(_authenticators.clone());
+        AuthenticatorsRemoved(_authenticators);
     }
 
     /// 
