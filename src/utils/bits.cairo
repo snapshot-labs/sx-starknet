@@ -1,18 +1,7 @@
 use traits::{Into};
 use zeroable::Zeroable;
 use integer::{Bitwise, U256BitOr, U8IntoU128, U128IntoFelt252, Felt252IntoU256, BoundedInt};
-
-fn pow(base: u128, mut exp: u128) -> u128 {
-    let mut res = 1;
-    loop {
-        if exp == 0 {
-            break res;
-        } else {
-            res = base * res;
-        }
-        exp = exp - 1;
-    }
-}
+use alexandria_math::math::pow;
 
 // TODO: should be able to import this from the standard lib but cant atm
 impl U256Zeroable of Zeroable<u256> {
