@@ -3,23 +3,7 @@ use zeroable::Zeroable;
 use integer::{Bitwise, U256BitOr, U8IntoU128, U128IntoFelt252, Felt252IntoU256, BoundedInt};
 use alexandria_math::math::pow;
 
-// TODO: should be able to import this from the standard lib but cant atm
-impl U256Zeroable of Zeroable<u256> {
-    #[inline(always)]
-    fn zero() -> u256 {
-        u256 { low: 0_u128, high: 0_u128 }
-    }
-
-    #[inline(always)]
-    fn is_zero(self: u256) -> bool {
-        self == U256Zeroable::zero()
-    }
-
-    #[inline(always)]
-    fn is_non_zero(self: u256) -> bool {
-        !self.is_zero()
-    }
-}
+use sx::utils::math::U256Zeroable;
 
 trait BitSetter<T> {
     fn set_bit(self: T, index: u8, bit: bool) -> ();
