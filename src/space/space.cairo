@@ -1,5 +1,5 @@
 use starknet::ContractAddress;
-use sx::utils::types::{Strategy, Proposal};
+use sx::utils::types::{Strategy, Proposal, IndexedStrategy};
 
 #[abi]
 trait ISpace {
@@ -61,6 +61,13 @@ trait ISpace {
         execution_strategy: Strategy,
         user_proposal_validation_params: Array<u8>
     );
+    #[external]
+    fn vote(
+        voter: ContractAddress,
+        proposal_id: u256,
+        choice: u8,
+        userVotingStrategies: Array<IndexedStrategy>
+    );
 }
 
 #[contract]
@@ -75,10 +82,14 @@ mod Space {
     use traits::Into;
 
     use sx::interfaces::{
-        IProposalValidationStrategyDispatcher, IProposalValidationStrategyDispatcherTrait
+        IProposalValidationStrategyDispatcher, IProposalValidationStrategyDispatcherTrait,
+        IVotingStrategyDispatcher, IVotingStrategyDispatcherTrait
     };
-    use sx::utils::types::{Strategy, Proposal, U8ArrayIntoFelt252Array};
-    use sx::utils::bits::BitSetter;
+    use sx::utils::{
+        types::{
+        Strategy, IndexedStrategy, Proposal, U8ArrayIntoFelt252Array
+        }, bits::BitSetter, math::U64Zeroable
+    };
     use sx::external::ownable::Ownable;
 
     struct Storage {
@@ -182,6 +193,31 @@ mod Space {
             _next_proposal_id::write(proposal_id + u256 { low: 1_u128, high: 0_u128 });
 
             ProposalCreated(proposal_id, author, proposal, execution_strategy.params);
+        }
+
+        fn vote(
+            voter: ContractAddress,
+            proposal_id: u256,
+            choice: u8,
+            userVotingStrategies: Array<IndexedStrategy>
+        ) {
+            assert_only_authenticator();
+            let proposal = _proposals::read(proposal_id);
+            assert_proposal_exists(@proposal);
+
+            let timestamp = info::get_block_timestamp();
+
+            assert(timestamp < proposal.max_end_timestamp, 'Voting period has ended');
+            assert(timestamp >= proposal.start_timestamp, 'Voting period has not started');
+            assert(proposal.finalization_status == 0_u8, 'Proposal has been finalized');
+            assert(_vote_registry::read((proposal_id, voter)) == false, 'Voter has already voted');
+
+            let voting_power = _get_cumulative_power(
+                voter,
+                proposal.snapshot_timestamp,
+                userVotingStrategies,
+                proposal.active_voting_strategies
+            );
         }
 
         fn owner() -> ContractAddress {
@@ -329,6 +365,16 @@ mod Space {
         Space::propose(author, execution_strategy, user_proposal_validation_params);
     }
 
+    #[external]
+    fn vote(
+        voter: ContractAddress,
+        proposal_id: u256,
+        choice: u8,
+        userVotingStrategies: Array<IndexedStrategy>
+    ) {
+        Space::vote(voter, proposal_id, choice, userVotingStrategies);
+    }
+
     #[view]
     fn owner() -> ContractAddress {
         Space::owner()
@@ -442,6 +488,17 @@ mod Space {
         let caller: ContractAddress = info::get_caller_address();
         assert(_authenticators::read(caller), 'Caller is not an authenticator');
     }
+
+    fn assert_proposal_exists(proposal: @Proposal) {
+        assert(!(*proposal.start_timestamp).is_zero(), 'Proposal does not exist');
+    }
+
+    fn _get_cumulative_power(
+        voter: ContractAddress,
+        timestamp: u64,
+        user_strategies: Array<IndexedStrategy>,
+        allowed_strategies: u256
+    ) {}
 
     fn _set_max_voting_duration(_max_voting_duration: u64) {
         _max_voting_duration::write(_max_voting_duration);
