@@ -144,7 +144,7 @@ mod Space {
         _execution_strategy: Strategy,
         _user_proposal_validation_params: Array<u8>
     ) {
-        // TODO: checks
+        assert_only_authenticator();
         let proposal_id = _next_proposal_id::read();
 
         // Proposal Validation
@@ -279,6 +279,11 @@ mod Space {
     /// 
     /// Internals
     ///
+
+    fn assert_only_authenticator() {
+        let caller: ContractAddress = info::get_caller_address();
+        assert(_authenticators::read(caller), 'Caller is not an authenticator');
+    }
 
     fn _set_max_voting_duration(_max_voting_duration: u64) {
         _max_voting_duration::write(_max_voting_duration);
