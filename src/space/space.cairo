@@ -148,10 +148,10 @@ mod Space {
         let proposal_id = _next_proposal_id::read();
 
         // Proposal Validation
-        let emptyArr = ArrayTrait::<u8>::new();
+        let proposal_validation_strategy = _proposal_validation_strategy::read();
         let valid = IProposalValidationStrategyDispatcher {
-            contract_address: _proposal_validation_strategy::read().address
-        }.validate(_author, emptyArr.clone(), emptyArr);
+            contract_address: proposal_validation_strategy.address
+        }.validate(_author, proposal_validation_strategy.params, _user_proposal_validation_params);
         assert(valid, 'Proposal is not valid');
 
         let snapshot_timestamp = info::get_block_timestamp();
@@ -159,7 +159,7 @@ mod Space {
         let max_end_timestamp = snapshot_timestamp + _max_voting_duration::read();
 
         // Casting execution params array from u8 to felt and hashing
-        let params_felt: Array<felt252> = _execution_strategy.params.into();
+        let params_felt: Array<felt252> = _execution_strategy.clone().params.into();
         // TODO: we use a felt252 for the hash despite felts being discouraged 
         // a new field would just replace the hash. Might be worth casting to a Uint256 though? 
         let execution_payload_hash = poseidon::poseidon_hash_span(params_felt.span());
@@ -181,7 +181,7 @@ mod Space {
 
         _next_proposal_id::write(proposal_id + u256 { low: 1_u128, high: 0_u128 });
 
-        ProposalCreated(proposal_id, _author, proposal, _user_proposal_validation_params);
+        ProposalCreated(proposal_id, _author, proposal, _execution_strategy.params);
     }
 
     #[view]
