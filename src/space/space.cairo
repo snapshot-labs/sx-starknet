@@ -87,8 +87,11 @@ mod Space {
     };
     use sx::utils::{
         types::{
-        Strategy, IndexedStrategy, Proposal, U8ArrayIntoFelt252Array
-        }, bits::BitSetter, math::U64Zeroable
+        Strategy, IndexedStrategy, Proposal, U8ArrayIntoFelt252Array, IndexedStrategyTrait,
+        IndexedStrategyImpl
+        }, bits::BitSetter, math::{
+        U256Zeroable, U64Zeroable
+        }
     };
     use sx::external::ownable::Ownable;
 
@@ -498,7 +501,26 @@ mod Space {
         timestamp: u64,
         user_strategies: Array<IndexedStrategy>,
         allowed_strategies: u256
-    ) {}
+    ) -> u256 {
+        user_strategies.assert_no_duplicate_indices();
+        let mut total_voting_power = U256Zeroable::zero();
+        let mut i = 0_usize;
+        loop {
+            if i >= user_strategies.len() {
+                break ();
+            }
+            let strategy_index = user_strategies[i].index;
+            assert(allowed_strategies.is_bit_set(*strategy_index), 'Invalid strategy index');
+            let strategy = _voting_strategies::read(*strategy_index);
+            total_voting_power += IVotingStrategyDispatcher {
+                contract_address: strategy.address
+            }.get_voting_power(
+                timestamp, voter, strategy.params, user_strategies[i].params.clone()
+            );
+            i += 1;
+        };
+        total_voting_power
+    }
 
     fn _set_max_voting_duration(_max_voting_duration: u64) {
         _max_voting_duration::write(_max_voting_duration);
