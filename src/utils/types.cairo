@@ -3,12 +3,14 @@ use serde::Serde;
 use traits::{PartialEq, TryInto, Into};
 use option::OptionTrait;
 use clone::Clone;
+use integer::U8IntoU128;
 use starknet::{
     ContractAddress, StorageAccess, StorageBaseAddress, SyscallResult, storage_write_syscall,
     storage_read_syscall, storage_address_from_base_and_offset, storage_base_address_from_felt252,
     contract_address::Felt252TryIntoContractAddress, syscalls::deploy_syscall,
     class_hash::Felt252TryIntoClassHash
 };
+use sx::utils::math::{U256Zeroable, pow};
 
 impl U8ArrayIntoFelt252Array of Into<Array<u8>, Array<felt252>> {
     fn into(self: Array<u8>) -> Array<felt252> {
@@ -28,6 +30,12 @@ impl U8ArrayIntoFelt252Array of Into<Array<u8>, Array<felt252>> {
 #[derive(Option, Clone, Drop, Serde)]
 struct Strategy {
     address: ContractAddress,
+    params: Array<u8>,
+}
+
+#[derive(Option, Clone, Drop, Serde)]
+struct IndexedStrategy {
+    index: u8,
     params: Array<u8>,
 }
 
@@ -342,5 +350,32 @@ impl StorageAccessStrategyArray of StorageAccess<Array<Strategy>> {
             )?;
         };
         Result::Ok(())
+    }
+}
+
+trait IndexedStrategyTrait {
+    fn assert_no_duplicates(self: @Array<IndexedStrategy>);
+}
+
+impl IndexedStrategyImpl of IndexedStrategyTrait {
+    fn assert_no_duplicates(self: @Array<IndexedStrategy>) {
+        if self.len() < 2 {
+            return ();
+        }
+
+        let mut bit_map = U256Zeroable::zero();
+        let mut i = 0_usize;
+        loop {
+            if i >= self.len() {
+                break ();
+            }
+            // Check that bit at index `strats[i].index` is not set.
+            let s = pow(u256 { low: 2_u128, high: 0_u128 }, *self.at(i).index);
+
+            assert((bit_map & s) == u256 { low: 1_u128, high: 0_u128 }, 'Duplicate Found');
+            // Update aforementioned bit.
+            bit_map = bit_map | s;
+            i += 1;
+        };
     }
 }
