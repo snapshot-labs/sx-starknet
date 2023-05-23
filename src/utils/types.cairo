@@ -354,11 +354,11 @@ impl StorageAccessStrategyArray of StorageAccess<Array<Strategy>> {
 }
 
 trait IndexedStrategyTrait {
-    fn assert_no_duplicates(self: @Array<IndexedStrategy>);
+    fn assert_no_duplicate_indices(self: @Array<IndexedStrategy>);
 }
 
 impl IndexedStrategyImpl of IndexedStrategyTrait {
-    fn assert_no_duplicates(self: @Array<IndexedStrategy>) {
+    fn assert_no_duplicate_indices(self: @Array<IndexedStrategy>) {
         if self.len() < 2 {
             return ();
         }
