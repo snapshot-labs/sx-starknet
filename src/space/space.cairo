@@ -1,33 +1,57 @@
 use starknet::ContractAddress;
-use sx::utils::types::Strategy;
+use sx::utils::types::{Strategy, Proposal};
 
 #[abi]
 trait ISpace {
     // State 
+    #[view]
     fn owner() -> ContractAddress;
-    fn max_voting_duration() -> u256;
-    fn min_voting_duration() -> u256;
+    #[view]
+    fn max_voting_duration() -> u64;
+    #[view]
+    fn min_voting_duration() -> u64;
+    #[view]
     fn next_proposal_id() -> u256;
-    fn voting_delay() -> u256;
-    fn authenticators(account: ContractAddress) -> bool;
-    fn voting_strategies(index: u8) -> Strategy;
-    fn active_voting_strategies() -> u256;
-    fn next_voting_strategy_index() -> u8;
+    #[view]
+    fn voting_delay() -> u64;
+    // #[view]
+    // fn authenticators(account: ContractAddress) -> bool;
+    // #[view]
+    // fn voting_strategies(index: u8) -> Strategy;
+    // #[view]
+    // fn active_voting_strategies() -> u256;
+    // #[view]
+    // fn next_voting_strategy_index() -> u8;
+    #[view]
     fn proposal_validation_strategy() -> Strategy;
-    fn vote_power(proposal_id: u256, choice: u8) -> u256;
-    fn vote_registry(proposal_id: u256, voter: ContractAddress) -> bool;
-    fn proposals(proposal_id: u256) -> ContractAddress;
-    fn get_proposal_status(proposal_id: u256) -> u8;
+    // #[view]
+    // fn vote_power(proposal_id: u256, choice: u8) -> u256;
+    // #[view]
+    // fn vote_registry(proposal_id: u256, voter: ContractAddress) -> bool;
+    #[view]
+    fn proposals(proposal_id: u256) -> Proposal;
+    // #[view]
+    // fn get_proposal_status(proposal_id: u256) -> u8;
+
     // Owner Actions 
-    fn set_max_voting_duration(max_voting_duration: u256);
-    fn set_min_voting_duration(min_voting_duration: u256);
-    fn set_voting_delay(voting_delay: u256);
+    #[external]
+    fn set_max_voting_duration(max_voting_duration: u64);
+    #[external]
+    fn set_min_voting_duration(min_voting_duration: u64);
+    #[external]
+    fn set_voting_delay(voting_delay: u64);
+    #[external]
     fn set_proposal_validation_strategy(proposal_validation_strategy: Strategy);
-    fn add_voting_strategies(new_voting_strategies: Array<Strategy>);
+    #[external]
+    fn add_voting_strategies(voting_strategies: Array<Strategy>);
+    #[external]
     fn remove_voting_strategies(voting_strategy_indices: Array<u8>);
-    fn add_authenticators(new_authenticators: Array<ContractAddress>);
+    #[external]
+    fn add_authenticators(authenticators: Array<ContractAddress>);
+    #[external]
     fn remove_authenticators(authenticators: Array<ContractAddress>);
     // Actions 
+    #[external]
     fn propose(
         author: ContractAddress,
         execution_strategy: Strategy,
@@ -37,6 +61,7 @@ trait ISpace {
 
 #[contract]
 mod Space {
+    use super::ISpace;
     use starknet::{ContractAddress, info};
     use zeroable::Zeroable;
     use array::{ArrayTrait, SpanTrait};
@@ -107,6 +132,148 @@ mod Space {
     #[event]
     fn VotingDelayUpdated(_new_voting_delay: u64) {}
 
+    impl Space of ISpace {
+        #[external]
+        fn propose(
+            author: ContractAddress,
+            execution_strategy: Strategy,
+            user_proposal_validation_params: Array<u8>
+        ) {
+            assert_only_authenticator();
+            let proposal_id = _next_proposal_id::read();
+
+            // Proposal Validation
+            let proposal_validation_strategy = _proposal_validation_strategy::read();
+            let valid = IProposalValidationStrategyDispatcher {
+                contract_address: proposal_validation_strategy.address
+            }.validate(
+                author, proposal_validation_strategy.params, user_proposal_validation_params
+            );
+            assert(valid, 'Proposal is not valid');
+
+            let snapshot_timestamp = info::get_block_timestamp();
+            let min_end_timestamp = snapshot_timestamp + _min_voting_duration::read();
+            let max_end_timestamp = snapshot_timestamp + _max_voting_duration::read();
+
+            // Casting execution params array from u8 to felt and hashing
+            let params_felt: Array<felt252> = execution_strategy.clone().params.into();
+            // TODO: we use a felt252 for the hash despite felts being discouraged 
+            // a new field would just replace the hash. Might be worth casting to a Uint256 though? 
+            let execution_payload_hash = poseidon::poseidon_hash_span(params_felt.span());
+
+            let proposal = Proposal {
+                snapshot_timestamp: snapshot_timestamp,
+                start_timestamp: snapshot_timestamp + _voting_delay::read(),
+                min_end_timestamp: min_end_timestamp,
+                max_end_timestamp: max_end_timestamp,
+                execution_payload_hash: execution_payload_hash,
+                execution_strategy: execution_strategy.address,
+                author: author,
+                finalization_status: 0_u8,
+                active_voting_strategies: _active_voting_strategies::read()
+            };
+
+            // TODO: Lots of copying, maybe figure out how to pass snapshots to events/storage writers. 
+            _proposals::write(proposal_id, proposal.clone());
+
+            _next_proposal_id::write(proposal_id + u256 { low: 1_u128, high: 0_u128 });
+
+            ProposalCreated(proposal_id, author, proposal, execution_strategy.params);
+        }
+
+        #[view]
+        fn owner() -> ContractAddress {
+            Ownable::owner()
+        }
+
+        #[view]
+        fn max_voting_duration() -> u64 {
+            _max_voting_duration::read()
+        }
+
+        #[view]
+        fn min_voting_duration() -> u64 {
+            _min_voting_duration::read()
+        }
+
+        #[view]
+        fn next_proposal_id() -> u256 {
+            _next_proposal_id::read()
+        }
+
+        #[view]
+        fn voting_delay() -> u64 {
+            _voting_delay::read()
+        }
+
+        #[view]
+        fn proposal_validation_strategy() -> Strategy {
+            _proposal_validation_strategy::read()
+        }
+
+        #[view]
+        fn proposals(proposal_id: u256) -> Proposal {
+            _proposals::read(proposal_id)
+        }
+
+        #[external]
+        fn set_max_voting_duration(max_voting_duration: u64) {
+            Ownable::assert_only_owner();
+            _set_max_voting_duration(max_voting_duration);
+            MaxVotingDurationUpdated(max_voting_duration);
+        }
+
+        #[external]
+        fn set_min_voting_duration(min_voting_duration: u64) {
+            Ownable::assert_only_owner();
+            _set_min_voting_duration(min_voting_duration);
+            MinVotingDurationUpdated(min_voting_duration);
+        }
+
+        #[external]
+        fn set_voting_delay(voting_delay: u64) {
+            Ownable::assert_only_owner();
+            _set_voting_delay(voting_delay);
+            VotingDelayUpdated(voting_delay);
+        }
+
+        #[external]
+        fn set_proposal_validation_strategy(proposal_validation_strategy: Strategy) {
+            Ownable::assert_only_owner();
+            // TODO: might be possible to remove need to clone by defining the event or setter on a snapshot.
+            // Similarly for all non value types.
+            _set_proposal_validation_strategy(proposal_validation_strategy.clone());
+            ProposalValidationStrategyUpdated(proposal_validation_strategy);
+        }
+
+        #[external]
+        fn add_voting_strategies(voting_strategies: Array<Strategy>) {
+            Ownable::assert_only_owner();
+            _add_voting_strategies(voting_strategies.clone());
+            VotingStrategiesAdded(voting_strategies);
+        }
+
+        #[external]
+        fn remove_voting_strategies(voting_strategy_indices: Array<u8>) {
+            Ownable::assert_only_owner();
+        // TODO: impl once we have set_bit to false
+        }
+
+        #[external]
+        fn add_authenticators(authenticators: Array<ContractAddress>) {
+            Ownable::assert_only_owner();
+            _add_authenticators(authenticators.clone());
+            AuthenticatorsAdded(authenticators);
+        }
+
+        #[external]
+        fn remove_authenticators(authenticators: Array<ContractAddress>) {
+            Ownable::assert_only_owner();
+            _remove_authenticators(authenticators.clone());
+            AuthenticatorsRemoved(authenticators);
+        }
+    }
+
     #[constructor]
     fn constructor(
         _owner: ContractAddress,
@@ -138,143 +305,6 @@ mod Space {
         );
     }
 
-    #[external]
-    fn propose(
-        _author: ContractAddress,
-        _execution_strategy: Strategy,
-        _user_proposal_validation_params: Array<u8>
-    ) {
-        assert_only_authenticator();
-        let proposal_id = _next_proposal_id::read();
-
-        // Proposal Validation
-        let proposal_validation_strategy = _proposal_validation_strategy::read();
-        let valid = IProposalValidationStrategyDispatcher {
-            contract_address: proposal_validation_strategy.address
-        }.validate(_author, proposal_validation_strategy.params, _user_proposal_validation_params);
-        assert(valid, 'Proposal is not valid');
-
-        let snapshot_timestamp = info::get_block_timestamp();
-        let min_end_timestamp = snapshot_timestamp + _min_voting_duration::read();
-        let max_end_timestamp = snapshot_timestamp + _max_voting_duration::read();
-
-        // Casting execution params array from u8 to felt and hashing
-        let params_felt: Array<felt252> = _execution_strategy.clone().params.into();
-        // TODO: we use a felt252 for the hash despite felts being discouraged 
-        // a new field would just replace the hash. Might be worth casting to a Uint256 though? 
-        let execution_payload_hash = poseidon::poseidon_hash_span(params_felt.span());
-
-        let proposal = Proposal {
-            snapshot_timestamp: snapshot_timestamp,
-            start_timestamp: snapshot_timestamp + _voting_delay::read(),
-            min_end_timestamp: min_end_timestamp,
-            max_end_timestamp: max_end_timestamp,
-            execution_payload_hash: execution_payload_hash,
-            execution_strategy: _execution_strategy.address,
-            author: _author,
-            finalization_status: 0_u8,
-            active_voting_strategies: _active_voting_strategies::read()
-        };
-
-        // TODO: Lots of copying, maybe figure out how to pass snapshots to events/storage writers. 
-        _proposals::write(proposal_id, proposal.clone());
-
-        _next_proposal_id::write(proposal_id + u256 { low: 1_u128, high: 0_u128 });
-
-        ProposalCreated(proposal_id, _author, proposal, _execution_strategy.params);
-    }
-
-    #[view]
-    fn owner() -> ContractAddress {
-        Ownable::owner()
-    }
-
-    #[view]
-    fn max_voting_duration() -> u64 {
-        _max_voting_duration::read()
-    }
-
-    #[view]
-    fn min_voting_duration() -> u64 {
-        _min_voting_duration::read()
-    }
-
-    #[view]
-    fn next_proposal_id() -> u256 {
-        _next_proposal_id::read()
-    }
-
-    #[view]
-    fn voting_delay() -> u64 {
-        _voting_delay::read()
-    }
-
-    #[view]
-    fn proposal_validation_strategy() -> Strategy {
-        _proposal_validation_strategy::read()
-    }
-
-    #[view]
-    fn proposals(proposal_id: u256) -> Proposal {
-        _proposals::read(proposal_id)
-    }
-
-    #[external]
-    fn set_max_voting_duration(_max_voting_duration: u64) {
-        Ownable::assert_only_owner();
-        _set_max_voting_duration(_max_voting_duration);
-        MaxVotingDurationUpdated(_max_voting_duration);
-    }
-
-    #[external]
-    fn set_min_voting_duration(_min_voting_duration: u64) {
-        Ownable::assert_only_owner();
-        _set_min_voting_duration(_min_voting_duration);
-        MinVotingDurationUpdated(_min_voting_duration);
-    }
-
-    #[external]
-    fn set_voting_delay(_voting_delay: u64) {
-        Ownable::assert_only_owner();
-        _set_voting_delay(_voting_delay);
-        VotingDelayUpdated(_voting_delay);
-    }
-
-    #[external]
-    fn set_proposal_validation_strategy(_proposal_validation_strategy: Strategy) {
-        Ownable::assert_only_owner();
-        // TODO: might be possible to remove need to clone by defining the event or setter on a snapshot.
-        // Similarly for all non value types.
-        _set_proposal_validation_strategy(_proposal_validation_strategy.clone());
-        ProposalValidationStrategyUpdated(_proposal_validation_strategy);
-    }
-
-    #[external]
-    fn add_voting_strategies(_voting_strategies: Array<Strategy>) {
-        Ownable::assert_only_owner();
-        _add_voting_strategies(_voting_strategies.clone());
-        VotingStrategiesAdded(_voting_strategies);
-    }
-
-    #[external]
-    fn remove_voting_strategies(_voting_strategy_indices: Array<u8>) {
-        Ownable::assert_only_owner();
-    // TODO: impl once we have set_bit to false
-    }
-
-    #[external]
-    fn add_authenticators(_authenticators: Array<ContractAddress>) {
-        Ownable::assert_only_owner();
-        _add_authenticators(_authenticators.clone());
-        AuthenticatorsAdded(_authenticators);
-    }
-
-    #[external]
-    fn remove_authenticators(_authenticators: Array<ContractAddress>) {
-        Ownable::assert_only_owner();
-        _remove_authenticators(_authenticators.clone());
-        AuthenticatorsRemoved(_authenticators);
-    }
 
     /// 
     /// Internals

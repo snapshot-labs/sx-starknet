@@ -16,6 +16,8 @@ use sx::proposal_validation_strategies::vanilla::VanillaProposalValidationStrate
 use sx::tests::mocks::proposal_validation_always_fail::AlwaysFailProposalValidationStrategy;
 use sx::utils::types::Strategy;
 
+use Space::Space as SpaceImpl;
+
 fn setup() -> (ContractAddress, ContractAddress) {
     let owner = contract_address_const::<0x123456789>();
     let max_voting_duration = 2_u64;
@@ -69,9 +71,6 @@ fn test_constructor() {
     let voting_strategies = ArrayTrait::<Strategy>::new();
     let authenticators = ArrayTrait::<ContractAddress>::new();
 
-    // Set account as default caller
-    testing::set_caller_address(owner);
-
     Space::constructor(
         owner,
         max_voting_duration,
@@ -82,10 +81,10 @@ fn test_constructor() {
         authenticators.clone()
     );
 
-    assert(Space::owner() == owner, 'owner should be set');
-    assert(Space::max_voting_duration() == max_voting_duration, 'max');
-    assert(Space::min_voting_duration() == min_voting_duration, 'min');
-    assert(Space::voting_delay() == voting_delay, 'voting_delay');
+    assert(SpaceImpl::owner() == owner, 'owner should be set');
+    assert(SpaceImpl::max_voting_duration() == max_voting_duration, 'max');
+    assert(SpaceImpl::min_voting_duration() == min_voting_duration, 'min');
+    assert(SpaceImpl::voting_delay() == voting_delay, 'voting_delay');
 // TODO: impl PartialEq for Strategy
 // assert(space::proposal_validation_strategy() == proposal_validation_strategy, 'proposal_validation_strategy');
 
