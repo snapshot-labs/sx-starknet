@@ -13,4 +13,9 @@ mod VanillaExecutionStrategy {
             _num_executed::write(_num_executed::read() + 1);
         }
     }
+
+    #[view]
+    fn num_executed() -> felt252 {
+        _num_executed::read()
+    }
 }
