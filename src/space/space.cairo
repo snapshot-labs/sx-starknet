@@ -50,6 +50,8 @@ trait ISpace {
     fn add_authenticators(authenticators: Array<ContractAddress>);
     #[external]
     fn remove_authenticators(authenticators: Array<ContractAddress>);
+    #[external]
+    fn transfer_ownership(new_owner: ContractAddress);
     // Actions 
     #[external]
     fn propose(
@@ -294,6 +296,12 @@ mod Space {
             Ownable::assert_only_owner();
             _remove_authenticators(authenticators.clone());
             AuthenticatorsRemoved(authenticators);
+        }
+
+        #[external]
+        fn transfer_ownership(new_owner: ContractAddress) {
+            Ownable::assert_only_owner();
+            Ownable::transfer_ownership(new_owner);
         }
     }
 
