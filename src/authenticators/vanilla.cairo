@@ -7,12 +7,17 @@ trait IVanillaAuthenticator {
 
 #[contract]
 mod VanillaAuthenticator {
+    use super::IVanillaAuthenticator;
     use starknet::ContractAddress;
     use starknet::syscalls::call_contract_syscall;
     use core::array::{ArrayTrait, SpanTrait};
 
-    #[external]
-    fn authenticate(target: ContractAddress, entry_point_selector: felt252, data: Array<felt252>) {
-        call_contract_syscall(target, entry_point_selector, data.span());
+    impl VanillaAuthenticator of IVanillaAuthenticator {
+        #[external]
+        fn authenticate(
+            target: ContractAddress, entry_point_selector: felt252, data: Array<felt252>
+        ) {
+            call_contract_syscall(target, entry_point_selector, data.span());
+        }
     }
 }
