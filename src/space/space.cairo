@@ -1,5 +1,5 @@
 use starknet::ContractAddress;
-use sx::utils::types::{Strategy, Proposal, IndexedStrategy};
+use sx::utils::types::{Strategy, Proposal, IndexedStrategy, Choice};
 
 #[abi]
 trait ISpace {
@@ -65,7 +65,7 @@ trait ISpace {
     fn vote(
         voter: ContractAddress,
         proposal_id: u256,
-        choice: u8,
+        choice: Choice,
         userVotingStrategies: Array<IndexedStrategy>
     );
 }
@@ -87,7 +87,7 @@ mod Space {
     };
     use sx::utils::{
         types::{
-        Strategy, IndexedStrategy, Proposal, U8ArrayIntoFelt252Array, IndexedStrategyTrait,
+        Choice, Strategy, IndexedStrategy, Proposal, U8ArrayIntoFelt252Array, IndexedStrategyTrait,
         IndexedStrategyImpl
         }, bits::BitSetter, math::{
         U256Zeroable, U64Zeroable
@@ -106,7 +106,7 @@ mod Space {
         _proposal_validation_strategy: Strategy,
         _authenticators: LegacyMap::<ContractAddress, bool>,
         _proposals: LegacyMap::<u256, Proposal>,
-        _vote_power: LegacyMap::<(u256, u8), u256>, // TODO: choice enum
+        _vote_power: LegacyMap::<(u256, Choice), u256>,
         _vote_registry: LegacyMap::<(u256, ContractAddress), bool>,
     }
 
@@ -125,6 +125,11 @@ mod Space {
     #[event]
     fn ProposalCreated(
         _proposal_id: u256, _author: ContractAddress, _proposal: Proposal, _payload: Array<u8>
+    ) {}
+
+    #[event]
+    fn VoteCast(
+        _proposal_id: u256, _voter: ContractAddress, _choice: Choice, _voting_power: u256
     ) {}
 
     fn VotingStrategiesAdded(_new_voting_strategies: Array<Strategy>) {}
@@ -201,7 +206,7 @@ mod Space {
         fn vote(
             voter: ContractAddress,
             proposal_id: u256,
-            choice: u8,
+            choice: Choice,
             userVotingStrategies: Array<IndexedStrategy>
         ) {
             assert_only_authenticator();
@@ -221,6 +226,15 @@ mod Space {
                 userVotingStrategies,
                 proposal.active_voting_strategies
             );
+
+            assert(voting_power > U256Zeroable::zero(), 'User has no voting power');
+            _vote_power::write(
+                (proposal_id, choice.clone()),
+                _vote_power::read((proposal_id, choice.clone())) + voting_power
+            );
+            _vote_registry::write((proposal_id, voter), true);
+
+            VoteCast(proposal_id, voter, choice, voting_power);
         }
 
         fn owner() -> ContractAddress {
@@ -372,7 +386,7 @@ mod Space {
     fn vote(
         voter: ContractAddress,
         proposal_id: u256,
-        choice: u8,
+        choice: Choice,
         userVotingStrategies: Array<IndexedStrategy>
     ) {
         Space::vote(voter, proposal_id, choice, userVotingStrategies);
