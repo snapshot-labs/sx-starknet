@@ -14,9 +14,7 @@ mod VanillaAuthenticator {
 
     impl VanillaAuthenticator of IVanillaAuthenticator {
         #[external]
-        fn authenticate(
-            target: ContractAddress, selector: felt252, data: Array<felt252>
-        ) {
+        fn authenticate(target: ContractAddress, selector: felt252, data: Array<felt252>) {
             call_contract_syscall(target, selector, data.span());
         }
     }
