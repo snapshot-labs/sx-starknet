@@ -1,4 +1,3 @@
-use core::array::{ArrayTrait, SpanTrait};
 use starknet::ContractAddress;
 
 #[abi]

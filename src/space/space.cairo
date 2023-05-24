@@ -45,7 +45,7 @@ mod Space {
     use hash::LegacyHash;
     use traits::Into;
 
-    use sx::proposal_validation_strategies::vanilla::{
+    use sx::interfaces::{
         IProposalValidationStrategyDispatcher, IProposalValidationStrategyDispatcherTrait
     };
     use sx::utils::types::{Strategy, Proposal, U8ArrayIntoFelt252Array};
