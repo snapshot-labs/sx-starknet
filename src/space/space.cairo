@@ -14,14 +14,14 @@ trait ISpace {
     fn next_proposal_id() -> u256;
     #[view]
     fn voting_delay() -> u64;
-    // #[view]
-    // fn authenticators(account: ContractAddress) -> bool;
-    // #[view]
-    // fn voting_strategies(index: u8) -> Strategy;
-    // #[view]
-    // fn active_voting_strategies() -> u256;
-    // #[view]
-    // fn next_voting_strategy_index() -> u8;
+    #[view]
+    fn authenticators(account: ContractAddress) -> bool;
+    #[view]
+    fn voting_strategies(index: u8) -> Strategy;
+    #[view]
+    fn active_voting_strategies() -> u256;
+    #[view]
+    fn next_voting_strategy_index() -> u8;
     #[view]
     fn proposal_validation_strategy() -> Strategy;
     // #[view]
@@ -207,9 +207,32 @@ mod Space {
         }
 
         #[view]
+        fn authenticators(account: ContractAddress) -> bool {
+            _authenticators::read(account)
+        }
+
+        #[view]
+        fn voting_strategies(index: u8) -> Strategy {
+            _voting_strategies::read(index)
+        }
+
+        #[view]
+        fn active_voting_strategies() -> u256 {
+            _active_voting_strategies::read()
+        }
+
+        #[view]
+        fn next_voting_strategy_index() -> u8 {
+            _next_voting_strategy_index::read()
+        }
+
+        #[view]
         fn proposal_validation_strategy() -> Strategy {
             _proposal_validation_strategy::read()
         }
+
+
+
 
         #[view]
         fn proposals(proposal_id: u256) -> Proposal {
