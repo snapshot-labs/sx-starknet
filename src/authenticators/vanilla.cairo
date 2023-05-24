@@ -2,7 +2,7 @@ use starknet::ContractAddress;
 
 #[abi]
 trait IVanillaAuthenticator {
-    fn authenticate(target: ContractAddress, entry_point_selector: felt252, data: Array<felt252>);
+    fn authenticate(target: ContractAddress, selector: felt252, data: Array<felt252>);
 }
 
 #[contract]
@@ -15,9 +15,9 @@ mod VanillaAuthenticator {
     impl VanillaAuthenticator of IVanillaAuthenticator {
         #[external]
         fn authenticate(
-            target: ContractAddress, entry_point_selector: felt252, data: Array<felt252>
+            target: ContractAddress, selector: felt252, data: Array<felt252>
         ) {
-            call_contract_syscall(target, entry_point_selector, data.span());
+            call_contract_syscall(target, selector, data.span());
         }
     }
 }
