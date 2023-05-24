@@ -52,6 +52,8 @@ trait ISpace {
     fn remove_authenticators(authenticators: Array<ContractAddress>);
     #[external]
     fn transfer_ownership(new_owner: ContractAddress);
+    #[external]
+    fn renounce_ownership();
     // Actions 
     #[external]
     fn propose(
@@ -234,8 +236,6 @@ mod Space {
         }
 
 
-
-
         #[view]
         fn proposals(proposal_id: u256) -> Proposal {
             _proposals::read(proposal_id)
@@ -302,6 +302,12 @@ mod Space {
         fn transfer_ownership(new_owner: ContractAddress) {
             Ownable::assert_only_owner();
             Ownable::transfer_ownership(new_owner);
+        }
+
+        #[external]
+        fn renounce_ownership() {
+            Ownable::assert_only_owner();
+            Ownable::renounce_ownership();
         }
     }
 
