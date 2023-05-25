@@ -20,7 +20,7 @@ use sx::voting_strategies::vanilla::VanillaVotingStrategy;
 use sx::proposal_validation_strategies::vanilla::VanillaProposalValidationStrategy;
 use sx::tests::mocks::proposal_validation_always_fail::AlwaysFailProposalValidationStrategy;
 use sx::utils::types::{Strategy, IndexedStrategy};
-use sx::utils::constants::Constants::PROPOSE_SELECTOR;
+use sx::utils::constants::PROPOSE_SELECTOR;
 
 use Space::Space as SpaceImpl;
 
