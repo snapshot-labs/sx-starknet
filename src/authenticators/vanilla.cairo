@@ -1,4 +1,5 @@
 use starknet::ContractAddress;
+use starknet::SyscallResult;
 
 #[abi]
 trait IVanillaAuthenticator {
@@ -15,7 +16,7 @@ mod VanillaAuthenticator {
 
     impl VanillaAuthenticator of IVanillaAuthenticator {
         fn authenticate(target: ContractAddress, selector: felt252, data: Array<felt252>) {
-            call_contract_syscall(target, selector, data.span());
+            call_contract_syscall(target, selector, data.span()).unwrap_syscall();
         }
     }
 
