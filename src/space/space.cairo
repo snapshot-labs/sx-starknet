@@ -137,7 +137,6 @@ mod Space {
     fn VotingDelayUpdated(_new_voting_delay: u64) {}
 
     impl Space of ISpace {
-        #[external]
         fn propose(
             author: ContractAddress,
             execution_strategy: Strategy,
@@ -185,84 +184,69 @@ mod Space {
             ProposalCreated(proposal_id, author, proposal, execution_strategy.params);
         }
 
-        #[view]
         fn owner() -> ContractAddress {
             Ownable::owner()
         }
 
-        #[view]
         fn max_voting_duration() -> u64 {
             _max_voting_duration::read()
         }
 
-        #[view]
         fn min_voting_duration() -> u64 {
             _min_voting_duration::read()
         }
 
-        #[view]
         fn next_proposal_id() -> u256 {
             _next_proposal_id::read()
         }
 
-        #[view]
         fn voting_delay() -> u64 {
             _voting_delay::read()
         }
 
-        #[view]
         fn authenticators(account: ContractAddress) -> bool {
             _authenticators::read(account)
         }
 
-        #[view]
         fn voting_strategies(index: u8) -> Strategy {
             _voting_strategies::read(index)
         }
 
-        #[view]
         fn active_voting_strategies() -> u256 {
             _active_voting_strategies::read()
         }
 
-        #[view]
         fn next_voting_strategy_index() -> u8 {
             _next_voting_strategy_index::read()
         }
 
-        #[view]
         fn proposal_validation_strategy() -> Strategy {
             _proposal_validation_strategy::read()
         }
 
 
-        #[view]
         fn proposals(proposal_id: u256) -> Proposal {
             _proposals::read(proposal_id)
         }
 
-        #[external]
         fn set_max_voting_duration(max_voting_duration: u64) {
             Ownable::assert_only_owner();
             _set_max_voting_duration(max_voting_duration);
             MaxVotingDurationUpdated(max_voting_duration);
         }
 
-        #[external]
         fn set_min_voting_duration(min_voting_duration: u64) {
             Ownable::assert_only_owner();
             _set_min_voting_duration(min_voting_duration);
             MinVotingDurationUpdated(min_voting_duration);
         }
 
-        #[external]
         fn set_voting_delay(voting_delay: u64) {
             Ownable::assert_only_owner();
             _set_voting_delay(voting_delay);
             VotingDelayUpdated(voting_delay);
         }
 
-        #[external]
         fn set_proposal_validation_strategy(proposal_validation_strategy: Strategy) {
             Ownable::assert_only_owner();
             // TODO: might be possible to remove need to clone by defining the event or setter on a snapshot.
@@ -271,40 +255,34 @@ mod Space {
             ProposalValidationStrategyUpdated(proposal_validation_strategy);
         }
 
-        #[external]
         fn add_voting_strategies(voting_strategies: Array<Strategy>) {
             Ownable::assert_only_owner();
             _add_voting_strategies(voting_strategies.clone());
             VotingStrategiesAdded(voting_strategies);
         }
 
-        #[external]
         fn remove_voting_strategies(voting_strategy_indices: Array<u8>) {
             Ownable::assert_only_owner();
         // TODO: impl once we have set_bit to false
         }
 
-        #[external]
         fn add_authenticators(authenticators: Array<ContractAddress>) {
             Ownable::assert_only_owner();
             _add_authenticators(authenticators.clone());
             AuthenticatorsAdded(authenticators);
         }
 
-        #[external]
         fn remove_authenticators(authenticators: Array<ContractAddress>) {
             Ownable::assert_only_owner();
             _remove_authenticators(authenticators.clone());
             AuthenticatorsRemoved(authenticators);
         }
 
-        #[external]
         fn transfer_ownership(new_owner: ContractAddress) {
             Ownable::assert_only_owner();
             Ownable::transfer_ownership(new_owner);
         }
 
-        #[external]
         fn renounce_ownership() {
             Ownable::assert_only_owner();
             Ownable::renounce_ownership();
@@ -342,6 +320,119 @@ mod Space {
         );
     }
 
+    #[external]
+    fn propose(
+        author: ContractAddress,
+        execution_strategy: Strategy,
+        user_proposal_validation_params: Array<u8>
+    ) {
+        Space::propose(author, execution_strategy, user_proposal_validation_params);
+    }
+
+    #[view]
+    fn owner() -> ContractAddress {
+        Space::owner()
+    }
+
+    #[view]
+    fn max_voting_duration() -> u64 {
+        Space::max_voting_duration()
+    }
+
+    #[view]
+    fn min_voting_duration() -> u64 {
+        Space::min_voting_duration()
+    }
+
+    #[view]
+    fn next_proposal_id() -> u256 {
+        Space::next_proposal_id()
+    }
+
+    #[view]
+    fn voting_delay() -> u64 {
+        Space::voting_delay()
+    }
+
+    #[view]
+    fn authenticators(account: ContractAddress) -> bool {
+        Space::authenticators(account)
+    }
+
+    #[view]
+    fn voting_strategies(index: u8) -> Strategy {
+        Space::voting_strategies(index)
+    }
+
+    #[view]
+    fn active_voting_strategies() -> u256 {
+        Space::active_voting_strategies()
+    }
+
+    #[view]
+    fn next_voting_strategy_index() -> u8 {
+        Space::next_voting_strategy_index()
+    }
+
+    #[view]
+    fn proposal_validation_strategy() -> Strategy {
+        Space::proposal_validation_strategy()
+    }
+
+    #[view]
+    fn proposals(proposal_id: u256) -> Proposal {
+        Space::proposals(proposal_id)
+    }
+
+    #[external]
+    fn set_max_voting_duration(max_voting_duration: u64) {
+        Space::set_max_voting_duration(max_voting_duration);
+    }
+
+    #[external]
+    fn set_min_voting_duration(min_voting_duration: u64) {
+        Space::set_min_voting_duration(min_voting_duration);
+    }
+
+    #[external]
+    fn set_voting_delay(voting_delay: u64) {
+        Space::set_voting_delay(voting_delay);
+    }
+
+    #[external]
+    fn set_proposal_validation_strategy(proposal_validation_strategy: Strategy) {
+        Space::set_proposal_validation_strategy(proposal_validation_strategy);
+    }
+
+    #[external]
+    fn add_voting_strategies(voting_strategies: Array<Strategy>) {
+        Space::add_voting_strategies(voting_strategies);
+    }
+
+    #[external]
+    fn remove_voting_strategies(voting_strategy_indices: Array<u8>) {
+        Space::remove_voting_strategies(voting_strategy_indices);
+    }
+
+    #[external]
+    fn add_authenticators(authenticators: Array<ContractAddress>) {
+        Space::add_authenticators(authenticators);
+    }
+
+    #[external]
+    fn remove_authenticators(authenticators: Array<ContractAddress>) {
+        Space::remove_authenticators(authenticators);
+    }
+
+    #[external]
+    fn transfer_ownership(new_owner: ContractAddress) {
+        Space::transfer_ownership(new_owner);
+    }
+
+    #[external]
+    fn renounce_ownership() {
+        Space::renounce_ownership();
+    }
 
     /// 
     /// Internals

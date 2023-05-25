@@ -2,6 +2,7 @@ use starknet::ContractAddress;
 
 #[abi]
 trait IVanillaAuthenticator {
+    #[external]
     fn authenticate(target: ContractAddress, selector: felt252, data: Array<felt252>);
 }
 
@@ -13,9 +14,13 @@ mod VanillaAuthenticator {
     use core::array::{ArrayTrait, SpanTrait};
 
     impl VanillaAuthenticator of IVanillaAuthenticator {
-        #[external]
         fn authenticate(target: ContractAddress, selector: felt252, data: Array<felt252>) {
             call_contract_syscall(target, selector, data.span());
         }
+    }
+
+    #[external]
+    fn authenticate(target: ContractAddress, selector: felt252, data: Array<felt252>) {
+        VanillaAuthenticator::authenticate(target, selector, data);
     }
 }
