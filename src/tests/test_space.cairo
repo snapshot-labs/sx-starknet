@@ -12,33 +12,72 @@ use debug::PrintTrait;
 use serde::{Serde, ArraySerde};
 
 use sx::space::space::{Space, ISpaceDispatcher, ISpaceDispatcherTrait};
+use sx::authenticators::vanilla::{
+    VanillaAuthenticator, IVanillaAuthenticatorDispatcher, IVanillaAuthenticatorDispatcherTrait
+};
+use sx::execution_strategies::vanilla::VanillaExecutionStrategy;
+use sx::voting_strategies::vanilla::VanillaVotingStrategy;
 use sx::proposal_validation_strategies::vanilla::VanillaProposalValidationStrategy;
 use sx::tests::mocks::proposal_validation_always_fail::AlwaysFailProposalValidationStrategy;
-use sx::utils::types::Strategy;
+use sx::utils::types::{Strategy, IndexedStrategy};
+use sx::utils::constants::Constants::PROPOSE_SELECTOR;
 
 use Space::Space as SpaceImpl;
 
-fn setup() -> (ContractAddress, ContractAddress) {
+fn setup(
+    deployer: ContractAddress
+) -> (ContractAddress, ContractAddress, Strategy, ContractAddress) {
+    testing::set_caller_address(deployer);
+    testing::set_contract_address(deployer);
+
+    // Space Settings
     let owner = contract_address_const::<0x123456789>();
     let max_voting_duration = 2_u64;
     let min_voting_duration = 1_u64;
     let voting_delay = 1_u64;
-    let voting_strategies = ArrayTrait::<Strategy>::new();
-    let authenticators = ArrayTrait::<ContractAddress>::new();
 
-    testing::set_caller_address(owner);
-    testing::set_contract_address(owner);
+    // Deploy Vanilla Authenticator 
+    let (vanilla_authenticator_address, _) = deploy_syscall(
+        VanillaAuthenticator::TEST_CLASS_HASH.try_into().unwrap(),
+        0,
+        array::ArrayTrait::<felt252>::new().span(),
+        false
+    ).unwrap();
+    let mut authenticators = ArrayTrait::<ContractAddress>::new();
+    authenticators.append(vanilla_authenticator_address);
 
     // Deploy Vanilla Proposal Validation Strategy
-    let (vanilla_address, _) = deploy_syscall(
+    let (vanilla_proposal_validation_address, _) = deploy_syscall(
         VanillaProposalValidationStrategy::TEST_CLASS_HASH.try_into().unwrap(),
         0,
         array::ArrayTrait::<felt252>::new().span(),
         false
     ).unwrap();
+    let vanilla_proposal_validation_strategy = Strategy {
+        address: vanilla_proposal_validation_address, params: ArrayTrait::<u8>::new()
+    };
 
-    let proposal_validation_strategy = Strategy {
-        address: vanilla_address, params: ArrayTrait::<u8>::new()
+    // Deploy Vanilla Voting Strategy 
+    let (vanilla_voting_strategy_address, _) = deploy_syscall(
+        VanillaVotingStrategy::TEST_CLASS_HASH.try_into().unwrap(),
+        0,
+        array::ArrayTrait::<felt252>::new().span(),
+        false
+    ).unwrap();
+    let mut voting_strategies = ArrayTrait::<Strategy>::new();
+    voting_strategies.append(
+        Strategy { address: vanilla_voting_strategy_address, params: ArrayTrait::<u8>::new() }
+    );
+
+    // Deploy Vanilla Execution Strategy 
+    let (vanilla_execution_strategy_address, _) = deploy_syscall(
+        VanillaExecutionStrategy::TEST_CLASS_HASH.try_into().unwrap(),
+        0,
+        array::ArrayTrait::<felt252>::new().span(),
+        false
+    ).unwrap();
+    let vanilla_execution_strategy = Strategy {
+        address: vanilla_execution_strategy_address, params: ArrayTrait::<u8>::new()
     };
 
     // Deploy Space 
@@ -47,7 +86,7 @@ fn setup() -> (ContractAddress, ContractAddress) {
     constructor_calldata.append(max_voting_duration.into());
     constructor_calldata.append(min_voting_duration.into());
     constructor_calldata.append(voting_delay.into());
-    proposal_validation_strategy.serialize(ref constructor_calldata);
+    vanilla_proposal_validation_strategy.serialize(ref constructor_calldata);
     voting_strategies.serialize(ref constructor_calldata);
     authenticators.serialize(ref constructor_calldata);
 
@@ -55,7 +94,7 @@ fn setup() -> (ContractAddress, ContractAddress) {
         Space::TEST_CLASS_HASH.try_into().unwrap(), 0, constructor_calldata.span(), false
     ).unwrap();
 
-    (space_address, owner)
+    (space_address, vanilla_authenticator_address, vanilla_execution_strategy, owner)
 }
 
 #[test]
@@ -70,6 +109,9 @@ fn test_constructor() {
     };
     let voting_strategies = ArrayTrait::<Strategy>::new();
     let authenticators = ArrayTrait::<ContractAddress>::new();
+
+    // Set account as default caller
+    testing::set_caller_address(owner);
 
     Space::constructor(
         owner,
@@ -91,25 +133,29 @@ fn test_constructor() {
 }
 
 #[test]
-#[available_gas(100000000)]
+#[available_gas(10000000000)]
 fn test_propose() {
-    let (space_address, owner) = setup();
+    let relayer = contract_address_const::<0x1234>();
+    let (space_address, vanilla_authenticator_address, vanilla_execution_strategy, owner) = setup(
+        relayer
+    );
     let space = ISpaceDispatcher { contract_address: space_address };
+    let authenticator = IVanillaAuthenticatorDispatcher {
+        contract_address: vanilla_authenticator_address
+    };
     assert(
         space.next_proposal_id() == u256 { low: 1_u128, high: 0_u128 },
         'next_proposal_id should be 1'
     );
 
-    // TODO: impl vanilla execution strategy and use here
-    let vanilla_execution_strategy = Strategy {
-        address: contract_address_const::<1>(), params: ArrayTrait::<u8>::new()
-    };
-    let vanilla_proposal_validation_strategy_params = ArrayTrait::<u8>::new();
-    space.propose(
-        contract_address_const::<5678>(),
-        vanilla_execution_strategy,
-        vanilla_proposal_validation_strategy_params
-    );
+    let mut propose_calldata = array::ArrayTrait::<felt252>::new();
+    propose_calldata.append(contract_address_const::<5678>().into());
+    vanilla_execution_strategy.serialize(ref propose_calldata);
+    ArrayTrait::<u8>::new().serialize(ref propose_calldata);
+
+    // Create Proposal
+    authenticator.authenticate(space_address, PROPOSE_SELECTOR, propose_calldata);
+
     assert(
         space.next_proposal_id() == u256 { low: 2_u128, high: 0_u128 },
         'next_proposal_id should be 2'
@@ -121,10 +167,16 @@ fn test_propose() {
 
 #[test]
 #[available_gas(100000000)]
-#[should_panic(expected: ('Proposal is not valid', 'ENTRYPOINT_FAILED'))]
+#[should_panic(expected: ('Proposal is not valid', 'ENTRYPOINT_FAILED', 'ENTRYPOINT_FAILED'))]
 fn test_propose_failed_validation() {
-    let (space_address, owner) = setup();
+    let relayer = contract_address_const::<0x1234>();
+    let (space_address, vanilla_authenticator_address, vanilla_execution_strategy, owner) = setup(
+        relayer
+    );
     let space = ISpaceDispatcher { contract_address: space_address };
+    let authenticator = IVanillaAuthenticatorDispatcher {
+        contract_address: vanilla_authenticator_address
+    };
     assert(
         space.next_proposal_id() == u256 { low: 1_u128, high: 0_u128 },
         'next_proposal_id should be 1'
@@ -137,19 +189,18 @@ fn test_propose_failed_validation() {
         array::ArrayTrait::<felt252>::new().span(),
         false
     ).unwrap();
+    testing::set_caller_address(owner);
+    testing::set_contract_address(owner);
     space.set_proposal_validation_strategy(
         Strategy { address: strategy_address, params: ArrayTrait::<u8>::new() }
     );
 
-    // TODO: impl vanilla execution strategy and use here
-    let vanilla_execution_strategy = Strategy {
-        address: contract_address_const::<1>(), params: ArrayTrait::<u8>::new()
-    };
-    let vanilla_proposal_validation_strategy_params = ArrayTrait::<u8>::new();
-    space.propose(
-        contract_address_const::<5678>(),
-        vanilla_execution_strategy,
-        vanilla_proposal_validation_strategy_params
-    );
+    let mut propose_calldata = array::ArrayTrait::<felt252>::new();
+    propose_calldata.append(contract_address_const::<5678>().into());
+    vanilla_execution_strategy.serialize(ref propose_calldata);
+    ArrayTrait::<u8>::new().serialize(ref propose_calldata);
+
+    // Try to create Proposal
+    authenticator.authenticate(space_address, PROPOSE_SELECTOR, propose_calldata);
 }
 
