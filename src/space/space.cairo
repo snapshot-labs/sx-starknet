@@ -66,7 +66,7 @@ trait ISpace {
         voter: ContractAddress,
         proposal_id: u256,
         choice: Choice,
-        userVotingStrategies: Array<IndexedStrategy>
+        user_voting_strategies: Array<IndexedStrategy>
     );
 }
 
@@ -207,7 +207,7 @@ mod Space {
             voter: ContractAddress,
             proposal_id: u256,
             choice: Choice,
-            userVotingStrategies: Array<IndexedStrategy>
+            user_voting_strategies: Array<IndexedStrategy>
         ) {
             assert_only_authenticator();
             let proposal = _proposals::read(proposal_id);
@@ -223,7 +223,7 @@ mod Space {
             let voting_power = _get_cumulative_power(
                 voter,
                 proposal.snapshot_timestamp,
-                userVotingStrategies,
+                user_voting_strategies,
                 proposal.active_voting_strategies
             );
 
@@ -387,9 +387,9 @@ mod Space {
         voter: ContractAddress,
         proposal_id: u256,
         choice: Choice,
-        userVotingStrategies: Array<IndexedStrategy>
+        user_voting_strategies: Array<IndexedStrategy>
     ) {
-        Space::vote(voter, proposal_id, choice, userVotingStrategies);
+        Space::vote(voter, proposal_id, choice, user_voting_strategies);
     }
 
     #[view]
