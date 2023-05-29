@@ -1,5 +1,5 @@
 use starknet::ContractAddress;
-use sx::utils::types::{Strategy, Proposal};
+use sx::utils::types::{Strategy, Proposal, IndexedStrategy, Choice};
 
 #[abi]
 trait ISpace {
@@ -61,6 +61,13 @@ trait ISpace {
         execution_strategy: Strategy,
         user_proposal_validation_params: Array<u8>
     );
+    #[external]
+    fn vote(
+        voter: ContractAddress,
+        proposal_id: u256,
+        choice: Choice,
+        userVotingStrategies: Array<IndexedStrategy>
+    );
 }
 
 #[contract]
@@ -75,10 +82,17 @@ mod Space {
     use traits::Into;
 
     use sx::interfaces::{
-        IProposalValidationStrategyDispatcher, IProposalValidationStrategyDispatcherTrait
+        IProposalValidationStrategyDispatcher, IProposalValidationStrategyDispatcherTrait,
+        IVotingStrategyDispatcher, IVotingStrategyDispatcherTrait
     };
-    use sx::utils::types::{Strategy, Proposal, U8ArrayIntoFelt252Array};
-    use sx::utils::bits::BitSetter;
+    use sx::utils::{
+        types::{
+        Choice, Strategy, IndexedStrategy, Proposal, U8ArrayIntoFelt252Array, IndexedStrategyTrait,
+        IndexedStrategyImpl
+        }, bits::BitSetter, math::{
+        U256Zeroable, U64Zeroable
+        }
+    };
     use sx::external::ownable::Ownable;
 
     struct Storage {
@@ -92,7 +106,7 @@ mod Space {
         _proposal_validation_strategy: Strategy,
         _authenticators: LegacyMap::<ContractAddress, bool>,
         _proposals: LegacyMap::<u256, Proposal>,
-        _vote_power: LegacyMap::<(u256, u8), u256>, // TODO: choice enum
+        _vote_power: LegacyMap::<(u256, Choice), u256>,
         _vote_registry: LegacyMap::<(u256, ContractAddress), bool>,
     }
 
@@ -111,6 +125,11 @@ mod Space {
     #[event]
     fn ProposalCreated(
         _proposal_id: u256, _author: ContractAddress, _proposal: Proposal, _payload: Array<u8>
+    ) {}
+
+    #[event]
+    fn VoteCast(
+        _proposal_id: u256, _voter: ContractAddress, _choice: Choice, _voting_power: u256
     ) {}
 
     fn VotingStrategiesAdded(_new_voting_strategies: Array<Strategy>) {}
@@ -182,6 +201,40 @@ mod Space {
             _next_proposal_id::write(proposal_id + u256 { low: 1_u128, high: 0_u128 });
 
             ProposalCreated(proposal_id, author, proposal, execution_strategy.params);
+        }
+
+        fn vote(
+            voter: ContractAddress,
+            proposal_id: u256,
+            choice: Choice,
+            userVotingStrategies: Array<IndexedStrategy>
+        ) {
+            assert_only_authenticator();
+            let proposal = _proposals::read(proposal_id);
+            assert_proposal_exists(@proposal);
+
+            let timestamp = info::get_block_timestamp();
+
+            assert(timestamp < proposal.max_end_timestamp, 'Voting period has ended');
+            assert(timestamp >= proposal.start_timestamp, 'Voting period has not started');
+            assert(proposal.finalization_status == 0_u8, 'Proposal has been finalized');
+            assert(_vote_registry::read((proposal_id, voter)) == false, 'Voter has already voted');
+
+            let voting_power = _get_cumulative_power(
+                voter,
+                proposal.snapshot_timestamp,
+                userVotingStrategies,
+                proposal.active_voting_strategies
+            );
+
+            assert(voting_power > U256Zeroable::zero(), 'User has no voting power');
+            _vote_power::write(
+                (proposal_id, choice.clone()),
+                _vote_power::read((proposal_id, choice.clone())) + voting_power
+            );
+            _vote_registry::write((proposal_id, voter), true);
+
+            VoteCast(proposal_id, voter, choice, voting_power);
         }
 
         fn owner() -> ContractAddress {
@@ -329,6 +382,16 @@ mod Space {
         Space::propose(author, execution_strategy, user_proposal_validation_params);
     }
 
+    #[external]
+    fn vote(
+        voter: ContractAddress,
+        proposal_id: u256,
+        choice: Choice,
+        userVotingStrategies: Array<IndexedStrategy>
+    ) {
+        Space::vote(voter, proposal_id, choice, userVotingStrategies);
+    }
+
     #[view]
     fn owner() -> ContractAddress {
         Space::owner()
@@ -441,6 +504,36 @@ mod Space {
     fn assert_only_authenticator() {
         let caller: ContractAddress = info::get_caller_address();
         assert(_authenticators::read(caller), 'Caller is not an authenticator');
+    }
+
+    fn assert_proposal_exists(proposal: @Proposal) {
+        assert(!(*proposal.start_timestamp).is_zero(), 'Proposal does not exist');
+    }
+
+    fn _get_cumulative_power(
+        voter: ContractAddress,
+        timestamp: u64,
+        user_strategies: Array<IndexedStrategy>,
+        allowed_strategies: u256
+    ) -> u256 {
+        user_strategies.assert_no_duplicate_indices();
+        let mut total_voting_power = U256Zeroable::zero();
+        let mut i = 0_usize;
+        loop {
+            if i >= user_strategies.len() {
+                break ();
+            }
+            let strategy_index = user_strategies[i].index;
+            assert(allowed_strategies.is_bit_set(*strategy_index), 'Invalid strategy index');
+            let strategy = _voting_strategies::read(*strategy_index);
+            total_voting_power += IVotingStrategyDispatcher {
+                contract_address: strategy.address
+            }.get_voting_power(
+                timestamp, voter, strategy.params, user_strategies[i].params.clone()
+            );
+            i += 1;
+        };
+        total_voting_power
     }
 
     fn _set_max_voting_duration(_max_voting_duration: u64) {

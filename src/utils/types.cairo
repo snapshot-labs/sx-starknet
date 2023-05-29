@@ -1,6 +1,7 @@
 use array::ArrayTrait;
 use serde::Serde;
 use traits::{PartialEq, TryInto, Into};
+use hash::LegacyHash;
 use option::OptionTrait;
 use clone::Clone;
 use integer::U8IntoU128;
@@ -24,6 +25,23 @@ impl U8ArrayIntoFelt252Array of Into<Array<u8>, Array<felt252>> {
             i += 1;
         };
         arr
+    }
+}
+
+#[derive(Drop, Serde, Clone)]
+enum Choice {
+    Against: (),
+    For: (),
+    Abstain: (),
+}
+
+impl LegacyHashChoice of LegacyHash<Choice> {
+    fn hash(state: felt252, value: Choice) -> felt252 {
+        match value {
+            Choice::Against(_) => LegacyHash::hash(state, 0_u8),
+            Choice::For(_) => LegacyHash::hash(state, 1_u8),
+            Choice::Abstain(_) => LegacyHash::hash(state, 2_u8),
+        }
     }
 }
 
@@ -354,11 +372,11 @@ impl StorageAccessStrategyArray of StorageAccess<Array<Strategy>> {
 }
 
 trait IndexedStrategyTrait {
-    fn assert_no_duplicates(self: @Array<IndexedStrategy>);
+    fn assert_no_duplicate_indices(self: @Array<IndexedStrategy>);
 }
 
 impl IndexedStrategyImpl of IndexedStrategyTrait {
-    fn assert_no_duplicates(self: @Array<IndexedStrategy>) {
+    fn assert_no_duplicate_indices(self: @Array<IndexedStrategy>) {
         if self.len() < 2 {
             return ();
         }
