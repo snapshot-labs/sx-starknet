@@ -1,4 +1,5 @@
 use array::ArrayTrait;
+use result::ResultTrait;
 use serde::Serde;
 use traits::{PartialEq, TryInto, Into};
 use hash::LegacyHash;
@@ -35,6 +36,91 @@ enum Choice {
     Abstain: (),
 }
 
+#[derive(Drop, Serde, Clone)]
+enum FinalizationStatus {
+    Pending: (),
+    Executed: (),
+    Cancelled: (),
+}
+
+impl U8IntoFinalizationStatus of TryInto<u8, FinalizationStatus> {
+    fn try_into(self: u8) -> Option<FinalizationStatus> {
+        if self == 0_u8 {
+            Option::Some(FinalizationStatus::Pending(()))
+        } else if self == 1_u8 {
+            Option::Some(FinalizationStatus::Executed(()))
+        } else if self == 2_u8 {
+            Option::Some(FinalizationStatus::Cancelled(()))
+        } else {
+            Option::None(())
+        }
+    }
+}
+
+impl FinalizationStatusIntoU8 of Into<FinalizationStatus, u8> {
+    fn into(self: FinalizationStatus) -> u8 {
+        match self {
+            FinalizationStatus::Pending(_) => 0_u8,
+            FinalizationStatus::Executed(_) => 1_u8,
+            FinalizationStatus::Cancelled(_) => 2_u8,
+        }
+    }
+}
+
+impl FinalizationStatusPartialEq of PartialEq<FinalizationStatus> {
+    fn eq(lhs: FinalizationStatus, rhs: FinalizationStatus) -> bool {
+        // TODO: cant infer type atm for some reason so need the extra local var
+        let l: u8 = lhs.into();
+        l == rhs.into()
+    }
+
+    fn ne(lhs: FinalizationStatus, rhs: FinalizationStatus) -> bool {
+        // TODO: cant infer type atm for some reason so need the extra local var
+        let l: u8 = lhs.into();
+        l != rhs.into()
+    }
+}
+
+impl StorageAccessFinalizationStatus of StorageAccess<FinalizationStatus> {
+    fn read(address_domain: u32, base: StorageBaseAddress) -> SyscallResult<FinalizationStatus> {
+        match StorageAccess::read(
+            address_domain,
+            storage_base_address_from_felt252(
+                storage_address_from_base_and_offset(base, 0_u8).into()
+            )
+        ) {
+            Result::Ok(num) => {
+                if num == 0_u8 {
+                    Result::Ok(FinalizationStatus::Pending(()))
+                } else if num == 1_u8 {
+                    Result::Ok(FinalizationStatus::Pending(()))
+                } else if num == 2_u8 {
+                    Result::Ok(FinalizationStatus::Pending(()))
+                } else {
+                    panic_with_felt252('Invalid value')
+                }
+            },
+            Result::Err(err) => Result::Err(err)
+        }
+    }
+
+    fn write(
+        address_domain: u32, base: StorageBaseAddress, value: FinalizationStatus
+    ) -> SyscallResult<()> {
+        StorageAccess::write(
+            address_domain,
+            storage_base_address_from_felt252(
+                storage_address_from_base_and_offset(base, 0_u8).into()
+            ),
+            match value {
+                FinalizationStatus::Pending(_) => 0_u8,
+                FinalizationStatus::Executed(_) => 1_u8,
+                FinalizationStatus::Cancelled(_) => 2_u8,
+            }
+        )
+    }
+}
+
 impl LegacyHashChoice of LegacyHash<Choice> {
     fn hash(state: felt252, value: Choice) -> felt252 {
         match value {
@@ -67,7 +153,7 @@ struct Proposal {
     execution_payload_hash: felt252,
     execution_strategy: ContractAddress,
     author: ContractAddress,
-    finalization_status: u8,
+    finalization_status: FinalizationStatus,
     active_voting_strategies: u256
 }
 
