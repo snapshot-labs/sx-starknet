@@ -36,11 +36,22 @@ enum Choice {
     Abstain: (),
 }
 
-#[derive(Drop, Serde, Clone)]
+#[derive(Copy, Drop, Serde)]
 enum FinalizationStatus {
     Pending: (),
     Executed: (),
     Cancelled: (),
+}
+
+#[derive(Copy, Drop, Serde)]
+enum ProposalStatus {
+    VotingDelay: (),
+    VotingPeriod: (),
+    VotingPeriodAccepted: (),
+    Accepted: (),
+    Executed: (),
+    Rejected: (),
+    Cancelled: ()
 }
 
 impl U8IntoFinalizationStatus of TryInto<u8, FinalizationStatus> {
@@ -64,6 +75,34 @@ impl FinalizationStatusIntoU8 of Into<FinalizationStatus, u8> {
             FinalizationStatus::Executed(_) => 1_u8,
             FinalizationStatus::Cancelled(_) => 2_u8,
         }
+    }
+}
+
+impl ProposalStatusIntoU8 of Into<ProposalStatus, u8> {
+    fn into(self: ProposalStatus) -> u8 {
+        match self {
+            ProposalStatus::VotingDelay(_) => 0_u8,
+            ProposalStatus::VotingPeriod(_) => 1_u8,
+            ProposalStatus::VotingPeriodAccepted(_) => 2_u8,
+            ProposalStatus::Accepted(_) => 3_u8,
+            ProposalStatus::Executed(_) => 4_u8,
+            ProposalStatus::Rejected(_) => 5_u8,
+            ProposalStatus::Cancelled(_) => 6_u8,
+        }
+    }
+}
+
+impl ProposalStatusPartialEq of PartialEq<ProposalStatus> {
+    fn eq(lhs: ProposalStatus, rhs: ProposalStatus) -> bool {
+        // TODO: cant infer type atm for some reason so need the extra local var
+        let l: u8 = lhs.into();
+        l == rhs.into()
+    }
+
+    fn ne(lhs: ProposalStatus, rhs: ProposalStatus) -> bool {
+        // TODO: cant infer type atm for some reason so need the extra local var
+        let l: u8 = lhs.into();
+        l != rhs.into()
     }
 }
 
