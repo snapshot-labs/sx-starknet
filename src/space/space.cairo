@@ -422,6 +422,11 @@ mod Space {
         Space::vote(voter, proposal_id, choice, user_voting_strategies);
     }
 
+    #[external]
+    fn execute(proposal_id: u256, execution_payload: Array<u8>) {
+        Space::execute(proposal_id, execution_payload);
+    }
+
     #[view]
     fn owner() -> ContractAddress {
         Space::owner()
