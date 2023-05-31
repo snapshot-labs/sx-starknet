@@ -68,6 +68,8 @@ trait ISpace {
         choice: Choice,
         user_voting_strategies: Array<IndexedStrategy>
     );
+    #[external]
+    fn execute(proposal_id: u256, execution_payload: Array<u8>);
 }
 
 #[contract]
@@ -83,12 +85,13 @@ mod Space {
 
     use sx::interfaces::{
         IProposalValidationStrategyDispatcher, IProposalValidationStrategyDispatcherTrait,
-        IVotingStrategyDispatcher, IVotingStrategyDispatcherTrait
+        IVotingStrategyDispatcher, IVotingStrategyDispatcherTrait, IExecutionStrategyDispatcher,
+        IExecutionStrategyDispatcherTrait
     };
     use sx::utils::{
         types::{
-        Choice, Strategy, IndexedStrategy, Proposal, U8ArrayIntoFelt252Array, IndexedStrategyTrait,
-        IndexedStrategyImpl
+        Choice, FinalizationStatus, Strategy, IndexedStrategy, Proposal, U8ArrayIntoFelt252Array,
+        IndexedStrategyTrait, IndexedStrategyImpl
         }, bits::BitSetter, math::{
         U256Zeroable, U64Zeroable
         }
@@ -131,6 +134,9 @@ mod Space {
     fn VoteCast(
         _proposal_id: u256, _voter: ContractAddress, _choice: Choice, _voting_power: u256
     ) {}
+
+    #[event]
+    fn ProposalExecuted(_proposal_id: u256) {}
 
     fn VotingStrategiesAdded(_new_voting_strategies: Array<Strategy>) {}
 
@@ -191,7 +197,7 @@ mod Space {
                 execution_payload_hash: execution_payload_hash,
                 execution_strategy: execution_strategy.address,
                 author: author,
-                finalization_status: 0_u8,
+                finalization_status: FinalizationStatus::Pending(()),
                 active_voting_strategies: _active_voting_strategies::read()
             };
 
@@ -217,7 +223,10 @@ mod Space {
 
             assert(timestamp < proposal.max_end_timestamp, 'Voting period has ended');
             assert(timestamp >= proposal.start_timestamp, 'Voting period has not started');
-            assert(proposal.finalization_status == 0_u8, 'Proposal has been finalized');
+            assert(
+                proposal.finalization_status == FinalizationStatus::Pending(()),
+                'Proposal has been finalized'
+            );
             assert(_vote_registry::read((proposal_id, voter)) == false, 'Voter has already voted');
 
             let voting_power = _get_cumulative_power(
@@ -235,6 +244,27 @@ mod Space {
             _vote_registry::write((proposal_id, voter), true);
 
             VoteCast(proposal_id, voter, choice, voting_power);
+        }
+
+        fn execute(proposal_id: u256, execution_payload: Array<u8>) {
+            let mut proposal = _proposals::read(proposal_id);
+            assert_proposal_exists(@proposal);
+
+            IExecutionStrategyDispatcher {
+                contract_address: proposal.execution_strategy
+            }.execute(
+                proposal.clone(),
+                _vote_power::read((proposal_id, Choice::For(()))),
+                _vote_power::read((proposal_id, Choice::Against(()))),
+                _vote_power::read((proposal_id, Choice::Abstain(()))),
+                execution_payload
+            );
+
+            proposal.finalization_status = FinalizationStatus::Executed(());
+
+            _proposals::write(proposal_id, proposal);
+
+            ProposalExecuted(proposal_id);
         }
 
         fn owner() -> ContractAddress {
