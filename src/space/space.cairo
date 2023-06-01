@@ -70,6 +70,8 @@ trait ISpace {
     );
     #[external]
     fn execute(proposal_id: u256, execution_payload: Array<u8>);
+    #[external]
+    fn update_proposal(author: ContractAddress, proposal_id: u256, execution_strategy: Strategy);
 }
 
 #[contract]
@@ -137,6 +139,9 @@ mod Space {
 
     #[event]
     fn ProposalExecuted(_proposal_id: u256) {}
+
+    #[event]
+    fn ProposalUpdated(_proposal_id: u256, _execution_stategy: Strategy) {}
 
     fn VotingStrategiesAdded(_new_voting_strategies: Array<Strategy>) {}
 
@@ -265,6 +270,25 @@ mod Space {
             _proposals::write(proposal_id, proposal);
 
             ProposalExecuted(proposal_id);
+        }
+
+        fn update_proposal(
+            author: ContractAddress, proposal_id: u256, execution_strategy: Strategy
+        ) {
+            assert_only_authenticator();
+            let mut proposal = _proposals::read(proposal_id);
+            assert_proposal_exists(@proposal);
+            assert(proposal.author == author, 'Only Author');
+            assert(info::get_block_timestamp() < proposal.start_timestamp, 'Voting period started');
+
+            proposal.execution_strategy = execution_strategy.address;
+
+            let params_felt: Array<felt252> = execution_strategy.clone().params.into();
+            proposal.execution_payload_hash = poseidon::poseidon_hash_span(params_felt.span());
+
+            _proposals::write(proposal_id, proposal);
+
+            ProposalUpdated(proposal_id, execution_strategy);
         }
 
         fn owner() -> ContractAddress {
@@ -425,6 +449,11 @@ mod Space {
     #[external]
     fn execute(proposal_id: u256, execution_payload: Array<u8>) {
         Space::execute(proposal_id, execution_payload);
+    }
+
+    #[external]
+    fn update_proposal(author: ContractAddress, proposal_id: u256, execution_strategy: Strategy) {
+        Space::update_proposal(author, proposal_id, execution_strategy);
     }
 
     #[view]
