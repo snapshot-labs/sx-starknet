@@ -35,6 +35,7 @@ fn setup(
     let max_voting_duration = 2_u64;
     let min_voting_duration = 1_u64;
     let voting_delay = 1_u64;
+    let quorum = u256_from_felt252(1);
 
     // Deploy Vanilla Authenticator 
     let (vanilla_authenticator_address, _) = deploy_syscall(
@@ -70,10 +71,12 @@ fn setup(
     );
 
     // Deploy Vanilla Execution Strategy 
+    let mut constructor_calldata = ArrayTrait::<felt252>::new();
+    quorum.serialize(ref constructor_calldata);
     let (vanilla_execution_strategy_address, _) = deploy_syscall(
         VanillaExecutionStrategy::TEST_CLASS_HASH.try_into().unwrap(),
         0,
-        array::ArrayTrait::<felt252>::new().span(),
+        constructor_calldata.span(),
         false
     ).unwrap();
     let vanilla_execution_strategy = Strategy {
@@ -134,7 +137,7 @@ fn test_constructor() {
 
 #[test]
 #[available_gas(10000000000)]
-fn test_propose() {
+fn test__propose_vote_execute() {
     let relayer = contract_address_const::<0x1234>();
     let (space_address, vanilla_authenticator_address, vanilla_execution_strategy, owner) = setup(
         relayer
@@ -161,14 +164,34 @@ fn test_propose() {
         'next_proposal_id should be 2'
     );
 
-    let proposal = space.proposals(u256 { low: 1_u128, high: 0_u128 });
-// TODO: impl PartialEq for Proposal and check here
+    // TODO: impl PartialEq for Proposal and check here
+
+    // Increasing block timestamp by 1 to pass voting delay
+    testing::set_block_timestamp(1_u64);
+
+    let mut vote_calldata = array::ArrayTrait::<felt252>::new();
+    vote_calldata.append(contract_address_const::<8765>().into());
+    let proposal_id = u256 { low: 1_u128, high: 0_u128 };
+    proposal_id.serialize(ref vote_calldata);
+    let choice = Choice::For(());
+    choice.serialize(ref vote_calldata);
+    let mut user_voting_strategies = ArrayTrait::<IndexedStrategy>::new();
+    user_voting_strategies.append(IndexedStrategy { index: 0_u8, params: ArrayTrait::<u8>::new() });
+    user_voting_strategies.serialize(ref vote_calldata);
+
+    // Vote on Proposal
+    authenticator.authenticate(space_address, VOTE_SELECTOR, vote_calldata);
+
+    testing::set_block_timestamp(2_u64);
+
+    // Execute Proposal
+    space.execute(u256_from_felt252(1), vanilla_execution_strategy.params);
 }
 
 #[test]
 #[available_gas(100000000)]
 #[should_panic(expected: ('Proposal is not valid', 'ENTRYPOINT_FAILED', 'ENTRYPOINT_FAILED'))]
-fn test_propose_failed_validation() {
+fn test__propose_failed_validation() {
     let relayer = contract_address_const::<0x1234>();
     let (space_address, vanilla_authenticator_address, vanilla_execution_strategy, owner) = setup(
         relayer
@@ -204,40 +227,3 @@ fn test_propose_failed_validation() {
     authenticator.authenticate(space_address, PROPOSE_SELECTOR, propose_calldata);
 }
 
-
-#[test]
-#[available_gas(100000000)]
-fn test_vote() {
-    let relayer = contract_address_const::<0x1234>();
-    let (space_address, vanilla_authenticator_address, vanilla_execution_strategy, owner) = setup(
-        relayer
-    );
-    let space = ISpaceDispatcher { contract_address: space_address };
-    let authenticator = IVanillaAuthenticatorDispatcher {
-        contract_address: vanilla_authenticator_address
-    };
-
-    let mut propose_calldata = array::ArrayTrait::<felt252>::new();
-    propose_calldata.append(contract_address_const::<5678>().into());
-    vanilla_execution_strategy.serialize(ref propose_calldata);
-    ArrayTrait::<u8>::new().serialize(ref propose_calldata);
-
-    // Create Proposal
-    authenticator.authenticate(space_address, PROPOSE_SELECTOR, propose_calldata);
-
-    // Increasing block timestamp by 1 to pass voting delay
-    testing::set_block_timestamp(1_u64);
-
-    let mut vote_calldata = array::ArrayTrait::<felt252>::new();
-    vote_calldata.append(contract_address_const::<8765>().into());
-    let proposal_id = u256 { low: 1_u128, high: 0_u128 };
-    proposal_id.serialize(ref vote_calldata);
-    let choice = Choice::For(());
-    choice.serialize(ref vote_calldata);
-    let mut user_voting_strategies = ArrayTrait::<IndexedStrategy>::new();
-    user_voting_strategies.append(IndexedStrategy { index: 0_u8, params: ArrayTrait::<u8>::new() });
-    user_voting_strategies.serialize(ref vote_calldata);
-
-    // Vote on Proposal
-    authenticator.authenticate(space_address, VOTE_SELECTOR, vote_calldata);
-}
