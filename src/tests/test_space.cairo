@@ -20,7 +20,7 @@ use sx::voting_strategies::vanilla::VanillaVotingStrategy;
 use sx::proposal_validation_strategies::vanilla::VanillaProposalValidationStrategy;
 use sx::tests::mocks::proposal_validation_always_fail::AlwaysFailProposalValidationStrategy;
 use sx::utils::types::{Strategy, IndexedStrategy, Choice};
-use sx::utils::constants::{PROPOSE_SELECTOR, VOTE_SELECTOR};
+use sx::utils::constants::{PROPOSE_SELECTOR, VOTE_SELECTOR, UPDATE_PROPOSAL_SELECTOR};
 
 use Space::Space as SpaceImpl;
 
@@ -137,7 +137,7 @@ fn test_constructor() {
 
 #[test]
 #[available_gas(10000000000)]
-fn test__propose_vote_execute() {
+fn test__propose_update_vote_execute() {
     let relayer = contract_address_const::<0x1234>();
     let (space_address, vanilla_authenticator_address, vanilla_execution_strategy, owner) = setup(
         relayer
@@ -151,8 +151,9 @@ fn test__propose_vote_execute() {
         'next_proposal_id should be 1'
     );
 
+    let author = contract_address_const::<0x5678>();
     let mut propose_calldata = array::ArrayTrait::<felt252>::new();
-    propose_calldata.append(contract_address_const::<5678>().into());
+    author.serialize(ref propose_calldata);
     vanilla_execution_strategy.serialize(ref propose_calldata);
     ArrayTrait::<u8>::new().serialize(ref propose_calldata);
 
@@ -166,12 +167,27 @@ fn test__propose_vote_execute() {
 
     // TODO: impl PartialEq for Proposal and check here
 
+    // Update Proposal
+    let mut update_calldata = array::ArrayTrait::<felt252>::new();
+    author.serialize(ref update_calldata);
+    let proposal_id = u256_from_felt252(1);
+    proposal_id.serialize(ref update_calldata);
+    // Keeping the same execution strategy contract but changing the payload
+    let mut new_payload = ArrayTrait::<u8>::new();
+    new_payload.append(1_u8);
+    let execution_strategy = Strategy {
+        address: vanilla_execution_strategy.address, params: new_payload
+    };
+    execution_strategy.serialize(ref update_calldata);
+
+    authenticator.authenticate(space_address, UPDATE_PROPOSAL_SELECTOR, update_calldata);
+
     // Increasing block timestamp by 1 to pass voting delay
     testing::set_block_timestamp(1_u64);
 
     let mut vote_calldata = array::ArrayTrait::<felt252>::new();
     vote_calldata.append(contract_address_const::<8765>().into());
-    let proposal_id = u256 { low: 1_u128, high: 0_u128 };
+    let proposal_id = u256_from_felt252(1);
     proposal_id.serialize(ref vote_calldata);
     let choice = Choice::For(());
     choice.serialize(ref vote_calldata);
