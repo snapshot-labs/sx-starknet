@@ -132,9 +132,9 @@ impl StorageAccessFinalizationStatus of StorageAccess<FinalizationStatus> {
                 if num == 0_u8 {
                     Result::Ok(FinalizationStatus::Pending(()))
                 } else if num == 1_u8 {
-                    Result::Ok(FinalizationStatus::Pending(()))
+                    Result::Ok(FinalizationStatus::Executed(()))
                 } else if num == 2_u8 {
-                    Result::Ok(FinalizationStatus::Pending(()))
+                    Result::Ok(FinalizationStatus::Cancelled(()))
                 } else {
                     panic_with_felt252('Invalid value')
                 }
@@ -194,6 +194,16 @@ struct Proposal {
     author: ContractAddress,
     finalization_status: FinalizationStatus,
     active_voting_strategies: u256
+}
+
+impl PartialEqProposal of PartialEq<Proposal> {
+    fn eq(lhs: Proposal, rhs: Proposal) -> bool {
+        lhs.snapshot_timestamp == rhs.snapshot_timestamp & lhs.start_timestamp == rhs.start_timestamp & lhs.min_end_timestamp == rhs.min_end_timestamp & lhs.max_end_timestamp == rhs.max_end_timestamp & lhs.execution_payload_hash == rhs.execution_payload_hash & lhs.execution_strategy == rhs.execution_strategy & lhs.author == rhs.author & lhs.finalization_status == rhs.finalization_status & lhs.active_voting_strategies == rhs.active_voting_strategies
+    }
+
+    fn ne(lhs: Proposal, rhs: Proposal) -> bool {
+        lhs.snapshot_timestamp != rhs.snapshot_timestamp | lhs.start_timestamp != rhs.start_timestamp | lhs.min_end_timestamp != rhs.min_end_timestamp | lhs.max_end_timestamp != rhs.max_end_timestamp | lhs.execution_payload_hash != rhs.execution_payload_hash | lhs.execution_strategy != rhs.execution_strategy | lhs.author != rhs.author | lhs.finalization_status != rhs.finalization_status | lhs.active_voting_strategies != rhs.active_voting_strategies
+    }
 }
 
 impl StorageAccessProposal of StorageAccess<Proposal> {
