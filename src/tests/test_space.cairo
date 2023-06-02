@@ -1,7 +1,7 @@
 use array::ArrayTrait;
 use starknet::{
     class_hash::Felt252TryIntoClassHash, ContractAddress, syscalls::deploy_syscall, testing,
-    contract_address_const
+    contract_address_const, info
 };
 use traits::{Into, TryInto};
 use result::ResultTrait;
@@ -19,7 +19,7 @@ use sx::execution_strategies::vanilla::VanillaExecutionStrategy;
 use sx::voting_strategies::vanilla::VanillaVotingStrategy;
 use sx::proposal_validation_strategies::vanilla::VanillaProposalValidationStrategy;
 use sx::tests::mocks::proposal_validation_always_fail::AlwaysFailProposalValidationStrategy;
-use sx::utils::types::{Strategy, IndexedStrategy, Choice};
+use sx::utils::types::{Strategy, IndexedStrategy, Choice, FinalizationStatus, Proposal};
 use sx::utils::constants::{PROPOSE_SELECTOR, VOTE_SELECTOR, UPDATE_PROPOSAL_SELECTOR};
 
 use Space::Space as SpaceImpl;
@@ -165,7 +165,20 @@ fn test__propose_update_vote_execute() {
         'next_proposal_id should be 2'
     );
 
-    // TODO: impl PartialEq for Proposal and check here
+    let proposal = space.proposals(u256_from_felt252(1));
+    let params_felt: Array<felt252> = vanilla_execution_strategy.clone().params.into();
+    let expected_proposal = Proposal {
+        snapshot_timestamp: info::get_block_timestamp(),
+        start_timestamp: info::get_block_timestamp() + 1_u64,
+        min_end_timestamp: info::get_block_timestamp() + 2_u64,
+        max_end_timestamp: info::get_block_timestamp() + 3_u64,
+        execution_payload_hash: poseidon::poseidon_hash_span(params_felt.span()),
+        execution_strategy: vanilla_execution_strategy.address,
+        author: author,
+        finalization_status: FinalizationStatus::Pending(()),
+        active_voting_strategies: u256_from_felt252(1)
+    };
+    assert(proposal == expected_proposal, 'proposal state');
 
     // Update Proposal
     let mut update_calldata = array::ArrayTrait::<felt252>::new();
@@ -243,3 +256,50 @@ fn test__propose_failed_validation() {
     authenticator.authenticate(space_address, PROPOSE_SELECTOR, propose_calldata);
 }
 
+#[test]
+#[available_gas(10000000000)]
+#[should_panic(expected: ('Proposal has been finalized', 'ENTRYPOINT_FAILED', 'ENTRYPOINT_FAILED'))]
+fn test__cancel() {
+    let relayer = contract_address_const::<0x1234>();
+    let (space_address, vanilla_authenticator_address, vanilla_execution_strategy, owner) = setup(
+        relayer
+    );
+    let space = ISpaceDispatcher { contract_address: space_address };
+    let authenticator = IVanillaAuthenticatorDispatcher {
+        contract_address: vanilla_authenticator_address
+    };
+
+    let author = contract_address_const::<0x5678>();
+    let mut propose_calldata = array::ArrayTrait::<felt252>::new();
+    author.serialize(ref propose_calldata);
+    vanilla_execution_strategy.serialize(ref propose_calldata);
+    ArrayTrait::<u8>::new().serialize(ref propose_calldata);
+
+    // Create Proposal
+    authenticator.authenticate(space_address, PROPOSE_SELECTOR, propose_calldata);
+    let proposal_id = u256_from_felt252(1);
+
+    // Increasing block timestamp by 1 to pass voting delay
+    testing::set_block_timestamp(1_u64);
+    let proposal = space.proposals(proposal_id);
+    assert(proposal.finalization_status == FinalizationStatus::Pending(()), 'pending');
+
+    // Cancel Proposal
+    testing::set_caller_address(owner);
+    testing::set_contract_address(owner);
+    space.cancel_proposal(proposal_id);
+
+    let proposal = space.proposals(proposal_id);
+    assert(proposal.finalization_status == FinalizationStatus::Cancelled(()), 'cancelled');
+
+    // Try to cast vote on Cancelled Proposal
+    let mut vote_calldata = array::ArrayTrait::<felt252>::new();
+    vote_calldata.append(contract_address_const::<8765>().into());
+    proposal_id.serialize(ref vote_calldata);
+    let choice = Choice::For(());
+    choice.serialize(ref vote_calldata);
+    let mut user_voting_strategies = ArrayTrait::<IndexedStrategy>::new();
+    user_voting_strategies.append(IndexedStrategy { index: 0_u8, params: ArrayTrait::<u8>::new() });
+    user_voting_strategies.serialize(ref vote_calldata);
+    authenticator.authenticate(space_address, VOTE_SELECTOR, vote_calldata);
+}
