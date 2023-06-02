@@ -191,8 +191,9 @@ mod Space {
             assert(valid, 'Proposal is not valid');
 
             let snapshot_timestamp = info::get_block_timestamp();
-            let min_end_timestamp = snapshot_timestamp + _min_voting_duration::read();
-            let max_end_timestamp = snapshot_timestamp + _max_voting_duration::read();
+            let start_timestamp = snapshot_timestamp + _voting_delay::read();
+            let min_end_timestamp = start_timestamp + _min_voting_duration::read();
+            let max_end_timestamp = start_timestamp + _max_voting_duration::read();
 
             // Casting execution params array from u8 to felt and hashing
             let params_felt: Array<felt252> = execution_strategy.clone().params.into();
@@ -202,7 +203,7 @@ mod Space {
 
             let proposal = Proposal {
                 snapshot_timestamp: snapshot_timestamp,
-                start_timestamp: snapshot_timestamp + _voting_delay::read(),
+                start_timestamp: start_timestamp,
                 min_end_timestamp: min_end_timestamp,
                 max_end_timestamp: max_end_timestamp,
                 execution_payload_hash: execution_payload_hash,
@@ -304,7 +305,7 @@ mod Space {
             assert(
                 proposal.finalization_status == FinalizationStatus::Pending(()), 'Already Finalized'
             );
-            proposal.finalization_status = FinalizationStatus::Executed(());
+            proposal.finalization_status = FinalizationStatus::Cancelled(());
             _proposals::write(proposal_id, proposal);
             ProposalCancelled(proposal_id);
         }
