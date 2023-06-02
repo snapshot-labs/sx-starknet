@@ -1,3 +1,4 @@
+use core::traits::Destruct;
 use starknet::ContractAddress;
 use sx::utils::types::{Strategy, Proposal, IndexedStrategy, Choice};
 
@@ -72,6 +73,8 @@ trait ISpace {
     fn execute(proposal_id: u256, execution_payload: Array<u8>);
     #[external]
     fn update_proposal(author: ContractAddress, proposal_id: u256, execution_strategy: Strategy);
+    #[external]
+    fn cancel_proposal(proposal_id: u256);
 }
 
 #[contract]
@@ -142,6 +145,9 @@ mod Space {
 
     #[event]
     fn ProposalUpdated(_proposal_id: u256, _execution_stategy: Strategy) {}
+
+    #[event]
+    fn ProposalCancelled(_proposal_id: u256) {}
 
     fn VotingStrategiesAdded(_new_voting_strategies: Array<Strategy>) {}
 
@@ -289,6 +295,18 @@ mod Space {
             _proposals::write(proposal_id, proposal);
 
             ProposalUpdated(proposal_id, execution_strategy);
+        }
+
+        fn cancel_proposal(proposal_id: u256) {
+            Ownable::assert_only_owner();
+            let mut proposal = _proposals::read(proposal_id);
+            assert_proposal_exists(@proposal);
+            assert(
+                proposal.finalization_status == FinalizationStatus::Pending(()), 'Already Finalized'
+            );
+            proposal.finalization_status = FinalizationStatus::Executed(());
+            _proposals::write(proposal_id, proposal);
+            ProposalCancelled(proposal_id);
         }
 
         fn owner() -> ContractAddress {
@@ -454,6 +472,11 @@ mod Space {
     #[external]
     fn update_proposal(author: ContractAddress, proposal_id: u256, execution_strategy: Strategy) {
         Space::update_proposal(author, proposal_id, execution_strategy);
+    }
+
+    #[external]
+    fn cancel_proposal(proposal_id: u256) {
+        Space::cancel_proposal(proposal_id);
     }
 
     #[view]
