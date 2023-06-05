@@ -9,6 +9,6 @@ trait IExecutionStrategy {
         votes_for: u256,
         votes_against: u256,
         votes_abstain: u256,
-        payload: Array<u8>
+        payload: Array<felt252>
     );
 }

@@ -1,14 +1,10 @@
 #[contract]
-mod VanillaExecutionStrategy {
+mod EthRelayerExecutionStrategy {
     use sx::interfaces::IExecutionStrategy;
     use sx::utils::types::{Proposal, ProposalStatus};
     use sx::execution_strategies::simple_quorum::SimpleQuorumExecutionStrategy;
 
-    struct Storage {
-        _num_executed: felt252
-    }
-
-    impl VanillaExecutionStrategy of IExecutionStrategy {
+    impl EthRelayerExecutionStrategy of IExecutionStrategy {
         fn execute(
             proposal: Proposal,
             votes_for: u256,
@@ -25,7 +21,13 @@ mod VanillaExecutionStrategy {
                 )) | (proposal_status == ProposalStatus::VotingPeriodAccepted(())),
                 'Invalid Proposal Status'
             );
-            _num_executed::write(_num_executed::read() + 1);
+            let payload_felt: Array<felt252> = payload.clone().into();
+            assert(
+                poseidon::poseidon_hash_span(
+                    payload_felt.span()
+                ) == proposal.execution_payload_hash,
+                'Invalid payload hash'
+            );
         }
     }
 
@@ -45,10 +47,5 @@ mod VanillaExecutionStrategy {
         VanillaExecutionStrategy::execute(
             proposal, votes_for, votes_against, votes_abstain, payload
         );
-    }
-
-    #[view]
-    fn num_executed() -> felt252 {
-        _num_executed::read()
     }
 }
