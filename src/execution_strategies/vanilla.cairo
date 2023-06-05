@@ -14,7 +14,7 @@ mod VanillaExecutionStrategy {
             votes_for: u256,
             votes_against: u256,
             votes_abstain: u256,
-            payload: Array<u8>
+            payload: Array<felt252>
         ) {
             let proposal_status = SimpleQuorumExecutionStrategy::get_proposal_status(
                 @proposal, votes_for, votes_against, votes_abstain
@@ -40,7 +40,7 @@ mod VanillaExecutionStrategy {
         votes_for: u256,
         votes_against: u256,
         votes_abstain: u256,
-        payload: Array<u8>
+        payload: Array<felt252>
     ) {
         VanillaExecutionStrategy::execute(
             proposal, votes_for, votes_against, votes_abstain, payload

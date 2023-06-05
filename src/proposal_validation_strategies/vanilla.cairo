@@ -4,13 +4,17 @@ mod VanillaProposalValidationStrategy {
     use starknet::ContractAddress;
 
     impl VanillaProposalValidationStrategy of IProposalValidationStrategy {
-        fn validate(author: ContractAddress, params: Array<u8>, userParams: Array<u8>) -> bool {
+        fn validate(
+            author: ContractAddress, params: Array<felt252>, userParams: Array<felt252>
+        ) -> bool {
             true
         }
     }
 
     #[external]
-    fn validate(author: ContractAddress, params: Array<u8>, userParams: Array<u8>) -> bool {
+    fn validate(
+        author: ContractAddress, params: Array<felt252>, userParams: Array<felt252>
+    ) -> bool {
         VanillaProposalValidationStrategy::validate(author, params, userParams)
     }
 }
