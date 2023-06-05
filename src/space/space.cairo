@@ -46,7 +46,7 @@ trait ISpace {
     #[external]
     fn add_voting_strategies(voting_strategies: Array<Strategy>);
     #[external]
-    fn remove_voting_strategies(voting_strategy_indices: Array<u8>);
+    fn remove_voting_strategies(voting_strategy_indices: Array<felt252>);
     #[external]
     fn add_authenticators(authenticators: Array<ContractAddress>);
     #[external]
@@ -60,7 +60,7 @@ trait ISpace {
     fn propose(
         author: ContractAddress,
         execution_strategy: Strategy,
-        user_proposal_validation_params: Array<u8>
+        user_proposal_validation_params: Array<felt252>
     );
     #[external]
     fn vote(
@@ -70,7 +70,7 @@ trait ISpace {
         user_voting_strategies: Array<IndexedStrategy>
     );
     #[external]
-    fn execute(proposal_id: u256, execution_payload: Array<u8>);
+    fn execute(proposal_id: u256, execution_payload: Array<felt252>);
     #[external]
     fn update_proposal(author: ContractAddress, proposal_id: u256, execution_strategy: Strategy);
     #[external]
@@ -95,8 +95,8 @@ mod Space {
     };
     use sx::utils::{
         types::{
-        Choice, FinalizationStatus, Strategy, IndexedStrategy, Proposal, U8ArrayIntoFelt252Array,
-        IndexedStrategyTrait, IndexedStrategyImpl
+        Choice, FinalizationStatus, Strategy, IndexedStrategy, Proposal, IndexedStrategyTrait,
+        IndexedStrategyImpl
         }, bits::BitSetter, math::{
         U256Zeroable, U64Zeroable
         }
@@ -132,7 +132,7 @@ mod Space {
 
     #[event]
     fn ProposalCreated(
-        _proposal_id: u256, _author: ContractAddress, _proposal: Proposal, _payload: Array<u8>
+        _proposal_id: u256, _author: ContractAddress, _proposal: Proposal, _payload: Array<felt252>
     ) {}
 
     #[event]
@@ -152,7 +152,7 @@ mod Space {
     fn VotingStrategiesAdded(_new_voting_strategies: Array<Strategy>) {}
 
     #[event]
-    fn VotingStrategiesRemoved(_voting_strategy_indices: Array<u8>) {}
+    fn VotingStrategiesRemoved(_voting_strategy_indices: Array<felt252>) {}
 
     #[event]
     fn AuthenticatorsAdded(_new_authenticators: Array<ContractAddress>) {}
@@ -176,7 +176,7 @@ mod Space {
         fn propose(
             author: ContractAddress,
             execution_strategy: Strategy,
-            user_proposal_validation_params: Array<u8>
+            user_proposal_validation_params: Array<felt252>
         ) {
             assert_only_authenticator();
             let proposal_id = _next_proposal_id::read();
@@ -195,11 +195,11 @@ mod Space {
             let min_end_timestamp = start_timestamp + _min_voting_duration::read();
             let max_end_timestamp = start_timestamp + _max_voting_duration::read();
 
-            // Casting execution params array from u8 to felt and hashing
-            let params_felt: Array<felt252> = execution_strategy.clone().params.into();
             // TODO: we use a felt252 for the hash despite felts being discouraged 
             // a new field would just replace the hash. Might be worth casting to a Uint256 though? 
-            let execution_payload_hash = poseidon::poseidon_hash_span(params_felt.span());
+            let execution_payload_hash = poseidon::poseidon_hash_span(
+                execution_strategy.clone().params.span()
+            );
 
             let proposal = Proposal {
                 snapshot_timestamp: snapshot_timestamp,
@@ -258,7 +258,7 @@ mod Space {
             VoteCast(proposal_id, voter, choice, voting_power);
         }
 
-        fn execute(proposal_id: u256, execution_payload: Array<u8>) {
+        fn execute(proposal_id: u256, execution_payload: Array<felt252>) {
             let mut proposal = _proposals::read(proposal_id);
             assert_proposal_exists(@proposal);
 
@@ -290,8 +290,8 @@ mod Space {
 
             proposal.execution_strategy = execution_strategy.address;
 
-            let params_felt: Array<felt252> = execution_strategy.clone().params.into();
-            proposal.execution_payload_hash = poseidon::poseidon_hash_span(params_felt.span());
+            proposal.execution_payload_hash =
+                poseidon::poseidon_hash_span(execution_strategy.clone().params.span());
 
             _proposals::write(proposal_id, proposal);
 
@@ -387,7 +387,7 @@ mod Space {
             VotingStrategiesAdded(voting_strategies);
         }
 
-        fn remove_voting_strategies(voting_strategy_indices: Array<u8>) {
+        fn remove_voting_strategies(voting_strategy_indices: Array<felt252>) {
             Ownable::assert_only_owner();
         // TODO: impl once we have set_bit to false
         }
@@ -450,7 +450,7 @@ mod Space {
     fn propose(
         author: ContractAddress,
         execution_strategy: Strategy,
-        user_proposal_validation_params: Array<u8>
+        user_proposal_validation_params: Array<felt252>
     ) {
         Space::propose(author, execution_strategy, user_proposal_validation_params);
     }
@@ -466,7 +466,7 @@ mod Space {
     }
 
     #[external]
-    fn execute(proposal_id: u256, execution_payload: Array<u8>) {
+    fn execute(proposal_id: u256, execution_payload: Array<felt252>) {
         Space::execute(proposal_id, execution_payload);
     }
 
@@ -561,7 +561,7 @@ mod Space {
     }
 
     #[external]
-    fn remove_voting_strategies(voting_strategy_indices: Array<u8>) {
+    fn remove_voting_strategies(voting_strategy_indices: Array<felt252>) {
         Space::remove_voting_strategies(voting_strategy_indices);
     }
 

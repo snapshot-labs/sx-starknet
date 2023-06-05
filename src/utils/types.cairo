@@ -14,21 +14,6 @@ use starknet::{
 };
 use sx::utils::math::{U256Zeroable, pow};
 
-impl U8ArrayIntoFelt252Array of Into<Array<u8>, Array<felt252>> {
-    fn into(self: Array<u8>) -> Array<felt252> {
-        let mut arr = ArrayTrait::<felt252>::new();
-        let mut i = 0_usize;
-        loop {
-            if i >= self.len() {
-                break ();
-            }
-            arr.append((*self.at(i)).into());
-            i += 1;
-        };
-        arr
-    }
-}
-
 #[derive(Drop, Serde, Clone)]
 enum Choice {
     Against: (),
@@ -173,13 +158,13 @@ impl LegacyHashChoice of LegacyHash<Choice> {
 #[derive(Option, Clone, Drop, Serde)]
 struct Strategy {
     address: ContractAddress,
-    params: Array<u8>,
+    params: Array<felt252>,
 }
 
 #[derive(Option, Clone, Drop, Serde)]
 struct IndexedStrategy {
     index: u8,
-    params: Array<u8>,
+    params: Array<felt252>,
 }
 
 /// NOTE: Using u64 for timestamps instead of u32 which we use in sx-evm. can change if needed.
@@ -343,8 +328,8 @@ impl StorageAccessProposal of StorageAccess<Proposal> {
     }
 }
 
-impl StorageAccessU8Array of StorageAccess<Array<u8>> {
-    fn read(address_domain: u32, base: StorageBaseAddress) -> SyscallResult<Array<u8>> {
+impl StorageAccessFeltArray of StorageAccess<Array<felt252>> {
+    fn read(address_domain: u32, base: StorageBaseAddress) -> SyscallResult<Array<felt252>> {
         let length = StorageAccess::read(
             address_domain,
             storage_base_address_from_felt252(
@@ -352,7 +337,7 @@ impl StorageAccessU8Array of StorageAccess<Array<u8>> {
             )
         )?;
 
-        let mut arr = ArrayTrait::<u8>::new();
+        let mut arr = ArrayTrait::<felt252>::new();
         let mut i = 0_usize;
         loop {
             if i >= length {
@@ -376,7 +361,9 @@ impl StorageAccessU8Array of StorageAccess<Array<u8>> {
         Result::Ok(arr)
     }
 
-    fn write(address_domain: u32, base: StorageBaseAddress, value: Array<u8>) -> SyscallResult<()> {
+    fn write(
+        address_domain: u32, base: StorageBaseAddress, value: Array<felt252>
+    ) -> SyscallResult<()> {
         // Write length at offset 0
         StorageAccess::write(
             address_domain,

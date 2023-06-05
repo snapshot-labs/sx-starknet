@@ -55,7 +55,7 @@ fn setup(
         false
     ).unwrap();
     let vanilla_proposal_validation_strategy = Strategy {
-        address: vanilla_proposal_validation_address, params: ArrayTrait::<u8>::new()
+        address: vanilla_proposal_validation_address, params: ArrayTrait::<felt252>::new()
     };
 
     // Deploy Vanilla Voting Strategy 
@@ -67,7 +67,7 @@ fn setup(
     ).unwrap();
     let mut voting_strategies = ArrayTrait::<Strategy>::new();
     voting_strategies.append(
-        Strategy { address: vanilla_voting_strategy_address, params: ArrayTrait::<u8>::new() }
+        Strategy { address: vanilla_voting_strategy_address, params: ArrayTrait::<felt252>::new() }
     );
 
     // Deploy Vanilla Execution Strategy 
@@ -80,7 +80,7 @@ fn setup(
         false
     ).unwrap();
     let vanilla_execution_strategy = Strategy {
-        address: vanilla_execution_strategy_address, params: ArrayTrait::<u8>::new()
+        address: vanilla_execution_strategy_address, params: ArrayTrait::<felt252>::new()
     };
 
     // Deploy Space 
@@ -108,7 +108,7 @@ fn test_constructor() {
     let min_voting_duration = 1_u64;
     let voting_delay = 1_u64;
     let proposal_validation_strategy = Strategy {
-        address: contract_address_const::<1>(), params: ArrayTrait::<u8>::new()
+        address: contract_address_const::<1>(), params: ArrayTrait::<felt252>::new()
     };
     let voting_strategies = ArrayTrait::<Strategy>::new();
     let authenticators = ArrayTrait::<ContractAddress>::new();
@@ -155,7 +155,7 @@ fn test__propose_update_vote_execute() {
     let mut propose_calldata = array::ArrayTrait::<felt252>::new();
     author.serialize(ref propose_calldata);
     vanilla_execution_strategy.serialize(ref propose_calldata);
-    ArrayTrait::<u8>::new().serialize(ref propose_calldata);
+    ArrayTrait::<felt252>::new().serialize(ref propose_calldata);
 
     // Create Proposal
     authenticator.authenticate(space_address, PROPOSE_SELECTOR, propose_calldata);
@@ -166,13 +166,14 @@ fn test__propose_update_vote_execute() {
     );
 
     let proposal = space.proposals(u256_from_felt252(1));
-    let params_felt: Array<felt252> = vanilla_execution_strategy.clone().params.into();
     let expected_proposal = Proposal {
         snapshot_timestamp: info::get_block_timestamp(),
         start_timestamp: info::get_block_timestamp() + 1_u64,
         min_end_timestamp: info::get_block_timestamp() + 2_u64,
         max_end_timestamp: info::get_block_timestamp() + 3_u64,
-        execution_payload_hash: poseidon::poseidon_hash_span(params_felt.span()),
+        execution_payload_hash: poseidon::poseidon_hash_span(
+            vanilla_execution_strategy.clone().params.span()
+        ),
         execution_strategy: vanilla_execution_strategy.address,
         author: author,
         finalization_status: FinalizationStatus::Pending(()),
@@ -186,8 +187,8 @@ fn test__propose_update_vote_execute() {
     let proposal_id = u256_from_felt252(1);
     proposal_id.serialize(ref update_calldata);
     // Keeping the same execution strategy contract but changing the payload
-    let mut new_payload = ArrayTrait::<u8>::new();
-    new_payload.append(1_u8);
+    let mut new_payload = ArrayTrait::<felt252>::new();
+    new_payload.append(1);
     let execution_strategy = Strategy {
         address: vanilla_execution_strategy.address, params: new_payload
     };
@@ -205,7 +206,9 @@ fn test__propose_update_vote_execute() {
     let choice = Choice::For(());
     choice.serialize(ref vote_calldata);
     let mut user_voting_strategies = ArrayTrait::<IndexedStrategy>::new();
-    user_voting_strategies.append(IndexedStrategy { index: 0_u8, params: ArrayTrait::<u8>::new() });
+    user_voting_strategies.append(
+        IndexedStrategy { index: 0_u8, params: ArrayTrait::<felt252>::new() }
+    );
     user_voting_strategies.serialize(ref vote_calldata);
 
     // Vote on Proposal
@@ -244,13 +247,13 @@ fn test__propose_failed_validation() {
     testing::set_caller_address(owner);
     testing::set_contract_address(owner);
     space.set_proposal_validation_strategy(
-        Strategy { address: strategy_address, params: ArrayTrait::<u8>::new() }
+        Strategy { address: strategy_address, params: ArrayTrait::<felt252>::new() }
     );
 
     let mut propose_calldata = array::ArrayTrait::<felt252>::new();
     propose_calldata.append(contract_address_const::<5678>().into());
     vanilla_execution_strategy.serialize(ref propose_calldata);
-    ArrayTrait::<u8>::new().serialize(ref propose_calldata);
+    ArrayTrait::<felt252>::new().serialize(ref propose_calldata);
 
     // Try to create Proposal
     authenticator.authenticate(space_address, PROPOSE_SELECTOR, propose_calldata);
@@ -273,7 +276,7 @@ fn test__cancel() {
     let mut propose_calldata = array::ArrayTrait::<felt252>::new();
     author.serialize(ref propose_calldata);
     vanilla_execution_strategy.serialize(ref propose_calldata);
-    ArrayTrait::<u8>::new().serialize(ref propose_calldata);
+    ArrayTrait::<felt252>::new().serialize(ref propose_calldata);
 
     // Create Proposal
     authenticator.authenticate(space_address, PROPOSE_SELECTOR, propose_calldata);
@@ -299,7 +302,9 @@ fn test__cancel() {
     let choice = Choice::For(());
     choice.serialize(ref vote_calldata);
     let mut user_voting_strategies = ArrayTrait::<IndexedStrategy>::new();
-    user_voting_strategies.append(IndexedStrategy { index: 0_u8, params: ArrayTrait::<u8>::new() });
+    user_voting_strategies.append(
+        IndexedStrategy { index: 0_u8, params: ArrayTrait::<felt252>::new() }
+    );
     user_voting_strategies.serialize(ref vote_calldata);
     authenticator.authenticate(space_address, VOTE_SELECTOR, vote_calldata);
 }
