@@ -4,17 +4,16 @@ pragma solidity ^0.8.19;
 
 import "zodiac/interfaces/IAvatar.sol";
 import "../interfaces/IStarknetCore.sol";
-import "./StarknetSpaceManager.sol";
+import {SimpleQuorumExecutionStrategy} from "./SimpleQuorumExecutionStrategy.sol";
+import "../types.sol";
 /**
  * @title Snapshot X L1 execution Zodiac module
  * @author Snapshot Labs
  * @notice Trustless L1 execution of Snapshot X decisions via an Avatar contract such as a Gnosis Safe
  * @dev Work in progress
  */
-contract L1AvatarExecutionStrategy is StarknetSpaceManager {
-    error TransactionsFailed();
-    error InvalidExecutionParams();
 
+contract L1AvatarExecutionStrategy is SimpleQuorumExecutionStrategy {
     /// @dev Address of the avatar that this module will pass transactions to.
     address public target;
 
@@ -29,19 +28,6 @@ contract L1AvatarExecutionStrategy is StarknetSpaceManager {
 
     /// @dev Emitted each time the Execution Relayer is set.
     event ExecutionRelayerSet(uint256 indexed newExecutionRelayer);
-
-    struct MetaTransaction {
-        address to;
-        uint256 value;
-        bytes data;
-        Enum.Operation operation;
-    }
-
-    enum ProposalOutcome {
-        Accepted,
-        Rejected,
-        Cancelled
-    }
 
     /**
      * @dev Emitted when a new module proxy instance has been deployed
@@ -115,66 +101,84 @@ contract L1AvatarExecutionStrategy is StarknetSpaceManager {
         emit TargetSet(_target);
     }
 
-    /**
-     * @dev Initializes a new proposal execution struct on the receival of a completed proposal from StarkNet
-     * @param callerAddress The StarkNet space address which contained the proposal
-     * @param proposalOutcome Whether the proposal was accepted / rejected / cancelled
-     * @param executionHashLow Lowest 128 bits of the hash of all the transactions in the proposal
-     * @param executionHashHigh Highest 128 bits of the hash of all the transactions in the proposal
-     * @param executionParams The encoded execution parameters
-     */
+    /// @notice Executes a proposal
+    /// @param space The address of the space that the proposal was created in.
+    /// @param proposal The proposal struct.
+    /// @param votesFor The number of votes for the proposal.
+    /// @param votesAgainst The number of votes against the proposal.
+    /// @param votesAbstain The number of votes abstaining from the proposal.
+    /// @param executionHash The hash of the execution payload.
+    /// @param payload The encoded execution payload.
     function execute(
-        uint256 callerAddress,
-        uint256 proposalOutcome,
-        uint256 executionHashLow,
-        uint256 executionHashHigh,
-        bytes memory executionParams
-    ) external onlySpace(callerAddress) {
-        // Call to the StarkNet core contract will fail if finalized proposal message was not received on L1.
-        _receiveFinalizedProposal(callerAddress, proposalOutcome, executionHashLow, executionHashHigh);
+        uint256 space,
+        Proposal memory proposal,
+        uint256 votesFor,
+        uint256 votesAgainst,
+        uint256 votesAbstain,
+        bytes32 executionHash,
+        bytes memory payload
+    ) external onlySpace(space) {
+        // Call to the Starknet core contract will fail if finalized proposal message was not received on L1.
+        _receiveProposal(space, proposal, votesFor, votesAgainst, votesAbstain, executionHash);
 
-        // Re-assemble the lowest and highest bytes to get the full execution hash
-        // and check that it matches the hash of the execution params.
-        bytes32 executionHash = bytes32((executionHashHigh << 128) + executionHashLow);
-        if (executionHash != keccak256(executionParams)) revert InvalidExecutionParams();
-
-        if (proposalOutcome == uint256(ProposalOutcome.Accepted)) {
-            _execute(executionParams);
+        ProposalStatus proposalStatus = getProposalStatus(proposal, votesFor, votesAgainst, votesAbstain);
+        if ((proposalStatus != ProposalStatus.Accepted) && (proposalStatus != ProposalStatus.VotingPeriodAccepted)) {
+            revert InvalidProposalStatus(proposalStatus);
         }
+
+        if (executionHash != keccak256(payload)) revert InvalidPayload();
+
+        _execute(payload);
     }
 
-    /**
-     * @dev Receives L2 -> L1 message containing proposal execution details
-     * @param executionHashLow Lowest 128 bits of the hash of all the transactions in the proposal
-     * @param executionHashHigh Highest 128 bits of the hash of all the transactions in the proposal
-     * @param proposalOutcome Whether the proposal has been accepted / rejected / cancelled
-     */
-    function _receiveFinalizedProposal(
-        uint256 callerAddress,
-        uint256 proposalOutcome,
-        uint256 executionHashLow,
-        uint256 executionHashHigh
+    /// @dev Reverts if the expected message was not received from L2.
+    function _receiveProposal(
+        uint256 space,
+        Proposal memory proposal,
+        uint256 votesFor,
+        uint256 votesAgainst,
+        uint256 votesAbstain,
+        bytes32 executionHash
     ) internal {
-        uint256[] memory payload = new uint256[](4);
-        payload[0] = callerAddress;
-        payload[1] = proposalOutcome;
-        payload[2] = executionHashLow;
-        payload[3] = executionHashHigh;
+        uint256[] memory payload = new uint256[](15);
+        payload[0] = space;
+        // The serialized Proposal struct
+        // TODO: this is probably an incorrect serialization
+        payload[1] = uint256(proposal.snapshotTimestamp);
+        payload[2] = uint256(proposal.startTimestamp);
+        payload[3] = uint256(proposal.minEndTimestamp);
+        payload[4] = uint256(proposal.maxEndTimestamp);
+        payload[5] = proposal.executionPayloadHash;
+        payload[6] = uint256(uint160(proposal.executionStrategy));
+        payload[7] = uint256(uint160(proposal.author));
+        payload[8] = uint256(proposal.finalizationStatus);
+        payload[9] = proposal.activeVotingStrategies;
 
-        /// Returns the message Hash. If proposal execution message did not exist/not received yet, then this will fail
+        payload[10] = votesFor;
+        payload[11] = votesAgainst;
+        payload[12] = votesAbstain;
+
+        payload[13] = uint256(executionHash >> 128); // High 128 bits of executionHash
+        payload[14] = uint256(executionHash) & (2 ** 128 - 1); // Low 128 bits of executionHash
+
+        // If proposal execution message did not exist/not received yet, then this will revert.
         IStarknetCore(starknetCore).consumeMessageFromL2(executionRelayer, payload);
     }
 
-    /// @notice Decodes and executes a batch of transactions from the avatar contract.
-    /// @param executionParams The encoded transactions to execute.
-    function _execute(bytes memory executionParams) internal {
-        MetaTransaction[] memory transactions = abi.decode(executionParams, (MetaTransaction[]));
+    /// @dev Decodes and executes the payload via the avatar.
+    function _execute(bytes memory payload) internal {
+        MetaTransaction[] memory transactions = abi.decode(payload, (MetaTransaction[]));
         for (uint256 i = 0; i < transactions.length; i++) {
             bool success = IAvatar(target).execTransactionFromModule(
                 transactions[i].to, transactions[i].value, transactions[i].data, transactions[i].operation
             );
-            // If any transaction fails, the entire execution will revert
-            if (!success) revert TransactionsFailed();
+            // If any transaction fails, the entire execution will revert.
+            if (!success) revert ExecutionFailed();
         }
+    }
+
+    /// @notice Returns the type of execution strategy.
+    function getStrategyType() external pure override returns (string memory) {
+        return "SimpleQuorumL1AvatarExecutionStrategy";
     }
 }
