@@ -1,8 +1,6 @@
-use core::zeroable::Zeroable;
 use starknet::ContractAddress;
-use starknet::SyscallResult;
 use sx::utils::types::{Strategy, IndexedStrategy, Choice};
- 
+
 #[abi]
 trait IEthTxAuthenticator {
     #[external]
@@ -40,6 +38,7 @@ mod EthTxAuthenticator {
     use core::array::{ArrayTrait, SpanTrait};
     use sx::space::space::{ISpaceDispatcher, ISpaceDispatcherTrait};
     use sx::utils::types::{Strategy, IndexedStrategy, Choice};
+    use sx::utils::constants::{PROPOSE_SELECTOR, VOTE_SELECTOR, UPDATE_PROPOSAL_SELECTOR};
 
     struct Storage {
         _starknet_commit_address: felt252,
@@ -55,6 +54,7 @@ mod EthTxAuthenticator {
         ) {
             let mut payload = ArrayTrait::<felt252>::new();
             target.serialize(ref payload);
+            PROPOSE_SELECTOR.serialize(ref payload);
             author.serialize(ref payload);
             execution_strategy.serialize(ref payload);
             user_proposal_validation_params.serialize(ref payload);
@@ -76,6 +76,7 @@ mod EthTxAuthenticator {
         ) {
             let mut payload = ArrayTrait::<felt252>::new();
             target.serialize(ref payload);
+            VOTE_SELECTOR.serialize(ref payload);
             voter.serialize(ref payload);
             proposal_id.serialize(ref payload);
             choice.serialize(ref payload);
@@ -97,6 +98,7 @@ mod EthTxAuthenticator {
         ) {
             let mut payload = ArrayTrait::<felt252>::new();
             target.serialize(ref payload);
+            UPDATE_PROPOSAL_SELECTOR.serialize(ref payload);
             author.serialize(ref payload);
             proposal_id.serialize(ref payload);
             execution_strategy.serialize(ref payload);
