@@ -5,7 +5,7 @@ use traits::{PartialEq, TryInto, Into};
 use hash::LegacyHash;
 use option::OptionTrait;
 use clone::Clone;
-use integer::U8IntoU128;
+use integer::{U8IntoU128};
 use starknet::{
     ContractAddress, StorageAccess, StorageBaseAddress, SyscallResult, storage_write_syscall,
     storage_read_syscall, storage_address_from_base_and_offset, storage_base_address_from_felt252,
@@ -13,6 +13,21 @@ use starknet::{
     class_hash::Felt252TryIntoClassHash
 };
 use sx::utils::math::{U256Zeroable, pow};
+
+impl Felt252ArrayIntoU256Array of Into<Array<felt252>, Array<u256>> {
+    fn into(self: Array<felt252>) -> Array<u256> {
+        let mut arr = ArrayTrait::<u256>::new();
+        let mut i = 0_usize;
+        loop {
+            if i >= self.len() {
+                break ();
+            }
+            arr.append((*self.at(i)).into());
+            i += 1;
+        };
+        arr
+    }
+}
 
 #[derive(Drop, Serde, Clone)]
 enum Choice {
@@ -37,6 +52,16 @@ enum ProposalStatus {
     Executed: (),
     Rejected: (),
     Cancelled: ()
+}
+
+impl ChoiceIntoU256 of Into<Choice, u256> {
+    fn into(self: Choice) -> u256 {
+        match self {
+            Choice::Against(_) => u256 { low: 0_u128, high: 0_u128 },
+            Choice::For(_) => u256 { low: 1_u128, high: 0_u128 },
+            Choice::Abstain(_) => u256 { low: 2_u128, high: 0_u128 },
+        }
+    }
 }
 
 impl U8IntoFinalizationStatus of TryInto<u8, FinalizationStatus> {
