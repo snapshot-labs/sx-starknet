@@ -5,3 +5,5 @@ mod bits;
 mod math;
 
 mod constants;
+
+mod single_slot_proof;
