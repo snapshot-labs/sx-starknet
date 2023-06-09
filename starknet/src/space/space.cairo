@@ -462,6 +462,8 @@ mod Space {
         choice: Choice,
         user_voting_strategies: Array<IndexedStrategy>
     ) {
+        // TODO: require this for tests to run atm.
+        gas::withdraw_gas_all(get_builtin_costs()).expect('Out of gas');
         Space::vote(voter, proposal_id, choice, user_voting_strategies);
     }
 
