@@ -5,9 +5,10 @@ version = "0.1.0"
 # See more keys and their definitions at https://docs.swmansion.com/scarb/docs/reference/manifest
 
 [[target.starknet-contract]]
+# allowed-libfuncs-list.name = "experimental_v0.1.0"
 
 [dependencies]
-alexandria_math = { git = "https://github.com/keep-starknet-strange/alexandria.git" }
+# starknet = ">=1.0.0"
 
 [scripts]
 run-lib = "cairo-run src/lib.cairo"
