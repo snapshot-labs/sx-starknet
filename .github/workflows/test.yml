@@ -1,16 +1,25 @@
 name: test
 
-on: workflow_dispatch
+on:
+  push:
+    branches:
+      - develop
+  pull_request:
 
 env:
   FOUNDRY_PROFILE: ci
+  CAIRO_COMPILER_VERSION: v1.1.0
+  ARCHIVE_LINK: https://github.com/starkware-libs/cairo/releases/download/v1.1.0/release-x86_64-unknown-linux-musl.tar.gz
+  ARCHIVE_NAME: cairo.zip
+  SCARB_INSTALLER: https://docs.swmansion.com/scarb/install.sh
+  SCARB_VERSION: 0.4.0
 
 jobs:
-  check:
+  forge-tests:
     strategy:
       fail-fast: true
 
-    name: Foundry project
+    name: Forge tests
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v3
@@ -23,12 +32,40 @@ jobs:
           version: nightly
 
       - name: Run Forge build
+        working-directory: ./ethereum
         run: |
           forge --version
           forge build --sizes
         id: build
 
       - name: Run Forge tests
+        working-directory: ./ethereum
         run: |
           forge test -vvv
         id: test
+
+  cairo-tests:
+    strategy:
+      fail-fast: true
+
+    name: Cairo tests
+    runs-on: ubuntu-latest
+    steps:
+      - name: Step 1 - Check out main branch
+        uses: actions/checkout@v3
+      - name: Step 2 - Downloading cairo binaries
+        run: curl -L -o $ARCHIVE_NAME $ARCHIVE_LINK
+      - name: Step 3 - Unzipping cairo binaries
+        run: tar -xvf $ARCHIVE_NAME
+      - name: Step 4 - Make cairo binaries available
+        run: echo "./cairo/bin" >> $GITHUB_PATH
+      - name: adding $HOME to path 
+        run: echo "$HOME/.local/bin" >> $GITHUB_PATH
+      - name: Step 5 - Installing scarb
+        run: curl --proto '=https' --tlsv1.2 -sSf $SCARB_INSTALLER | sh -s -- -v $SCARB_VERSION
+      - name: Step 6 - Building Starknet contracts
+        working-directory: ./starknet
+        run: scarb build 
+      - name: Step 7 - Running Starknet tests
+        working-directory: ./starknet
+        run: scarb cairo-test 
