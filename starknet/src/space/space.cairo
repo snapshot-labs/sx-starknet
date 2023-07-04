@@ -250,8 +250,8 @@ mod Space {
 
             assert(voting_power > U256Zeroable::zero(), 'User has no voting power');
             _vote_power::write(
-                (proposal_id, choice.clone()),
-                _vote_power::read((proposal_id, choice.clone())) + voting_power
+                (proposal_id, choice),
+                _vote_power::read((proposal_id, choice)) + voting_power
             );
             _vote_registry::write((proposal_id, voter), true);
 

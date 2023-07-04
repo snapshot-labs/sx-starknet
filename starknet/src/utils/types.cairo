@@ -29,7 +29,7 @@ impl Felt252ArrayIntoU256Array of Into<Array<felt252>, Array<u256>> {
     }
 }
 
-#[derive(Drop, Serde, Clone)]
+#[derive(Copy, Drop, Serde)]
 enum Choice {
     Against: (),
     For: (),

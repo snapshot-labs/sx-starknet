@@ -103,7 +103,7 @@ mod EthSigAuthenticator {
                 target,
                 voter,
                 proposal_id,
-                choice.clone(),
+                choice,
                 user_voting_strategies.clone()
             );
 
