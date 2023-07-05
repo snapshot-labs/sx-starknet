@@ -46,7 +46,7 @@ trait ISpace {
     #[external]
     fn add_voting_strategies(voting_strategies: Array<Strategy>);
     #[external]
-    fn remove_voting_strategies(voting_strategy_indices: Array<felt252>);
+    fn remove_voting_strategies(voting_strategy_indices: Array<u8>);
     #[external]
     fn add_authenticators(authenticators: Array<ContractAddress>);
     #[external]
@@ -152,7 +152,7 @@ mod Space {
     fn VotingStrategiesAdded(_new_voting_strategies: Array<Strategy>) {}
 
     #[event]
-    fn VotingStrategiesRemoved(_voting_strategy_indices: Array<felt252>) {}
+    fn VotingStrategiesRemoved(_voting_strategy_indices: Array<u8>) {}
 
     #[event]
     fn AuthenticatorsAdded(_new_authenticators: Array<ContractAddress>) {}
@@ -387,9 +387,10 @@ mod Space {
             VotingStrategiesAdded(voting_strategies);
         }
 
-        fn remove_voting_strategies(voting_strategy_indices: Array<felt252>) {
+        fn remove_voting_strategies(voting_strategy_indices: Array<u8>) {
             Ownable::assert_only_owner();
-        // TODO: impl once we have set_bit to false
+            _remove_voting_strategies(voting_strategy_indices.clone());
+            VotingStrategiesRemoved(voting_strategy_indices);
         }
 
         fn add_authenticators(authenticators: Array<ContractAddress>) {
@@ -563,7 +564,7 @@ mod Space {
     }
 
     #[external]
-    fn remove_voting_strategies(voting_strategy_indices: Array<felt252>) {
+    fn remove_voting_strategies(voting_strategy_indices: Array<u8>) {
         Space::remove_voting_strategies(voting_strategy_indices);
     }
 
@@ -664,14 +665,26 @@ mod Space {
             i += 1;
         };
         _active_voting_strategies::write(cachedActiveVotingStrategies);
+        let mut i = 0_usize;
         _next_voting_strategy_index::write(cachedNextVotingStrategyIndex);
     }
-    // TODO: need to impl set_bit to false first
-    // fn _remove_voting_strategies(_voting_strategies: Array<Strategy>) {
-    //     let index = next_voting_strategy_index::read();
-    //     voting_strategies::write(index, _voting_strategy);
-    //     next_voting_strategy_index::write(index + 1_u8);
-    // }
+
+    fn _remove_voting_strategies(_voting_strategies: Array<u8>) {
+        let mut cachedActiveVotingStrategies = _active_voting_strategies::read();
+        let mut _voting_strategies_span = _voting_strategies.span();
+        let mut i = 0_usize;
+        loop {
+            if i >= _voting_strategies.len() {
+                break ();
+            }
+
+            let index = _voting_strategies_span.pop_front().unwrap();
+            cachedActiveVotingStrategies.set_bit(*index, false);
+            i+= 1;
+        };
+
+        _active_voting_strategies::write(cachedActiveVotingStrategies);
+    }
 
     fn _add_authenticators(_authenticators: Array<ContractAddress>) {
         let mut _authenticators_span = _authenticators.span();
