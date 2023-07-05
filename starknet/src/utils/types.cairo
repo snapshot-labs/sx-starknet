@@ -104,29 +104,21 @@ impl ProposalStatusIntoU8 of Into<ProposalStatus, u8> {
 
 impl ProposalStatusPartialEq of PartialEq<ProposalStatus> {
     fn eq(lhs: ProposalStatus, rhs: ProposalStatus) -> bool {
-        // TODO: cant infer type atm for some reason so need the extra local var
-        let l: u8 = lhs.into();
-        l == rhs.into()
+        ProposalStatusIntoU8::into(lhs) == rhs.into()
     }
 
     fn ne(lhs: ProposalStatus, rhs: ProposalStatus) -> bool {
-        // TODO: cant infer type atm for some reason so need the extra local var
-        let l: u8 = lhs.into();
-        l != rhs.into()
+        ProposalStatusIntoU8::into(lhs) != rhs.into()
     }
 }
 
 impl FinalizationStatusPartialEq of PartialEq<FinalizationStatus> {
     fn eq(lhs: FinalizationStatus, rhs: FinalizationStatus) -> bool {
-        // TODO: cant infer type atm for some reason so need the extra local var
-        let l: u8 = lhs.into();
-        l == rhs.into()
+        FinalizationStatusIntoU8::into(lhs) == rhs.into()
     }
 
     fn ne(lhs: FinalizationStatus, rhs: FinalizationStatus) -> bool {
-        // TODO: cant infer type atm for some reason so need the extra local var
-        let l: u8 = lhs.into();
-        l != rhs.into()
+        FinalizationStatusIntoU8::into(lhs) != rhs.into()
     }
 }
 
