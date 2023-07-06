@@ -1,23 +1,29 @@
-#[contract]
+#[starknet::contract]
 mod VanillaExecutionStrategy {
     use sx::interfaces::IExecutionStrategy;
     use sx::utils::types::{Proposal, ProposalStatus};
     use sx::execution_strategies::simple_quorum::SimpleQuorumExecutionStrategy;
 
+    #[storage]
     struct Storage {
         _num_executed: felt252
     }
 
-    impl VanillaExecutionStrategy of IExecutionStrategy {
+    #[external(v0)]
+    impl VanillaExecutionStrategy of IExecutionStrategy<ContractState> {
         fn execute(
+            ref self: ContractState,
             proposal: Proposal,
             votes_for: u256,
             votes_against: u256,
             votes_abstain: u256,
             payload: Array<felt252>
         ) {
+            // TODO: this is probably wrong. 
+            let mut state: SimpleQuorumExecutionStrategy::ContractState = SimpleQuorumExecutionStrategy::unsafe_new_contract_state();        
+
             let proposal_status = SimpleQuorumExecutionStrategy::get_proposal_status(
-                @proposal, votes_for, votes_against, votes_abstain
+                @state, @proposal, votes_for, votes_against, votes_abstain
             );
             assert(
                 (proposal_status == ProposalStatus::Accepted(
@@ -25,30 +31,19 @@ mod VanillaExecutionStrategy {
                 )) | (proposal_status == ProposalStatus::VotingPeriodAccepted(())),
                 'Invalid Proposal Status'
             );
-            _num_executed::write(_num_executed::read() + 1);
+            self._num_executed.write(self._num_executed.read() + 1);
         }
     }
 
     #[constructor]
-    fn constructor(quorum: u256) {
-        SimpleQuorumExecutionStrategy::initializer(quorum);
-    }
-
-    #[external]
-    fn execute(
-        proposal: Proposal,
-        votes_for: u256,
-        votes_against: u256,
-        votes_abstain: u256,
-        payload: Array<felt252>
-    ) {
-        VanillaExecutionStrategy::execute(
-            proposal, votes_for, votes_against, votes_abstain, payload
-        );
+    fn constructor(ref self: ContractState, quorum: u256) {
+        // TODO: temporary until components are released
+        let mut state: SimpleQuorumExecutionStrategy::ContractState = SimpleQuorumExecutionStrategy::unsafe_new_contract_state();        
+        SimpleQuorumExecutionStrategy::initializer(ref state, quorum);
     }
 
     #[view]
-    fn num_executed() -> felt252 {
-        _num_executed::read()
+    fn num_executed(self: @ContractState) -> felt252 {
+        self._num_executed.read()
     }
 }
