@@ -54,13 +54,26 @@ enum ProposalStatus {
     Cancelled: ()
 }
 
+impl ChoiceIntoU8 of Into<Choice, u8> {
+    fn into(self: Choice) -> u8 {
+        match self {
+            Choice::Against(_) => 0_u8,
+            Choice::For(_) => 1_u8,
+            Choice::Abstain(_) => 2_u8,
+        }
+    }
+}
+
+// TODO: use U8IntoU256 from stdlib once available
+impl U8IntoU256 of Into<u8, u256> {
+    fn into(self: u8) -> u256 {
+        u256 {low: self.into(), high: 0_u128}
+    }
+}
+
 impl ChoiceIntoU256 of Into<Choice, u256> {
     fn into(self: Choice) -> u256 {
-        match self {
-            Choice::Against(_) => u256 { low: 0_u128, high: 0_u128 },
-            Choice::For(_) => u256 { low: 1_u128, high: 0_u128 },
-            Choice::Abstain(_) => u256 { low: 2_u128, high: 0_u128 },
-        }
+        ChoiceIntoU8::into(self).into()
     }
 }
 
@@ -131,15 +144,7 @@ impl StorageAccessFinalizationStatus of StorageAccess<FinalizationStatus> {
             )
         ) {
             Result::Ok(num) => {
-                if num == 0_u8 {
-                    Result::Ok(FinalizationStatus::Pending(()))
-                } else if num == 1_u8 {
-                    Result::Ok(FinalizationStatus::Executed(()))
-                } else if num == 2_u8 {
-                    Result::Ok(FinalizationStatus::Cancelled(()))
-                } else {
-                    panic_with_felt252('Invalid value')
-                }
+                Result::Ok(U8IntoFinalizationStatus::try_into(num).unwrap())
             },
             Result::Err(err) => Result::Err(err)
         }
@@ -153,22 +158,14 @@ impl StorageAccessFinalizationStatus of StorageAccess<FinalizationStatus> {
             storage_base_address_from_felt252(
                 storage_address_from_base_and_offset(base, 0_u8).into()
             ),
-            match value {
-                FinalizationStatus::Pending(_) => 0_u8,
-                FinalizationStatus::Executed(_) => 1_u8,
-                FinalizationStatus::Cancelled(_) => 2_u8,
-            }
+            FinalizationStatusIntoU8::into(value)
         )
     }
 }
 
 impl LegacyHashChoice of LegacyHash<Choice> {
     fn hash(state: felt252, value: Choice) -> felt252 {
-        match value {
-            Choice::Against(_) => LegacyHash::hash(state, 0_u8),
-            Choice::For(_) => LegacyHash::hash(state, 1_u8),
-            Choice::Abstain(_) => LegacyHash::hash(state, 2_u8),
-        }
+        LegacyHash::hash(state, ChoiceIntoU8::into(value))
     }
 }
 
