@@ -665,7 +665,6 @@ mod Space {
             i += 1;
         };
         _active_voting_strategies::write(cachedActiveVotingStrategies);
-        let mut i = 0_usize;
         _next_voting_strategy_index::write(cachedNextVotingStrategyIndex);
     }
 
