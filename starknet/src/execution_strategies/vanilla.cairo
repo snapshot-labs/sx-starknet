@@ -20,15 +20,15 @@ mod VanillaExecutionStrategy {
             payload: Array<felt252>
         ) {
             // TODO: this is probably wrong. 
-            let mut state: SimpleQuorumExecutionStrategy::ContractState = SimpleQuorumExecutionStrategy::unsafe_new_contract_state();        
+            let mut state: SimpleQuorumExecutionStrategy::ContractState =
+                SimpleQuorumExecutionStrategy::unsafe_new_contract_state();
 
             let proposal_status = SimpleQuorumExecutionStrategy::get_proposal_status(
                 @state, @proposal, votes_for, votes_against, votes_abstain
             );
             assert(
-                (proposal_status == ProposalStatus::Accepted(
-                    ()
-                )) | (proposal_status == ProposalStatus::VotingPeriodAccepted(())),
+                (proposal_status == ProposalStatus::Accepted(()))
+                    | (proposal_status == ProposalStatus::VotingPeriodAccepted(())),
                 'Invalid Proposal Status'
             );
             self._num_executed.write(self._num_executed.read() + 1);
@@ -38,7 +38,8 @@ mod VanillaExecutionStrategy {
     #[constructor]
     fn constructor(ref self: ContractState, quorum: u256) {
         // TODO: temporary until components are released
-        let mut state: SimpleQuorumExecutionStrategy::ContractState = SimpleQuorumExecutionStrategy::unsafe_new_contract_state();        
+        let mut state: SimpleQuorumExecutionStrategy::ContractState =
+            SimpleQuorumExecutionStrategy::unsafe_new_contract_state();
         SimpleQuorumExecutionStrategy::initializer(ref state, quorum);
     }
 
