@@ -30,7 +30,7 @@ impl KeccakTypeHashStrategy of KeccakTypeHash<Strategy> {
         encoded_data.append(u256 { low: STRATEGY_TYPEHASH_LOW, high: STRATEGY_TYPEHASH_HIGH });
         encoded_data.append(self.address.into());
         encoded_data.append(self.params.hash());
-        keccak::keccak_uint256s_le(encoded_data.span())
+        keccak::keccak_u256s_le_inputs(encoded_data.span())
     }
 }
 
@@ -39,20 +39,21 @@ impl KeccakTypeHashArray of KeccakTypeHash<Array<felt252>> {
         // cast u8 array to u256 array so that each member is 32 bytes
         let mut encoded_data: Array<u256> = self.into();
         // TODO: little or big endian?
-        keccak::keccak_uint256s_le(encoded_data.span())
+        keccak::keccak_u256s_le_inputs(encoded_data.span())
     }
 }
 
 impl KeccakTypeHashIndexedStrategy of KeccakTypeHash<IndexedStrategy> {
     fn hash(self: IndexedStrategy) -> u256 {
         let mut encoded_data = ArrayTrait::<u256>::new();
-        encoded_data.append(
-            u256 { low: INDEXED_STRATEGY_TYPEHASH_LOW, high: INDEXED_STRATEGY_TYPEHASH_HIGH }
-        );
+        encoded_data
+            .append(
+                u256 { low: INDEXED_STRATEGY_TYPEHASH_LOW, high: INDEXED_STRATEGY_TYPEHASH_HIGH }
+            );
         let index_felt: felt252 = self.index.into();
         encoded_data.append(index_felt.into());
         encoded_data.append(self.params.hash());
-        keccak::keccak_uint256s_le(encoded_data.span())
+        keccak::keccak_u256s_le_inputs(encoded_data.span())
     }
 }
 
@@ -66,7 +67,7 @@ impl KeccakTypeHashIndexedStrategyArray of KeccakTypeHash<Array<IndexedStrategy>
             }
             encoded_data.append(self.at(i).clone().hash());
         };
-        keccak::keccak_uint256s_le(encoded_data.span())
+        keccak::keccak_u256s_le_inputs(encoded_data.span())
     }
 }
 
@@ -142,7 +143,7 @@ fn get_propose_digest(
     encoded_data.append(execution_strategy.hash());
     encoded_data.append(user_proposal_validation_params.hash());
     encoded_data.append(salt);
-    let message_hash = keccak::keccak_uint256s_le(encoded_data.span());
+    let message_hash = keccak::keccak_u256s_le_inputs(encoded_data.span());
     hash_typed_data(domain_hash, message_hash)
 }
 
@@ -161,7 +162,7 @@ fn get_vote_digest(
     encoded_data.append(proposal_id);
     encoded_data.append(choice.into());
     encoded_data.append(user_voting_strategies.hash());
-    let message_hash = keccak::keccak_uint256s_le(encoded_data.span());
+    let message_hash = keccak::keccak_u256s_le_inputs(encoded_data.span());
     hash_typed_data(domain_hash, message_hash)
 }
 
@@ -174,15 +175,14 @@ fn get_update_proposal_digest(
     salt: u256
 ) -> u256 {
     let mut encoded_data = ArrayTrait::<u256>::new();
-    encoded_data.append(
-        u256 { low: UPDATE_PROPOSAL_TYPEHASH_LOW, high: UPDATE_PROPOSAL_TYPEHASH_HIGH }
-    );
+    encoded_data
+        .append(u256 { low: UPDATE_PROPOSAL_TYPEHASH_LOW, high: UPDATE_PROPOSAL_TYPEHASH_HIGH });
     encoded_data.append(space.into());
     encoded_data.append(author.into());
     encoded_data.append(proposal_id);
     encoded_data.append(execution_strategy.hash());
     encoded_data.append(salt);
-    let message_hash = keccak::keccak_uint256s_le(encoded_data.span());
+    let message_hash = keccak::keccak_u256s_le_inputs(encoded_data.span());
     hash_typed_data(domain_hash, message_hash)
 }
 
@@ -194,7 +194,7 @@ fn get_domain_hash(name: felt252, version: felt252) -> u256 {
     // TODO: chain id doesnt seem like its exposed atm, so just dummy value for now
     encoded_data.append(u256 { low: 'dummy', high: 0 });
     encoded_data.append(starknet::get_contract_address().into());
-    keccak::keccak_uint256s_le(encoded_data.span())
+    keccak::keccak_u256s_le_inputs(encoded_data.span())
 }
 
 fn hash_typed_data(domain_hash: u256, message_hash: u256) -> u256 {
@@ -202,7 +202,7 @@ fn hash_typed_data(domain_hash: u256, message_hash: u256) -> u256 {
     encoded_data.append(domain_hash);
     encoded_data.append(message_hash);
     let encoded_data = _add_prefix_array(encoded_data, ETHEREUM_PREFIX);
-    keccak::keccak_uint256s_le(encoded_data.span())
+    keccak::keccak_u256s_le_inputs(encoded_data.span())
 }
 
 

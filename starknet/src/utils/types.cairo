@@ -12,7 +12,7 @@ use starknet::{
     contract_address::Felt252TryIntoContractAddress, syscalls::deploy_syscall,
     class_hash::Felt252TryIntoClassHash
 };
-use sx::utils::math::{U256Zeroable, pow};
+use sx::utils::math::pow;
 
 impl Felt252ArrayIntoU256Array of Into<Array<felt252>, Array<u256>> {
     fn into(self: Array<felt252>) -> Array<u256> {
@@ -36,14 +36,14 @@ enum Choice {
     Abstain: (),
 }
 
-#[derive(Copy, Drop, Serde)]
+#[derive(Copy, Drop, Serde, PartialEq)]
 enum FinalizationStatus {
     Pending: (),
     Executed: (),
     Cancelled: (),
 }
 
-#[derive(Copy, Drop, Serde)]
+#[derive(Copy, Drop, Serde, PartialEq)]
 enum ProposalStatus {
     VotingDelay: (),
     VotingPeriod: (),
@@ -61,13 +61,6 @@ impl ChoiceIntoU8 of Into<Choice, u8> {
             Choice::For(_) => 1_u8,
             Choice::Abstain(_) => 2_u8,
         }
-    }
-}
-
-// TODO: use U8IntoU256 from stdlib once available
-impl U8IntoU256 of Into<u8, u256> {
-    fn into(self: u8) -> u256 {
-        u256 {low: self.into(), high: 0_u128}
     }
 }
 
@@ -115,25 +108,40 @@ impl ProposalStatusIntoU8 of Into<ProposalStatus, u8> {
     }
 }
 
-impl ProposalStatusPartialEq of PartialEq<ProposalStatus> {
-    fn eq(lhs: ProposalStatus, rhs: ProposalStatus) -> bool {
-        ProposalStatusIntoU8::into(lhs) == rhs.into()
-    }
-
-    fn ne(lhs: ProposalStatus, rhs: ProposalStatus) -> bool {
-        ProposalStatusIntoU8::into(lhs) != rhs.into()
+impl LegacyHashChoice of LegacyHash<Choice> {
+    fn hash(state: felt252, value: Choice) -> felt252 {
+        LegacyHash::hash(state, ChoiceIntoU8::into(value))
     }
 }
 
-impl FinalizationStatusPartialEq of PartialEq<FinalizationStatus> {
-    fn eq(lhs: FinalizationStatus, rhs: FinalizationStatus) -> bool {
-        FinalizationStatusIntoU8::into(lhs) == rhs.into()
-    }
-
-    fn ne(lhs: FinalizationStatus, rhs: FinalizationStatus) -> bool {
-        FinalizationStatusIntoU8::into(lhs) != rhs.into()
-    }
+#[derive(Option, Clone, Drop, Serde, StorageAccess)]
+struct Strategy {
+    address: ContractAddress,
+    params: Array<felt252>,
 }
+
+#[derive(Option, Clone, Drop, Serde)]
+struct IndexedStrategy {
+    index: u8,
+    params: Array<felt252>,
+}
+
+/// NOTE: Using u64 for timestamps instead of u32 which we use in sx-evm. can change if needed.
+#[derive(Clone, Drop, Serde, PartialEq, StorageAccess)]
+struct Proposal {
+    snapshot_timestamp: u64,
+    start_timestamp: u64,
+    min_end_timestamp: u64,
+    max_end_timestamp: u64,
+    execution_payload_hash: felt252,
+    execution_strategy: ContractAddress,
+    author: ContractAddress,
+    finalization_status: FinalizationStatus,
+    active_voting_strategies: u256
+}
+
+// TODO: Should eventually be able to derive the StorageAccess trait on the structs and enum 
+// cant atm as the derive only works for simple structs 
 
 impl StorageAccessFinalizationStatus of StorageAccess<FinalizationStatus> {
     fn read(address_domain: u32, base: StorageBaseAddress) -> SyscallResult<FinalizationStatus> {
@@ -161,47 +169,39 @@ impl StorageAccessFinalizationStatus of StorageAccess<FinalizationStatus> {
             FinalizationStatusIntoU8::into(value)
         )
     }
-}
 
-impl LegacyHashChoice of LegacyHash<Choice> {
-    fn hash(state: felt252, value: Choice) -> felt252 {
-        LegacyHash::hash(state, ChoiceIntoU8::into(value))
-    }
-}
-
-#[derive(Option, Clone, Drop, Serde)]
-struct Strategy {
-    address: ContractAddress,
-    params: Array<felt252>,
-}
-
-#[derive(Option, Clone, Drop, Serde)]
-struct IndexedStrategy {
-    index: u8,
-    params: Array<felt252>,
-}
-
-/// NOTE: Using u64 for timestamps instead of u32 which we use in sx-evm. can change if needed.
-#[derive(Clone, Drop, Serde)]
-struct Proposal {
-    snapshot_timestamp: u64,
-    start_timestamp: u64,
-    min_end_timestamp: u64,
-    max_end_timestamp: u64,
-    execution_payload_hash: felt252,
-    execution_strategy: ContractAddress,
-    author: ContractAddress,
-    finalization_status: FinalizationStatus,
-    active_voting_strategies: u256
-}
-
-impl PartialEqProposal of PartialEq<Proposal> {
-    fn eq(lhs: Proposal, rhs: Proposal) -> bool {
-        lhs.snapshot_timestamp == rhs.snapshot_timestamp & lhs.start_timestamp == rhs.start_timestamp & lhs.min_end_timestamp == rhs.min_end_timestamp & lhs.max_end_timestamp == rhs.max_end_timestamp & lhs.execution_payload_hash == rhs.execution_payload_hash & lhs.execution_strategy == rhs.execution_strategy & lhs.author == rhs.author & lhs.finalization_status == rhs.finalization_status & lhs.active_voting_strategies == rhs.active_voting_strategies
+    fn read_at_offset_internal(
+        address_domain: u32, base: StorageBaseAddress, offset: u8
+    ) -> SyscallResult<FinalizationStatus> {
+        match StorageAccess::read_at_offset_internal(
+            address_domain,
+            storage_base_address_from_felt252(
+                storage_address_from_base_and_offset(base, 0_u8).into()
+            ),
+            offset
+        ) {
+            Result::Ok(num) => {
+                Result::Ok(U8IntoFinalizationStatus::try_into(num).unwrap())
+            },
+            Result::Err(err) => Result::Err(err)
+        }
     }
 
-    fn ne(lhs: Proposal, rhs: Proposal) -> bool {
-        lhs.snapshot_timestamp != rhs.snapshot_timestamp | lhs.start_timestamp != rhs.start_timestamp | lhs.min_end_timestamp != rhs.min_end_timestamp | lhs.max_end_timestamp != rhs.max_end_timestamp | lhs.execution_payload_hash != rhs.execution_payload_hash | lhs.execution_strategy != rhs.execution_strategy | lhs.author != rhs.author | lhs.finalization_status != rhs.finalization_status | lhs.active_voting_strategies != rhs.active_voting_strategies
+    fn write_at_offset_internal(
+        address_domain: u32, base: StorageBaseAddress, offset: u8, value: FinalizationStatus
+    ) -> SyscallResult<()> {
+        StorageAccess::write_at_offset_internal(
+            address_domain,
+            storage_base_address_from_felt252(
+                storage_address_from_base_and_offset(base, 0_u8).into()
+            ),
+            offset,
+            FinalizationStatusIntoU8::into(value)
+        )
+    }
+
+    fn size_internal(value: FinalizationStatus) -> u8 {
+        1_u8
     }
 }
 
@@ -340,6 +340,167 @@ impl StorageAccessProposal of StorageAccess<Proposal> {
             value.active_voting_strategies
         )
     }
+
+    fn read_at_offset_internal(
+        address_domain: u32, base: StorageBaseAddress, offset: u8
+    ) -> SyscallResult<Proposal> {
+        Result::Ok(
+            Proposal {
+                snapshot_timestamp: StorageAccess::read_at_offset_internal(
+                    address_domain,
+                    storage_base_address_from_felt252(
+                        storage_address_from_base_and_offset(base, 0_u8).into()
+                    ),
+                    offset
+                )?,
+                start_timestamp: StorageAccess::read_at_offset_internal(
+                    address_domain,
+                    storage_base_address_from_felt252(
+                        storage_address_from_base_and_offset(base, 1_u8).into()
+                    ),
+                    offset
+                )?,
+                min_end_timestamp: StorageAccess::read_at_offset_internal(
+                    address_domain,
+                    storage_base_address_from_felt252(
+                        storage_address_from_base_and_offset(base, 2_u8).into()
+                    ),
+                    offset
+                )?,
+                max_end_timestamp: StorageAccess::read_at_offset_internal(
+                    address_domain,
+                    storage_base_address_from_felt252(
+                        storage_address_from_base_and_offset(base, 3_u8).into()
+                    ),
+                    offset
+                )?,
+                execution_payload_hash: StorageAccess::read_at_offset_internal(
+                    address_domain,
+                    storage_base_address_from_felt252(
+                        storage_address_from_base_and_offset(base, 4_u8).into()
+                    ),
+                    offset
+                )?,
+                execution_strategy: StorageAccess::read_at_offset_internal(
+                    address_domain,
+                    storage_base_address_from_felt252(
+                        storage_address_from_base_and_offset(base, 5_u8).into()
+                    ),
+                    offset
+                )?,
+                author: StorageAccess::read_at_offset_internal(
+                    address_domain,
+                    storage_base_address_from_felt252(
+                        storage_address_from_base_and_offset(base, 6_u8).into()
+                    ),
+                    offset
+                )?,
+                finalization_status: StorageAccess::read_at_offset_internal(
+                    address_domain,
+                    storage_base_address_from_felt252(
+                        storage_address_from_base_and_offset(base, 7_u8).into()
+                    ),
+                    offset
+                )?,
+                active_voting_strategies: StorageAccess::read_at_offset_internal(
+                    address_domain,
+                    storage_base_address_from_felt252(
+                        storage_address_from_base_and_offset(base, 8_u8).into()
+                    ),
+                    offset
+                )?
+            }
+        )
+    }
+
+    fn write_at_offset_internal(
+        address_domain: u32, base: StorageBaseAddress, offset: u8, value: Proposal
+    ) -> SyscallResult<()> {
+        StorageAccess::write_at_offset_internal(
+            address_domain,
+            storage_base_address_from_felt252(
+                storage_address_from_base_and_offset(base, 0_u8).into()
+            ),
+            offset,
+            value.snapshot_timestamp
+        );
+
+        StorageAccess::write_at_offset_internal(
+            address_domain,
+            storage_base_address_from_felt252(
+                storage_address_from_base_and_offset(base, 1_u8).into()
+            ),
+            offset,
+            value.start_timestamp
+        );
+
+        StorageAccess::write_at_offset_internal(
+            address_domain,
+            storage_base_address_from_felt252(
+                storage_address_from_base_and_offset(base, 2_u8).into()
+            ),
+            offset,
+            value.min_end_timestamp
+        );
+
+        StorageAccess::write_at_offset_internal(
+            address_domain,
+            storage_base_address_from_felt252(
+                storage_address_from_base_and_offset(base, 3_u8).into()
+            ),
+            offset,
+            value.max_end_timestamp
+        );
+
+        StorageAccess::write_at_offset_internal(
+            address_domain,
+            storage_base_address_from_felt252(
+                storage_address_from_base_and_offset(base, 4_u8).into()
+            ),
+            offset,
+            value.execution_payload_hash
+        );
+
+        StorageAccess::write_at_offset_internal(
+            address_domain,
+            storage_base_address_from_felt252(
+                storage_address_from_base_and_offset(base, 5_u8).into()
+            ),
+            offset,
+            value.execution_strategy
+        );
+
+        StorageAccess::write_at_offset_internal(
+            address_domain,
+            storage_base_address_from_felt252(
+                storage_address_from_base_and_offset(base, 6_u8).into()
+            ),
+            offset,
+            value.author
+        );
+
+        StorageAccess::write_at_offset_internal(
+            address_domain,
+            storage_base_address_from_felt252(
+                storage_address_from_base_and_offset(base, 7_u8).into()
+            ),
+            offset,
+            value.finalization_status
+        );
+
+        StorageAccess::write_at_offset_internal(
+            address_domain,
+            storage_base_address_from_felt252(
+                storage_address_from_base_and_offset(base, 8_u8).into()
+            ),
+            offset,
+            value.active_voting_strategies
+        )
+    }
+
+    fn size_internal(value: Proposal) -> u8 {
+        9_u8
+    }
 }
 
 impl StorageAccessFeltArray of StorageAccess<Array<felt252>> {
@@ -404,6 +565,79 @@ impl StorageAccessFeltArray of StorageAccess<Array<felt252>> {
         };
         Result::Ok(()) //TODO: what to return here? 
     }
+
+    fn read_at_offset_internal(
+        address_domain: u32, base: StorageBaseAddress, offset: u8
+    ) -> SyscallResult<Array<felt252>> {
+        let length = StorageAccess::read_at_offset_internal(
+            address_domain,
+            storage_base_address_from_felt252(
+                storage_address_from_base_and_offset(base, 0_u8).into()
+            ),
+            offset
+        )?;
+
+        let mut arr = ArrayTrait::<felt252>::new();
+        let mut i = 0_usize;
+        loop {
+            if i >= length {
+                break ();
+            }
+
+            match StorageAccess::read_at_offset_internal(
+                address_domain,
+                storage_base_address_from_felt252(
+                    storage_address_from_base_and_offset(base, 0).into()
+                ),
+                offset
+            ) {
+                Result::Ok(b) => arr.append(b),
+                Result::Err(_) => {
+                    break ();
+                }
+            }
+
+            i += 1;
+        };
+        Result::Ok(arr)
+    }
+
+    fn write_at_offset_internal(
+        address_domain: u32, base: StorageBaseAddress, offset: u8, value: Array<felt252>
+    ) -> SyscallResult<()> {
+        // Write length at offset 0
+        StorageAccess::write_at_offset_internal(
+            address_domain,
+            storage_base_address_from_felt252(
+                storage_address_from_base_and_offset(base, 0_u8).into()
+            ),
+            offset,
+            value.len()
+        );
+
+        // Write values at offsets 1..value.len()
+        let mut i = 1_usize;
+        loop {
+            if i >= value.len() {
+                break ();
+            }
+            StorageAccess::write_at_offset_internal(
+                address_domain,
+                storage_base_address_from_felt252(
+                    storage_address_from_base_and_offset(base, i.try_into().unwrap()).into()
+                ),
+                offset,
+                *value.at(i)
+            );
+            i += 1;
+        };
+        Result::Ok(()) //TODO: what to return here? 
+    }
+
+    fn size_internal(value: Array<felt252>) -> u8 {
+        // Add 1 for the length
+        value.len().try_into().unwrap() + 1
+    }
 }
 
 impl StorageAccessStrategy of StorageAccess<Strategy> {
@@ -446,64 +680,57 @@ impl StorageAccessStrategy of StorageAccess<Strategy> {
             value.params
         )
     }
-}
 
-impl StorageAccessStrategyArray of StorageAccess<Array<Strategy>> {
-    fn read(address_domain: u32, base: StorageBaseAddress) -> SyscallResult<Array<Strategy>> {
-        let length = StorageAccess::read(
-            address_domain,
-            storage_base_address_from_felt252(
-                storage_address_from_base_and_offset(base, 0_u8).into()
-            )
-        )?;
-
-        let mut arr = ArrayTrait::<Strategy>::new();
-        let mut i = 1_usize;
-        loop {
-            if i >= length {
-                break ();
-            }
-            arr.append(
-                StorageAccess::read(
+    fn read_at_offset_internal(
+        address_domain: u32, base: StorageBaseAddress, offset: u8
+    ) -> SyscallResult<Strategy> {
+        Result::Ok(
+            Strategy {
+                address: StorageAccess::read_at_offset_internal(
                     address_domain,
                     storage_base_address_from_felt252(
-                        storage_address_from_base_and_offset(base, i.try_into().unwrap()).into()
-                    )
+                        storage_address_from_base_and_offset(base, 0_u8).into()
+                    ),
+                    offset
+                )?,
+                params: StorageAccess::read_at_offset_internal(
+                    address_domain,
+                    storage_base_address_from_felt252(
+                        storage_address_from_base_and_offset(base, 1_u8).into()
+                    ),
+                    offset
                 )?
-            );
-            i += 1;
-        };
-        Result::Ok(arr)
+            }
+        )
     }
 
-    fn write(
-        address_domain: u32, base: StorageBaseAddress, value: Array<Strategy>
+    fn write_at_offset_internal(
+        address_domain: u32, base: StorageBaseAddress, offset: u8, value: Strategy
     ) -> SyscallResult<()> {
-        // Write length at offset 0
-        StorageAccess::write(
+        // Write value.address at offset 0
+        StorageAccess::write_at_offset_internal(
             address_domain,
             storage_base_address_from_felt252(
                 storage_address_from_base_and_offset(base, 0_u8).into()
             ),
-            value.len()
+            offset,
+            value.address
         );
 
-        // Write values at offsets 1.. 
-        let mut i = 1_usize;
-        loop {
-            if i >= value.len() {
-                break ();
-            }
-            // TODO: maybe I dont need to clone here? could use a span but need to impl that on Strategy
-            StorageAccess::write(
-                address_domain,
-                storage_base_address_from_felt252(
-                    storage_address_from_base_and_offset(base, i.try_into().unwrap()).into()
-                ),
-                value.at(i).clone()
-            )?;
-        };
-        Result::Ok(())
+        // Write value.params at offset 1
+        StorageAccess::write_at_offset_internal(
+            address_domain,
+            storage_base_address_from_felt252(
+                storage_address_from_base_and_offset(base, 1_u8).into()
+            ),
+            offset,
+            value.params
+        )
+    }
+
+    fn size_internal(value: Strategy) -> u8 {
+        // Add 1 for the strategy address
+        StorageAccess::size_internal(value.params) + 1
     }
 }
 
@@ -517,7 +744,7 @@ impl IndexedStrategyImpl of IndexedStrategyTrait {
             return ();
         }
 
-        let mut bit_map = U256Zeroable::zero();
+        let mut bit_map = u256 { low: 0_u128, high: 0_u128 };
         let mut i = 0_usize;
         loop {
             if i >= self.len() {
