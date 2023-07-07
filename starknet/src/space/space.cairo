@@ -682,6 +682,10 @@ mod Space {
             i+= 1;
         };
 
+        if cachedActiveVotingStrategies == 0 {
+            panic_with_felt252('No active voting strategy left');
+        }
+
         _active_voting_strategies::write(cachedActiveVotingStrategies);
     }
 
