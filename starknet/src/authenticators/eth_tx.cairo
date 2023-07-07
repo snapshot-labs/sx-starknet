@@ -1,35 +1,34 @@
 use starknet::ContractAddress;
 use sx::utils::types::{Strategy, IndexedStrategy, Choice};
 
-#[abi]
-trait IEthTxAuthenticator {
-    #[external]
+#[starknet::interface]
+trait IEthTxAuthenticator<TContractState> {
     fn authenticate_propose(
+        ref self: TContractState,
         target: ContractAddress,
         author: ContractAddress,
         execution_strategy: Strategy,
         user_proposal_validation_params: Array<felt252>
     );
-    #[external]
     fn authenticate_vote(
+        ref self: TContractState,
         target: ContractAddress,
         voter: ContractAddress,
         proposal_id: u256,
         choice: Choice,
         user_voting_strategies: Array<IndexedStrategy>
     );
-    #[external]
     fn authenticate_update_proposal(
+        ref self: TContractState,
         target: ContractAddress,
         author: ContractAddress,
         proposal_id: u256,
         execution_strategy: Strategy
     );
-    #[l1_handler]
-    fn commit(from_address: felt252, sender_address: felt252, hash: felt252);
+// TODO: Should L1 handlers be part of the interface?
 }
 
-#[contract]
+#[starknet::contract]
 mod EthTxAuthenticator {
     use super::IEthTxAuthenticator;
     use starknet::{ContractAddress, contract_address_to_felt252};
@@ -40,13 +39,16 @@ mod EthTxAuthenticator {
     use sx::utils::types::{Strategy, IndexedStrategy, Choice};
     use sx::utils::constants::{PROPOSE_SELECTOR, VOTE_SELECTOR, UPDATE_PROPOSAL_SELECTOR};
 
+    #[storage]
     struct Storage {
         _starknet_commit_address: felt252,
         _commits: LegacyMap::<felt252, felt252>
     }
 
-    impl EthTxAuthenticator of IEthTxAuthenticator {
+    #[external(v0)]
+    impl EthTxAuthenticator of IEthTxAuthenticator<ContractState> {
         fn authenticate_propose(
+            ref self: ContractState,
             target: ContractAddress,
             author: ContractAddress,
             execution_strategy: Strategy,
@@ -60,7 +62,7 @@ mod EthTxAuthenticator {
             user_proposal_validation_params.serialize(ref payload);
             let payload_hash = poseidon::poseidon_hash_span(payload.span());
 
-            consume_commit(payload_hash, contract_address_to_felt252(author));
+            consume_commit(ref self, payload_hash, contract_address_to_felt252(author));
 
             ISpaceDispatcher {
                 contract_address: target
@@ -68,6 +70,7 @@ mod EthTxAuthenticator {
         }
 
         fn authenticate_vote(
+            ref self: ContractState,
             target: ContractAddress,
             voter: ContractAddress,
             proposal_id: u256,
@@ -83,7 +86,7 @@ mod EthTxAuthenticator {
             user_voting_strategies.serialize(ref payload);
             let payload_hash = poseidon::poseidon_hash_span(payload.span());
 
-            consume_commit(payload_hash, contract_address_to_felt252(voter));
+            consume_commit(ref self, payload_hash, contract_address_to_felt252(voter));
 
             ISpaceDispatcher {
                 contract_address: target
@@ -91,6 +94,7 @@ mod EthTxAuthenticator {
         }
 
         fn authenticate_update_proposal(
+            ref self: ContractState,
             target: ContractAddress,
             author: ContractAddress,
             proposal_id: u256,
@@ -104,66 +108,27 @@ mod EthTxAuthenticator {
             execution_strategy.serialize(ref payload);
             let payload_hash = poseidon::poseidon_hash_span(payload.span());
 
-            consume_commit(payload_hash, contract_address_to_felt252(author));
+            consume_commit(ref self, payload_hash, contract_address_to_felt252(author));
 
             ISpaceDispatcher {
                 contract_address: target
             }.update_proposal(author, proposal_id, execution_strategy);
         }
-
-        fn commit(from_address: felt252, sender_address: felt252, hash: felt252) {
-            assert(from_address == _starknet_commit_address::read(), 'Invalid commit address');
-            _commits::write(hash, sender_address);
-        }
-    }
-
-    #[external]
-    fn authenticate_propose(
-        target: ContractAddress,
-        author: ContractAddress,
-        execution_strategy: Strategy,
-        user_proposal_validation_params: Array<felt252>
-    ) {
-        EthTxAuthenticator::authenticate_propose(
-            target, author, execution_strategy, user_proposal_validation_params
-        );
-    }
-
-    #[external]
-    fn authenticate_vote(
-        target: ContractAddress,
-        voter: ContractAddress,
-        proposal_id: u256,
-        choice: Choice,
-        user_voting_strategies: Array<IndexedStrategy>
-    ) {
-        EthTxAuthenticator::authenticate_vote(
-            target, voter, proposal_id, choice, user_voting_strategies
-        );
-    }
-
-    #[external]
-    fn authenticate_update_proposal(
-        target: ContractAddress,
-        author: ContractAddress,
-        proposal_id: u256,
-        execution_strategy: Strategy
-    ) {
-        EthTxAuthenticator::authenticate_update_proposal(
-            target, author, proposal_id, execution_strategy
-        );
     }
 
     #[l1_handler]
-    fn commit(from_address: felt252, sender_address: felt252, hash: felt252) {
-        EthTxAuthenticator::commit(from_address, sender_address, hash);
+    fn commit(
+        ref self: ContractState, from_address: felt252, sender_address: felt252, hash: felt252
+    ) {
+        assert(from_address == self._starknet_commit_address.read(), 'Invalid commit address');
+        self._commits.write(hash, sender_address);
     }
 
-    fn consume_commit(hash: felt252, sender_address: felt252) {
-        let committer_address = _commits::read(hash);
+    fn consume_commit(ref self: ContractState, hash: felt252, sender_address: felt252) {
+        let committer_address = self._commits.read(hash);
         assert(committer_address != 0, 'Commit not found');
         assert(committer_address == sender_address, 'Invalid sender address');
         // Delete the commit to prevent replay attacks.
-        _commits::write(hash, 0);
+        self._commits.write(hash, 0);
     }
 }
