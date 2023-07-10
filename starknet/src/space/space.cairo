@@ -400,13 +400,11 @@ mod Space {
             VotingStrategiesAdded(voting_strategies);
         }
 
-        fn remove_voting_strategies(
-            ref self: ContractState, voting_strategy_indices: Array<u8>
-        ) {
+        fn remove_voting_strategies(ref self: ContractState, voting_strategy_indices: Array<u8>) {
             //TODO: temporary component syntax
             let state: Ownable::ContractState = Ownable::unsafe_new_contract_state();
             Ownable::assert_only_owner(@state);
-            _remove_voting_strategies(voting_strategy_indices.clone());
+            _remove_voting_strategies(ref self, voting_strategy_indices.clone());
             VotingStrategiesRemoved(voting_strategy_indices);
         }
 
@@ -559,8 +557,8 @@ mod Space {
         self._next_voting_strategy_index.write(cachedNextVotingStrategyIndex);
     }
 
-    fn _remove_voting_strategies(_voting_strategies: Array<u8>) {
-        let mut cachedActiveVotingStrategies = _active_voting_strategies::read();
+    fn _remove_voting_strategies(ref self: ContractState, _voting_strategies: Array<u8>) {
+        let mut cachedActiveVotingStrategies = self._active_voting_strategies.read();
         let mut _voting_strategies_span = _voting_strategies.span();
         let mut i = 0_usize;
         loop {
@@ -570,14 +568,14 @@ mod Space {
 
             let index = _voting_strategies_span.pop_front().unwrap();
             cachedActiveVotingStrategies.set_bit(*index, false);
-            i+= 1;
+            i += 1;
         };
 
         if cachedActiveVotingStrategies == 0 {
             panic_with_felt252('No active voting strategy left');
         }
 
-        _active_voting_strategies::write(cachedActiveVotingStrategies);
+        self._active_voting_strategies.write(cachedActiveVotingStrategies);
     }
 
     fn _add_authenticators(ref self: ContractState, _authenticators: Array<ContractAddress>) {
