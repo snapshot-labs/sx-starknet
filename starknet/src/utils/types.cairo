@@ -516,140 +516,75 @@ impl StorageAccessProposal of StorageAccess<Proposal> {
     }
 }
 
-impl StorageAccessFeltArray of StorageAccess<Array<felt252>> {
+impl StorageAccessFelt252Array of StorageAccess<Array<felt252>> {
     fn read(address_domain: u32, base: StorageBaseAddress) -> SyscallResult<Array<felt252>> {
-        let length = StorageAccess::read(
-            address_domain,
-            storage_base_address_from_felt252(
-                storage_address_from_base_and_offset(base, 0_u8).into()
-            )
-        )?;
-
-        let mut arr = ArrayTrait::<felt252>::new();
-        let mut i = 0_usize;
-        loop {
-            if i >= length {
-                break ();
-            }
-
-            match StorageAccess::read(
-                address_domain,
-                storage_base_address_from_felt252(
-                    storage_address_from_base_and_offset(base, 0).into()
-                )
-            ) {
-                Result::Ok(b) => arr.append(b),
-                Result::Err(_) => {
-                    break ();
-                }
-            }
-
-            i += 1;
-        };
-        Result::Ok(arr)
+        StorageAccessFelt252Array::read_at_offset_internal(address_domain, base, 0)
     }
 
     fn write(
         address_domain: u32, base: StorageBaseAddress, value: Array<felt252>
     ) -> SyscallResult<()> {
-        // Write length at offset 0
-        StorageAccess::write(
-            address_domain,
-            storage_base_address_from_felt252(
-                storage_address_from_base_and_offset(base, 0_u8).into()
-            ),
-            value.len()
-        );
-
-        // Write values at offsets 1..value.len()
-        let mut i = 1_usize;
-        loop {
-            if i >= value.len() {
-                break ();
-            }
-            StorageAccess::write(
-                address_domain,
-                storage_base_address_from_felt252(
-                    storage_address_from_base_and_offset(base, i.try_into().unwrap()).into()
-                ),
-                *value.at(i)
-            );
-            i += 1;
-        };
-        Result::Ok(()) //TODO: what to return here? 
+        StorageAccessFelt252Array::write_at_offset_internal(address_domain, base, 0, value)
     }
 
     fn read_at_offset_internal(
-        address_domain: u32, base: StorageBaseAddress, offset: u8
+        address_domain: u32, base: StorageBaseAddress, mut offset: u8
     ) -> SyscallResult<Array<felt252>> {
-        let length = StorageAccess::read_at_offset_internal(
-            address_domain,
-            storage_base_address_from_felt252(
-                storage_address_from_base_and_offset(base, 0_u8).into()
-            ),
-            offset
-        )?;
+        let mut arr: Array<felt252> = ArrayTrait::new();
 
-        let mut arr = ArrayTrait::<felt252>::new();
-        let mut i = 0_usize;
+        // Read the stored array's length. If the length is superior to 255, the read will fail.
+        let len: u8 = StorageAccess::<u8>::read_at_offset_internal(address_domain, base, offset)
+            .expect('Storage Span too large');
+        offset += 1;
+
+        // Sequentially read all stored elements and append them to the array.
+        let exit = len + offset;
         loop {
-            if i >= length {
-                break ();
+            if offset >= exit {
+                break;
             }
 
-            match StorageAccess::read_at_offset_internal(
-                address_domain,
-                storage_base_address_from_felt252(
-                    storage_address_from_base_and_offset(base, 0).into()
-                ),
-                offset
-            ) {
-                Result::Ok(b) => arr.append(b),
-                Result::Err(_) => {
-                    break ();
-                }
-            }
-
-            i += 1;
+            let value = StorageAccess::<felt252>::read_at_offset_internal(
+                address_domain, base, offset
+            )
+                .unwrap();
+            arr.append(value);
+            offset += StorageAccess::<felt252>::size_internal(value);
         };
+
+        // Return the array.
         Result::Ok(arr)
     }
 
     fn write_at_offset_internal(
-        address_domain: u32, base: StorageBaseAddress, offset: u8, value: Array<felt252>
+        address_domain: u32, base: StorageBaseAddress, mut offset: u8, mut value: Array<felt252>
     ) -> SyscallResult<()> {
-        // Write length at offset 0
-        StorageAccess::write_at_offset_internal(
-            address_domain,
-            storage_base_address_from_felt252(
-                storage_address_from_base_and_offset(base, 0_u8).into()
-            ),
-            offset,
-            value.len()
-        );
+        // // Store the length of the array in the first storage slot.
+        let len: u8 = value.len().try_into().expect('Storage - Span too large');
+        StorageAccess::<u8>::write_at_offset_internal(address_domain, base, offset, len);
+        offset += 1;
 
-        // Write values at offsets 1..value.len()
-        let mut i = 1_usize;
+        // Store the array elements sequentially
         loop {
-            if i >= value.len() {
-                break ();
-            }
-            StorageAccess::write_at_offset_internal(
-                address_domain,
-                storage_base_address_from_felt252(
-                    storage_address_from_base_and_offset(base, i.try_into().unwrap()).into()
-                ),
-                offset,
-                *value.at(i)
-            );
-            i += 1;
-        };
-        Result::Ok(()) //TODO: what to return here? 
+            match value.pop_front() {
+                Option::Some(element) => {
+                    StorageAccess::<felt252>::write_at_offset_internal(
+                        address_domain, base, offset, element
+                    )?;
+                    offset += StorageAccess::<felt252>::size_internal(element);
+                },
+                Option::None(_) => {
+                    break Result::Ok(());
+                }
+            };
+        }
     }
 
     fn size_internal(value: Array<felt252>) -> u8 {
-        // Add 1 for the length
-        value.len().try_into().unwrap() + 1
+        if value.len() == 0 {
+            return 1;
+        }
+        1_u8 + StorageAccess::<felt252>::size_internal(*value[0]) * value.len().try_into().unwrap()
     }
 }
 
