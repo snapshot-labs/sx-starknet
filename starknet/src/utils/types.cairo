@@ -154,33 +154,17 @@ struct Proposal {
 }
 
 // TODO: Should eventually be able to derive the StorageAccess trait on the structs and enum 
-// cant atm as the derive only works for simple structs 
+// cant atm as the derive only works for simple structs I think
 
 impl StorageAccessFinalizationStatus of StorageAccess<FinalizationStatus> {
     fn read(address_domain: u32, base: StorageBaseAddress) -> SyscallResult<FinalizationStatus> {
-        match StorageAccess::read(
-            address_domain,
-            storage_base_address_from_felt252(
-                storage_address_from_base_and_offset(base, 0_u8).into()
-            )
-        ) {
-            Result::Ok(num) => {
-                Result::Ok(U8IntoFinalizationStatus::try_into(num).unwrap())
-            },
-            Result::Err(err) => Result::Err(err)
-        }
+        StorageAccessFinalizationStatus::read_at_offset_internal(address_domain, base, 0)
     }
 
     fn write(
         address_domain: u32, base: StorageBaseAddress, value: FinalizationStatus
     ) -> SyscallResult<()> {
-        StorageAccess::write(
-            address_domain,
-            storage_base_address_from_felt252(
-                storage_address_from_base_and_offset(base, 0_u8).into()
-            ),
-            FinalizationStatusIntoU8::into(value)
-        )
+        StorageAccessFinalizationStatus::write_at_offset_internal(address_domain, base, 0, value)
     }
 
     fn read_at_offset_internal(
@@ -220,138 +204,11 @@ impl StorageAccessFinalizationStatus of StorageAccess<FinalizationStatus> {
 
 impl StorageAccessProposal of StorageAccess<Proposal> {
     fn read(address_domain: u32, base: StorageBaseAddress) -> SyscallResult<Proposal> {
-        Result::Ok(
-            Proposal {
-                snapshot_timestamp: StorageAccess::read(
-                    address_domain,
-                    storage_base_address_from_felt252(
-                        storage_address_from_base_and_offset(base, 0_u8).into()
-                    )
-                )?,
-                start_timestamp: StorageAccess::read(
-                    address_domain,
-                    storage_base_address_from_felt252(
-                        storage_address_from_base_and_offset(base, 1_u8).into()
-                    )
-                )?,
-                min_end_timestamp: StorageAccess::read(
-                    address_domain,
-                    storage_base_address_from_felt252(
-                        storage_address_from_base_and_offset(base, 2_u8).into()
-                    )
-                )?,
-                max_end_timestamp: StorageAccess::read(
-                    address_domain,
-                    storage_base_address_from_felt252(
-                        storage_address_from_base_and_offset(base, 3_u8).into()
-                    )
-                )?,
-                execution_payload_hash: StorageAccess::read(
-                    address_domain,
-                    storage_base_address_from_felt252(
-                        storage_address_from_base_and_offset(base, 4_u8).into()
-                    )
-                )?,
-                execution_strategy: StorageAccess::read(
-                    address_domain,
-                    storage_base_address_from_felt252(
-                        storage_address_from_base_and_offset(base, 5_u8).into()
-                    )
-                )?,
-                author: StorageAccess::read(
-                    address_domain,
-                    storage_base_address_from_felt252(
-                        storage_address_from_base_and_offset(base, 6_u8).into()
-                    )
-                )?,
-                finalization_status: StorageAccess::read(
-                    address_domain,
-                    storage_base_address_from_felt252(
-                        storage_address_from_base_and_offset(base, 7_u8).into()
-                    )
-                )?,
-                active_voting_strategies: StorageAccess::read(
-                    address_domain,
-                    storage_base_address_from_felt252(
-                        storage_address_from_base_and_offset(base, 8_u8).into()
-                    )
-                )?
-            }
-        )
+        StorageAccessProposal::read_at_offset_internal(address_domain, base, 0)
     }
 
     fn write(address_domain: u32, base: StorageBaseAddress, value: Proposal) -> SyscallResult<()> {
-        StorageAccess::write(
-            address_domain,
-            storage_base_address_from_felt252(
-                storage_address_from_base_and_offset(base, 0_u8).into()
-            ),
-            value.snapshot_timestamp
-        );
-
-        StorageAccess::write(
-            address_domain,
-            storage_base_address_from_felt252(
-                storage_address_from_base_and_offset(base, 1_u8).into()
-            ),
-            value.start_timestamp
-        );
-
-        StorageAccess::write(
-            address_domain,
-            storage_base_address_from_felt252(
-                storage_address_from_base_and_offset(base, 2_u8).into()
-            ),
-            value.min_end_timestamp
-        );
-
-        StorageAccess::write(
-            address_domain,
-            storage_base_address_from_felt252(
-                storage_address_from_base_and_offset(base, 3_u8).into()
-            ),
-            value.max_end_timestamp
-        );
-
-        StorageAccess::write(
-            address_domain,
-            storage_base_address_from_felt252(
-                storage_address_from_base_and_offset(base, 4_u8).into()
-            ),
-            value.execution_payload_hash
-        );
-
-        StorageAccess::write(
-            address_domain,
-            storage_base_address_from_felt252(
-                storage_address_from_base_and_offset(base, 5_u8).into()
-            ),
-            value.execution_strategy
-        );
-
-        StorageAccess::write(
-            address_domain,
-            storage_base_address_from_felt252(
-                storage_address_from_base_and_offset(base, 6_u8).into()
-            ),
-            value.author
-        );
-
-        StorageAccess::write(
-            address_domain,
-            storage_base_address_from_felt252(
-                storage_address_from_base_and_offset(base, 7_u8).into()
-            ),
-            value.finalization_status
-        );
-
-        StorageAccess::write(
-            address_domain,
-            storage_base_address_from_felt252(
-                storage_address_from_base_and_offset(base, 8_u8).into()
-            ),
-            value.active_voting_strategies
-        )
+        StorageAccessProposal::write_at_offset_internal(address_domain, base, 0, value)
     }
 
     fn read_at_offset_internal(
@@ -591,42 +448,11 @@ impl StorageAccessFelt252Array of StorageAccess<Array<felt252>> {
 impl StorageAccessStrategy of StorageAccess<Strategy> {
     // #[inline(always)]
     fn read(address_domain: u32, base: StorageBaseAddress) -> SyscallResult<Strategy> {
-        Result::Ok(
-            Strategy {
-                address: StorageAccess::read(
-                    address_domain,
-                    storage_base_address_from_felt252(
-                        storage_address_from_base_and_offset(base, 0_u8).into()
-                    )
-                )?,
-                params: StorageAccess::read(
-                    address_domain,
-                    storage_base_address_from_felt252(
-                        storage_address_from_base_and_offset(base, 1_u8).into()
-                    )
-                )?
-            }
-        )
+        StorageAccessStrategy::read_at_offset_internal(address_domain, base, 0)
     }
     // #[inline(always)]
     fn write(address_domain: u32, base: StorageBaseAddress, value: Strategy) -> SyscallResult<()> {
-        // Write value.address at offset 0
-        StorageAccess::write(
-            address_domain,
-            storage_base_address_from_felt252(
-                storage_address_from_base_and_offset(base, 0_u8).into()
-            ),
-            value.address
-        );
-
-        // Write value.params at offset 1
-        StorageAccess::write(
-            address_domain,
-            storage_base_address_from_felt252(
-                storage_address_from_base_and_offset(base, 1_u8).into()
-            ),
-            value.params
-        )
+        StorageAccessStrategy::write_at_offset_internal(address_domain, base, 0, value)
     }
 
     fn read_at_offset_internal(
