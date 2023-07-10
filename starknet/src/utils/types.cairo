@@ -120,6 +120,19 @@ struct Strategy {
     params: Array<felt252>,
 }
 
+impl PartialEqStrategy of PartialEq<Strategy> {
+    fn eq(lhs: @Strategy, rhs: @Strategy) -> bool {
+        lhs.address == rhs.address
+            && poseidon::poseidon_hash_span(
+                lhs.params.span()
+            ) == poseidon::poseidon_hash_span(rhs.params.span())
+    }
+
+    fn ne(lhs: @Strategy, rhs: @Strategy) -> bool {
+        !(lhs.clone() == rhs.clone())
+    }
+}
+
 #[derive(Option, Clone, Drop, Serde)]
 struct IndexedStrategy {
     index: u8,
