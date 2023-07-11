@@ -167,7 +167,7 @@ mod Space {
             let proposal_id = self._next_proposal_id.read();
 
             // Proposal Validation
-            let proposal_validation_strategy = _proposal_validation_strategy::read();
+            let proposal_validation_strategy = self._proposal_validation_strategy.read();
             let is_valid = IProposalValidationStrategyDispatcher {
                 contract_address: proposal_validation_strategy.address
             }
