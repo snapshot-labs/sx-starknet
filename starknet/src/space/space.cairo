@@ -167,14 +167,13 @@ mod Space {
             let proposal_id = self._next_proposal_id.read();
 
             // Proposal Validation
-            let proposal_validation_strategy = self._proposal_validation_strategy.read();
-            let valid = IProposalValidationStrategyDispatcher {
+            let proposal_validation_strategy = _proposal_validation_strategy::read();
+            let is_valid = IProposalValidationStrategyDispatcher {
                 contract_address: proposal_validation_strategy.address
-            }
-                .validate(
-                    author, proposal_validation_strategy.params, user_proposal_validation_params
-                );
-            assert(valid, 'Proposal is not valid');
+            }.validate(
+                author, proposal_validation_strategy.params, user_proposal_validation_params
+            );
+            assert(is_valid, 'Proposal is not valid');
 
             let snapshot_timestamp = info::get_block_timestamp();
             let start_timestamp = snapshot_timestamp + self._voting_delay.read();
