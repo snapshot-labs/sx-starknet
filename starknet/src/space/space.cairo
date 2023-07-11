@@ -183,12 +183,12 @@ mod Space {
 
             // Proposal Validation
             let proposal_validation_strategy = _proposal_validation_strategy::read();
-            let valid = IProposalValidationStrategyDispatcher {
+            let is_valid = IProposalValidationStrategyDispatcher {
                 contract_address: proposal_validation_strategy.address
             }.validate(
                 author, proposal_validation_strategy.params, user_proposal_validation_params
             );
-            assert(valid, 'Proposal is not valid');
+            assert(is_valid, 'Proposal is not valid');
 
             let snapshot_timestamp = info::get_block_timestamp();
             let start_timestamp = snapshot_timestamp + _voting_delay::read();
