@@ -18,9 +18,10 @@ struct Proofs {
     proofs_concat: Array<felt252>
 }
 
-#[abi]
-trait IFactsRegistry {
+#[starknet::interface]
+trait IFactsRegistry<ContractState> {
     fn get_storage_uint(
+        self: @ContractState,
         block: felt252,
         account_160: felt252,
         slot: StorageSlot,
@@ -30,7 +31,7 @@ trait IFactsRegistry {
     ) -> u256;
 }
 
-#[contract]
+#[starknet::contract]
 mod SingleSlotProof {
     use starknet::ContractAddress;
     use zeroable::Zeroable;
@@ -43,13 +44,14 @@ mod SingleSlotProof {
     };
     use sx::utils::math;
 
+    #[storage]
     struct Storage {
         _facts_registry: ContractAddress
     }
 
     #[internal]
-    fn initializer(facts_registry: ContractAddress) {
-        _facts_registry::write(facts_registry);
+    fn initializer(ref self: ContractState, facts_registry: ContractAddress) {
+        self._facts_registry.write(facts_registry);
     }
 
     #[internal]
@@ -57,11 +59,12 @@ mod SingleSlotProof {
         let mut encoded_array = ArrayTrait::<u256>::new();
         encoded_array.append(mapping_key);
         encoded_array.append(slot_index);
-        keccak::keccak_uint256s_le(encoded_array.span())
+        keccak::keccak_u256s_le_inputs(encoded_array.span())
     }
 
     #[internal]
     fn get_storage_slot(
+        self: @ContractState,
         block_number: u64,
         contract_address: felt252,
         slot_index: u256,
@@ -84,15 +87,16 @@ mod SingleSlotProof {
         );
 
         let slot_value = IFactsRegistryDispatcher {
-            contract_address: _facts_registry::read()
-        }.get_storage_uint(
-            block_number.into(),
-            contract_address,
-            proofs.slot,
-            proofs.proof_size_bytes,
-            proofs.proof_size_words,
-            proofs.proofs_concat
-        );
+            contract_address: self._facts_registry.read()
+        }
+            .get_storage_uint(
+                block_number.into(),
+                contract_address,
+                proofs.slot,
+                proofs.proof_size_bytes,
+                proofs.proof_size_words,
+                proofs.proofs_concat
+            );
 
         assert(slot_value.is_non_zero(), 'Slot is zero');
 

@@ -1,9 +1,11 @@
 use starknet::ContractAddress;
 
-#[abi]
-trait IProposalValidationStrategy {
-    #[external]
+#[starknet::interface]
+trait IProposalValidationStrategy<TContractState> {
     fn validate(
-        author: ContractAddress, params: Array<felt252>, userParams: Array<felt252>
+        self: @TContractState,
+        author: ContractAddress,
+        params: Array<felt252>,
+        userParams: Array<felt252>
     ) -> bool;
 }

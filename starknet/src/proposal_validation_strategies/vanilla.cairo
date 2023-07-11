@@ -1,20 +1,20 @@
-#[contract]
+#[starknet::contract]
 mod VanillaProposalValidationStrategy {
     use sx::interfaces::IProposalValidationStrategy;
     use starknet::ContractAddress;
 
-    impl VanillaProposalValidationStrategy of IProposalValidationStrategy {
+    #[storage]
+    struct Storage {}
+
+    #[external(v0)]
+    impl VanillaProposalValidationStrategy of IProposalValidationStrategy<ContractState> {
         fn validate(
-            author: ContractAddress, params: Array<felt252>, userParams: Array<felt252>
+            self: @ContractState,
+            author: ContractAddress,
+            params: Array<felt252>,
+            userParams: Array<felt252>
         ) -> bool {
             true
         }
-    }
-
-    #[external]
-    fn validate(
-        author: ContractAddress, params: Array<felt252>, userParams: Array<felt252>
-    ) -> bool {
-        VanillaProposalValidationStrategy::validate(author, params, userParams)
     }
 }

@@ -1,12 +1,14 @@
-#[contract]
+#[starknet::contract]
 mod EthRelayerExecutionStrategy {
     use starknet::syscalls::send_message_to_l1_syscall;
     use starknet::info::get_caller_address;
     use sx::interfaces::IExecutionStrategy;
     use sx::utils::types::{Proposal};
 
-    impl EthRelayerExecutionStrategy of IExecutionStrategy {
+    #[external(v0)]
+    impl EthRelayerExecutionStrategy of IExecutionStrategy<ContractState> {
         fn execute(
+            ref self: ContractState,
             proposal: Proposal,
             votes_for: u256,
             votes_against: u256,
@@ -30,18 +32,5 @@ mod EthRelayerExecutionStrategy {
 
             send_message_to_l1_syscall(l1_destination, message_payload);
         }
-    }
-
-    #[external]
-    fn execute(
-        proposal: Proposal,
-        votes_for: u256,
-        votes_against: u256,
-        votes_abstain: u256,
-        payload: Array<u8>
-    ) {
-        VanillaExecutionStrategy::execute(
-            proposal, votes_for, votes_against, votes_abstain, payload
-        );
     }
 }
