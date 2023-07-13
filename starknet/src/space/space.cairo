@@ -99,14 +99,14 @@ mod Space {
         _voting_delay: u64,
         _min_voting_duration: u64,
         _max_voting_duration: u64,
-        _proposal_validation_strategy: Strategy,
-        _voting_strategies: Array<Strategy>,
-        _authenticators: Array<ContractAddress>
+        _proposal_validation_strategy: @Strategy,
+        _voting_strategies: @Array<Strategy>,
+        _authenticators: @Array<ContractAddress>
     ) {}
 
     #[event]
     fn ProposalCreated(
-        _proposal_id: u256, _author: ContractAddress, _proposal: Proposal, _payload: Array<felt252>
+        _proposal_id: u256, _author: ContractAddress, _proposal: @Proposal, _payload: @Array<felt252>
     ) {}
 
     #[event]
@@ -196,13 +196,14 @@ mod Space {
                 finalization_status: FinalizationStatus::Pending(()),
                 active_voting_strategies: self._active_voting_strategies.read()
             };
+            let snap_proposal = @proposal;
 
             // TODO: Lots of copying, maybe figure out how to pass snapshots to events/storage writers. 
-            self._proposals.write(proposal_id, proposal.clone());
+            self._proposals.write(proposal_id, proposal);
 
             self._next_proposal_id.write(proposal_id + u256 { low: 1_u128, high: 0_u128 });
 
-            ProposalCreated(proposal_id, author, proposal, execution_strategy.params);
+            ProposalCreated(proposal_id, author, snap_proposal, @execution_strategy.params);
         }
 
         fn vote(
@@ -458,9 +459,9 @@ mod Space {
             _voting_delay,
             _min_voting_duration,
             _max_voting_duration,
-            _proposal_validation_strategy,
-            _voting_strategies,
-            _authenticators
+            @_proposal_validation_strategy,
+            @_voting_strategies,
+            @_authenticators
         );
     }
 
