@@ -182,7 +182,7 @@ mod Space {
             // TODO: we use a felt252 for the hash despite felts being discouraged 
             // a new field would just replace the hash. Might be worth casting to a Uint256 though? 
             let execution_payload_hash = poseidon::poseidon_hash_span(
-                execution_strategy.clone().params.span()
+                execution_strategy.params.span()
             );
 
             let proposal = Proposal {
