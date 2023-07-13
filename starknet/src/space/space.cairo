@@ -118,28 +118,28 @@ mod Space {
     fn ProposalExecuted(_proposal_id: u256) {}
 
     #[event]
-    fn ProposalUpdated(_proposal_id: u256, _execution_stategy: Strategy) {}
+    fn ProposalUpdated(_proposal_id: u256, _execution_stategy: @Strategy) {}
 
     #[event]
     fn ProposalCancelled(_proposal_id: u256) {}
 
     #[event]
-    fn VotingStrategiesAdded(_new_voting_strategies: Array<Strategy>, _new_voting_strategy_metadata_uris: Array<Array<felt252>>) {}
+    fn VotingStrategiesAdded(_new_voting_strategies: @Array<Strategy>, _new_voting_strategy_metadata_uris: @Array<Array<felt252>>) {}
 
     #[event]
-    fn VotingStrategiesRemoved(_voting_strategy_indices: Array<u8>) {}
+    fn VotingStrategiesRemoved(_voting_strategy_indices: @Array<u8>) {}
 
     #[event]
-    fn AuthenticatorsAdded(_new_authenticators: Array<ContractAddress>) {}
+    fn AuthenticatorsAdded(_new_authenticators: @Array<ContractAddress>) {}
 
     #[event]
-    fn AuthenticatorsRemoved(_authenticators: Array<ContractAddress>) {}
+    fn AuthenticatorsRemoved(_authenticators: @Array<ContractAddress>) {}
 
     #[event]
-    fn MetadataURIUpdated(_new_metadata_uri: Array<felt252>) {}
+    fn MetadataURIUpdated(_new_metadata_uri: @Array<felt252>) {}
 
     #[event]
-    fn DaoURIUpdated(_new_dao_uri: Array<felt252>) {}
+    fn DaoURIUpdated(_new_dao_uri: @Array<felt252>) {}
 
     #[event]
     fn MaxVotingDurationUpdated(_new_max_voting_duration: u64) {}
@@ -148,7 +148,7 @@ mod Space {
     fn MinVotingDurationUpdated(_new_min_voting_duration: u64) {}
 
     #[event]
-    fn ProposalValidationStrategyUpdated(_new_proposal_validation_strategy: Strategy, _new_proposal_validation_strategy_metadata_URI: Array<felt252>) {}
+    fn ProposalValidationStrategyUpdated(_new_proposal_validation_strategy: @Strategy, _new_proposal_validation_strategy_metadata_URI: @Array<felt252>) {}
     
     #[event]
     fn VotingDelayUpdated(_new_voting_delay: u64) {}
@@ -290,7 +290,7 @@ mod Space {
 
             self._proposals.write(proposal_id, proposal);
 
-            ProposalUpdated(proposal_id, execution_strategy);
+            ProposalUpdated(proposal_id, @execution_strategy);
         }
 
         fn cancel_proposal(ref self: ContractState, proposal_id: u256) {
@@ -376,11 +376,11 @@ mod Space {
             }  
 
             if NoUpdateArray::should_update((@input).metadata_URI) {
-                MetadataURIUpdated(input.metadata_URI.clone());
+                MetadataURIUpdated(@input.metadata_URI);
             }
 
             if NoUpdateArray::should_update((@input).dao_URI) {
-                DaoURIUpdated(input.dao_URI.clone());
+                DaoURIUpdated(@input.dao_URI);
             }
 
             // if not NO_UPDATE
@@ -388,30 +388,30 @@ mod Space {
                 // TODO: might be possible to remove need to clone by defining the event or setter on a snapshot.
                 // Similarly for all non value types.
                 _set_proposal_validation_strategy(ref self, input.proposal_validation_strategy.clone());
-                ProposalValidationStrategyUpdated(input.proposal_validation_strategy.clone(), input.proposal_validation_strategy_metadata_URI.clone());
+                ProposalValidationStrategyUpdated(@input.proposal_validation_strategy, @input.proposal_validation_strategy_metadata_URI);
             }
 
             if NoUpdateArray::should_update((@input).authenticators_to_add) {
                 _add_authenticators(ref self, input.authenticators_to_add.clone());
-                AuthenticatorsAdded(input.authenticators_to_add.clone());
+                AuthenticatorsAdded(@input.authenticators_to_add);
             }
 
             // if not NO_UPDATE
             if NoUpdateArray::should_update((@input).authenticators_to_remove) {
                 _remove_authenticators(ref self, input.authenticators_to_remove.clone());
-                AuthenticatorsRemoved(input.authenticators_to_remove.clone());
+                AuthenticatorsRemoved(@input.authenticators_to_remove);
             }
 
             // if not NO_UPDATE
             if NoUpdateArray::should_update((@input).voting_strategies_to_add) {
                 _add_voting_strategies(ref self, input.voting_strategies_to_add.clone());
-                VotingStrategiesAdded(input.voting_strategies_to_add.clone(), input.voting_strategies_metadata_URIs_to_add.clone());
+                VotingStrategiesAdded(@input.voting_strategies_to_add, @input.voting_strategies_metadata_URIs_to_add);
             }
 
             // if not NO_UPDATE
             if NoUpdateArray::should_update((@input).voting_strategies_to_remove) {
                 _remove_voting_strategies(ref self, input.voting_strategies_to_remove.clone());
-                        VotingStrategiesRemoved(input.voting_strategies_to_remove.clone());
+                        VotingStrategiesRemoved(@input.voting_strategies_to_remove);
             }
         }
 
