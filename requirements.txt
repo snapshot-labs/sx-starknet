@@ -1,3 +1,0 @@
-https://github.com/starkware-libs/cairo-lang/releases/download/v0.10.2/cairo-lang-0.10.2.zip
-openzeppelin-cairo-contracts==0.5.1
-starknet-devnet==0.4.1

@@ -1,0 +1,69 @@
+name: SX-Starknet Workflow
+
+on:
+  push:
+    branches:
+      - develop
+  pull_request:
+
+jobs:
+  solidity:
+    strategy:
+      fail-fast: true
+
+    name: Forge tests
+    runs-on: ubuntu-latest
+    steps:
+      - name: Step 1 - Check out main branch
+        uses: actions/checkout@v3
+        with:
+          submodules: recursive
+
+      - name: Step 2 - Install Foundry
+        uses: foundry-rs/foundry-toolchain@v1
+        with:
+          version: nightly
+
+      - name: Step 3 - Check formatting
+        working-directory: ./ethereum
+        run: forge fmt --check
+
+      - name: Step 4 - Build Solidity contracts
+        working-directory: ./ethereum
+        run: |
+          forge --version
+          forge build --sizes
+        id: build
+
+      - name: Step 5 - Run Forge tests
+        working-directory: ./ethereum
+        run: |
+          forge test -vvv
+        id: test
+
+  cairo:
+    strategy:
+      fail-fast: true
+
+    name: Cairo tests
+    runs-on: ubuntu-latest
+    steps:
+      - name: Step 1 - Check out main branch
+        uses: actions/checkout@v3
+
+      - name: Step 2 - Install Scarb 
+        uses: software-mansion/setup-scarb@v1
+        with: 
+          scarb-version: 0.5.1
+
+      - name: Step 3 - Check formatting
+        working-directory: ./starknet
+        run: scarb fmt --check
+
+      - name: Step 4 - Build Cairo contracts
+        working-directory: ./starknet
+        run: scarb build --verbose      
+
+      - name: Step 4 - Running Cairo tests
+        working-directory: ./starknet
+        run: scarb test --verbose

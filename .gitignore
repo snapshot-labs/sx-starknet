@@ -1,30 +1,13 @@
-node_modules
-**/__pycache__
-
-#Hardhat files
-cache
-artifacts
-starknet-artifacts
-factories
-typechain
-typechain-types
-abi
-coverage 
-coverage.json
-
-.yarn
+target
+node_modules/
 .env
+cairo_project.toml
 
-# Editor directories and files
-.idea
-.vscode
-*.suo
-*.ntvs*
-*.njsproj
-*.sln
-*.sw?
+cache/
+out/
 
-# Local deployments
-deployed_contracts/local.json
+!/broadcast
+/broadcast/*/31337/
+/broadcast/**/dry-run/
 
-*.DS_Store
+docs/
