@@ -1,4 +1,4 @@
-use starknet::ContractAddress;
+use starknet::{ContractAddress, EthAddress};
 use starknet::SyscallResult;
 use sx::types::{Strategy, IndexedStrategy, Choice};
 
@@ -10,7 +10,7 @@ trait IEthSigAuthenticator<TContractState> {
         s: u256,
         v: u256,
         target: ContractAddress,
-        author: ContractAddress,
+        author: EthAddress,
         execution_strategy: Strategy,
         user_proposal_validation_params: Array<felt252>,
         salt: u256,
@@ -21,7 +21,7 @@ trait IEthSigAuthenticator<TContractState> {
         s: u256,
         v: u256,
         target: ContractAddress,
-        voter: ContractAddress,
+        voter: EthAddress,
         proposal_id: u256,
         choice: Choice,
         user_voting_strategies: Array<IndexedStrategy>
@@ -32,7 +32,7 @@ trait IEthSigAuthenticator<TContractState> {
         s: u256,
         v: u256,
         target: ContractAddress,
-        author: ContractAddress,
+        author: EthAddress,
         proposal_id: u256,
         execution_strategy: Strategy,
         salt: u256
@@ -42,18 +42,17 @@ trait IEthSigAuthenticator<TContractState> {
 #[starknet::contract]
 mod EthSigAuthenticator {
     use super::IEthSigAuthenticator;
-    use starknet::ContractAddress;
-    use starknet::syscalls::call_contract_syscall;
+    use starknet::{ContractAddress, EthAddress, syscalls::call_contract_syscall};
     use core::array::{ArrayTrait, SpanTrait};
     use clone::Clone;
     use sx::space::space::{ISpaceDispatcher, ISpaceDispatcherTrait};
-    use sx::types::{Strategy, IndexedStrategy, Choice};
-    use sx::utils::signatures;
+    use sx::types::{Strategy, IndexedStrategy, Choice, UserAddress};
+    use sx::utils::{signatures, LegacyHashEthAddress};
 
     #[storage]
     struct Storage {
         _domain_hash: u256,
-        _used_salts: LegacyMap::<(ContractAddress, u256), bool>
+        _used_salts: LegacyMap::<(EthAddress, u256), bool>
     }
 
     #[external(v0)]
@@ -64,7 +63,7 @@ mod EthSigAuthenticator {
             s: u256,
             v: u256,
             target: ContractAddress,
-            author: ContractAddress,
+            author: EthAddress,
             execution_strategy: Strategy,
             user_proposal_validation_params: Array<felt252>,
             salt: u256,
@@ -84,7 +83,12 @@ mod EthSigAuthenticator {
 
             ISpaceDispatcher {
                 contract_address: target
-            }.propose(author, execution_strategy, user_proposal_validation_params);
+            }
+                .propose(
+                    UserAddress::EthereumAddress(author),
+                    execution_strategy,
+                    user_proposal_validation_params
+                );
         }
 
         fn authenticate_vote(
@@ -93,7 +97,7 @@ mod EthSigAuthenticator {
             s: u256,
             v: u256,
             target: ContractAddress,
-            voter: ContractAddress,
+            voter: EthAddress,
             proposal_id: u256,
             choice: Choice,
             user_voting_strategies: Array<IndexedStrategy>
@@ -114,7 +118,10 @@ mod EthSigAuthenticator {
 
             ISpaceDispatcher {
                 contract_address: target
-            }.vote(voter, proposal_id, choice, user_voting_strategies);
+            }
+                .vote(
+                    UserAddress::EthereumAddress(voter), proposal_id, choice, user_voting_strategies
+                );
         }
 
         fn authenticate_update_proposal(
@@ -123,7 +130,7 @@ mod EthSigAuthenticator {
             s: u256,
             v: u256,
             target: ContractAddress,
-            author: ContractAddress,
+            author: EthAddress,
             proposal_id: u256,
             execution_strategy: Strategy,
             salt: u256
@@ -143,7 +150,10 @@ mod EthSigAuthenticator {
 
             ISpaceDispatcher {
                 contract_address: target
-            }.update_proposal(author, proposal_id, execution_strategy);
+            }
+                .update_proposal(
+                    UserAddress::EthereumAddress(author), proposal_id, execution_strategy
+                );
         }
     }
 

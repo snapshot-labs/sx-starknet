@@ -21,7 +21,8 @@ mod tests {
     use sx::tests::mocks::proposal_validation_always_fail::AlwaysFailProposalValidationStrategy;
     use sx::tests::setup::setup::setup::{setup, deploy};
     use sx::types::{
-        Strategy, IndexedStrategy, Choice, FinalizationStatus, Proposal, UpdateSettingsCalldataImpl
+        UserAddress, Strategy, IndexedStrategy, Choice, FinalizationStatus, Proposal,
+        UpdateSettingsCalldataImpl
     };
     use sx::tests::utils::strategy_trait::{StrategyImpl};
     use sx::utils::constants::{PROPOSE_SELECTOR, VOTE_SELECTOR, UPDATE_PROPOSAL_SELECTOR};
@@ -132,8 +133,7 @@ mod tests {
         let vanilla_execution_strategy = StrategyImpl::from_address(
             vanilla_execution_strategy_address
         );
-
-        let author = contract_address_const::<0x5678>();
+        let author = UserAddress::StarknetAddress(contract_address_const::<0x5678>());
         let mut propose_calldata = array::ArrayTrait::<felt252>::new();
         author.serialize(ref propose_calldata);
         vanilla_execution_strategy.serialize(ref propose_calldata);
@@ -183,7 +183,8 @@ mod tests {
         testing::set_block_timestamp(1_u64);
 
         let mut vote_calldata = array::ArrayTrait::<felt252>::new();
-        vote_calldata.append(contract_address_const::<8765>().into());
+        let voter = UserAddress::StarknetAddress(contract_address_const::<0x8765>());
+        voter.serialize(ref vote_calldata);
         let proposal_id = u256_from_felt252(1);
         proposal_id.serialize(ref vote_calldata);
         let choice = Choice::For(());
@@ -203,7 +204,7 @@ mod tests {
     }
 
     #[test]
-    #[available_gas(100000000)]
+    #[available_gas(10000000000)]
     #[should_panic(expected: ('Proposal is not valid', 'ENTRYPOINT_FAILED', 'ENTRYPOINT_FAILED'))]
     fn test__propose_failed_validation() {
         let config = setup();
@@ -248,8 +249,9 @@ mod tests {
 
         space.update_settings(input);
 
+        let author = UserAddress::StarknetAddress(contract_address_const::<0x5678>());
         let mut propose_calldata = array::ArrayTrait::<felt252>::new();
-        propose_calldata.append(contract_address_const::<5678>().into());
+        author.serialize(ref propose_calldata);
         vanilla_execution_strategy.serialize(ref propose_calldata);
         ArrayTrait::<felt252>::new().serialize(ref propose_calldata);
 
@@ -285,9 +287,8 @@ mod tests {
         let vanilla_execution_strategy = StrategyImpl::from_address(
             vanilla_execution_strategy_address
         );
-
-        let author = contract_address_const::<0x5678>();
         let mut propose_calldata = array::ArrayTrait::<felt252>::new();
+        let author = UserAddress::StarknetAddress(contract_address_const::<0x5678>());
         author.serialize(ref propose_calldata);
         vanilla_execution_strategy.serialize(ref propose_calldata);
         ArrayTrait::<felt252>::new().serialize(ref propose_calldata);
@@ -311,7 +312,8 @@ mod tests {
 
         // Try to cast vote on Cancelled Proposal
         let mut vote_calldata = array::ArrayTrait::<felt252>::new();
-        vote_calldata.append(contract_address_const::<8765>().into());
+        let voter = UserAddress::StarknetAddress(contract_address_const::<0x8765>());
+        voter.serialize(ref vote_calldata);
         proposal_id.serialize(ref vote_calldata);
         let choice = Choice::For(());
         choice.serialize(ref vote_calldata);

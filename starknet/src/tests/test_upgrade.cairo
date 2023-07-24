@@ -23,7 +23,8 @@ mod tests {
     use sx::proposal_validation_strategies::vanilla::VanillaProposalValidationStrategy;
     use sx::tests::mocks::proposal_validation_always_fail::AlwaysFailProposalValidationStrategy;
     use sx::types::{
-        Strategy, IndexedStrategy, Choice, FinalizationStatus, Proposal, UpdateSettingsCalldataImpl
+        UserAddress, Strategy, IndexedStrategy, Choice, FinalizationStatus, Proposal,
+        UpdateSettingsCalldataImpl
     };
     use sx::utils::constants::{PROPOSE_SELECTOR, VOTE_SELECTOR, UPDATE_PROPOSAL_SELECTOR};
     use sx::tests::setup::setup::setup::{setup, deploy};
@@ -56,7 +57,7 @@ mod tests {
             contract_address: space.contract_address
         };
 
-        let author = contract_address_const::<0x7777777777>();
+        let author = UserAddress::StarknetAddress(contract_address_const::<0x7777777777>());
         let params = ArrayTrait::<felt252>::new();
         let user_params = ArrayTrait::<felt252>::new();
         let res = new_space.validate(author, params, user_params);
@@ -101,7 +102,8 @@ mod tests {
         };
 
         let mut propose_calldata = ArrayTrait::<felt252>::new();
-        contract_address_const::<0x7676>().serialize(ref propose_calldata);
+        UserAddress::StarknetAddress(contract_address_const::<0x7676>())
+            .serialize(ref propose_calldata);
         execution_strategy.serialize(ref propose_calldata);
         ArrayTrait::<felt252>::new().serialize(ref propose_calldata);
 
@@ -119,7 +121,7 @@ mod tests {
             contract_address: space.contract_address
         };
 
-        let author = contract_address_const::<0x7777777777>();
+        let author = UserAddress::StarknetAddress(contract_address_const::<0x7777777777>());
         let params = ArrayTrait::<felt252>::new();
         let user_params = ArrayTrait::<felt252>::new();
         let res = new_space.validate(author, params, user_params);

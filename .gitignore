@@ -3,6 +3,7 @@ node_modules/
 .env
 cairo_project.toml
 
+build/
 cache/
 out/
 
