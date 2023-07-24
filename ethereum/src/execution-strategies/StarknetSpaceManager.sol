@@ -2,7 +2,7 @@
 
 pragma solidity ^0.8.19;
 
-import { OwnableUpgradeable } from "@openzeppelin/contracts-upgradeable/access/OwnableUpgradeable.sol";
+import {OwnableUpgradeable} from "@openzeppelin/contracts-upgradeable/access/OwnableUpgradeable.sol";
 
 /// @title Space Manager - A contract that manages SX spaces on Starknet that are able to execute transactions via this contract
 /// @author Snapshot Labs
