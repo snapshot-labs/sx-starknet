@@ -77,7 +77,7 @@ mod Space {
         IExecutionStrategyDispatcherTrait
     };
     use sx::utils::{
-        types::{
+        sx_types::{
             Choice, FinalizationStatus, Strategy, IndexedStrategy, Proposal, IndexedStrategyTrait,
             IndexedStrategyImpl
         },
