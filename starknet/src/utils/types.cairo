@@ -7,10 +7,10 @@ use option::OptionTrait;
 use clone::Clone;
 use integer::{U8IntoU128};
 use starknet::{
-    ContractAddress, contract_address_const, StorageAccess, StorageBaseAddress, SyscallResult, storage_write_syscall,
-    storage_read_syscall, storage_address_from_base_and_offset, storage_base_address_from_felt252,
-    contract_address::Felt252TryIntoContractAddress, syscalls::deploy_syscall,
-    class_hash::Felt252TryIntoClassHash
+    ContractAddress, contract_address_const, StorageAccess, StorageBaseAddress, SyscallResult,
+    storage_write_syscall, storage_read_syscall, storage_address_from_base_and_offset,
+    storage_base_address_from_felt252, contract_address::Felt252TryIntoContractAddress,
+    syscalls::deploy_syscall, class_hash::Felt252TryIntoClassHash
 };
 use sx::utils::math::pow;
 use array::SpanTrait;
@@ -605,7 +605,7 @@ impl NoUpdateContractAddress of NoUpdateTrait<ContractAddress> {
     }
 
     fn should_update(self: @ContractAddress) -> bool {
-       *self != contract_address_const::<0xf2cda9b13ed04e585461605c0d6e804933ca828111bd94d4e6a96c75e8b048>()
+        *self != contract_address_const::<0xf2cda9b13ed04e585461605c0d6e804933ca828111bd94d4e6a96c75e8b048>()
     }
 }
 
@@ -618,7 +618,8 @@ impl NoUpdateStrategy of NoUpdateTrait<Strategy> {
     }
 
     fn should_update(self: @Strategy) -> bool {
-        *self.address != contract_address_const::<0xf2cda9b13ed04e585461605c0d6e804933ca828111bd94d4e6a96c75e8b048>()
+        *self
+            .address != contract_address_const::<0xf2cda9b13ed04e585461605c0d6e804933ca828111bd94d4e6a96c75e8b048>()
     }
 }
 
@@ -632,7 +633,6 @@ impl NoUpdateArray<T> of NoUpdateTrait<Array<T>> {
         self.len() != 0
     }
 }
-
 
 
 impl UpdateSettingsCalldataImpl of UpdateSettingsCalldataTrait {
