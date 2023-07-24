@@ -70,7 +70,8 @@ mod Space {
     use sx::utils::{
         types::{
             Choice, FinalizationStatus, Strategy, IndexedStrategy, Proposal, IndexedStrategyTrait,
-            IndexedStrategyImpl, UpdateSettingsCalldata, NoUpdateU64, NoUpdateStrategy, NoUpdateArray
+            IndexedStrategyImpl, UpdateSettingsCalldata, NoUpdateU64, NoUpdateStrategy,
+            NoUpdateArray
         },
         bits::BitSetter
     };
@@ -106,7 +107,10 @@ mod Space {
 
     #[event]
     fn ProposalCreated(
-        _proposal_id: u256, _author: ContractAddress, _proposal: @Proposal, _payload: @Array<felt252>
+        _proposal_id: u256,
+        _author: ContractAddress,
+        _proposal: @Proposal,
+        _payload: @Array<felt252>
     ) {}
 
     #[event]
@@ -124,7 +128,10 @@ mod Space {
     fn ProposalCancelled(_proposal_id: u256) {}
 
     #[event]
-    fn VotingStrategiesAdded(_new_voting_strategies: @Array<Strategy>, _new_voting_strategy_metadata_uris: @Array<Array<felt252>>) {}
+    fn VotingStrategiesAdded(
+        _new_voting_strategies: @Array<Strategy>,
+        _new_voting_strategy_metadata_uris: @Array<Array<felt252>>
+    ) {}
 
     #[event]
     fn VotingStrategiesRemoved(_voting_strategy_indices: @Array<u8>) {}
@@ -148,8 +155,11 @@ mod Space {
     fn MinVotingDurationUpdated(_new_min_voting_duration: u64) {}
 
     #[event]
-    fn ProposalValidationStrategyUpdated(_new_proposal_validation_strategy: @Strategy, _new_proposal_validation_strategy_metadata_URI: @Array<felt252>) {}
-    
+    fn ProposalValidationStrategyUpdated(
+        _new_proposal_validation_strategy: @Strategy,
+        _new_proposal_validation_strategy_metadata_URI: @Array<felt252>
+    ) {}
+
     #[event]
     fn VotingDelayUpdated(_new_voting_delay: u64) {}
 
@@ -374,7 +384,7 @@ mod Space {
             if NoUpdateU64::should_update(@input.voting_delay) {
                 _set_voting_delay(ref self, input.voting_delay);
                 VotingDelayUpdated(input.voting_delay);
-            }  
+            }
 
             if NoUpdateArray::should_update((@input).metadata_URI) {
                 MetadataURIUpdated(@input.metadata_URI);
@@ -388,8 +398,13 @@ mod Space {
             if NoUpdateStrategy::should_update((@input).proposal_validation_strategy) {
                 // TODO: might be possible to remove need to clone by defining the event or setter on a snapshot.
                 // Similarly for all non value types.
-                _set_proposal_validation_strategy(ref self, input.proposal_validation_strategy.clone());
-                ProposalValidationStrategyUpdated(@input.proposal_validation_strategy, @input.proposal_validation_strategy_metadata_URI);
+                _set_proposal_validation_strategy(
+                    ref self, input.proposal_validation_strategy.clone()
+                );
+                ProposalValidationStrategyUpdated(
+                    @input.proposal_validation_strategy,
+                    @input.proposal_validation_strategy_metadata_URI
+                );
             }
 
             if NoUpdateArray::should_update((@input).authenticators_to_add) {
@@ -406,13 +421,15 @@ mod Space {
             // if not NO_UPDATE
             if NoUpdateArray::should_update((@input).voting_strategies_to_add) {
                 _add_voting_strategies(ref self, input.voting_strategies_to_add.clone());
-                VotingStrategiesAdded(@input.voting_strategies_to_add, @input.voting_strategies_metadata_URIs_to_add);
+                VotingStrategiesAdded(
+                    @input.voting_strategies_to_add, @input.voting_strategies_metadata_URIs_to_add
+                );
             }
 
             // if not NO_UPDATE
             if NoUpdateArray::should_update((@input).voting_strategies_to_remove) {
                 _remove_voting_strategies(ref self, input.voting_strategies_to_remove.clone());
-                        VotingStrategiesRemoved(@input.voting_strategies_to_remove);
+                VotingStrategiesRemoved(@input.voting_strategies_to_remove);
             }
         }
 
