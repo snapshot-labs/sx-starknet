@@ -9,4 +9,10 @@ out/
 
 !/broadcast
 /broadcast/*/31337/
+<<<<<<< HEAD
 /broadcast/**/dry-run/
+=======
+/broadcast/**/dry-run/
+
+docs/
+>>>>>>> 9017ae4 (refactor: use abstract UserAddress type for author/voter addresses)
