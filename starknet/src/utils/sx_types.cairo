@@ -12,7 +12,7 @@ use starknet::{
     contract_address::Felt252TryIntoContractAddress, syscalls::deploy_syscall,
     class_hash::Felt252TryIntoClassHash
 };
-use sx::utils::math::pow;
+use sx::utils::sx_math::pow;
 
 impl Felt252ArrayIntoU256Array of Into<Array<felt252>, Array<u256>> {
     fn into(self: Array<felt252>) -> Array<u256> {

@@ -3,7 +3,7 @@ use zeroable::Zeroable;
 use integer::{
     Bitwise, U256BitOr, U256BitNot, U8IntoU128, U128IntoFelt252, Felt252IntoU256, BoundedInt
 };
-use sx::utils::math::pow;
+use sx::utils::sx_math::pow;
 
 trait BitSetter<T> {
     fn set_bit(ref self: T, index: u8, bit: bool);

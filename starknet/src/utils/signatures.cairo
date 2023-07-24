@@ -6,7 +6,7 @@ use starknet::secp256k1;
 use core::keccak;
 use integer::u256_from_felt252;
 use sx::utils::sx_types::{Strategy, IndexedStrategy, Choice, Felt252ArrayIntoU256Array};
-use sx::utils::math::pow;
+use sx::utils::sx_math::pow;
 use sx::utils::constants::{
     DOMAIN_TYPEHASH_LOW, DOMAIN_TYPEHASH_HIGH, ETHEREUM_PREFIX, STRATEGY_TYPEHASH_LOW,
     STRATEGY_TYPEHASH_HIGH, INDEXED_STRATEGY_TYPEHASH_LOW, INDEXED_STRATEGY_TYPEHASH_HIGH,

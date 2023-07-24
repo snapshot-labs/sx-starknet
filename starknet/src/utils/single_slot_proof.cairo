@@ -77,7 +77,7 @@ mod SingleSlotProof {
 
         // Check proof corresponds to correct storage slot.
         assert(
-            slot_key == math::u64s_into_u256(
+            slot_key == sx_math::u64s_into_u256(
                 proofs.slot.word1.try_into().unwrap(),
                 proofs.slot.word2.try_into().unwrap(),
                 proofs.slot.word3.try_into().unwrap(),
