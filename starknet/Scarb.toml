@@ -12,3 +12,6 @@ starknet = ">=2.0.1"
 
 [scripts]
 run-lib = "cairo-run src/lib.cairo"
+
+[tool.snforge]
+exit_first = true

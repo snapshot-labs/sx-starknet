@@ -1,6 +1,6 @@
 use core::traits::Destruct;
 use starknet::ContractAddress;
-use sx::utils::types::{Strategy, Proposal, IndexedStrategy, Choice};
+use sx::utils::sx_types::{Strategy, Proposal, IndexedStrategy, Choice};
 
 #[starknet::interface]
 trait ISpace<TContractState> {
@@ -81,7 +81,7 @@ mod Space {
             Choice, FinalizationStatus, Strategy, IndexedStrategy, Proposal, IndexedStrategyTrait,
             IndexedStrategyImpl
         },
-        bits::BitSetter
+        sx_bits::BitSetter
     };
     use sx::external::ownable::Ownable;
 

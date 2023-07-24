@@ -4,7 +4,7 @@ mod SimpleQuorumExecutionStrategy {
     use starknet::get_caller_address;
     use starknet::info;
     use zeroable::Zeroable;
-    use sx::utils::types::{Proposal, FinalizationStatus, ProposalStatus};
+    use sx::utils::sx_types::{Proposal, FinalizationStatus, ProposalStatus};
 
     #[storage]
     struct Storage {
