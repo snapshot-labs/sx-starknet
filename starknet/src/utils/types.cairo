@@ -36,7 +36,7 @@ enum Choice {
     Abstain: (),
 }
 
-#[derive(Copy, Drop, Serde, PartialEq)]
+#[derive(Drop, Serde, PartialEq, Copy, starknet::Store)]
 enum FinalizationStatus {
     Pending: (),
     Executed: (),
@@ -114,7 +114,7 @@ impl LegacyHashChoice of LegacyHash<Choice> {
     }
 }
 
-#[derive(Option, Clone, Drop, Serde, Store)]
+#[derive(Option, Clone, Drop, Serde, starknet::Store)]
 struct Strategy {
     address: ContractAddress,
     params: Array<felt252>,
@@ -140,7 +140,7 @@ struct IndexedStrategy {
 }
 
 /// NOTE: Using u64 for timestamps instead of u32 which we use in sx-evm. can change if needed.
-#[derive(Clone, Drop, Serde, PartialEq, Store)]
+#[derive(Clone, Drop, Serde, PartialEq, starknet::Store)]
 struct Proposal {
     snapshot_timestamp: u64,
     start_timestamp: u64,
@@ -155,223 +155,6 @@ struct Proposal {
 
 // TODO: Should eventually be able to derive the Store trait on the structs and enum 
 // cant atm as the derive only works for simple structs I think
-
-impl StoreFinalizationStatus of Store<FinalizationStatus> {
-    fn read(address_domain: u32, base: StorageBaseAddress) -> SyscallResult<FinalizationStatus> {
-        StoreFinalizationStatus::read_at_offset(address_domain, base, 0)
-    }
-
-    fn write(
-        address_domain: u32, base: StorageBaseAddress, value: FinalizationStatus
-    ) -> SyscallResult<()> {
-        StoreFinalizationStatus::write_at_offset(address_domain, base, 0, value)
-    }
-
-    fn read_at_offset(
-        address_domain: u32, base: StorageBaseAddress, offset: u8
-    ) -> SyscallResult<FinalizationStatus> {
-        match Store::read_at_offset(
-            address_domain,
-            storage_base_address_from_felt252(
-                storage_address_from_base_and_offset(base, 0_u8).into()
-            ),
-            offset
-        ) {
-            Result::Ok(num) => {
-                Result::Ok(U8IntoFinalizationStatus::try_into(num).unwrap())
-            },
-            Result::Err(err) => Result::Err(err)
-        }
-    }
-
-    fn write_at_offset(
-        address_domain: u32, base: StorageBaseAddress, offset: u8, value: FinalizationStatus
-    ) -> SyscallResult<()> {
-        Store::write_at_offset(
-            address_domain,
-            storage_base_address_from_felt252(
-                storage_address_from_base_and_offset(base, 0_u8).into()
-            ),
-            offset,
-            FinalizationStatusIntoU8::into(value)
-        )
-    }
-
-    fn size() -> u8 {
-        1_u8
-    }
-}
-
-impl StoreProposal of Store<Proposal> {
-    fn read(address_domain: u32, base: StorageBaseAddress) -> SyscallResult<Proposal> {
-        StoreProposal::read_at_offset(address_domain, base, 0)
-    }
-
-    fn write(address_domain: u32, base: StorageBaseAddress, value: Proposal) -> SyscallResult<()> {
-        StoreProposal::write_at_offset(address_domain, base, 0, value)
-    }
-
-    fn read_at_offset(
-        address_domain: u32, base: StorageBaseAddress, offset: u8
-    ) -> SyscallResult<Proposal> {
-        Result::Ok(
-            Proposal {
-                snapshot_timestamp: Store::read_at_offset(
-                    address_domain,
-                    storage_base_address_from_felt252(
-                        storage_address_from_base_and_offset(base, 0_u8).into()
-                    ),
-                    offset
-                )?,
-                start_timestamp: Store::read_at_offset(
-                    address_domain,
-                    storage_base_address_from_felt252(
-                        storage_address_from_base_and_offset(base, 1_u8).into()
-                    ),
-                    offset
-                )?,
-                min_end_timestamp: Store::read_at_offset(
-                    address_domain,
-                    storage_base_address_from_felt252(
-                        storage_address_from_base_and_offset(base, 2_u8).into()
-                    ),
-                    offset
-                )?,
-                max_end_timestamp: Store::read_at_offset(
-                    address_domain,
-                    storage_base_address_from_felt252(
-                        storage_address_from_base_and_offset(base, 3_u8).into()
-                    ),
-                    offset
-                )?,
-                execution_payload_hash: Store::read_at_offset(
-                    address_domain,
-                    storage_base_address_from_felt252(
-                        storage_address_from_base_and_offset(base, 4_u8).into()
-                    ),
-                    offset
-                )?,
-                execution_strategy: Store::read_at_offset(
-                    address_domain,
-                    storage_base_address_from_felt252(
-                        storage_address_from_base_and_offset(base, 5_u8).into()
-                    ),
-                    offset
-                )?,
-                author: Store::read_at_offset(
-                    address_domain,
-                    storage_base_address_from_felt252(
-                        storage_address_from_base_and_offset(base, 6_u8).into()
-                    ),
-                    offset
-                )?,
-                finalization_status: Store::read_at_offset(
-                    address_domain,
-                    storage_base_address_from_felt252(
-                        storage_address_from_base_and_offset(base, 7_u8).into()
-                    ),
-                    offset
-                )?,
-                active_voting_strategies: Store::read_at_offset(
-                    address_domain,
-                    storage_base_address_from_felt252(
-                        storage_address_from_base_and_offset(base, 8_u8).into()
-                    ),
-                    offset
-                )?
-            }
-        )
-    }
-
-    fn write_at_offset(
-        address_domain: u32, base: StorageBaseAddress, offset: u8, value: Proposal
-    ) -> SyscallResult<()> {
-        Store::write_at_offset(
-            address_domain,
-            storage_base_address_from_felt252(
-                storage_address_from_base_and_offset(base, 0_u8).into()
-            ),
-            offset,
-            value.snapshot_timestamp
-        );
-
-        Store::write_at_offset(
-            address_domain,
-            storage_base_address_from_felt252(
-                storage_address_from_base_and_offset(base, 1_u8).into()
-            ),
-            offset,
-            value.start_timestamp
-        );
-
-        Store::write_at_offset(
-            address_domain,
-            storage_base_address_from_felt252(
-                storage_address_from_base_and_offset(base, 2_u8).into()
-            ),
-            offset,
-            value.min_end_timestamp
-        );
-
-        Store::write_at_offset(
-            address_domain,
-            storage_base_address_from_felt252(
-                storage_address_from_base_and_offset(base, 3_u8).into()
-            ),
-            offset,
-            value.max_end_timestamp
-        );
-
-        Store::write_at_offset(
-            address_domain,
-            storage_base_address_from_felt252(
-                storage_address_from_base_and_offset(base, 4_u8).into()
-            ),
-            offset,
-            value.execution_payload_hash
-        );
-
-        Store::write_at_offset(
-            address_domain,
-            storage_base_address_from_felt252(
-                storage_address_from_base_and_offset(base, 5_u8).into()
-            ),
-            offset,
-            value.execution_strategy
-        );
-
-        Store::write_at_offset(
-            address_domain,
-            storage_base_address_from_felt252(
-                storage_address_from_base_and_offset(base, 6_u8).into()
-            ),
-            offset,
-            value.author
-        );
-
-        Store::write_at_offset(
-            address_domain,
-            storage_base_address_from_felt252(
-                storage_address_from_base_and_offset(base, 7_u8).into()
-            ),
-            offset,
-            value.finalization_status
-        );
-
-        Store::write_at_offset(
-            address_domain,
-            storage_base_address_from_felt252(
-                storage_address_from_base_and_offset(base, 8_u8).into()
-            ),
-            offset,
-            value.active_voting_strategies
-        )
-    }
-
-    fn size() -> u8 {
-        9_u8
-    }
-}
 
 impl StoreFelt252Array of Store<Array<felt252>> {
     fn read(address_domain: u32, base: StorageBaseAddress) -> SyscallResult<Array<felt252>> {
@@ -433,74 +216,7 @@ impl StoreFelt252Array of Store<Array<felt252>> {
     }
 
     fn size() -> u8 {
-        // if value.len() == 0 {
-        //     return 1;
-        // }
-        // 1_u8 + Store::<felt252>::size() * value.len().try_into().unwrap()
         255_u8
-    }
-}
-
-impl StoreStrategy of Store<Strategy> {
-    // #[inline(always)]
-    fn read(address_domain: u32, base: StorageBaseAddress) -> SyscallResult<Strategy> {
-        StoreStrategy::read_at_offset(address_domain, base, 0)
-    }
-    // #[inline(always)]
-    fn write(address_domain: u32, base: StorageBaseAddress, value: Strategy) -> SyscallResult<()> {
-        StoreStrategy::write_at_offset(address_domain, base, 0, value)
-    }
-
-    fn read_at_offset(
-        address_domain: u32, base: StorageBaseAddress, offset: u8
-    ) -> SyscallResult<Strategy> {
-        Result::Ok(
-            Strategy {
-                address: Store::read_at_offset(
-                    address_domain,
-                    storage_base_address_from_felt252(
-                        storage_address_from_base_and_offset(base, 0_u8).into()
-                    ),
-                    offset
-                )?,
-                params: Store::read_at_offset(
-                    address_domain,
-                    storage_base_address_from_felt252(
-                        storage_address_from_base_and_offset(base, 1_u8).into()
-                    ),
-                    offset
-                )?
-            }
-        )
-    }
-
-    fn write_at_offset(
-        address_domain: u32, base: StorageBaseAddress, offset: u8, value: Strategy
-    ) -> SyscallResult<()> {
-        // Write value.address at offset 0
-        Store::write_at_offset(
-            address_domain,
-            storage_base_address_from_felt252(
-                storage_address_from_base_and_offset(base, 0_u8).into()
-            ),
-            offset,
-            value.address
-        );
-
-        // Write value.params at offset 1
-        Store::write_at_offset(
-            address_domain,
-            storage_base_address_from_felt252(
-                storage_address_from_base_and_offset(base, 1_u8).into()
-            ),
-            offset,
-            value.params
-        )
-    }
-
-    fn size() -> u8 {
-        // Add 1 for the strategy address
-        Store::<Array<felt252>>::size() + 1
     }
 }
 
