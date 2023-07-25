@@ -648,8 +648,8 @@ impl UpdateSettingsCalldataImpl of UpdateSettingsCalldataTrait {
             authenticators_to_add: NoUpdateArray::no_update(),
             authenticators_to_remove: NoUpdateArray::no_update(),
             voting_strategies_to_add: NoUpdateArray::no_update(),
-            voting_strategies_metadata_URIs_to_add: array::ArrayTrait::new(),
-            voting_strategies_to_remove: array::ArrayTrait::new(),
+            voting_strategies_metadata_URIs_to_add: NoUpdateArray::no_update(),
+            voting_strategies_to_remove: NoUpdateArray::no_update(),
         }
     }
 }
