@@ -1,5 +1,7 @@
 mod space;
 
+mod factory;
+
 mod proposal_validation_strategies;
 
 mod authenticators;
