@@ -54,7 +54,7 @@ trait ISpace<TContractState> {
 #[starknet::contract]
 mod Space {
     use super::ISpace;
-    use starknet::{ContractAddress, info, StorageAccess};
+    use starknet::{ContractAddress, info, Store};
     use zeroable::Zeroable;
     use array::{ArrayTrait, SpanTrait};
     use clone::Clone;
