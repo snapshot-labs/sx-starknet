@@ -21,7 +21,9 @@ mod tests {
     use sx::voting_strategies::vanilla::VanillaVotingStrategy;
     use sx::proposal_validation_strategies::vanilla::VanillaProposalValidationStrategy;
     use sx::tests::mocks::proposal_validation_always_fail::AlwaysFailProposalValidationStrategy;
-    use sx::utils::types::{Strategy, IndexedStrategy, Choice, FinalizationStatus, Proposal};
+    use sx::utils::types::{
+        Strategy, IndexedStrategy, Choice, FinalizationStatus, Proposal, UpdateSettingsCalldataImpl
+    };
     use sx::utils::constants::{PROPOSE_SELECTOR, VOTE_SELECTOR, UPDATE_PROPOSAL_SELECTOR};
 
     use Space::Space as SpaceImpl;
@@ -298,10 +300,12 @@ mod tests {
             .unwrap();
         testing::set_caller_address(owner);
         testing::set_contract_address(owner);
-        space
-            .set_proposal_validation_strategy(
-                Strategy { address: strategy_address, params: ArrayTrait::<felt252>::new() }
-            );
+        let mut input = UpdateSettingsCalldataImpl::default();
+        input.proposal_validation_strategy = Strategy {
+            address: strategy_address, params: ArrayTrait::<felt252>::new()
+        };
+
+        space.update_settings(input);
 
         let mut propose_calldata = array::ArrayTrait::<felt252>::new();
         propose_calldata.append(contract_address_const::<5678>().into());

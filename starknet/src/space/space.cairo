@@ -1,6 +1,6 @@
 use core::traits::Destruct;
 use starknet::ContractAddress;
-use sx::utils::types::{Strategy, Proposal, IndexedStrategy, Choice};
+use sx::utils::types::{Strategy, Proposal, IndexedStrategy, Choice, UpdateSettingsCalldata};
 
 #[starknet::interface]
 trait ISpace<TContractState> {
@@ -24,16 +24,7 @@ trait ISpace<TContractState> {
     // fn get_proposal_status(proposal_id: u256) -> u8;
 
     // Owner Actions 
-    fn set_max_voting_duration(ref self: TContractState, max_voting_duration: u64);
-    fn set_min_voting_duration(ref self: TContractState, min_voting_duration: u64);
-    fn set_voting_delay(ref self: TContractState, voting_delay: u64);
-    fn set_proposal_validation_strategy(
-        ref self: TContractState, proposal_validation_strategy: Strategy
-    );
-    fn add_voting_strategies(ref self: TContractState, voting_strategies: Array<Strategy>);
-    fn remove_voting_strategies(ref self: TContractState, voting_strategy_indices: Array<u8>);
-    fn add_authenticators(ref self: TContractState, authenticators: Array<ContractAddress>);
-    fn remove_authenticators(ref self: TContractState, authenticators: Array<ContractAddress>);
+    fn update_settings(ref self: TContractState, input: UpdateSettingsCalldata);
     fn transfer_ownership(ref self: TContractState, new_owner: ContractAddress);
     fn renounce_ownership(ref self: TContractState);
     // Actions 
@@ -79,7 +70,8 @@ mod Space {
     use sx::utils::{
         types::{
             Choice, FinalizationStatus, Strategy, IndexedStrategy, Proposal, IndexedStrategyTrait,
-            IndexedStrategyImpl
+            IndexedStrategyImpl, UpdateSettingsCalldata, NoUpdateU64, NoUpdateStrategy,
+            NoUpdateArray
         },
         bits::BitSetter
     };
@@ -108,14 +100,17 @@ mod Space {
         _voting_delay: u64,
         _min_voting_duration: u64,
         _max_voting_duration: u64,
-        _proposal_validation_strategy: Strategy,
-        _voting_strategies: Array<Strategy>,
-        _authenticators: Array<ContractAddress>
+        _proposal_validation_strategy: @Strategy,
+        _voting_strategies: @Array<Strategy>,
+        _authenticators: @Array<ContractAddress>
     ) {}
 
     #[event]
     fn ProposalCreated(
-        _proposal_id: u256, _author: ContractAddress, _proposal: Proposal, _payload: Array<felt252>
+        _proposal_id: u256,
+        _author: ContractAddress,
+        _proposal: @Proposal,
+        _payload: @Array<felt252>
     ) {}
 
     #[event]
@@ -127,21 +122,31 @@ mod Space {
     fn ProposalExecuted(_proposal_id: u256) {}
 
     #[event]
-    fn ProposalUpdated(_proposal_id: u256, _execution_stategy: Strategy) {}
+    fn ProposalUpdated(_proposal_id: u256, _execution_stategy: @Strategy) {}
 
     #[event]
     fn ProposalCancelled(_proposal_id: u256) {}
 
-    fn VotingStrategiesAdded(_new_voting_strategies: Array<Strategy>) {}
+    #[event]
+    fn VotingStrategiesAdded(
+        _new_voting_strategies: @Array<Strategy>,
+        _new_voting_strategy_metadata_uris: @Array<Array<felt252>>
+    ) {}
 
     #[event]
-    fn VotingStrategiesRemoved(_voting_strategy_indices: Array<u8>) {}
+    fn VotingStrategiesRemoved(_voting_strategy_indices: @Array<u8>) {}
 
     #[event]
-    fn AuthenticatorsAdded(_new_authenticators: Array<ContractAddress>) {}
+    fn AuthenticatorsAdded(_new_authenticators: @Array<ContractAddress>) {}
 
     #[event]
-    fn AuthenticatorsRemoved(_authenticators: Array<ContractAddress>) {}
+    fn AuthenticatorsRemoved(_authenticators: @Array<ContractAddress>) {}
+
+    #[event]
+    fn MetadataURIUpdated(_new_metadata_uri: @Array<felt252>) {}
+
+    #[event]
+    fn DaoURIUpdated(_new_dao_uri: @Array<felt252>) {}
 
     #[event]
     fn MaxVotingDurationUpdated(_new_max_voting_duration: u64) {}
@@ -150,7 +155,10 @@ mod Space {
     fn MinVotingDurationUpdated(_new_min_voting_duration: u64) {}
 
     #[event]
-    fn ProposalValidationStrategyUpdated(_new_proposal_validation_strategy: Strategy) {}
+    fn ProposalValidationStrategyUpdated(
+        _new_proposal_validation_strategy: @Strategy,
+        _new_proposal_validation_strategy_metadata_URI: @Array<felt252>
+    ) {}
 
     #[event]
     fn VotingDelayUpdated(_new_voting_delay: u64) {}
@@ -184,7 +192,7 @@ mod Space {
             // TODO: we use a felt252 for the hash despite felts being discouraged 
             // a new field would just replace the hash. Might be worth casting to a Uint256 though? 
             let execution_payload_hash = poseidon::poseidon_hash_span(
-                execution_strategy.clone().params.span()
+                execution_strategy.params.span()
             );
 
             let proposal = Proposal {
@@ -198,13 +206,14 @@ mod Space {
                 finalization_status: FinalizationStatus::Pending(()),
                 active_voting_strategies: self._active_voting_strategies.read()
             };
+            let snap_proposal = @proposal;
 
             // TODO: Lots of copying, maybe figure out how to pass snapshots to events/storage writers. 
-            self._proposals.write(proposal_id, proposal.clone());
+            self._proposals.write(proposal_id, proposal);
 
             self._next_proposal_id.write(proposal_id + u256 { low: 1_u128, high: 0_u128 });
 
-            ProposalCreated(proposal_id, author, proposal, execution_strategy.params);
+            ProposalCreated(proposal_id, author, snap_proposal, @execution_strategy.params);
         }
 
         fn vote(
@@ -292,7 +301,7 @@ mod Space {
 
             self._proposals.write(proposal_id, proposal);
 
-            ProposalUpdated(proposal_id, execution_strategy);
+            ProposalUpdated(proposal_id, @execution_strategy);
         }
 
         fn cancel_proposal(ref self: ContractState, proposal_id: u256) {
@@ -356,72 +365,72 @@ mod Space {
             self._proposals.read(proposal_id)
         }
 
-        fn set_max_voting_duration(ref self: ContractState, max_voting_duration: u64) {
+        fn update_settings(ref self: ContractState, input: UpdateSettingsCalldata) {
             //TODO: temporary component syntax
             let state: Ownable::ContractState = Ownable::unsafe_new_contract_state();
             Ownable::assert_only_owner(@state);
-            _set_max_voting_duration(ref self, max_voting_duration);
-            MaxVotingDurationUpdated(max_voting_duration);
-        }
 
-        fn set_min_voting_duration(ref self: ContractState, min_voting_duration: u64) {
-            //TODO: temporary component syntax
-            let state: Ownable::ContractState = Ownable::unsafe_new_contract_state();
-            Ownable::assert_only_owner(@state);
-            _set_min_voting_duration(ref self, min_voting_duration);
-            MinVotingDurationUpdated(min_voting_duration);
-        }
+            // if not NO_UPDATE
+            if NoUpdateU64::should_update(@input.max_voting_duration) {
+                _set_max_voting_duration(ref self, input.max_voting_duration);
+                MaxVotingDurationUpdated(input.max_voting_duration);
+            }
 
-        fn set_voting_delay(ref self: ContractState, voting_delay: u64) {
-            //TODO: temporary component syntax
-            let state: Ownable::ContractState = Ownable::unsafe_new_contract_state();
-            Ownable::assert_only_owner(@state);
-            _set_voting_delay(ref self, voting_delay);
-            VotingDelayUpdated(voting_delay);
-        }
+            if NoUpdateU64::should_update(@input.min_voting_duration) {
+                _set_min_voting_duration(ref self, input.min_voting_duration);
+                MinVotingDurationUpdated(input.min_voting_duration);
+            }
 
-        fn set_proposal_validation_strategy(
-            ref self: ContractState, proposal_validation_strategy: Strategy
-        ) {
-            //TODO: temporary component syntax
-            let state: Ownable::ContractState = Ownable::unsafe_new_contract_state();
-            Ownable::assert_only_owner(@state);
-            // TODO: might be possible to remove need to clone by defining the event or setter on a snapshot.
-            // Similarly for all non value types.
-            _set_proposal_validation_strategy(ref self, proposal_validation_strategy.clone());
-            ProposalValidationStrategyUpdated(proposal_validation_strategy);
-        }
+            if NoUpdateU64::should_update(@input.voting_delay) {
+                _set_voting_delay(ref self, input.voting_delay);
+                VotingDelayUpdated(input.voting_delay);
+            }
 
-        fn add_voting_strategies(ref self: ContractState, voting_strategies: Array<Strategy>) {
-            //TODO: temporary component syntax
-            let state: Ownable::ContractState = Ownable::unsafe_new_contract_state();
-            Ownable::assert_only_owner(@state);
-            _add_voting_strategies(ref self, voting_strategies.clone());
-            VotingStrategiesAdded(voting_strategies);
-        }
+            if NoUpdateArray::should_update((@input).metadata_URI) {
+                MetadataURIUpdated(@input.metadata_URI);
+            }
 
-        fn remove_voting_strategies(ref self: ContractState, voting_strategy_indices: Array<u8>) {
-            //TODO: temporary component syntax
-            let state: Ownable::ContractState = Ownable::unsafe_new_contract_state();
-            Ownable::assert_only_owner(@state);
-            _remove_voting_strategies(ref self, voting_strategy_indices.clone());
-            VotingStrategiesRemoved(voting_strategy_indices);
-        }
+            if NoUpdateArray::should_update((@input).dao_URI) {
+                DaoURIUpdated(@input.dao_URI);
+            }
 
-        fn add_authenticators(ref self: ContractState, authenticators: Array<ContractAddress>) {
-            //TODO: temporary component syntax
-            let state: Ownable::ContractState = Ownable::unsafe_new_contract_state();
-            Ownable::assert_only_owner(@state);
-            _add_authenticators(ref self, authenticators.clone());
-            AuthenticatorsAdded(authenticators);
-        }
+            // if not NO_UPDATE
+            if NoUpdateStrategy::should_update((@input).proposal_validation_strategy) {
+                // TODO: might be possible to remove need to clone by defining the event or setter on a snapshot.
+                // Similarly for all non value types.
+                _set_proposal_validation_strategy(
+                    ref self, input.proposal_validation_strategy.clone()
+                );
+                ProposalValidationStrategyUpdated(
+                    @input.proposal_validation_strategy,
+                    @input.proposal_validation_strategy_metadata_URI
+                );
+            }
 
-        fn remove_authenticators(ref self: ContractState, authenticators: Array<ContractAddress>) {
-            //TODO: temporary component syntax
-            let state: Ownable::ContractState = Ownable::unsafe_new_contract_state();
-            Ownable::assert_only_owner(@state);
-            _remove_authenticators(ref self, authenticators.clone());
-            AuthenticatorsRemoved(authenticators);
+            if NoUpdateArray::should_update((@input).authenticators_to_add) {
+                _add_authenticators(ref self, input.authenticators_to_add.clone());
+                AuthenticatorsAdded(@input.authenticators_to_add);
+            }
+
+            // if not NO_UPDATE
+            if NoUpdateArray::should_update((@input).authenticators_to_remove) {
+                _remove_authenticators(ref self, input.authenticators_to_remove.clone());
+                AuthenticatorsRemoved(@input.authenticators_to_remove);
+            }
+
+            // if not NO_UPDATE
+            if NoUpdateArray::should_update((@input).voting_strategies_to_add) {
+                _add_voting_strategies(ref self, input.voting_strategies_to_add.clone());
+                VotingStrategiesAdded(
+                    @input.voting_strategies_to_add, @input.voting_strategies_metadata_URIs_to_add
+                );
+            }
+
+            // if not NO_UPDATE
+            if NoUpdateArray::should_update((@input).voting_strategies_to_remove) {
+                _remove_voting_strategies(ref self, input.voting_strategies_to_remove.clone());
+                VotingStrategiesRemoved(@input.voting_strategies_to_remove);
+            }
         }
 
         fn transfer_ownership(ref self: ContractState, new_owner: ContractAddress) {
@@ -467,9 +476,9 @@ mod Space {
             _voting_delay,
             _min_voting_duration,
             _max_voting_duration,
-            _proposal_validation_strategy,
-            _voting_strategies,
-            _authenticators
+            @_proposal_validation_strategy,
+            @_voting_strategies,
+            @_authenticators
         );
     }
 
