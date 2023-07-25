@@ -641,14 +641,14 @@ impl UpdateSettingsCalldataImpl of UpdateSettingsCalldataTrait {
             min_voting_duration: NoUpdateU64::no_update(),
             max_voting_duration: NoUpdateU64::no_update(),
             voting_delay: NoUpdateU64::no_update(),
-            metadata_URI: NoUpdateArray::no_update(),
-            dao_URI: NoUpdateArray::no_update(),
+            metadata_URI: NoUpdateArray::no_update(), // TODO: string
+            dao_URI: NoUpdateArray::no_update(), // TODO: string
             proposal_validation_strategy: NoUpdateStrategy::no_update(),
-            proposal_validation_strategy_metadata_URI: NoUpdateArray::no_update(),
+            proposal_validation_strategy_metadata_URI: NoUpdateArray::no_update(), // TODO: string
             authenticators_to_add: NoUpdateArray::no_update(),
             authenticators_to_remove: NoUpdateArray::no_update(),
             voting_strategies_to_add: NoUpdateArray::no_update(),
-            voting_strategies_metadata_URIs_to_add: NoUpdateArray::no_update(),
+            voting_strategies_metadata_URIs_to_add: NoUpdateArray::no_update(), // TODO: string
             voting_strategies_to_remove: NoUpdateArray::no_update(),
         }
     }
