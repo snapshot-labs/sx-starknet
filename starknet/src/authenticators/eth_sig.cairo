@@ -68,6 +68,9 @@ mod EthSigAuthenticator {
             user_proposal_validation_params: Array<felt252>,
             salt: u256,
         ) {
+            // TODO: temporary placing constructor here
+            self._domain_hash.write(signatures::get_domain_hash(1, 1));
+
             signatures::verify_propose_sig(
                 r,
                 s,
@@ -150,10 +153,10 @@ mod EthSigAuthenticator {
             }.update_proposal(UserAddress::Ethereum(author), proposal_id, execution_strategy);
         }
     }
-
-    #[constructor]
-    fn constructor(ref self: ContractState, name: felt252, version: felt252) {
-        // TODO: domain hash is immutable so could be placed in the contract code instead of storage to save on reads.
-        self._domain_hash.write(signatures::get_domain_hash(name, version));
-    }
+// TODO: temporary removal of constructor
+// #[constructor]
+// fn constructor(ref self: ContractState) {
+//     // TODO: domain hash is immutable so could be placed in the contract code instead of storage to save on reads.
+//     self._domain_hash.write(signatures::get_domain_hash(1, 1));
+// }
 }

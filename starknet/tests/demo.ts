@@ -1,7 +1,17 @@
 import fs from "fs";
-import { Account, constants, ec, json, stark, Provider, hash, CallData } from "starknet";
+import dotenv from 'dotenv';
+import { Provider, Account, Contract, CallData, cairo}  from "starknet";
+import { ethers } from "ethers";
+
+import { domain, Propose, proposeTypes } from "./types";
+
+dotenv.config();
+
+const pk = process.env.PRIVATE_KEY || '';
 
 async function main() {
+    const signer = new ethers.Wallet(pk);
+
     // connect provider
     const provider = new Provider({ sequencer: { baseUrl:"http://127.0.0.1:5050"} });
     console.log('provider=', provider);
@@ -11,35 +21,48 @@ async function main() {
     const address0 = "0x7e00d496e324876bbc8531f2d9a82bf154d1a04a50218ee74cdd372f75a551a";
     const account0 = new Account(provider, address0, privateKey0);
 
-    // Declare & deploy Test contract in devnet
-    const compiledTestSierra = json.parse(fs.readFileSync( "starknet/target/dev/sx_EthSigAuthenticator.sierra.json").toString( "ascii"));
-    const compiledTestCasm = json.parse(fs.readFileSync( "starknet/target/dev/sx_EthSigAuthenticator.casm.json").toString( "ascii"));
-    
-    const deployResponse = await account0.declareAndDeploy({ contract: compiledTestSierra, casm: compiledTestCasm });
+    const ethSigAuthAddress = "0x2b5419778c3501eb0b447081f0e1211cf5d6d5c8c4356bc414dbb65710bfa57";
+
+    const {abi: ethSigAuthAbi} = await provider.getClassAt(ethSigAuthAddress);
+    const ethSigAuth = new Contract(ethSigAuthAbi, ethSigAuthAddress, provider);
+
+    const result = await account0.execute({
+        contractAddress: ethSigAuthAddress,
+        entrypoint: "authenticate_propose",
+        calldata: CallData.compile({
+            r: cairo.uint256(1),
+            s: cairo.uint256(2),
+            v: cairo.uint256(3),
+            target: "0x0000000000000000000000000000000000001235",
+            author: signer.address,
+            execution_strategy: {
+                addr: "0x0000000000000000000000000000000000001234",
+                params: [1,2,3,4]
+            },
+            user_proposal_validation_params: [1,2,3,4],
+            salt: cairo.uint256(0)
+        })
+    })
+
+    console.log(result);
 
 
+    const proposeMessage: Propose = {
+        space: "0x0000000000000000000000000000000000001234",
+        author: signer.address,
+        executionStrategy: {
+            addr: "0x0000000000000000000000000000000000001234",
+            params: "0x1234"
+        },
+        userProposalValidationParams: "0x1234",
+        salt: "0x0"
+    }
 
-    // const OZaccountClassHash = "0x2794ce20e5f2ff0d40e632cb53845b9f4e526ebd8471983f7dbd355b721d5a";
-    // // Calculate future address of the account
-    // const OZaccountConstructorCallData = CallData.compile({ publicKey: starkKeyPub });
-    // const OZcontractAddress = hash.calculateContractAddressFromHash(
-    //     starkKeyPub,
-    //     OZaccountClassHash,
-    //     OZaccountConstructorCallData,
-    //     0
-    // );
-    // console.log('Precalculated account address=', OZcontractAddress);
+    const sig = await signer.signTypedData(domain, proposeTypes, proposeMessage);
 
-    // const OZaccount = new Account(provider, OZcontractAddress, privateKey);
+    console.log(sig);
 
-    // const { transaction_hash, contract_address } = await OZaccount.deployAccount({
-    //     classHash: OZaccountClassHash,
-    //     constructorCalldata: OZaccountConstructorCallData,
-    //     addressSalt: starkKeyPub
-    // });
 
-    // await provider.waitForTransaction(transaction_hash);
-    // console.log('✅ New OpenZeppelin account created.\n   address =', contract_address);
 }
 
 main()
