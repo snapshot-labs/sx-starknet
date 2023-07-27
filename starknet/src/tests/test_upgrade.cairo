@@ -65,7 +65,7 @@ mod tests {
 
     #[test]
     #[available_gas(10000000000)]
-    fn test_upgrade_via_exection_strategy() {
+    fn test_upgrade_via_execution_strategy() {
         let config = setup();
         let (factory, space) = deploy(@config);
         let proposal_id = space.next_proposal_id();
