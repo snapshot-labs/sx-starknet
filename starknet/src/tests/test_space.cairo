@@ -32,6 +32,10 @@ mod tests {
     #[test]
     #[available_gas(100000000)]
     fn test_constructor() {
+        let deployer = contract_address_const::<0xdead>();
+
+        testing::set_caller_address(deployer);
+        testing::set_contract_address(deployer);
         // Space Settings
         let owner = contract_address_const::<0x123456789>();
         let max_voting_duration = 2_u64;
