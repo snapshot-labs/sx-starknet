@@ -39,7 +39,7 @@ mod Factory {
                 class_hash, contract_address_salt, calldata, false
             )
                 .unwrap();
-            // emit event
+
             SpaceDeployed(class_hash, space_address);
 
             space_address
