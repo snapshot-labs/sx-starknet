@@ -1,5 +1,5 @@
 #[starknet::contract]
-mod ExecutionerExecutionStrategy {
+mod ExecutorExecutionStrategy {
     use sx::interfaces::IExecutionStrategy;
     use sx::utils::types::{Proposal, ProposalStatus};
     use sx::execution_strategies::simple_quorum::SimpleQuorumExecutionStrategy;
@@ -20,7 +20,7 @@ mod ExecutionerExecutionStrategy {
     }
 
     #[external(v0)]
-    impl ExecutionerExecutionStrategy of IExecutionStrategy<ContractState> {
+    impl ExecutorExecutionStrategy of IExecutionStrategy<ContractState> {
         // Dummy function that will just execute the `Transaction` in the payload, without needing any quorum.
         fn execute(
             ref self: ContractState,

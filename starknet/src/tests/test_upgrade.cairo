@@ -30,8 +30,8 @@ mod tests {
     use sx::interfaces::{
         IProposalValidationStrategyDispatcher, IProposalValidationStrategyDispatcherTrait
     };
-    use sx::tests::mocks::executioner::{
-        ExecutionerExecutionStrategy, ExecutionerExecutionStrategy::Transaction
+    use sx::tests::mocks::executor::{
+        ExecutorExecutionStrategy, ExecutorExecutionStrategy::Transaction
     };
     use starknet::ClassHash;
 
@@ -76,7 +76,7 @@ mod tests {
             .unwrap();
 
         let (execution_contract_address, _) = deploy_syscall(
-            ExecutionerExecutionStrategy::TEST_CLASS_HASH.try_into().unwrap(),
+            ExecutorExecutionStrategy::TEST_CLASS_HASH.try_into().unwrap(),
             0,
             ArrayTrait::<felt252>::new().span(),
             false
