@@ -32,7 +32,6 @@ mod tests {
     #[test]
     #[available_gas(100000000)]
     fn test_constructor() {
-        let config = setup();
         // Space Settings
         let owner = contract_address_const::<0x123456789>();
         let max_voting_duration = 2_u64;
