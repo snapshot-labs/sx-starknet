@@ -15,14 +15,6 @@ mod tests {
     #[test]
     #[available_gas(10000000000)]
     fn test_deploy() {
-        // let deployer = contract_address_const::<0x1234>();
-
-        // testing::set_caller_address(deployer);
-        // testing::set_contract_address(deployer);
-
-        let space_class_hash: ClassHash = Space::TEST_CLASS_HASH.try_into().unwrap();
-        let contract_address_salt = 0;
-
         // Deploy Space 
         let config = setup();
 
