@@ -10,9 +10,7 @@ contract StarkNetCommit {
     /// @notice The Starknet core contract.
     IStarknetCore public immutable starknetCore;
 
-    /// @dev Selector for the L1 handler in the authenticator on StarkNet, found via:
-    ///      from starkware.starknet.compiler.compile import get_selector_from_name
-    ///      print(get_selector_from_name('commit'))
+    /// @dev Selector for the L1 handler in the authenticator on Starknet:
     uint256 private constant L1_COMMIT_HANDLER =
         674623595553689999852507866835294387286428733459551884504121875060358224925;
 
