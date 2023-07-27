@@ -121,6 +121,8 @@ mod EthTxAuthenticator {
         ref self: ContractState, from_address: felt252, sender_address: felt252, hash: felt252
     ) {
         assert(from_address == self._starknet_commit_address.read(), 'Invalid commit address');
+        // Prevents hash being overwritten by a different sender.
+        assert(self._commits.read(hash) == 0, 'Commit already exists');
         self._commits.write(hash, sender_address);
     }
 
