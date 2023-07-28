@@ -8,48 +8,46 @@ dotenv.config();
 const pk = process.env.PRIVATE_KEY || '';
 
 async function main() {
-    const p = new Provider();
-    console.log(p);
-    // // connect provider
-    // const provider = new Provider({ sequencer: { baseUrl:"http://127.0.0.1:5050"} });
-    // // new Open Zeppelin account v0.5.1 :
-    //     // Generate public and private key pair.
-    // const privateKey0 = "0xe3e70682c2094cac629f6fbed82c07cd";
-    // const address0 = "0x7e00d496e324876bbc8531f2d9a82bf154d1a04a50218ee74cdd372f75a551a";
-    // const account0 = new Account(provider, address0, privateKey0);
+    // connect provider
+    const provider = new Provider({ sequencer: { baseUrl:"http://127.0.0.1:5050"} });
+    // new Open Zeppelin account v0.5.1 :
+        // Generate public and private key pair.
+    const privateKey0 = "0xe3e70682c2094cac629f6fbed82c07cd";
+    const address0 = "0x7e00d496e324876bbc8531f2d9a82bf154d1a04a50218ee74cdd372f75a551a";
+    const account0 = new Account(provider, address0, privateKey0);
 
-    // const starkSigAuthAddress = "0x391ed8d6795fbb5f3ffb6994bcaa95e9b34dc6489e658c6d7fc86817bf4fe54";
+    const starkSigAuthAddress = "0x14f48340c1ee431755c004365b58e92e69003495af214cf90c3603338e7e945";
 
-    // const {abi: starkSigAuthAbi} = await provider.getClassAt(starkSigAuthAddress);
-    // const starkSigAuth = new Contract(starkSigAuthAbi, starkSigAuthAddress, provider);
+    const {abi: starkSigAuthAbi} = await provider.getClassAt(starkSigAuthAddress);
+    const starkSigAuth = new Contract(starkSigAuthAbi, starkSigAuthAddress, provider);
 
-    // const msgHash = typedData.getMessageHash(typedDataPropose, address0);
+    const msgHash = typedData.getMessageHash(typedDataPropose, address0);
 
-    // console.log('msgHash=', msgHash);
+    console.log('msgHash=', msgHash);
 
-    // const signature2 = await account0.signMessage(typedDataPropose);
+    const signature2 = await account0.signMessage(typedDataPropose);
 
-    // console.log('signature2=', signature2);
+    console.log('signature2=', signature2);
 
-    // // console.log(starkSigAuth.abi[2]);
-    // const specialParameters: Calldata = CallData.compile({
-    //             r: 1,
-    //             s: 2,
-    //             target: "0x0000000000000000000000000000000000007777",
-    //             author: address0,
-    //             execution_strategy: {
-    //                 addr: "0x0000000000000000000000000000000000001234",
-    //                 params: [5,6,7,8]
-    //             },
-    //             user_proposal_validation_params: [1,2,3,4],
-    //             salt: 0
-    //         });
+    // console.log(starkSigAuth.abi[2]);
+    const specialParameters: Calldata = CallData.compile({
+                r: 1,
+                s: 2,
+                target: "0x0000000000000000000000000000000000007777",
+                author: address0,
+                execution_strategy: {
+                    addr: "0x0000000000000000000000000000000000001234",
+                    params: [5,6,7,8]
+                },
+                user_proposal_validation_params: [1,2,3,4],
+                salt: 0
+            });
     
-    // // console.log(specialParameters);
+    // console.log(specialParameters);
         
-    // const out = await starkSigAuth.call("propose_hash", specialParameters, {parseResponse: false});
+    const out = await starkSigAuth.call("propose_hash", specialParameters, {parseResponse: false});
 
-    // console.log('out=', out);
+    console.log('out=', out);
 
 
     // // const result = await account0.execute({
