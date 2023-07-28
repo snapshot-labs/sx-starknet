@@ -14,3 +14,4 @@ mod single_slot_proof;
 
 mod signatures;
 
+mod stark_signatures;

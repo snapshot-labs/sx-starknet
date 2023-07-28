@@ -4,5 +4,13 @@
   "description": "Cairo 1 implementation of the Snapshot X Protocol",
   "repository": "https://github.com/snapshot-labs/sx-starknet-2.git",
   "author": "Snapshot Labs",
-  "license": "MIT"
+  "license": "MIT",
+  "devDependencies": {
+    "@types/node": "^20.4.5",
+    "dotenv": "^16.3.1",
+    "fs": "^0.0.1-security",
+    "starknet": "^5.14.1",
+    "ts-node": "^10.9.1",
+    "typescript": "^5.1.6"
+  }
 }
