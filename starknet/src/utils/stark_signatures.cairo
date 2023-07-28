@@ -40,17 +40,11 @@ impl StructHashSpanFelt252 of StructHash<Span<felt252>> {
 
 impl StructHashStrategy of StructHash<Strategy> {
     fn struct_hash(self: @Strategy) -> felt252 {
-        let mut call_data_state = LegacyHash::hash(0, STRATEGY_TYPEHASH);
-        call_data_state = LegacyHash::<felt252>::hash(call_data_state, (*self.address).into());
-        call_data_state = LegacyHash::hash(call_data_state, self.params.span().struct_hash());
-        call_data_state
-    }
-}
-
-impl LegacyHashStrategy of LegacyHash<Strategy> {
-    fn hash(state: felt252, value: Strategy) -> felt252 {
-        let state = LegacyHash::<felt252>::hash(state, value.address.into());
-        LegacyHash::hash(state, value.params.span())
+        let mut encoded_data = ArrayTrait::<felt252>::new();
+        STRATEGY_TYPEHASH.serialize(ref encoded_data);
+        (*self.address).serialize(ref encoded_data);
+        self.params.span().struct_hash().serialize(ref encoded_data);
+        encoded_data.span().struct_hash()
     }
 }
 
@@ -78,28 +72,21 @@ fn get_propose_digest(
     user_proposal_validation_params: Array<felt252>,
     salt: felt252
 ) -> felt252 {
-    // let mut encoded_data = ArrayTrait::<felt252>::new();
-    // PROPOSE_TYPEHASH.serialize(ref encoded_data);
-    // space.serialize(ref encoded_data);
-    // author.serialize(ref encoded_data);
-    // // TODO: proper typehashes for below
-    // LegacyHash::hash(0, execution_strategy).serialize(ref encoded_data);
-    // LegacyHash::hash(0, user_proposal_validation_params.span()).serialize(ref encoded_data);
-    // salt.serialize(ref encoded_data);
-    // let message_hash = LegacyHash::hash(0, encoded_data.span());
-    // hash_typed_data(message_hash)
-
-    // let mut encoded_data = ArrayTrait::<felt252>::new();
-    // STRATEGY_TYPEHASH.serialize(ref encoded_data);
-    // execution_strategy.serialize(ref encoded_data);
-    // LegacyHash::hash(0, encoded_data.span())
-    execution_strategy.params.span().struct_hash()
+    let mut encoded_data = ArrayTrait::<felt252>::new();
+    PROPOSE_TYPEHASH.serialize(ref encoded_data);
+    space.serialize(ref encoded_data);
+    author.serialize(ref encoded_data);
+    execution_strategy.struct_hash().serialize(ref encoded_data);
+    user_proposal_validation_params.span().struct_hash().serialize(ref encoded_data);
+    salt.serialize(ref encoded_data);
+    hash_typed_data(encoded_data.span().struct_hash(), author)
 }
 
-fn hash_typed_data(message_hash: felt252) -> felt252 {
+fn hash_typed_data(message_hash: felt252, signer: ContractAddress) -> felt252 {
     let mut encoded_data = ArrayTrait::<felt252>::new();
     STARKNET_MESSAGE.serialize(ref encoded_data);
     DOMAIN_HASH.serialize(ref encoded_data);
+    signer.serialize(ref encoded_data);
     message_hash.serialize(ref encoded_data);
-    LegacyHash::hash(0, encoded_data.span())
+    encoded_data.span().struct_hash()
 }

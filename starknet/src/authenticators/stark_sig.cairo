@@ -24,16 +24,6 @@ trait IStarkSigAuthenticator<TContractState> {
         user_proposal_validation_params: Array<felt252>,
         salt: felt252
     ) -> felt252;
-    fn encoded_strategy(
-            self: @TContractState,
-            r: felt252,
-            s: felt252,
-            target: ContractAddress,
-            author: ContractAddress,
-            execution_strategy: Strategy,
-            user_proposal_validation_params: Array<felt252>,
-            salt: felt252,
-    ) -> Array<felt252>;
 }
 
 #[starknet::contract]
@@ -90,24 +80,6 @@ mod StarkSigAuthenticator {
                 target, author, execution_strategy, user_proposal_validation_params, salt
             )
         }
-
-        fn encoded_strategy(
-            self: @ContractState,
-            r: felt252,
-            s: felt252,
-            target: ContractAddress,
-            author: ContractAddress,
-            execution_strategy: Strategy,
-            user_proposal_validation_params: Array<felt252>,
-            salt: felt252,
-        ) -> Array<felt252> {
-            let mut encoded_data = ArrayTrait::<felt252>::new();
-            0x14c6b221e639b0d611fd0aab18c0c1e29079e17e0445bebd85b5cad1aaaee2b.serialize(ref encoded_data);
-            execution_strategy.address.serialize(ref encoded_data);
-            execution_strategy.params.serialize(ref encoded_data);
-            encoded_data
-        }
-
     }
 // #[constructor]
 // fn constructor(ref self: ContractState, name: felt252, version: felt252) {// TODO: domain hash is immutable so could be placed in the contract code instead of storage to save on reads.
