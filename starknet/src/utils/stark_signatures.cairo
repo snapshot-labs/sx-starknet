@@ -8,7 +8,10 @@ use hash::LegacyHash;
 use integer::u256_from_felt252;
 use sx::utils::types::{Strategy, IndexedStrategy, Choice, Felt252ArrayIntoU256Array};
 use sx::utils::math::pow;
-use sx::utils::constants::{STARKNET_MESSAGE, DOMAIN_HASH, STRATEGY_TYPEHASH, PROPOSE_TYPEHASH};
+use sx::utils::constants::{
+    STARKNET_MESSAGE, DOMAIN_HASH, STRATEGY_TYPEHASH, INDEXED_STRATEGY_TYPEHASH, PROPOSE_TYPEHASH,
+    VOTE_TYPEHASH, UPDATE_PROPOSAL_TYPEHASH
+};
 
 impl LegacyHashSpanFelt252 of LegacyHash<Span<felt252>> {
     fn hash(state: felt252, mut value: Span<felt252>) -> felt252 {
@@ -48,6 +51,30 @@ impl StructHashStrategy of StructHash<Strategy> {
     }
 }
 
+impl StructHashIndexedStrategy of StructHash<IndexedStrategy> {
+    fn struct_hash(self: @IndexedStrategy) -> felt252 {
+        let mut encoded_data = ArrayTrait::<felt252>::new();
+        INDEXED_STRATEGY_TYPEHASH.serialize(ref encoded_data);
+        (*self.index).serialize(ref encoded_data);
+        self.params.span().struct_hash().serialize(ref encoded_data);
+        encoded_data.span().struct_hash()
+    }
+}
+
+impl StructHashIndexedStrategySpan of StructHash<Span<IndexedStrategy>> {
+    fn struct_hash(self: @Span<IndexedStrategy>) -> felt252 {
+        let mut encoded_data = ArrayTrait::<felt252>::new();
+        let mut i: usize = 0;
+        loop {
+            if i >= (*self).len() {
+                break ();
+            };
+            encoded_data.append((*self).at(i).struct_hash());
+        };
+        encoded_data.span().struct_hash()
+    }
+}
+
 // Reverts if the signature was not signed by the author. 
 fn verify_propose_sig(
     r: felt252,
@@ -65,6 +92,39 @@ fn verify_propose_sig(
     assert(check_ecdsa_signature(digest, public_key, r, s), 'Invalid signature');
 }
 
+fn verify_vote_sig(
+    r: felt252,
+    s: felt252,
+    target: ContractAddress,
+    voter: ContractAddress,
+    proposal_id: u256,
+    choice: Choice,
+    user_voting_strategies: Span<IndexedStrategy>,
+    public_key: felt252
+) {
+    let digest: felt252 = get_vote_digest(
+        target, voter, proposal_id, choice, user_voting_strategies
+    );
+    assert(check_ecdsa_signature(digest, public_key, r, s), 'Invalid signature');
+}
+
+fn verify_update_proposal_sig(
+    r: felt252,
+    s: felt252,
+    target: ContractAddress,
+    author: ContractAddress,
+    proposal_id: u256,
+    execution_strategy: Strategy,
+    salt: felt252,
+    public_key: felt252
+) {
+    let digest: felt252 = get_update_proposal_digest(
+        target, author, proposal_id, execution_strategy, salt
+    );
+    assert(check_ecdsa_signature(digest, public_key, r, s), 'Invalid signature');
+}
+
+
 fn get_propose_digest(
     space: ContractAddress,
     author: ContractAddress,
@@ -78,6 +138,40 @@ fn get_propose_digest(
     author.serialize(ref encoded_data);
     execution_strategy.struct_hash().serialize(ref encoded_data);
     user_proposal_validation_params.span().struct_hash().serialize(ref encoded_data);
+    salt.serialize(ref encoded_data);
+    hash_typed_data(encoded_data.span().struct_hash(), author)
+}
+
+fn get_vote_digest(
+    space: ContractAddress,
+    voter: ContractAddress,
+    proposal_id: u256,
+    choice: Choice,
+    user_voting_strategies: Span<IndexedStrategy>
+) -> felt252 {
+    let mut encoded_data = ArrayTrait::<felt252>::new();
+    VOTE_TYPEHASH.serialize(ref encoded_data);
+    space.serialize(ref encoded_data);
+    voter.serialize(ref encoded_data);
+    proposal_id.serialize(ref encoded_data);
+    choice.serialize(ref encoded_data);
+    user_voting_strategies.struct_hash().serialize(ref encoded_data);
+    hash_typed_data(encoded_data.span().struct_hash(), voter)
+}
+
+fn get_update_proposal_digest(
+    space: ContractAddress,
+    author: ContractAddress,
+    proposal_id: u256,
+    execution_strategy: Strategy,
+    salt: felt252
+) -> felt252 {
+    let mut encoded_data = ArrayTrait::<felt252>::new();
+    UPDATE_PROPOSAL_TYPEHASH.serialize(ref encoded_data);
+    space.serialize(ref encoded_data);
+    author.serialize(ref encoded_data);
+    proposal_id.serialize(ref encoded_data);
+    execution_strategy.struct_hash().serialize(ref encoded_data);
     salt.serialize(ref encoded_data);
     hash_typed_data(encoded_data.span().struct_hash(), author)
 }
