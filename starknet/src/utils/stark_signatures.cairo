@@ -3,7 +3,7 @@ use array::{ArrayTrait, SpanTrait};
 use traits::Into;
 use clone::Clone;
 use serde::Serde;
-use starknet::secp256k1;
+use ecdsa::check_ecdsa_signature;
 use hash::LegacyHash;
 use integer::u256_from_felt252;
 use sx::utils::types::{Strategy, IndexedStrategy, Choice, Felt252ArrayIntoU256Array};
@@ -57,12 +57,12 @@ fn verify_propose_sig(
     execution_strategy: Strategy,
     user_proposal_validation_params: Array<felt252>,
     salt: felt252,
+    public_key: felt252
 ) {
     let digest: felt252 = get_propose_digest(
         target, author, execution_strategy, user_proposal_validation_params, salt
     );
-// TODO: Actually verify the signature when it gets added
-// secp256k1::verify_eth_signature(digest, r, s, v, author);
+    assert(check_ecdsa_signature(digest, public_key, r, s), 'Invalid signature');
 }
 
 fn get_propose_digest(

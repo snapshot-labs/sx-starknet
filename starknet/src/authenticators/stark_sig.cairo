@@ -13,6 +13,7 @@ trait IStarkSigAuthenticator<TContractState> {
         execution_strategy: Strategy,
         user_proposal_validation_params: Array<felt252>,
         salt: felt252,
+        public_key: felt252,
     );
     fn propose_hash(
         self: @TContractState,
@@ -55,10 +56,20 @@ mod StarkSigAuthenticator {
             execution_strategy: Strategy,
             user_proposal_validation_params: Array<felt252>,
             salt: felt252,
+            public_key: felt252,
         ) {
-            let msg_hash = stark_signatures::get_propose_digest(
-                target, author, execution_strategy, user_proposal_validation_params, salt
+            stark_signatures::verify_propose_sig(
+                r,
+                s,
+                target,
+                author,
+                execution_strategy,
+                user_proposal_validation_params,
+                salt,
+                public_key
             );
+        // Check public key corresponds to the author account address. 
+
         // self._used_salts.write((author, salt), true);
 
         // ISpaceDispatcher {
