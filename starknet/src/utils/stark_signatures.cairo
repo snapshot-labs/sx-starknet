@@ -9,7 +9,7 @@ use integer::u256_from_felt252;
 use sx::utils::types::{Strategy, IndexedStrategy, Choice, Felt252ArrayIntoU256Array};
 use sx::utils::math::pow;
 use sx::utils::constants::{
-    STARKNET_MESSAGE, DOMAIN_HASH, STRATEGY_TYPEHASH, INDEXED_STRATEGY_TYPEHASH, PROPOSE_TYPEHASH,
+    STARKNET_MESSAGE, DOMAIN_HASH, STRATEGY_TYPEHASH, INDEXED_STRATEGY_TYPEHASH, U256_TYPEHASH, PROPOSE_TYPEHASH,
     VOTE_TYPEHASH, UPDATE_PROPOSAL_TYPEHASH
 };
 
@@ -70,7 +70,17 @@ impl StructHashIndexedStrategySpan of StructHash<Span<IndexedStrategy>> {
                 break ();
             };
             encoded_data.append((*self).at(i).struct_hash());
+            i += 1;
         };
+        encoded_data.span().struct_hash()
+    }
+}
+
+impl StructHashU256 of StructHash<u256> {
+    fn struct_hash(self: @u256) -> felt252 {
+        let mut encoded_data = ArrayTrait::<felt252>::new();
+        U256_TYPEHASH.serialize(ref encoded_data);
+        self.serialize(ref encoded_data);
         encoded_data.span().struct_hash()
     }
 }
@@ -99,7 +109,7 @@ fn verify_vote_sig(
     voter: ContractAddress,
     proposal_id: u256,
     choice: Choice,
-    user_voting_strategies: Span<IndexedStrategy>,
+    user_voting_strategies: Array<IndexedStrategy>,
     public_key: felt252
 ) {
     let digest: felt252 = get_vote_digest(
@@ -124,7 +134,6 @@ fn verify_update_proposal_sig(
     assert(check_ecdsa_signature(digest, public_key, r, s), 'Invalid signature');
 }
 
-
 fn get_propose_digest(
     space: ContractAddress,
     author: ContractAddress,
@@ -147,15 +156,15 @@ fn get_vote_digest(
     voter: ContractAddress,
     proposal_id: u256,
     choice: Choice,
-    user_voting_strategies: Span<IndexedStrategy>
+    user_voting_strategies: Array<IndexedStrategy>
 ) -> felt252 {
     let mut encoded_data = ArrayTrait::<felt252>::new();
     VOTE_TYPEHASH.serialize(ref encoded_data);
     space.serialize(ref encoded_data);
     voter.serialize(ref encoded_data);
-    proposal_id.serialize(ref encoded_data);
+    proposal_id.struct_hash().serialize(ref encoded_data);
     choice.serialize(ref encoded_data);
-    user_voting_strategies.struct_hash().serialize(ref encoded_data);
+    user_voting_strategies.span().struct_hash().serialize(ref encoded_data);
     hash_typed_data(encoded_data.span().struct_hash(), voter)
 }
 
@@ -170,7 +179,7 @@ fn get_update_proposal_digest(
     UPDATE_PROPOSAL_TYPEHASH.serialize(ref encoded_data);
     space.serialize(ref encoded_data);
     author.serialize(ref encoded_data);
-    proposal_id.serialize(ref encoded_data);
+    proposal_id.struct_hash().serialize(ref encoded_data);
     execution_strategy.struct_hash().serialize(ref encoded_data);
     salt.serialize(ref encoded_data);
     hash_typed_data(encoded_data.span().struct_hash(), author)

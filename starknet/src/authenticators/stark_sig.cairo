@@ -47,6 +47,28 @@ trait IStarkSigAuthenticator<TContractState> {
         user_proposal_validation_params: Array<felt252>,
         salt: felt252
     ) -> felt252;
+    fn vote_hash(
+        self: @TContractState,
+        r: felt252,
+        s: felt252,
+        target: ContractAddress,
+        voter: ContractAddress,
+        proposal_id: u256,
+        choice: Choice,
+        user_voting_strategies: Array<IndexedStrategy>,
+        public_key: felt252
+    ) -> felt252;
+    fn encoded_vote(
+        self: @TContractState,
+        r: felt252,
+        s: felt252,
+        target: ContractAddress,
+        author: ContractAddress,
+        proposal_id: u256,
+        execution_strategy: Strategy,
+        salt: felt252,
+        public_key: felt252
+    ) -> Array<felt252>;
 }
 
 #[starknet::contract]
@@ -111,16 +133,16 @@ mod StarkSigAuthenticator {
             public_key: felt252
         ) {
             stark_signatures::verify_vote_sig(
-                r, s, target, voter, proposal_id, choice, user_voting_strategies.span(), public_key
+                r, s, target, voter, proposal_id, choice, user_voting_strategies, public_key
             );
 
             // Check public key corresponds to the voter account address.
 
             // No need to check salts here, as double voting is prevented by the space itself.
 
-            ISpaceDispatcher {
-                contract_address: target
-            }.vote(voter, proposal_id, choice, user_voting_strategies);
+            // ISpaceDispatcher {
+            //     contract_address: target
+            // }.vote(voter, proposal_id, choice, user_voting_strategies);
         }
 
         fn authenticate_update_proposal(
@@ -144,21 +166,6 @@ mod StarkSigAuthenticator {
         // ISpaceDispatcher {
         //     contract_address: target
         // }.update_proposal(author, proposal_id, execution_strategy);
-        }
-
-        fn propose_hash(
-            self: @ContractState,
-            r: felt252,
-            s: felt252,
-            target: ContractAddress,
-            author: ContractAddress,
-            execution_strategy: Strategy,
-            user_proposal_validation_params: Array<felt252>,
-            salt: felt252,
-        ) -> felt252 {
-            stark_signatures::get_propose_digest(
-                target, author, execution_strategy, user_proposal_validation_params, salt
-            )
         }
     }
 // #[constructor]
