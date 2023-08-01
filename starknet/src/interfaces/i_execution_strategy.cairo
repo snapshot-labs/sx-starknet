@@ -1,5 +1,5 @@
 use array::ArrayTrait;
-use sx::utils::types::Proposal;
+use sx::types::Proposal;
 
 #[starknet::interface]
 trait IExecutionStrategy<TContractState> {

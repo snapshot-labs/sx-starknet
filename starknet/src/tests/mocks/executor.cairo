@@ -1,7 +1,7 @@
 #[starknet::contract]
 mod ExecutorExecutionStrategy {
     use sx::interfaces::IExecutionStrategy;
-    use sx::utils::types::{Proposal, ProposalStatus};
+    use sx::types::{Proposal, ProposalStatus};
     use sx::execution_strategies::simple_quorum::SimpleQuorumExecutionStrategy;
     use starknet::ContractAddress;
     use core::serde::Serde;

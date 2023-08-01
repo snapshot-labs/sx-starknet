@@ -17,3 +17,5 @@ mod external;
 mod interfaces;
 
 mod tests;
+
+mod types;

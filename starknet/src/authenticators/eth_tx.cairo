@@ -1,5 +1,5 @@
 use starknet::ContractAddress;
-use sx::utils::types::{Strategy, IndexedStrategy, Choice};
+use sx::types::{Strategy, IndexedStrategy, Choice};
 
 #[starknet::interface]
 trait IEthTxAuthenticator<TContractState> {
@@ -36,7 +36,7 @@ mod EthTxAuthenticator {
     use core::serde::Serde;
     use core::array::{ArrayTrait, SpanTrait};
     use sx::space::space::{ISpaceDispatcher, ISpaceDispatcherTrait};
-    use sx::utils::types::{Strategy, IndexedStrategy, Choice};
+    use sx::types::{Strategy, IndexedStrategy, Choice};
     use sx::utils::constants::{PROPOSE_SELECTOR, VOTE_SELECTOR, UPDATE_PROPOSAL_SELECTOR};
 
     #[storage]
