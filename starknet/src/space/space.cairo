@@ -1,5 +1,5 @@
 use core::traits::Destruct;
-use starknet::ContractAddress;
+use starknet::{ClassHash, ContractAddress};
 use sx::utils::types::{Strategy, Proposal, IndexedStrategy, Choice, UpdateSettingsCalldata};
 
 #[starknet::interface]
@@ -49,12 +49,13 @@ trait ISpace<TContractState> {
         execution_strategy: Strategy
     );
     fn cancel_proposal(ref self: TContractState, proposal_id: u256);
+    fn upgrade(ref self: TContractState, class_hash: ClassHash);
 }
 
 #[starknet::contract]
 mod Space {
     use super::ISpace;
-    use starknet::{ContractAddress, info, Store};
+    use starknet::{ClassHash, ContractAddress, info, Store};
     use zeroable::Zeroable;
     use array::{ArrayTrait, SpanTrait};
     use clone::Clone;
@@ -162,6 +163,9 @@ mod Space {
 
     #[event]
     fn VotingDelayUpdated(_new_voting_delay: u64) {}
+
+    #[event]
+    fn Upgraded(class_hash: ClassHash) {}
 
     #[external(v0)]
     impl Space of ISpace<ContractState> {
@@ -316,6 +320,17 @@ mod Space {
             proposal.finalization_status = FinalizationStatus::Cancelled(());
             self._proposals.write(proposal_id, proposal);
             ProposalCancelled(proposal_id);
+        }
+
+        fn upgrade(ref self: ContractState, class_hash: ClassHash) {
+            let state: Ownable::ContractState = Ownable::unsafe_new_contract_state();
+            Ownable::assert_only_owner(@state);
+
+            assert(
+                class_hash.is_non_zero(), 'Class Hash cannot be zero'
+            ); // TODO: not sure this is needed
+            starknet::replace_class_syscall(class_hash).unwrap_syscall();
+            Upgraded(class_hash);
         }
 
         fn owner(self: @ContractState) -> ContractAddress {
