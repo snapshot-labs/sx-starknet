@@ -83,7 +83,7 @@ mod tests {
         )
             .unwrap();
 
-        // Set the owner to be the space itself
+        // Set the owner to be the execution strategy
         testing::set_contract_address(config.owner);
         space.transfer_ownership(execution_contract_address);
 
