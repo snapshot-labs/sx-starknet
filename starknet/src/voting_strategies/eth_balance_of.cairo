@@ -3,7 +3,7 @@ mod EthBalanceOfVotingStrategy {
     use traits::Into;
     use starknet::{EthAddress, ContractAddress};
     use sx::interfaces::IVotingStrategy;
-    use sx::types::UserAddress;
+    use sx::types::{UserAddress, UserAddressTrait};
     use sx::utils::single_slot_proof::SingleSlotProof;
 
     #[storage]
@@ -18,7 +18,9 @@ mod EthBalanceOfVotingStrategy {
             params: Array<felt252>,
             user_params: Array<felt252>,
         ) -> u256 {
-            // Check voter address is an Ethereum address
+            // Cast voter address is an Ethereum address
+            // Will revert if the address is not an Ethereum address
+            let voter = voter.to_ethereum_address();
 
             // Resolve timestamp to block number
             //TODO: dummy var for now. Remove when timestamps are replaced with block numbers

@@ -9,35 +9,65 @@ enum UserAddress {
     // Starknet address type
     StarknetAddress: ContractAddress,
     // Ethereum address type
-    EthereumAddress: EthAddress
-}
-
-impl UserAddressIntoFelt of Into<UserAddress, felt252> {
-    fn into(self: UserAddress) -> felt252 {
-        match self {
-            UserAddress::StarknetAddress(address) => address.into(),
-            UserAddress::EthereumAddress(address) => address.into()
-        }
-    }
+    EthereumAddress: EthAddress,
+    // Custom address type to provide compatibility with any address that can be represented as a u256.
+    CustomAddress: u256
 }
 
 impl LegacyHashUserAddress of LegacyHash<UserAddress> {
     fn hash(state: felt252, value: UserAddress) -> felt252 {
-        LegacyHash::<felt252>::hash(state, value.into())
+        match value {
+            UserAddress::StarknetAddress(address) => LegacyHash::<felt252>::hash(
+                state, address.into()
+            ),
+            UserAddress::EthereumAddress(address) => LegacyHash::<felt252>::hash(
+                state, address.into()
+            ),
+            UserAddress::CustomAddress(address) => LegacyHash::<u256>::hash(state, address),
+        }
     }
 }
 
-trait EnforceEnumTypeTrait {
-    fn assert_starknet_address(self: UserAddress);
+trait UserAddressTrait {
+    fn to_starknet_address(self: UserAddress) -> ContractAddress;
+    fn to_ethereum_address(self: UserAddress) -> EthAddress;
+    fn to_custom_address(self: UserAddress) -> u256;
 }
 
-impl EnforceEnumTypeImpl of EnforceEnumTypeTrait {
-    fn assert_starknet_address(self: UserAddress) {
+impl UserAddressImpl of UserAddressTrait {
+    fn to_starknet_address(self: UserAddress) -> ContractAddress {
         match self {
-            UserAddress::StarknetAddress(_) => (),
+            UserAddress::StarknetAddress(address) => address,
             UserAddress::EthereumAddress(_) => {
-                panic_with_felt252(2)
+                panic_with_felt252('Incorrect address type')
+            },
+            UserAddress::CustomAddress(_) => {
+                panic_with_felt252('Incorrect address type')
             }
+        }
+    }
+
+    fn to_ethereum_address(self: UserAddress) -> EthAddress {
+        match self {
+            UserAddress::StarknetAddress(_) => {
+                panic_with_felt252('Incorrect address type')
+            },
+            UserAddress::EthereumAddress(address) => address,
+            UserAddress::CustomAddress(_) => {
+                panic_with_felt252('Incorrect address type')
+            }
+        }
+    }
+
+    fn to_custom_address(self: UserAddress) -> u256 {
+        match self {
+            UserAddress::StarknetAddress(_) => {
+                panic_with_felt252('Incorrect address type')
+            },
+            UserAddress::EthereumAddress(_) => {
+                panic_with_felt252('Incorrect address type')
+            },
+            UserAddress::CustomAddress(address) => address,
         }
     }
 }

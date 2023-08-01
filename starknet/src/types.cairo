@@ -5,7 +5,7 @@ mod finalization_status;
 use finalization_status::FinalizationStatus;
 
 mod user_address;
-use user_address::UserAddress;
+use user_address::{UserAddress, UserAddressTrait};
 
 mod indexed_strategy;
 use indexed_strategy::{IndexedStrategy, IndexedStrategyImpl, IndexedStrategyTrait};
