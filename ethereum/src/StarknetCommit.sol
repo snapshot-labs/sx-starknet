@@ -21,7 +21,7 @@ contract StarkNetCommit {
     /// @notice Commits a hash and the sender address to Starknet.
     /// @param starknetAuthenticator The address of the authenticator contract on Starknet that will receive the message.
     ///@param _hash The hash to commit
-    function commit(uint256 starknetAuthenticator, uint256 _hash) external {
+    function commit(uint256 starknetAuthenticator, uint256 _hash) external payable {
         uint256[] memory payload = new uint256[](2);
         payload[0] = uint256(uint160(msg.sender));
         payload[1] = _hash;
