@@ -120,23 +120,6 @@ struct Strategy {
     params: Array<felt252>,
 }
 
-trait StrategyTrait {
-    fn test_value() -> Strategy;
-    fn from_address(addr: ContractAddress) -> Strategy;
-}
-
-impl StrategyImpl of StrategyTrait {
-    fn test_value() -> Strategy {
-        Strategy {
-            address: contract_address_const::<0x5c011>(), params: ArrayTrait::<felt252>::new(), 
-        }
-    }
-
-    fn from_address(addr: ContractAddress) -> Strategy {
-        Strategy { address: addr, params: ArrayTrait::<felt252>::new(),  }
-    }
-}
-
 impl PartialEqStrategy of PartialEq<Strategy> {
     fn eq(lhs: @Strategy, rhs: @Strategy) -> bool {
         lhs.address == rhs.address

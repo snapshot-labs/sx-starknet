@@ -11,7 +11,7 @@ mod setup {
     use sx::execution_strategies::vanilla::VanillaExecutionStrategy;
     use sx::voting_strategies::vanilla::VanillaVotingStrategy;
     use sx::proposal_validation_strategies::vanilla::VanillaProposalValidationStrategy;
-    use sx::utils::types::StrategyImpl;
+    use sx::tests::utils::strategy_trait::StrategyImpl;
     use integer::u256_from_felt252;
     use starknet::testing;
     use starknet::syscalls::deploy_syscall;

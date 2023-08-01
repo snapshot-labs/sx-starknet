@@ -21,9 +21,9 @@ mod tests {
     use sx::tests::mocks::proposal_validation_always_fail::AlwaysFailProposalValidationStrategy;
     use sx::tests::setup::setup::setup::{setup, deploy};
     use sx::utils::types::{
-        Strategy, StrategyImpl, IndexedStrategy, Choice, FinalizationStatus, Proposal,
-        UpdateSettingsCalldataImpl
+        Strategy, IndexedStrategy, Choice, FinalizationStatus, Proposal, UpdateSettingsCalldataImpl
     };
+    use sx::tests::utils::strategy_trait::{StrategyImpl};
     use sx::utils::constants::{PROPOSE_SELECTOR, VOTE_SELECTOR, UPDATE_PROPOSAL_SELECTOR};
 
     use Space::Space as SpaceImpl;
