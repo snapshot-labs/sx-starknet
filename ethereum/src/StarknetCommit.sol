@@ -28,7 +28,7 @@ contract StarknetCommit {
         uint256[] memory payload = new uint256[](2);
         payload[0] = uint256(uint160(msg.sender));
         payload[1] = _hash;
-        (bytes32 msgHash, uint256 msgNonce) = starknetCore.sendMessageToL2(starknetAuthenticator, L1_COMMIT_HANDLER, payload);
+        (bytes32 msgHash, uint256 msgNonce) = starknetCore.sendMessageToL2{value:msg.value}(starknetAuthenticator, L1_COMMIT_HANDLER, payload);
         emit Commit(starknetAuthenticator, _hash, msgHash, msgNonce);
     }
 }
