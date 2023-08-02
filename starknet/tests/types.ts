@@ -1,14 +1,9 @@
-export const domain = {
-  name: '1', // put the name of your dapp to ensure that the signatures will not be used by other DAPP
-  version: '1',
-  chainId: '0x534e5f474f45524c49', // devnet id
-};
-
 export const domainTypes = {
   StarkNetDomain: [
     { name: 'name', type: 'felt252' },
     { name: 'version', type: 'felt252' },
     { name: 'chainId', type: 'felt252' },
+    { name: 'verifyingContract', type: 'ContractAddress' },
   ],
 };
 
@@ -47,11 +42,7 @@ export const voteTypes = {
 };
 
 export const updateProposalTypes = {
-  StarkNetDomain: [
-    { name: 'name', type: 'felt252' },
-    { name: 'version', type: 'felt252' },
-    { name: 'chainId', type: 'felt252' },
-  ],
+  StarkNetDomain: domainTypes.StarkNetDomain,
   UpdateProposal: [
     { name: 'space', type: 'ContractAddress' },
     { name: 'author', type: 'ContractAddress' },

@@ -1,6 +1,6 @@
 import fs from 'fs';
 import dotenv from 'dotenv';
-import { Account, json, Provider } from 'starknet';
+import { Account, json, Provider, CallData, Calldata} from 'starknet';
 
 dotenv.config();
 
@@ -22,9 +22,15 @@ async function main() {
     fs.readFileSync('starknet/target/dev/sx_StarkSigAuthenticator.casm.json').toString('ascii'),
   );
 
+  const contractConstructor: Calldata = CallData.compile({
+    name: 'sx-sn',
+    version: '0.1.0',
+  });
+
   const deployResponse = await account0.declareAndDeploy({
     contract: compiledContractSierra,
     casm: compiledContractCasm,
+    constructorCalldata: contractConstructor,
   });
   console.log('deployResponse=', deployResponse);
 }

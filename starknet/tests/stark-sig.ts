@@ -10,7 +10,6 @@ import {
   StarknetSigProposeCalldata,
   StarknetSigVoteCalldata,
   StarknetSigUpdateProposalCalldata,
-  domain,
 } from './types';
 
 dotenv.config();
@@ -23,7 +22,14 @@ async function main() {
   const publickey0 = '0x7e52885445756b313ea16849145363ccb73fb4ab0440dbac333cf9d13de82b9';
   const account0 = new Account(provider, address0, privateKey0);
 
-  const starkSigAuthAddress = '0x20d7169022756f2d8b63d5c2ad8fa812c43dcdc9041f306129d6f7ec4730e51';
+  const starkSigAuthAddress = '0x25e72fe267e1d1adc59812dbdde56fb8e5156bb29d5f11ff1dd6317fca682fb';
+
+  const domain = {
+    name: 'sx-sn',
+    version: '0.1.0',
+    chainId: '0x534e5f474f45524c49', // devnet id
+    verifyingContract: starkSigAuthAddress,
+  };
 
   // PROPOSE
 
