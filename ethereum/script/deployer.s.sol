@@ -13,7 +13,7 @@ contract Deployer is Script {
         uint256 deployerPrivateKey = vm.envUint("PRIVATE_KEY");
         vm.startBroadcast(deployerPrivateKey);
         SingletonFactory singletonFactory = SingletonFactory(0xce0042B868300000d44A59004Da54A005ffdcf9f);
-        bytes32 salt = bytes32(uint256(0));
+        bytes32 salt = bytes32(uint256(1));
 
         singletonFactory.deploy(
             abi.encodePacked(
