@@ -1,5 +1,8 @@
+use core::traits::TryInto;
 #[starknet::contract]
 mod SimpleQuorumExecutionStrategy {
+    use traits::TryInto;
+    use option::OptionTrait;
     use starknet::ContractAddress;
     use starknet::get_caller_address;
     use starknet::info;
@@ -27,7 +30,7 @@ mod SimpleQuorumExecutionStrategy {
         let accepted = _quorum_reached(self._quorum.read(), votes_for, votes_against, votes_abstain)
             & _supported(votes_for, votes_against);
 
-        let block_number = info::get_block_number();
+        let block_number = info::get_block_number().try_into().unwrap();
         if *proposal.finalization_status == FinalizationStatus::Cancelled(()) {
             ProposalStatus::Cancelled(())
         } else if *proposal.finalization_status == FinalizationStatus::Executed(()) {

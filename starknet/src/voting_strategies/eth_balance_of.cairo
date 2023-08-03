@@ -13,7 +13,7 @@ mod EthBalanceOfVotingStrategy {
     impl EthBalanceOfVotingStrategy of IVotingStrategy<ContractState> {
         fn get_voting_power(
             self: @ContractState,
-            timestamp: u64,
+            timestamp: u32,
             voter: UserAddress,
             params: Array<felt252>,
             user_params: Array<felt252>,

@@ -39,9 +39,9 @@ mod tests {
         testing::set_contract_address(deployer);
         // Space Settings
         let owner = contract_address_const::<0x123456789>();
-        let max_voting_duration = 2_u64;
-        let min_voting_duration = 1_u64;
-        let voting_delay = 1_u64;
+        let max_voting_duration = 2_u32;
+        let min_voting_duration = 1_u32;
+        let voting_delay = 1_u32;
 
         // Deploy Vanilla Authenticator 
         let (vanilla_authenticator_address, _) = deploy_syscall(
@@ -148,11 +148,12 @@ mod tests {
         );
 
         let proposal = space.proposals(u256_from_felt252(1));
+        let block_number = info::get_block_number().try_into().unwrap();
         let expected_proposal = Proposal {
-            snapshot_block_number: info::get_block_number(),
-            start_block_number: info::get_block_number() + 1_u64,
-            min_end_block_number: info::get_block_number() + 2_u64,
-            max_end_block_number: info::get_block_number() + 3_u64,
+            snapshot_block_number: block_number,
+            start_block_number: block_number + 1_u32,
+            min_end_block_number: block_number + 2_u32,
+            max_end_block_number: block_number + 3_u32,
             execution_payload_hash: poseidon::poseidon_hash_span(
                 vanilla_execution_strategy.clone().params.span()
             ),

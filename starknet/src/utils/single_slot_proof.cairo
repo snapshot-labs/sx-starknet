@@ -65,7 +65,7 @@ mod SingleSlotProof {
     #[internal]
     fn get_storage_slot(
         self: @ContractState,
-        block_number: u64,
+        block_number: u32,
         contract_address: felt252,
         slot_index: u256,
         mapping_key: u256,
