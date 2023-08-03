@@ -60,7 +60,6 @@ mod Space {
     use array::{ArrayTrait, SpanTrait};
     use clone::Clone;
     use option::OptionTrait;
-    use hash::LegacyHash;
     use traits::Into;
 
     use sx::interfaces::{
