@@ -27,16 +27,16 @@ mod SimpleQuorumExecutionStrategy {
         let accepted = _quorum_reached(self._quorum.read(), votes_for, votes_against, votes_abstain)
             & _supported(votes_for, votes_against);
 
-        let timestamp = info::get_block_timestamp();
+        let block_number = info::get_block_number();
         if *proposal.finalization_status == FinalizationStatus::Cancelled(()) {
             ProposalStatus::Cancelled(())
         } else if *proposal.finalization_status == FinalizationStatus::Executed(()) {
             ProposalStatus::Executed(())
-        } else if timestamp < *proposal.start_timestamp {
+        } else if block_number < *proposal.start_block_number {
             ProposalStatus::VotingDelay(())
-        } else if timestamp < *proposal.min_end_timestamp {
+        } else if block_number < *proposal.min_end_block_number {
             ProposalStatus::VotingPeriod(())
-        } else if timestamp < *proposal.max_end_timestamp {
+        } else if block_number < *proposal.max_end_block_number {
             if accepted {
                 ProposalStatus::VotingPeriodAccepted(())
             } else {

@@ -181,10 +181,10 @@ mod Space {
                 );
             assert(is_valid, 'Proposal is not valid');
 
-            let snapshot_timestamp = info::get_block_timestamp();
-            let start_timestamp = snapshot_timestamp + self._voting_delay.read();
-            let min_end_timestamp = start_timestamp + self._min_voting_duration.read();
-            let max_end_timestamp = start_timestamp + self._max_voting_duration.read();
+            let snapshot_block_number = info::get_block_number();
+            let start_block_number = snapshot_block_number + self._voting_delay.read();
+            let min_end_block_number = start_block_number + self._min_voting_duration.read();
+            let max_end_block_number = start_block_number + self._max_voting_duration.read();
 
             // TODO: we use a felt252 for the hash despite felts being discouraged 
             // a new field would just replace the hash. Might be worth casting to a Uint256 though? 
@@ -193,10 +193,10 @@ mod Space {
             );
 
             let proposal = Proposal {
-                snapshot_timestamp: snapshot_timestamp,
-                start_timestamp: start_timestamp,
-                min_end_timestamp: min_end_timestamp,
-                max_end_timestamp: max_end_timestamp,
+                snapshot_block_number: snapshot_block_number,
+                start_block_number: start_block_number,
+                min_end_block_number: min_end_block_number,
+                max_end_block_number: max_end_block_number,
                 execution_payload_hash: execution_payload_hash,
                 execution_strategy: execution_strategy.address,
                 author: author,
@@ -224,10 +224,10 @@ mod Space {
             let proposal = self._proposals.read(proposal_id);
             assert_proposal_exists(@proposal);
 
-            let timestamp = info::get_block_timestamp();
+            let block_number = info::get_block_number();
 
-            assert(timestamp < proposal.max_end_timestamp, 'Voting period has ended');
-            assert(timestamp >= proposal.start_timestamp, 'Voting period has not started');
+            assert(block_number < proposal.max_end_block_number, 'Voting period has ended');
+            assert(block_number >= proposal.start_block_number, 'Voting period has not started');
             assert(
                 proposal.finalization_status == FinalizationStatus::Pending(()),
                 'Proposal has been finalized'
@@ -239,7 +239,7 @@ mod Space {
             let voting_power = _get_cumulative_power(
                 @self,
                 voter,
-                proposal.snapshot_timestamp,
+                proposal.snapshot_block_number,
                 user_voting_strategies,
                 proposal.active_voting_strategies
             );
@@ -288,7 +288,7 @@ mod Space {
             let mut proposal = self._proposals.read(proposal_id);
             assert_proposal_exists(@proposal);
             assert(proposal.author == author, 'Only Author');
-            assert(info::get_block_timestamp() < proposal.start_timestamp, 'Voting period started');
+            assert(info::get_block_number() < proposal.start_block_number, 'Voting period started');
 
             proposal.execution_strategy = execution_strategy.address;
 
@@ -500,13 +500,13 @@ mod Space {
     }
 
     fn assert_proposal_exists(proposal: @Proposal) {
-        assert(!(*proposal.start_timestamp).is_zero(), 'Proposal does not exist');
+        assert(!(*proposal.start_block_number).is_zero(), 'Proposal does not exist');
     }
 
     fn _get_cumulative_power(
         self: @ContractState,
         voter: UserAddress,
-        timestamp: u64,
+        block_number: u64,
         user_strategies: Array<IndexedStrategy>,
         allowed_strategies: u256
     ) -> u256 {
@@ -524,7 +524,7 @@ mod Space {
                 contract_address: strategy.address
             }
                 .get_voting_power(
-                    timestamp, voter, strategy.params, user_strategies.at(i).params.clone()
+                    block_number, voter, strategy.params, user_strategies.at(i).params.clone()
                 );
             i += 1;
         };
