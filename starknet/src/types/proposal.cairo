@@ -5,7 +5,6 @@ use sx::types::{FinalizationStatus, UserAddress};
 
 #[derive(Clone, Drop, Serde, PartialEq, starknet::Store)]
 struct Proposal {
-    snapshot_block_number: u32,
     start_block_number: u32,
     min_end_block_number: u32,
     max_end_block_number: u32,

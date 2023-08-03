@@ -182,8 +182,9 @@ mod Space {
                 );
             assert(is_valid, 'Proposal is not valid');
 
-            let snapshot_block_number = info::get_block_number().try_into().unwrap();
-            let start_block_number = snapshot_block_number + self._voting_delay.read();
+            // The snapshot block number is the start of the voting period
+            let start_block_number = info::get_block_number().try_into().unwrap()
+                + self._voting_delay.read();
             let min_end_block_number = start_block_number + self._min_voting_duration.read();
             let max_end_block_number = start_block_number + self._max_voting_duration.read();
 
@@ -194,7 +195,6 @@ mod Space {
             );
 
             let proposal = Proposal {
-                snapshot_block_number: snapshot_block_number,
                 start_block_number: start_block_number,
                 min_end_block_number: min_end_block_number,
                 max_end_block_number: max_end_block_number,
@@ -240,7 +240,7 @@ mod Space {
             let voting_power = _get_cumulative_power(
                 @self,
                 voter,
-                proposal.snapshot_block_number,
+                proposal.start_block_number,
                 user_voting_strategies,
                 proposal.active_voting_strategies
             );

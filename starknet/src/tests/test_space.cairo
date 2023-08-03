@@ -150,7 +150,6 @@ mod tests {
         let proposal = space.proposals(u256_from_felt252(1));
         let block_number = info::get_block_number().try_into().unwrap();
         let expected_proposal = Proposal {
-            snapshot_block_number: block_number,
             start_block_number: block_number + 1_u32,
             min_end_block_number: block_number + 2_u32,
             max_end_block_number: block_number + 3_u32,
