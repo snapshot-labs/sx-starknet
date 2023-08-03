@@ -78,9 +78,9 @@ mod StarkSigAuthenticator {
             );
 
             self._used_salts.write((author, salt), true);
-        ISpaceDispatcher {
-            contract_address: target
-        }.propose(author, execution_strategy, user_proposal_validation_params);
+            ISpaceDispatcher {
+                contract_address: target
+            }.propose(author, execution_strategy, user_proposal_validation_params);
         }
 
         fn authenticate_vote(
@@ -103,11 +103,11 @@ mod StarkSigAuthenticator {
                 user_voting_strategies.span(),
                 account_type
             );
-        // No need to check salts here, as double voting is prevented by the space itself.
+            // No need to check salts here, as double voting is prevented by the space itself.
 
-        ISpaceDispatcher {
-            contract_address: target
-        }.vote(voter, proposal_id, choice, user_voting_strategies);
+            ISpaceDispatcher {
+                contract_address: target
+            }.vote(voter, proposal_id, choice, user_voting_strategies);
         }
 
         fn authenticate_update_proposal(
@@ -132,9 +132,9 @@ mod StarkSigAuthenticator {
             );
 
             self._used_salts.write((author, salt), true);
-        ISpaceDispatcher {
-            contract_address: target
-        }.update_proposal(author, proposal_id, execution_strategy);
+            ISpaceDispatcher {
+                contract_address: target
+            }.update_proposal(author, proposal_id, execution_strategy);
         }
     }
     #[constructor]

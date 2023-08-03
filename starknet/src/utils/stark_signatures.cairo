@@ -79,19 +79,18 @@ impl StructHashIndexedStrategySpan of StructHash<Span<IndexedStrategy>> {
             i += 1;
         };
         encoded_data.span().struct_hash()
-
-        // let mut self_ = *self;
-        // let mut encoded_data = ArrayTrait::<felt252>::new();
-        // loop {
-        //     match self_.pop_front() {
-        //         Option::Some(item) => {
-        //             encoded_data.append(item.struct_hash());
-        //         },
-        //         Option::None(_) => {
-        //             break encoded_data.span().struct_hash();
-        //         },
-        //     };
-        // }
+    // let mut self_ = *self;
+    // let mut encoded_data = ArrayTrait::<felt252>::new();
+    // loop {
+    //     match self_.pop_front() {
+    //         Option::Some(item) => {
+    //             encoded_data.append(item.struct_hash());
+    //         },
+    //         Option::None(_) => {
+    //             break encoded_data.span().struct_hash();
+    //         },
+    //     };
+    // }
     }
 }
 
@@ -230,21 +229,26 @@ fn hash_typed_data(
 }
 
 /// Verifies the signature of a message by calling the account contract.
-fn verify_signature(digest: felt252, signature: Array<felt252>, account: ContractAddress, account_type: felt252) {
+fn verify_signature(
+    digest: felt252, signature: Array<felt252>, account: ContractAddress, account_type: felt252
+) {
     if account_type == 'camel' {
         assert(
-            AccountCamelABIDispatcher { contract_address: account }.supportsInterface(0xa66bd575) == true,
+            AccountCamelABIDispatcher {
+                contract_address: account
+            }.supportsInterface(0xa66bd575) == true,
             'Invalid Account'
         );
         AccountCamelABIDispatcher { contract_address: account }.isValidSignature(digest, signature);
     } else if account_type == 'snake' {
         assert(
-            AccountABIDispatcher { contract_address: account }.supports_interface(0x01ffc9a7) == true,
+            AccountABIDispatcher {
+                contract_address: account
+            }.supports_interface(0x01ffc9a7) == true,
             'Invalid Account'
         );
         AccountABIDispatcher { contract_address: account }.is_valid_signature(digest, signature);
     } else {
         panic_with_felt252('Invalid Account Type');
     }
-
 }
