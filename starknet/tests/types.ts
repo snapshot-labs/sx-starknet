@@ -7,29 +7,10 @@ export const domainTypes = {
   ],
 };
 
-export const proposeTypes = {
-  StarkNetDomain: domainTypes.StarkNetDomain,
-  Propose: [
-    { name: 'space', type: 'ContractAddress' },
-    { name: 'author', type: 'ContractAddress' },
-    { name: 'executionStrategy', type: 'Strategy' },
-    { name: 'userProposalValidationParams', type: 'felt*' },
-    { name: 'salt', type: 'felt252' },
-  ],
+export const sharedTypes = {
   Strategy: [
     { name: 'address', type: 'felt252' },
     { name: 'params', type: 'felt*' },
-  ],
-};
-
-export const voteTypes = {
-  StarkNetDomain: domainTypes.StarkNetDomain,
-  Vote: [
-    { name: 'space', type: 'ContractAddress' },
-    { name: 'voter', type: 'ContractAddress' },
-    { name: 'proposalId', type: 'u256' },
-    { name: 'choice', type: 'felt252' },
-    { name: 'userVotingStrategies', type: 'IndexedStrategy*' },
   ],
   IndexedStrategy: [
     { name: 'index', type: 'felt252' },
@@ -41,6 +22,31 @@ export const voteTypes = {
   ],
 };
 
+export const proposeTypes = {
+  StarkNetDomain: domainTypes.StarkNetDomain,
+  Propose: [
+    { name: 'space', type: 'ContractAddress' },
+    { name: 'author', type: 'ContractAddress' },
+    { name: 'executionStrategy', type: 'Strategy' },
+    { name: 'userProposalValidationParams', type: 'felt*' },
+    { name: 'salt', type: 'felt252' },
+  ],
+  Strategy: sharedTypes.Strategy,
+};
+
+export const voteTypes = {
+  StarkNetDomain: domainTypes.StarkNetDomain,
+  Vote: [
+    { name: 'space', type: 'ContractAddress' },
+    { name: 'voter', type: 'ContractAddress' },
+    { name: 'proposalId', type: 'u256' },
+    { name: 'choice', type: 'felt252' },
+    { name: 'userVotingStrategies', type: 'IndexedStrategy*' },
+  ],
+  IndexedStrategy: sharedTypes.IndexedStrategy,
+  u256: sharedTypes.u256,
+};
+
 export const updateProposalTypes = {
   StarkNetDomain: domainTypes.StarkNetDomain,
   UpdateProposal: [
@@ -50,14 +56,8 @@ export const updateProposalTypes = {
     { name: 'executionStrategy', type: 'Strategy' },
     { name: 'salt', type: 'felt252' },
   ],
-  Strategy: [
-    { name: 'address', type: 'felt252' },
-    { name: 'params', type: 'felt*' },
-  ],
-  u256: [
-    { name: 'low', type: 'felt252' },
-    { name: 'high', type: 'felt252' },
-  ],
+  Strategy: sharedTypes.Strategy,
+  u256: sharedTypes.u256,
 };
 
 export interface Strategy {
@@ -100,19 +100,16 @@ export interface UpdateProposal {
 }
 
 export interface StarknetSigProposeCalldata extends Propose {
-  r: string;
-  s: string;
-  public_key: string;
+  signature: string[];
+  accountType: string;
 }
 
 export interface StarknetSigVoteCalldata extends Vote {
-  r: string;
-  s: string;
-  public_key: string;
+  signature: string[];
+  accountType: string;
 }
 
 export interface StarknetSigUpdateProposalCalldata extends UpdateProposal {
-  r: string;
-  s: string;
-  public_key: string;
+  signature: string[];
+  accountType: string;
 }

@@ -1,6 +1,6 @@
 import fs from 'fs';
 import dotenv from 'dotenv';
-import { Provider, Account, CallData, Calldata, typedData, json } from 'starknet';
+import { Provider, Account, CallData, typedData, shortString, json } from 'starknet';
 import {
   proposeTypes,
   voteTypes,
@@ -13,38 +13,98 @@ import {
   StarknetSigUpdateProposalCalldata,
 } from './types';
 
-dotenv.config();
-
 describe('Starknet Signature Authenticator', () => {
   const provider = new Provider({ sequencer: { baseUrl: 'http://127.0.0.1:5050' } });
   // devnet predeployed account
   const privateKey0 = '0xe3e70682c2094cac629f6fbed82c07cd';
   const address0 = '0x7e00d496e324876bbc8531f2d9a82bf154d1a04a50218ee74cdd372f75a551a';
-  const publickey0 = '0x7e52885445756b313ea16849145363ccb73fb4ab0440dbac333cf9d13de82b9';
   const account0 = new Account(provider, address0, privateKey0);
 
+  // change this to 'snake' if the account interface uses snake case
+  const account0Type = shortString.encodeShortString('camel');
+
+  let spaceAddress: string;
+  let vanillaVotingStrategyAddress: string;
+  let vanillaProposalValidationStrategyAddress: string;
   let starkSigAuthAddress: string;
   let domain: any;
 
   beforeAll(async () => {
-    const compiledContractSierra = json.parse(
+    // Deploy Starknet Signature Authenticator
+    const starkSigAuthSierra = json.parse(
       fs.readFileSync('starknet/target/dev/sx_StarkSigAuthenticator.sierra.json').toString('ascii'),
     );
-    const compiledContractCasm = json.parse(
+    const starkSigAuthCasm = json.parse(
       fs.readFileSync('starknet/target/dev/sx_StarkSigAuthenticator.casm.json').toString('ascii'),
     );
 
-    const contractConstructor: Calldata = CallData.compile({
-      name: 'sx-sn',
-      version: '0.1.0',
-    });
-
-    const deployResponse = await account0.declareAndDeploy({
-      contract: compiledContractSierra,
-      casm: compiledContractCasm,
-      constructorCalldata: contractConstructor,
+    let deployResponse = await account0.declareAndDeploy({
+      contract: starkSigAuthSierra,
+      casm: starkSigAuthCasm,
+      constructorCalldata: CallData.compile({ name: 'sx-sn', version: '0.1.0' }),
     });
     starkSigAuthAddress = deployResponse.deploy.contract_address;
+
+    // Deploy Vanilla Voting Strategy
+    const vanillaVotingStrategySierra = json.parse(
+      fs.readFileSync('starknet/target/dev/sx_VanillaVotingStrategy.sierra.json').toString('ascii'),
+    );
+    const vanillaVotingStrategyCasm = json.parse(
+      fs.readFileSync('starknet/target/dev/sx_VanillaVotingStrategy.casm.json').toString('ascii'),
+    );
+
+    deployResponse = await account0.declareAndDeploy({
+      contract: vanillaVotingStrategySierra,
+      casm: vanillaVotingStrategyCasm,
+      constructorCalldata: CallData.compile({}),
+    });
+    vanillaVotingStrategyAddress = deployResponse.deploy.contract_address;
+
+    // Deploy Vanilla Proposal Validation Strategy
+    const vanillaProposalValidationStrategySierra = json.parse(
+      fs
+        .readFileSync('starknet/target/dev/sx_VanillaProposalValidationStrategy.sierra.json')
+        .toString('ascii'),
+    );
+    const vanillaProposalValidationStrategyCasm = json.parse(
+      fs
+        .readFileSync('starknet/target/dev/sx_VanillaProposalValidationStrategy.casm.json')
+        .toString('ascii'),
+    );
+
+    deployResponse = await account0.declareAndDeploy({
+      contract: vanillaProposalValidationStrategySierra,
+      casm: vanillaProposalValidationStrategyCasm,
+      constructorCalldata: CallData.compile({}),
+    });
+    vanillaProposalValidationStrategyAddress = deployResponse.deploy.contract_address;
+
+    // Deploy Space
+    const spaceSierra = json.parse(
+      fs.readFileSync('starknet/target/dev/sx_Space.sierra.json').toString('ascii'),
+    );
+    const spaceCasm = json.parse(
+      fs.readFileSync('starknet/target/dev/sx_Space.casm.json').toString('ascii'),
+    );
+
+    deployResponse = await account0.declareAndDeploy({
+      contract: spaceSierra,
+      casm: spaceCasm,
+      constructorCalldata: CallData.compile({
+        _owner: 1,
+        _max_voting_duration: 100,
+        _min_voting_duration: 100,
+        _voting_delay: 10,
+        _proposal_validation_strategy: {
+          address: vanillaProposalValidationStrategyAddress,
+          params: [],
+        },
+        _voting_strategies: [{ address: vanillaVotingStrategyAddress, params: [] }],
+        _authenticators: [starkSigAuthAddress],
+      }),
+    });
+    spaceAddress = deployResponse.deploy.contract_address;
+
     domain = {
       name: 'sx-sn',
       version: '0.1.0',
@@ -55,8 +115,8 @@ describe('Starknet Signature Authenticator', () => {
   test('can authenticate a proposal, a vote, and a proposal update', async () => {
     // PROPOSE
     const proposeMsg: Propose = {
-      space: '0x0000000000000000000000000000000000007777',
-      author: '0x7e00d496e324876bbc8531f2d9a82bf154d1a04a50218ee74cdd372f75a551a',
+      space: spaceAddress,
+      author: address0,
       executionStrategy: {
         address: '0x0000000000000000000000000000000000001234',
         params: ['0x5', '0x6', '0x7', '0x8'],
@@ -75,10 +135,9 @@ describe('Starknet Signature Authenticator', () => {
     const proposeSig = (await account0.signMessage(proposeData)) as any;
 
     const proposeCalldata: StarknetSigProposeCalldata = {
-      r: proposeSig.r,
-      s: proposeSig.s,
+      signature: [proposeSig.r, proposeSig.s],
       ...proposeMsg,
-      public_key: publickey0,
+      accountType: account0Type,
     };
 
     await account0.execute({
@@ -87,49 +146,14 @@ describe('Starknet Signature Authenticator', () => {
       calldata: CallData.compile(proposeCalldata as any),
     });
 
-    // VOTE
-
-    const voteMsg: Vote = {
-      space: '0x0000000000000000000000000000000000007777',
-      voter: '0x7e00d496e324876bbc8531f2d9a82bf154d1a04a50218ee74cdd372f75a551a',
-      proposalId: { low: '0x1', high: '0x0' },
-      choice: '0x1',
-      userVotingStrategies: [
-        { index: '0x1', params: ['0x1', '0x2', '0x3', '0x4'] },
-        { index: '0x2', params: [] },
-      ],
-    };
-
-    const voteData: typedData.TypedData = {
-      types: voteTypes,
-      primaryType: 'Vote',
-      domain: domain,
-      message: voteMsg as any,
-    };
-
-    const voteSig = (await account0.signMessage(voteData)) as any;
-
-    const voteCalldata: StarknetSigVoteCalldata = {
-      r: voteSig.r,
-      s: voteSig.s,
-      ...voteMsg,
-      public_key: publickey0,
-    };
-
-    await account0.execute({
-      contractAddress: starkSigAuthAddress,
-      entrypoint: 'authenticate_vote',
-      calldata: CallData.compile(voteCalldata as any),
-    });
-
     // UPDATE PROPOSAL
 
     const updateProposalMsg: UpdateProposal = {
-      space: '0x0000000000000000000000000000000000007777',
-      author: '0x7e00d496e324876bbc8531f2d9a82bf154d1a04a50218ee74cdd372f75a551a',
+      space: spaceAddress,
+      author: address0,
       proposalId: { low: '0x1', high: '0x0' },
       executionStrategy: {
-        address: '0x0000000000000000000000000000000000001234',
+        address: '0x0000000000000000000000000000000000005678',
         params: ['0x5', '0x6', '0x7', '0x8'],
       },
       salt: '0x0',
@@ -144,10 +168,9 @@ describe('Starknet Signature Authenticator', () => {
     const updateProposalSig = (await account0.signMessage(updateProposalData)) as any;
 
     const updateProposalCalldata: StarknetSigUpdateProposalCalldata = {
-      r: updateProposalSig.r,
-      s: updateProposalSig.s,
+      signature: [updateProposalSig.r, updateProposalSig.s],
       ...updateProposalMsg,
-      public_key: publickey0,
+      accountType: account0Type,
     };
 
     await account0.execute({
@@ -155,5 +178,36 @@ describe('Starknet Signature Authenticator', () => {
       entrypoint: 'authenticate_update_proposal',
       calldata: CallData.compile(updateProposalCalldata as any),
     });
-  }, 100000);
+
+    // VOTE
+
+    const voteMsg: Vote = {
+      space: spaceAddress,
+      voter: address0,
+      proposalId: { low: '0x1', high: '0x0' },
+      choice: '0x2',
+      userVotingStrategies: [{ index: '0x0', params: ['0x1', '0x2', '0x3', '0x4'] }],
+    };
+
+    const voteData: typedData.TypedData = {
+      types: voteTypes,
+      primaryType: 'Vote',
+      domain: domain,
+      message: voteMsg as any,
+    };
+
+    const voteSig = (await account0.signMessage(voteData)) as any;
+
+    const voteCalldata: StarknetSigVoteCalldata = {
+      signature: [voteSig.r, voteSig.s],
+      ...voteMsg,
+      accountType: account0Type,
+    };
+
+    await account0.execute({
+      contractAddress: starkSigAuthAddress,
+      entrypoint: 'authenticate_vote',
+      calldata: CallData.compile(voteCalldata as any),
+    });
+  }, 1000000);
 });
