@@ -6,36 +6,33 @@ use sx::utils::types::{Strategy, IndexedStrategy, Choice};
 trait IStarkSigAuthenticator<TContractState> {
     fn authenticate_propose(
         ref self: TContractState,
-        r: felt252,
-        s: felt252,
+        signature: Array<felt252>,
         target: ContractAddress,
         author: ContractAddress,
         execution_strategy: Strategy,
         user_proposal_validation_params: Array<felt252>,
         salt: felt252,
-        public_key: felt252,
+        account_type: felt252
     );
     fn authenticate_vote(
         ref self: TContractState,
-        r: felt252,
-        s: felt252,
+        signature: Array<felt252>,
         target: ContractAddress,
         voter: ContractAddress,
         proposal_id: u256,
         choice: Choice,
         user_voting_strategies: Array<IndexedStrategy>,
-        public_key: felt252
+        account_type: felt252
     );
     fn authenticate_update_proposal(
         ref self: TContractState,
-        r: felt252,
-        s: felt252,
+        signature: Array<felt252>,
         target: ContractAddress,
         author: ContractAddress,
         proposal_id: u256,
         execution_strategy: Strategy,
         salt: felt252,
-        public_key: felt252
+        account_type: felt252
     );
 }
 
@@ -50,7 +47,6 @@ mod StarkSigAuthenticator {
     use sx::space::space::{ISpaceDispatcher, ISpaceDispatcherTrait};
     use sx::utils::types::{Strategy, IndexedStrategy, Choice};
     use sx::utils::stark_signatures;
-    use sx::interfaces::{IAccountDispatcher, IAccountDispatcherTrait};
 
     #[storage]
     struct Storage {
@@ -62,96 +58,83 @@ mod StarkSigAuthenticator {
     impl StarkSigAuthenticator of IStarkSigAuthenticator<ContractState> {
         fn authenticate_propose(
             ref self: ContractState,
-            r: felt252,
-            s: felt252,
+            signature: Array<felt252>,
             target: ContractAddress,
             author: ContractAddress,
             execution_strategy: Strategy,
             user_proposal_validation_params: Array<felt252>,
             salt: felt252,
-            public_key: felt252,
+            account_type: felt252
         ) {
             stark_signatures::verify_propose_sig(
                 self._domain_hash.read(),
-                r,
-                s,
+                signature,
                 target,
                 author,
-                execution_strategy,
-                user_proposal_validation_params,
+                @execution_strategy,
+                user_proposal_validation_params.span(),
                 salt,
-                public_key
+                account_type
             );
-            // Check public key corresponds to the author account address. 
-            assert_valid_account(author, public_key);
 
             self._used_salts.write((author, salt), true);
-        // ISpaceDispatcher {
-        //     contract_address: target
-        // }.propose(author, execution_strategy, user_proposal_validation_params);
+        ISpaceDispatcher {
+            contract_address: target
+        }.propose(author, execution_strategy, user_proposal_validation_params);
         }
 
         fn authenticate_vote(
             ref self: ContractState,
-            r: felt252,
-            s: felt252,
+            signature: Array<felt252>,
             target: ContractAddress,
             voter: ContractAddress,
             proposal_id: u256,
             choice: Choice,
             user_voting_strategies: Array<IndexedStrategy>,
-            public_key: felt252
+            account_type: felt252
         ) {
             stark_signatures::verify_vote_sig(
                 self._domain_hash.read(),
-                r,
-                s,
+                signature,
                 target,
                 voter,
                 proposal_id,
                 choice,
-                user_voting_strategies,
-                public_key
+                user_voting_strategies.span(),
+                account_type
             );
-
-            // Check public key corresponds to the voter account address.
-            assert_valid_account(voter, public_key);
         // No need to check salts here, as double voting is prevented by the space itself.
 
-        // ISpaceDispatcher {
-        //     contract_address: target
-        // }.vote(voter, proposal_id, choice, user_voting_strategies);
+        ISpaceDispatcher {
+            contract_address: target
+        }.vote(voter, proposal_id, choice, user_voting_strategies);
         }
 
         fn authenticate_update_proposal(
             ref self: ContractState,
-            r: felt252,
-            s: felt252,
+            signature: Array<felt252>,
             target: ContractAddress,
             author: ContractAddress,
             proposal_id: u256,
             execution_strategy: Strategy,
             salt: felt252,
-            public_key: felt252
+            account_type: felt252
         ) {
             stark_signatures::verify_update_proposal_sig(
                 self._domain_hash.read(),
-                r,
-                s,
+                signature,
                 target,
                 author,
                 proposal_id,
-                execution_strategy,
+                @execution_strategy,
                 salt,
-                public_key
+                account_type
             );
-            // Check public key corresponds to the author account address.
-            assert_valid_account(author, public_key);
 
             self._used_salts.write((author, salt), true);
-        // ISpaceDispatcher {
-        //     contract_address: target
-        // }.update_proposal(author, proposal_id, execution_strategy);
+        ISpaceDispatcher {
+            contract_address: target
+        }.update_proposal(author, proposal_id, execution_strategy);
         }
     }
     #[constructor]
@@ -159,14 +142,5 @@ mod StarkSigAuthenticator {
         ref self: ContractState, name: felt252, version: felt252
     ) { // TODO: domain hash is immutable so could be placed in the contract code instead of storage to save on reads.
         self._domain_hash.write(stark_signatures::get_domain_hash(name, version));
-    }
-
-    fn assert_valid_account(address: ContractAddress, public_key: felt252) {
-        // TODO: should query the supportsInterface function before calling getPublicKey.
-        // What should the interface id be?
-        assert(
-            IAccountDispatcher { contract_address: address }.getPublicKey() == public_key,
-            'Invalid public key'
-        );
     }
 }

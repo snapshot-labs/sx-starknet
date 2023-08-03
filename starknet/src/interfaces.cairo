@@ -11,4 +11,7 @@ use i_proposal_validation_strategy::{
     IProposalValidationStrategy, IProposalValidationStrategyDispatcher,
     IProposalValidationStrategyDispatcherTrait
 };
-use i_account::{IAccount, IAccountDispatcher, IAccountDispatcherTrait};
+use i_account::{
+    AccountABI, AccountABIDispatcher, AccountABIDispatcherTrait, AccountCamelABI,
+    AccountCamelABIDispatcher, AccountCamelABIDispatcherTrait
+};

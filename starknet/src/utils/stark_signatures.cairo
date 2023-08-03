@@ -1,3 +1,4 @@
+use core::starknet::SyscallResultTrait;
 use starknet::{ContractAddress, contract_address_to_felt252, get_tx_info, get_contract_address};
 use array::{ArrayTrait, SpanTrait};
 use traits::Into;
@@ -12,6 +13,10 @@ use sx::utils::math::pow;
 use sx::utils::constants::{
     STARKNET_MESSAGE, DOMAIN_TYPEHASH, STRATEGY_TYPEHASH, INDEXED_STRATEGY_TYPEHASH, U256_TYPEHASH,
     PROPOSE_TYPEHASH, VOTE_TYPEHASH, UPDATE_PROPOSAL_TYPEHASH
+};
+use sx::interfaces::{
+    AccountABIDispatcher, AccountABIDispatcherTrait, AccountCamelABIDispatcher,
+    AccountCamelABIDispatcherTrait
 };
 
 impl LegacyHashSpanFelt252 of LegacyHash<Span<felt252>> {
@@ -74,6 +79,19 @@ impl StructHashIndexedStrategySpan of StructHash<Span<IndexedStrategy>> {
             i += 1;
         };
         encoded_data.span().struct_hash()
+
+        // let mut self_ = *self;
+        // let mut encoded_data = ArrayTrait::<felt252>::new();
+        // loop {
+        //     match self_.pop_front() {
+        //         Option::Some(item) => {
+        //             encoded_data.append(item.struct_hash());
+        //         },
+        //         Option::None(_) => {
+        //             break encoded_data.span().struct_hash();
+        //         },
+        //     };
+        // }
     }
 }
 
@@ -89,61 +107,59 @@ impl StructHashU256 of StructHash<u256> {
 // Reverts if the signature was not signed by the author. 
 fn verify_propose_sig(
     domain_hash: felt252,
-    r: felt252,
-    s: felt252,
+    signature: Array<felt252>,
     target: ContractAddress,
     author: ContractAddress,
-    execution_strategy: Strategy,
-    user_proposal_validation_params: Array<felt252>,
+    execution_strategy: @Strategy,
+    user_proposal_validation_params: Span<felt252>,
     salt: felt252,
-    public_key: felt252
+    account_type: felt252,
 ) {
     let digest: felt252 = get_propose_digest(
         domain_hash, target, author, execution_strategy, user_proposal_validation_params, salt
     );
-    assert(check_ecdsa_signature(digest, public_key, r, s), 'Invalid signature');
+
+    verify_signature(digest, signature, author, account_type);
 }
 
 fn verify_vote_sig(
     domain_hash: felt252,
-    r: felt252,
-    s: felt252,
+    signature: Array<felt252>,
     target: ContractAddress,
     voter: ContractAddress,
     proposal_id: u256,
     choice: Choice,
-    user_voting_strategies: Array<IndexedStrategy>,
-    public_key: felt252
+    user_voting_strategies: Span<IndexedStrategy>,
+    account_type: felt252,
 ) {
     let digest: felt252 = get_vote_digest(
         domain_hash, target, voter, proposal_id, choice, user_voting_strategies
     );
-    assert(check_ecdsa_signature(digest, public_key, r, s), 'Invalid signature');
+    verify_signature(digest, signature, voter, account_type);
 }
 
 fn verify_update_proposal_sig(
     domain_hash: felt252,
-    r: felt252,
-    s: felt252,
+    signature: Array<felt252>,
     target: ContractAddress,
     author: ContractAddress,
     proposal_id: u256,
-    execution_strategy: Strategy,
+    execution_strategy: @Strategy,
     salt: felt252,
-    public_key: felt252
+    account_type: felt252,
 ) {
     let digest: felt252 = get_update_proposal_digest(
         domain_hash, target, author, proposal_id, execution_strategy, salt
     );
-    assert(check_ecdsa_signature(digest, public_key, r, s), 'Invalid signature');
+    verify_signature(digest, signature, author, account_type);
 }
 
 fn get_propose_digest(
     domain_hash: felt252,
     space: ContractAddress,
     author: ContractAddress,
-    execution_strategy: Strategy,
-    user_proposal_validation_params: Array<felt252>,
+    execution_strategy: @Strategy,
+    user_proposal_validation_params: Span<felt252>,
     salt: felt252
 ) -> felt252 {
     let mut encoded_data = ArrayTrait::<felt252>::new();
@@ -151,7 +167,7 @@ fn get_propose_digest(
     space.serialize(ref encoded_data);
     author.serialize(ref encoded_data);
     execution_strategy.struct_hash().serialize(ref encoded_data);
-    user_proposal_validation_params.span().struct_hash().serialize(ref encoded_data);
+    user_proposal_validation_params.struct_hash().serialize(ref encoded_data);
     salt.serialize(ref encoded_data);
     hash_typed_data(domain_hash, encoded_data.span().struct_hash(), author)
 }
@@ -162,7 +178,7 @@ fn get_vote_digest(
     voter: ContractAddress,
     proposal_id: u256,
     choice: Choice,
-    user_voting_strategies: Array<IndexedStrategy>
+    user_voting_strategies: Span<IndexedStrategy>
 ) -> felt252 {
     let mut encoded_data = ArrayTrait::<felt252>::new();
     VOTE_TYPEHASH.serialize(ref encoded_data);
@@ -170,7 +186,7 @@ fn get_vote_digest(
     voter.serialize(ref encoded_data);
     proposal_id.struct_hash().serialize(ref encoded_data);
     choice.serialize(ref encoded_data);
-    user_voting_strategies.span().struct_hash().serialize(ref encoded_data);
+    user_voting_strategies.struct_hash().serialize(ref encoded_data);
     hash_typed_data(domain_hash, encoded_data.span().struct_hash(), voter)
 }
 
@@ -179,7 +195,7 @@ fn get_update_proposal_digest(
     space: ContractAddress,
     author: ContractAddress,
     proposal_id: u256,
-    execution_strategy: Strategy,
+    execution_strategy: @Strategy,
     salt: felt252
 ) -> felt252 {
     let mut encoded_data = ArrayTrait::<felt252>::new();
@@ -211,4 +227,24 @@ fn hash_typed_data(
     signer.serialize(ref encoded_data);
     message_hash.serialize(ref encoded_data);
     encoded_data.span().struct_hash()
+}
+
+/// Verifies the signature of a message by calling the account contract.
+fn verify_signature(digest: felt252, signature: Array<felt252>, account: ContractAddress, account_type: felt252) {
+    if account_type == 'camel' {
+        assert(
+            AccountCamelABIDispatcher { contract_address: account }.supportsInterface(0xa66bd575) == true,
+            'Invalid Account'
+        );
+        AccountCamelABIDispatcher { contract_address: account }.isValidSignature(digest, signature);
+    } else if account_type == 'snake' {
+        assert(
+            AccountABIDispatcher { contract_address: account }.supports_interface(0x01ffc9a7) == true,
+            'Invalid Account'
+        );
+        AccountABIDispatcher { contract_address: account }.is_valid_signature(digest, signature);
+    } else {
+        panic_with_felt252('Invalid Account Type');
+    }
+
 }
