@@ -2,7 +2,7 @@
 mod MerkleWhitelistVotingStrategy {
     use sx::interfaces::IVotingStrategy;
     use serde::Serde;
-    use starknet::ContractAddress;
+    use sx::types::UserAddress;
     use array::{ArrayTrait, Span, SpanTrait};
     use option::OptionTrait;
     use sx::utils::merkle::{assert_valid_proof, Leaf};
@@ -16,11 +16,11 @@ mod MerkleWhitelistVotingStrategy {
         fn get_voting_power(
             self: @ContractState,
             timestamp: u64,
-            voter: ContractAddress,
+            voter: UserAddress,
             params: Array<felt252>, // [root]
-            user_params: Array<felt252>, // [leaf, proofs]
+            user_params: Array<felt252>, // [Serde(leaf), Serde(proofs)]
         ) -> u256 {
-            let LEAF_SIZE = 3;
+            let LEAF_SIZE = 4; // Serde::<Leaf>::serialize().len()
             let cache = user_params.span(); // cache
 
             let mut leaf_raw = cache.slice(0, LEAF_SIZE);

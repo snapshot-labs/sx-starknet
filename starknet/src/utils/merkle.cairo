@@ -2,14 +2,14 @@ use core::traits::Into;
 use array::{ArrayTrait, Span, SpanTrait};
 use option::OptionTrait;
 use serde::Serde;
-use starknet::ContractAddress;
+use sx::types::UserAddress;
 use clone::Clone;
 use hash::{LegacyHash};
 use debug::PrintTrait;
 
 #[derive(Copy, Clone, Drop, Serde)]
 struct Leaf {
-    address: ContractAddress, // use UserAddress
+    address: UserAddress,
     voting_power: u256,
 }
 
