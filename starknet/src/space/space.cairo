@@ -1,6 +1,6 @@
 use core::traits::Destruct;
 use starknet::{ClassHash, ContractAddress};
-use sx::types::{Strategy, Proposal, IndexedStrategy, Choice, UpdateSettingsCalldata};
+use sx::types::{UserAddress, Strategy, Proposal, IndexedStrategy, Choice, UpdateSettingsCalldata};
 
 #[starknet::interface]
 trait ISpace<TContractState> {
@@ -30,13 +30,13 @@ trait ISpace<TContractState> {
     // Actions 
     fn propose(
         ref self: TContractState,
-        author: ContractAddress,
+        author: UserAddress,
         execution_strategy: Strategy,
         user_proposal_validation_params: Array<felt252>
     );
     fn vote(
         ref self: TContractState,
-        voter: ContractAddress,
+        voter: UserAddress,
         proposal_id: u256,
         choice: Choice,
         user_voting_strategies: Array<IndexedStrategy>
@@ -44,7 +44,7 @@ trait ISpace<TContractState> {
     fn execute(ref self: TContractState, proposal_id: u256, execution_payload: Array<felt252>);
     fn update_proposal(
         ref self: TContractState,
-        author: ContractAddress,
+        author: UserAddress,
         proposal_id: u256,
         execution_strategy: Strategy
     );
@@ -68,8 +68,9 @@ mod Space {
         IExecutionStrategyDispatcherTrait
     };
     use sx::types::{
-        Choice, FinalizationStatus, Strategy, IndexedStrategy, Proposal, IndexedStrategyTrait,
-        IndexedStrategyImpl, UpdateSettingsCalldata, NoUpdateU64, NoUpdateStrategy, NoUpdateArray
+        UserAddress, Choice, FinalizationStatus, Strategy, IndexedStrategy, Proposal,
+        IndexedStrategyTrait, IndexedStrategyImpl, UpdateSettingsCalldata, NoUpdateU64,
+        NoUpdateStrategy, NoUpdateArray
     };
     use sx::utils::bits::BitSetter;
     use sx::external::ownable::Ownable;
@@ -87,7 +88,7 @@ mod Space {
         _authenticators: LegacyMap::<ContractAddress, bool>,
         _proposals: LegacyMap::<u256, Proposal>,
         _vote_power: LegacyMap::<(u256, Choice), u256>,
-        _vote_registry: LegacyMap::<(u256, ContractAddress), bool>,
+        _vote_registry: LegacyMap::<(u256, UserAddress), bool>,
     }
 
     #[event]
@@ -104,16 +105,11 @@ mod Space {
 
     #[event]
     fn ProposalCreated(
-        _proposal_id: u256,
-        _author: ContractAddress,
-        _proposal: @Proposal,
-        _payload: @Array<felt252>
+        _proposal_id: u256, _author: UserAddress, _proposal: @Proposal, _payload: @Array<felt252>
     ) {}
 
     #[event]
-    fn VoteCast(
-        _proposal_id: u256, _voter: ContractAddress, _choice: Choice, _voting_power: u256
-    ) {}
+    fn VoteCast(_proposal_id: u256, _voter: UserAddress, _choice: Choice, _voting_power: u256) {}
 
     #[event]
     fn ProposalExecuted(_proposal_id: u256) {}
@@ -167,7 +163,7 @@ mod Space {
     impl Space of ISpace<ContractState> {
         fn propose(
             ref self: ContractState,
-            author: ContractAddress,
+            author: UserAddress,
             execution_strategy: Strategy,
             user_proposal_validation_params: Array<felt252>
         ) {
@@ -218,7 +214,7 @@ mod Space {
 
         fn vote(
             ref self: ContractState,
-            voter: ContractAddress,
+            voter: UserAddress,
             proposal_id: u256,
             choice: Choice,
             user_voting_strategies: Array<IndexedStrategy>
@@ -283,7 +279,7 @@ mod Space {
 
         fn update_proposal(
             ref self: ContractState,
-            author: ContractAddress,
+            author: UserAddress,
             proposal_id: u256,
             execution_strategy: Strategy
         ) {
@@ -508,7 +504,7 @@ mod Space {
 
     fn _get_cumulative_power(
         self: @ContractState,
-        voter: ContractAddress,
+        voter: UserAddress,
         timestamp: u64,
         user_strategies: Array<IndexedStrategy>,
         allowed_strategies: u256

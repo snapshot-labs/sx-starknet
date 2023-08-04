@@ -1,8 +1,7 @@
-use starknet::{ContractAddress, contract_address_to_felt252};
+use starknet::{EthAddress, ContractAddress, secp256_trait, contract_address_to_felt252};
 use array::{ArrayTrait, SpanTrait};
 use traits::Into;
 use clone::Clone;
-use starknet::secp256k1;
 use core::keccak;
 use integer::u256_from_felt252;
 use sx::types::{Strategy, IndexedStrategy, Choice};
@@ -17,7 +16,13 @@ use sx::utils::constants::{
 
 impl ContractAddressIntoU256 of Into<ContractAddress, u256> {
     fn into(self: ContractAddress) -> u256 {
-        u256_from_felt252(contract_address_to_felt252(self))
+        u256_from_felt252(self.into())
+    }
+}
+
+impl EthAddressIntoU256 of Into<EthAddress, u256> {
+    fn into(self: EthAddress) -> u256 {
+        u256_from_felt252(self.into())
     }
 }
 
@@ -80,7 +85,7 @@ fn verify_propose_sig(
     v: u256,
     domain_hash: u256,
     target: ContractAddress,
-    author: ContractAddress,
+    author: EthAddress,
     execution_strategy: Strategy,
     user_proposal_validation_params: Array<felt252>,
     salt: u256,
@@ -98,7 +103,7 @@ fn verify_vote_sig(
     v: u256,
     domain_hash: u256,
     target: ContractAddress,
-    voter: ContractAddress,
+    voter: EthAddress,
     proposal_id: u256,
     choice: Choice,
     user_voting_strategies: Array<IndexedStrategy>
@@ -116,7 +121,7 @@ fn verify_update_proposal_sig(
     v: u256,
     domain_hash: u256,
     target: ContractAddress,
-    author: ContractAddress,
+    author: EthAddress,
     proposal_id: u256,
     execution_strategy: Strategy,
     salt: u256
@@ -132,7 +137,7 @@ fn verify_update_proposal_sig(
 fn get_propose_digest(
     domain_hash: u256,
     space: ContractAddress,
-    author: ContractAddress,
+    author: EthAddress,
     execution_strategy: Strategy,
     user_proposal_validation_params: Array<felt252>,
     salt: u256
@@ -151,7 +156,7 @@ fn get_propose_digest(
 fn get_vote_digest(
     domain_hash: u256,
     space: ContractAddress,
-    voter: ContractAddress,
+    voter: EthAddress,
     proposal_id: u256,
     choice: Choice,
     user_voting_strategies: Array<IndexedStrategy>
@@ -170,7 +175,7 @@ fn get_vote_digest(
 fn get_update_proposal_digest(
     domain_hash: u256,
     space: ContractAddress,
-    author: ContractAddress,
+    author: EthAddress,
     proposal_id: u256,
     execution_strategy: Strategy,
     salt: u256

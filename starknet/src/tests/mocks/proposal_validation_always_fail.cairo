@@ -1,6 +1,7 @@
 #[starknet::contract]
 mod AlwaysFailProposalValidationStrategy {
     use starknet::ContractAddress;
+    use sx::types::UserAddress;
 
     #[storage]
     struct Storage {}
@@ -10,7 +11,7 @@ mod AlwaysFailProposalValidationStrategy {
     impl AlwaysFailProposalValidationStrategy of IAlwaysFailProposalValidationStrategy {
         fn validate(
             self: @ContractState,
-            author: ContractAddress,
+            author: UserAddress,
             params: Array<felt252>,
             userParams: Array<felt252>
         ) -> bool {
