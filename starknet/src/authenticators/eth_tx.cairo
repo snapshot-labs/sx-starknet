@@ -1,4 +1,4 @@
-use starknet::ContractAddress;
+use starknet::{ContractAddress, EthAddress};
 use sx::types::{Strategy, IndexedStrategy, Choice};
 
 #[starknet::interface]
@@ -6,14 +6,14 @@ trait IEthTxAuthenticator<TContractState> {
     fn authenticate_propose(
         ref self: TContractState,
         target: ContractAddress,
-        author: ContractAddress,
+        author: EthAddress,
         execution_strategy: Strategy,
         user_proposal_validation_params: Array<felt252>
     );
     fn authenticate_vote(
         ref self: TContractState,
         target: ContractAddress,
-        voter: ContractAddress,
+        voter: EthAddress,
         proposal_id: u256,
         choice: Choice,
         user_voting_strategies: Array<IndexedStrategy>
@@ -21,7 +21,7 @@ trait IEthTxAuthenticator<TContractState> {
     fn authenticate_update_proposal(
         ref self: TContractState,
         target: ContractAddress,
-        author: ContractAddress,
+        author: EthAddress,
         proposal_id: u256,
         execution_strategy: Strategy
     );
@@ -31,18 +31,21 @@ trait IEthTxAuthenticator<TContractState> {
 #[starknet::contract]
 mod EthTxAuthenticator {
     use super::IEthTxAuthenticator;
-    use starknet::{ContractAddress, contract_address_to_felt252};
+    use starknet::{ContractAddress, EthAddress, Felt252TryIntoEthAddress, EthAddressIntoFelt252};
     use starknet::syscalls::call_contract_syscall;
     use core::serde::Serde;
     use core::array::{ArrayTrait, SpanTrait};
+    use traits::{PartialEq, TryInto, Into};
+    use option::OptionTrait;
+    use zeroable::Zeroable;
     use sx::space::space::{ISpaceDispatcher, ISpaceDispatcherTrait};
-    use sx::types::{Strategy, IndexedStrategy, Choice};
+    use sx::types::{UserAddress, Strategy, IndexedStrategy, Choice};
     use sx::utils::constants::{PROPOSE_SELECTOR, VOTE_SELECTOR, UPDATE_PROPOSAL_SELECTOR};
 
     #[storage]
     struct Storage {
-        _starknet_commit_address: felt252,
-        _commits: LegacyMap::<felt252, felt252>
+        _starknet_commit_address: EthAddress,
+        _commits: LegacyMap::<felt252, EthAddress>
     }
 
     #[external(v0)]
@@ -50,7 +53,7 @@ mod EthTxAuthenticator {
         fn authenticate_propose(
             ref self: ContractState,
             target: ContractAddress,
-            author: ContractAddress,
+            author: EthAddress,
             execution_strategy: Strategy,
             user_proposal_validation_params: Array<felt252>
         ) {
@@ -62,17 +65,22 @@ mod EthTxAuthenticator {
             user_proposal_validation_params.serialize(ref payload);
             let payload_hash = poseidon::poseidon_hash_span(payload.span());
 
-            consume_commit(ref self, payload_hash, contract_address_to_felt252(author));
+            consume_commit(ref self, payload_hash, author);
 
             ISpaceDispatcher {
                 contract_address: target
-            }.propose(author, execution_strategy, user_proposal_validation_params);
+            }
+                .propose(
+                    UserAddress::Ethereum(author),
+                    execution_strategy,
+                    user_proposal_validation_params
+                );
         }
 
         fn authenticate_vote(
             ref self: ContractState,
             target: ContractAddress,
-            voter: ContractAddress,
+            voter: EthAddress,
             proposal_id: u256,
             choice: Choice,
             user_voting_strategies: Array<IndexedStrategy>
@@ -86,17 +94,17 @@ mod EthTxAuthenticator {
             user_voting_strategies.serialize(ref payload);
             let payload_hash = poseidon::poseidon_hash_span(payload.span());
 
-            consume_commit(ref self, payload_hash, contract_address_to_felt252(voter));
+            consume_commit(ref self, payload_hash, voter);
 
             ISpaceDispatcher {
                 contract_address: target
-            }.vote(voter, proposal_id, choice, user_voting_strategies);
+            }.vote(UserAddress::Ethereum(voter), proposal_id, choice, user_voting_strategies);
         }
 
         fn authenticate_update_proposal(
             ref self: ContractState,
             target: ContractAddress,
-            author: ContractAddress,
+            author: EthAddress,
             proposal_id: u256,
             execution_strategy: Strategy
         ) {
@@ -108,11 +116,11 @@ mod EthTxAuthenticator {
             execution_strategy.serialize(ref payload);
             let payload_hash = poseidon::poseidon_hash_span(payload.span());
 
-            consume_commit(ref self, payload_hash, contract_address_to_felt252(author));
+            consume_commit(ref self, payload_hash, author);
 
             ISpaceDispatcher {
                 contract_address: target
-            }.update_proposal(author, proposal_id, execution_strategy);
+            }.update_proposal(UserAddress::Ethereum(author), proposal_id, execution_strategy);
         }
     }
 
@@ -120,17 +128,19 @@ mod EthTxAuthenticator {
     fn commit(
         ref self: ContractState, from_address: felt252, sender_address: felt252, hash: felt252
     ) {
-        assert(from_address == self._starknet_commit_address.read(), 'Invalid commit address');
+        assert(
+            from_address == self._starknet_commit_address.read().into(), 'Invalid commit address'
+        );
         // Prevents hash being overwritten by a different sender.
-        assert(self._commits.read(hash) == 0, 'Commit already exists');
-        self._commits.write(hash, sender_address);
+        assert(self._commits.read(hash).into() == 0, 'Commit already exists');
+        self._commits.write(hash, sender_address.try_into().unwrap());
     }
 
-    fn consume_commit(ref self: ContractState, hash: felt252, sender_address: felt252) {
+    fn consume_commit(ref self: ContractState, hash: felt252, sender_address: EthAddress) {
         let committer_address = self._commits.read(hash);
-        assert(committer_address != 0, 'Commit not found');
+        assert(committer_address.is_zero(), 'Commit not found');
         assert(committer_address == sender_address, 'Invalid sender address');
         // Delete the commit to prevent replay attacks.
-        self._commits.write(hash, 0);
+        self._commits.write(hash, Zeroable::zero());
     }
 }
