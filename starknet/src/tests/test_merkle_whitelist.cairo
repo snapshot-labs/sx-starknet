@@ -130,6 +130,7 @@ mod merkle_utils {
 
     // Generates n members with voting power 1, 2, 3, and 
     // address 1, 2, 3, ...
+    // Even members will be Ethereum addresses and odd members will be Starknet addresses.
     fn generate_n_members(n: usize) -> Array<Leaf> {
         let mut members = ArrayTrait::<Leaf>::new();
         let mut i = 1_usize;
@@ -137,15 +138,14 @@ mod merkle_utils {
             if i >= n + 1 {
                 break;
             }
-            members
-                .append(
-                    Leaf {
-                        address: UserAddress::Starknet(
-                            contract_address_try_from_felt252(i.into()).unwrap()
-                        ),
-                        voting_power: i.into()
-                    }
-                );
+            let mut address = UserAddress::Custom(0);
+            if i % 2 == 0 {
+                address = UserAddress::Ethereum(starknet::EthAddress { address: i.into() });
+            } else {
+                address =
+                    UserAddress::Starknet(contract_address_try_from_felt252(i.into()).unwrap());
+            }
+            members.append(Leaf { address: address, voting_power: i.into() });
             i += 1;
         };
         members
