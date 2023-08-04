@@ -290,7 +290,7 @@ mod Space {
             assert_proposal_exists(@proposal);
             assert(proposal.author == author, 'Only Author');
             assert(
-                info::get_block_number().try_into().unwrap() < proposal.start_block_number,
+                info::get_block_number() < proposal.start_block_number.into(),
                 'Voting period started'
             );
 
