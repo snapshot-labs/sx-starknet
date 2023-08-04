@@ -1,3 +1,4 @@
+use core::traits::TryInto;
 use core::traits::Destruct;
 use starknet::{ClassHash, ContractAddress};
 use sx::types::{UserAddress, Strategy, Proposal, IndexedStrategy, Choice, UpdateSettingsCalldata};
@@ -6,10 +7,10 @@ use sx::types::{UserAddress, Strategy, Proposal, IndexedStrategy, Choice, Update
 trait ISpace<TContractState> {
     // State 
     fn owner(self: @TContractState) -> ContractAddress;
-    fn max_voting_duration(self: @TContractState) -> u64;
-    fn min_voting_duration(self: @TContractState) -> u64;
+    fn max_voting_duration(self: @TContractState) -> u32;
+    fn min_voting_duration(self: @TContractState) -> u32;
     fn next_proposal_id(self: @TContractState) -> u256;
-    fn voting_delay(self: @TContractState) -> u64;
+    fn voting_delay(self: @TContractState) -> u32;
     fn authenticators(self: @TContractState, account: ContractAddress) -> bool;
     fn voting_strategies(self: @TContractState, index: u8) -> Strategy;
     fn active_voting_strategies(self: @TContractState) -> u256;
@@ -61,7 +62,7 @@ mod Space {
     use clone::Clone;
     use option::OptionTrait;
     use hash::LegacyHash;
-    use traits::Into;
+    use traits::{Into, TryInto};
 
     use sx::interfaces::{
         IProposalValidationStrategyDispatcher, IProposalValidationStrategyDispatcherTrait,
@@ -70,7 +71,7 @@ mod Space {
     };
     use sx::types::{
         UserAddress, Choice, FinalizationStatus, Strategy, IndexedStrategy, Proposal,
-        IndexedStrategyTrait, IndexedStrategyImpl, UpdateSettingsCalldata, NoUpdateU64,
+        IndexedStrategyTrait, IndexedStrategyImpl, UpdateSettingsCalldata, NoUpdateU32,
         NoUpdateStrategy, NoUpdateArray
     };
     use sx::utils::bits::BitSetter;
@@ -78,10 +79,10 @@ mod Space {
 
     #[storage]
     struct Storage {
-        _max_voting_duration: u64,
-        _min_voting_duration: u64,
+        _max_voting_duration: u32,
+        _min_voting_duration: u32,
         _next_proposal_id: u256,
-        _voting_delay: u64,
+        _voting_delay: u32,
         _active_voting_strategies: u256,
         _voting_strategies: LegacyMap::<u8, Strategy>,
         _next_voting_strategy_index: u8,
@@ -96,9 +97,9 @@ mod Space {
     fn SpaceCreated(
         _space: ContractAddress,
         _owner: ContractAddress,
-        _voting_delay: u64,
-        _min_voting_duration: u64,
-        _max_voting_duration: u64,
+        _voting_delay: u32,
+        _min_voting_duration: u32,
+        _max_voting_duration: u32,
         _proposal_validation_strategy: @Strategy,
         _voting_strategies: @Array<Strategy>,
         _authenticators: @Array<ContractAddress>
@@ -143,10 +144,10 @@ mod Space {
     fn DaoURIUpdated(_new_dao_uri: @Array<felt252>) {}
 
     #[event]
-    fn MaxVotingDurationUpdated(_new_max_voting_duration: u64) {}
+    fn MaxVotingDurationUpdated(_new_max_voting_duration: u32) {}
 
     #[event]
-    fn MinVotingDurationUpdated(_new_min_voting_duration: u64) {}
+    fn MinVotingDurationUpdated(_new_min_voting_duration: u32) {}
 
     #[event]
     fn ProposalValidationStrategyUpdated(
@@ -155,7 +156,7 @@ mod Space {
     ) {}
 
     #[event]
-    fn VotingDelayUpdated(_new_voting_delay: u64) {}
+    fn VotingDelayUpdated(_new_voting_delay: u32) {}
 
     #[event]
     fn Upgraded(class_hash: ClassHash) {}
@@ -181,10 +182,11 @@ mod Space {
                 );
             assert(is_valid, 'Proposal is not valid');
 
-            let snapshot_timestamp = info::get_block_timestamp();
-            let start_timestamp = snapshot_timestamp + self._voting_delay.read();
-            let min_end_timestamp = start_timestamp + self._min_voting_duration.read();
-            let max_end_timestamp = start_timestamp + self._max_voting_duration.read();
+            // The snapshot block number is the start of the voting period
+            let start_block_number = info::get_block_number().try_into().unwrap()
+                + self._voting_delay.read();
+            let min_end_block_number = start_block_number + self._min_voting_duration.read();
+            let max_end_block_number = start_block_number + self._max_voting_duration.read();
 
             // TODO: we use a felt252 for the hash despite felts being discouraged 
             // a new field would just replace the hash. Might be worth casting to a Uint256 though? 
@@ -193,10 +195,9 @@ mod Space {
             );
 
             let proposal = Proposal {
-                snapshot_timestamp: snapshot_timestamp,
-                start_timestamp: start_timestamp,
-                min_end_timestamp: min_end_timestamp,
-                max_end_timestamp: max_end_timestamp,
+                start_block_number: start_block_number,
+                min_end_block_number: min_end_block_number,
+                max_end_block_number: max_end_block_number,
                 execution_payload_hash: execution_payload_hash,
                 execution_strategy: execution_strategy.address,
                 author: author,
@@ -224,10 +225,10 @@ mod Space {
             let proposal = self._proposals.read(proposal_id);
             assert_proposal_exists(@proposal);
 
-            let timestamp = info::get_block_timestamp();
+            let block_number = info::get_block_number().try_into().unwrap();
 
-            assert(timestamp < proposal.max_end_timestamp, 'Voting period has ended');
-            assert(timestamp >= proposal.start_timestamp, 'Voting period has not started');
+            assert(block_number < proposal.max_end_block_number, 'Voting period has ended');
+            assert(block_number >= proposal.start_block_number, 'Voting period has not started');
             assert(
                 proposal.finalization_status == FinalizationStatus::Pending(()),
                 'Proposal has been finalized'
@@ -239,7 +240,7 @@ mod Space {
             let voting_power = _get_cumulative_power(
                 @self,
                 voter,
-                proposal.snapshot_timestamp,
+                proposal.start_block_number,
                 user_voting_strategies,
                 proposal.active_voting_strategies
             );
@@ -288,7 +289,10 @@ mod Space {
             let mut proposal = self._proposals.read(proposal_id);
             assert_proposal_exists(@proposal);
             assert(proposal.author == author, 'Only Author');
-            assert(info::get_block_timestamp() < proposal.start_timestamp, 'Voting period started');
+            assert(
+                info::get_block_number() < proposal.start_block_number.into(),
+                'Voting period started'
+            );
 
             proposal.execution_strategy = execution_strategy.address;
 
@@ -332,11 +336,11 @@ mod Space {
             Ownable::owner(@state)
         }
 
-        fn max_voting_duration(self: @ContractState) -> u64 {
+        fn max_voting_duration(self: @ContractState) -> u32 {
             self._max_voting_duration.read()
         }
 
-        fn min_voting_duration(self: @ContractState) -> u64 {
+        fn min_voting_duration(self: @ContractState) -> u32 {
             self._min_voting_duration.read()
         }
 
@@ -344,7 +348,7 @@ mod Space {
             self._next_proposal_id.read()
         }
 
-        fn voting_delay(self: @ContractState) -> u64 {
+        fn voting_delay(self: @ContractState) -> u32 {
             self._voting_delay.read()
         }
 
@@ -379,17 +383,17 @@ mod Space {
             Ownable::assert_only_owner(@state);
 
             // if not NO_UPDATE
-            if NoUpdateU64::should_update(@input.max_voting_duration) {
+            if NoUpdateU32::should_update(@input.max_voting_duration) {
                 _set_max_voting_duration(ref self, input.max_voting_duration);
                 MaxVotingDurationUpdated(input.max_voting_duration);
             }
 
-            if NoUpdateU64::should_update(@input.min_voting_duration) {
+            if NoUpdateU32::should_update(@input.min_voting_duration) {
                 _set_min_voting_duration(ref self, input.min_voting_duration);
                 MinVotingDurationUpdated(input.min_voting_duration);
             }
 
-            if NoUpdateU64::should_update(@input.voting_delay) {
+            if NoUpdateU32::should_update(@input.voting_delay) {
                 _set_voting_delay(ref self, input.voting_delay);
                 VotingDelayUpdated(input.voting_delay);
             }
@@ -460,9 +464,9 @@ mod Space {
     fn constructor(
         ref self: ContractState,
         _owner: ContractAddress,
-        _max_voting_duration: u64,
-        _min_voting_duration: u64,
-        _voting_delay: u64,
+        _max_voting_duration: u32,
+        _min_voting_duration: u32,
+        _voting_delay: u32,
         _proposal_validation_strategy: Strategy,
         _voting_strategies: Array<Strategy>,
         _authenticators: Array<ContractAddress>,
@@ -500,13 +504,13 @@ mod Space {
     }
 
     fn assert_proposal_exists(proposal: @Proposal) {
-        assert(!(*proposal.start_timestamp).is_zero(), 'Proposal does not exist');
+        assert(!(*proposal.start_block_number).is_zero(), 'Proposal does not exist');
     }
 
     fn _get_cumulative_power(
         self: @ContractState,
         voter: UserAddress,
-        timestamp: u64,
+        block_number: u32,
         user_strategies: Array<IndexedStrategy>,
         allowed_strategies: u256
     ) -> u256 {
@@ -524,22 +528,22 @@ mod Space {
                 contract_address: strategy.address
             }
                 .get_voting_power(
-                    timestamp, voter, strategy.params, user_strategies.at(i).params.clone()
+                    block_number, voter, strategy.params, user_strategies.at(i).params.clone()
                 );
             i += 1;
         };
         total_voting_power
     }
 
-    fn _set_max_voting_duration(ref self: ContractState, _max_voting_duration: u64) {
+    fn _set_max_voting_duration(ref self: ContractState, _max_voting_duration: u32) {
         self._max_voting_duration.write(_max_voting_duration);
     }
 
-    fn _set_min_voting_duration(ref self: ContractState, _min_voting_duration: u64) {
+    fn _set_min_voting_duration(ref self: ContractState, _min_voting_duration: u32) {
         self._min_voting_duration.write(_min_voting_duration);
     }
 
-    fn _set_voting_delay(ref self: ContractState, _voting_delay: u64) {
+    fn _set_voting_delay(ref self: ContractState, _voting_delay: u32) {
         self._voting_delay.write(_voting_delay);
     }
 
