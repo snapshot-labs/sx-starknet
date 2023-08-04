@@ -1,18 +1,13 @@
-use sx::interfaces::i_voting_strategy::IVotingStrategyDispatcherTrait;
-use core::clone::Clone;
-use sx::utils::merkle::Hash;
 #[cfg(test)]
-mod assert_valid_proof {
-    use sx::tests::setup::setup::setup::{setup, deploy};
-    use debug::PrintTrait;
+mod merkle_utils {
     use array::{ArrayTrait, SpanTrait};
-    use option::OptionTrait;
-    use sx::utils::merkle::{Leaf, assert_valid_proof, Hash};
-    use starknet::{contract_address_const, contract_address_try_from_felt252};
     use clone::Clone;
     use traits::Into;
+    use result::ResultTrait;
+    use option::OptionTrait;
     use hash::LegacyHash;
-    use serde::Serde;
+    use sx::utils::merkle::{Leaf, Hash};
+    use starknet::contract_address_try_from_felt252;
 
     impl SpanIntoArray<T, impl TClone: Clone<T>, impl TDrop: Drop<T>> of Into<Span<T>, Array<T>> {
         fn into(self: Span<T>) -> Array<T> {
@@ -146,6 +141,21 @@ mod assert_valid_proof {
         };
         members
     }
+}
+#[cfg(test)]
+mod assert_valid_proof {
+    use sx::tests::setup::setup::setup::{setup, deploy};
+    use array::{ArrayTrait, SpanTrait};
+    use option::OptionTrait;
+    use sx::utils::merkle::{Leaf, assert_valid_proof, Hash};
+    use starknet::{contract_address_const, contract_address_try_from_felt252};
+    use clone::Clone;
+    use traits::Into;
+    use hash::LegacyHash;
+    use serde::Serde;
+    use super::merkle_utils::{
+        generate_n_members, generate_merkle_data, generate_merkle_root, get_proof
+    };
 
     fn verify_all_members(members: Span<Leaf>) {
         let merkle_data = generate_merkle_data(members);
@@ -276,7 +286,7 @@ mod assert_valid_proof {
 mod merkle_whitelist_voting_power {
     use array::ArrayTrait;
     use sx::utils::merkle::Leaf;
-    use super::assert_valid_proof::{
+    use super::merkle_utils::{
         generate_merkle_root, generate_n_members, generate_merkle_data, get_proof
     };
     use sx::voting_strategies::merkle_whitelist::{MerkleWhitelistVotingStrategy};
