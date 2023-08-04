@@ -23,5 +23,4 @@ mod update_settings_calldata;
 use update_settings_calldata::{
     UpdateSettingsCalldata, UpdateSettingsCalldataImpl, UpdateSettingsCalldataTrait, NoUpdateArray,
     NoUpdateContractAddress, NoUpdateFelt252, NoUpdateStrategy, NoUpdateTrait, NoUpdateU32,
-    NoUpdateU64
 };

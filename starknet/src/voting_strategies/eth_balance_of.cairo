@@ -13,7 +13,7 @@ mod EthBalanceOfVotingStrategy {
     impl EthBalanceOfVotingStrategy of IVotingStrategy<ContractState> {
         fn get_voting_power(
             self: @ContractState,
-            timestamp: u64,
+            block_number: u32,
             voter: UserAddress,
             params: Array<felt252>,
             user_params: Array<felt252>,
@@ -21,10 +21,6 @@ mod EthBalanceOfVotingStrategy {
             // Cast voter address is an Ethereum address
             // Will revert if the address is not an Ethereum address
             let voter = voter.to_ethereum_address();
-
-            // Resolve timestamp to block number
-            //TODO: dummy var for now. Remove when timestamps are replaced with block numbers
-            let block_number = 1;
 
             // Decode params 
             let contract_address = (*params[0]).into();

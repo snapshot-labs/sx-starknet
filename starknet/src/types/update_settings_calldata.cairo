@@ -3,12 +3,11 @@ use clone::Clone;
 use starknet::{ContractAddress, contract_address_const};
 use sx::types::Strategy;
 
-// TODO: move to u32
 #[derive(Clone, Drop, Serde)]
 struct UpdateSettingsCalldata {
-    min_voting_duration: u64,
-    max_voting_duration: u64,
-    voting_delay: u64,
+    min_voting_duration: u32,
+    max_voting_duration: u32,
+    voting_delay: u32,
     metadata_URI: Array<felt252>,
     dao_URI: Array<felt252>,
     proposal_validation_strategy: Strategy,
@@ -41,16 +40,6 @@ impl NoUpdateU32 of NoUpdateTrait<u32> {
 
     fn should_update(self: @u32) -> bool {
         *self != 0xf2cda9b1
-    }
-}
-
-impl NoUpdateU64 of NoUpdateTrait<u64> {
-    fn no_update() -> u64 {
-        0xf2cda9b13ed04e58
-    }
-
-    fn should_update(self: @u64) -> bool {
-        *self != 0xf2cda9b13ed04e58
     }
 }
 
@@ -101,13 +90,12 @@ impl NoUpdateArray<T> of NoUpdateTrait<Array<T>> {
     }
 }
 
-
 impl UpdateSettingsCalldataImpl of UpdateSettingsCalldataTrait {
     fn default() -> UpdateSettingsCalldata {
         UpdateSettingsCalldata {
-            min_voting_duration: NoUpdateU64::no_update(),
-            max_voting_duration: NoUpdateU64::no_update(),
-            voting_delay: NoUpdateU64::no_update(),
+            min_voting_duration: NoUpdateU32::no_update(),
+            max_voting_duration: NoUpdateU32::no_update(),
+            voting_delay: NoUpdateU32::no_update(),
             metadata_URI: NoUpdateArray::no_update(), // TODO: string
             dao_URI: NoUpdateArray::no_update(), // TODO: string
             proposal_validation_strategy: NoUpdateStrategy::no_update(),

@@ -15,7 +15,7 @@ mod MerkleWhitelistVotingStrategy {
     impl MerkleWhitelistImpl of IVotingStrategy<ContractState> {
         fn get_voting_power(
             self: @ContractState,
-            timestamp: u64,
+            block_number: u32,
             voter: UserAddress,
             params: Array<felt252>, // [root]
             user_params: Array<felt252>, // [Serde(leaf), Serde(proofs)]
