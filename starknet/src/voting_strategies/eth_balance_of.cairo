@@ -22,10 +22,6 @@ mod EthBalanceOfVotingStrategy {
             // Will revert if the address is not an Ethereum address
             let voter = voter.to_ethereum_address();
 
-            // Resolve timestamp to block number
-            //TODO: dummy var for now. Remove when timestamps are replaced with block numbers
-            let block_number = 1;
-
             // Decode params 
             let contract_address = (*params[0]).into();
             let slot_index = (*params[1]).into();
