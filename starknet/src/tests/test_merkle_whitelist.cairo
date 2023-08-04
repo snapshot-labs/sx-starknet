@@ -298,7 +298,7 @@ mod merkle_whitelist_voting_power {
     use traits::TryInto;
     use sx::interfaces::{IVotingStrategyDispatcher, IVotingStrategyDispatcherTrait};
     use serde::Serde;
-
+    use starknet::contract_address_const;
 
     #[test]
     #[available_gas(1000000000)]
@@ -362,6 +362,42 @@ mod merkle_whitelist_voting_power {
         let fake_leaf = Leaf {
             address: leaf.address, voting_power: leaf.voting_power + 1, 
         }; // lying about voting power here
+        fake_leaf.serialize(ref user_params);
+        proof.serialize(ref user_params);
+
+        voting_strategy.get_voting_power(timestamp, voter, params, user_params);
+    }
+
+    #[test]
+    #[available_gas(1000000000)]
+    #[should_panic(expected: ('Merkle: Invalid proof', 'ENTRYPOINT_FAILED'))]
+    fn lying_address_power() {
+        let members = generate_n_members(20);
+
+        let (contract, _) = deploy_syscall(
+            MerkleWhitelistVotingStrategy::TEST_CLASS_HASH.try_into().unwrap(),
+            0,
+            array::ArrayTrait::<felt252>::new().span(),
+            false,
+        )
+            .unwrap();
+        let voting_strategy = IVotingStrategyDispatcher { contract_address: contract };
+        let timestamp = 0x1234;
+        let index = 2;
+        let leaf = *members.at(index);
+        let voter = leaf.address;
+
+        let merkle_data = generate_merkle_data(members.span());
+        let root = generate_merkle_root(merkle_data.span());
+        let proof = get_proof(merkle_data.span(), index);
+
+        let mut params = ArrayTrait::<felt252>::new();
+        root.serialize(ref params);
+
+        let mut user_params = ArrayTrait::<felt252>::new();
+        let fake_leaf = Leaf {
+            address: contract_address_const::<0x1337>(), voting_power: leaf.voting_power,
+        }; // lying about address here
         fake_leaf.serialize(ref user_params);
         proof.serialize(ref user_params);
 
