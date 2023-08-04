@@ -1,6 +1,6 @@
 use starknet::ContractAddress;
 use starknet::SyscallResult;
-use sx::utils::types::{Strategy, IndexedStrategy, Choice};
+use sx::types::{Strategy, IndexedStrategy, Choice};
 
 #[starknet::interface]
 trait IEthSigAuthenticator<TContractState> {
@@ -47,7 +47,7 @@ mod EthSigAuthenticator {
     use core::array::{ArrayTrait, SpanTrait};
     use clone::Clone;
     use sx::space::space::{ISpaceDispatcher, ISpaceDispatcherTrait};
-    use sx::utils::types::{Strategy, IndexedStrategy, Choice};
+    use sx::types::{Strategy, IndexedStrategy, Choice};
     use sx::utils::signatures;
 
     #[storage]

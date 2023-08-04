@@ -3,7 +3,7 @@ mod EthRelayerExecutionStrategy {
     use starknet::syscalls::send_message_to_l1_syscall;
     use starknet::info::get_caller_address;
     use sx::interfaces::IExecutionStrategy;
-    use sx::utils::types::{Proposal};
+    use sx::types::{Proposal};
 
     #[external(v0)]
     impl EthRelayerExecutionStrategy of IExecutionStrategy<ContractState> {

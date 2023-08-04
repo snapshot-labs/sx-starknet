@@ -20,7 +20,7 @@ mod tests {
     use sx::proposal_validation_strategies::vanilla::VanillaProposalValidationStrategy;
     use sx::tests::mocks::proposal_validation_always_fail::AlwaysFailProposalValidationStrategy;
     use sx::tests::setup::setup::setup::{setup, deploy};
-    use sx::utils::types::{
+    use sx::types::{
         Strategy, IndexedStrategy, Choice, FinalizationStatus, Proposal, UpdateSettingsCalldataImpl
     };
     use sx::tests::utils::strategy_trait::{StrategyImpl};

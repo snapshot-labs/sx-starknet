@@ -6,7 +6,7 @@ mod setup {
     use serde::{Serde};
     use result::ResultTrait;
     use option::OptionTrait;
-    use sx::utils::types::Strategy;
+    use sx::types::Strategy;
     use sx::authenticators::vanilla::{VanillaAuthenticator};
     use sx::execution_strategies::vanilla::VanillaExecutionStrategy;
     use sx::voting_strategies::vanilla::VanillaVotingStrategy;

@@ -7,7 +7,7 @@ mod tests {
     use option::OptionTrait;
     use result::ResultTrait;
     use sx::space::space::Space;
-    use sx::utils::types::Strategy;
+    use sx::types::Strategy;
     use starknet::ClassHash;
 
     use sx::tests::setup::setup::setup::{setup, get_constructor_calldata, deploy};

@@ -22,7 +22,7 @@ mod tests {
     use sx::voting_strategies::vanilla::VanillaVotingStrategy;
     use sx::proposal_validation_strategies::vanilla::VanillaProposalValidationStrategy;
     use sx::tests::mocks::proposal_validation_always_fail::AlwaysFailProposalValidationStrategy;
-    use sx::utils::types::{
+    use sx::types::{
         Strategy, IndexedStrategy, Choice, FinalizationStatus, Proposal, UpdateSettingsCalldataImpl
     };
     use sx::utils::constants::{PROPOSE_SELECTOR, VOTE_SELECTOR, UPDATE_PROPOSAL_SELECTOR};

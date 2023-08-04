@@ -1,5 +1,5 @@
 use array::ArrayTrait;
-use sx::utils::types::Strategy;
+use sx::types::Strategy;
 use starknet::{ContractAddress, contract_address_const};
 
 trait StrategyTrait {
