@@ -57,7 +57,7 @@ mod tests {
             contract_address: space.contract_address
         };
 
-        let author = UserAddress::StarknetAddress(contract_address_const::<0x7777777777>());
+        let author = UserAddress::Starknet(contract_address_const::<0x7777777777>());
         let params = ArrayTrait::<felt252>::new();
         let user_params = ArrayTrait::<felt252>::new();
         let res = new_space.validate(author, params, user_params);
@@ -102,8 +102,7 @@ mod tests {
         };
 
         let mut propose_calldata = ArrayTrait::<felt252>::new();
-        UserAddress::StarknetAddress(contract_address_const::<0x7676>())
-            .serialize(ref propose_calldata);
+        UserAddress::Starknet(contract_address_const::<0x7676>()).serialize(ref propose_calldata);
         execution_strategy.serialize(ref propose_calldata);
         ArrayTrait::<felt252>::new().serialize(ref propose_calldata);
 
@@ -121,7 +120,7 @@ mod tests {
             contract_address: space.contract_address
         };
 
-        let author = UserAddress::StarknetAddress(contract_address_const::<0x7777777777>());
+        let author = UserAddress::Starknet(contract_address_const::<0x7777777777>());
         let params = ArrayTrait::<felt252>::new();
         let user_params = ArrayTrait::<felt252>::new();
         let res = new_space.validate(author, params, user_params);

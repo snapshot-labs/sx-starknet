@@ -4,26 +4,22 @@ use hash::LegacyHash;
 use serde::Serde;
 use array::ArrayTrait;
 
-#[derive(Copy, Drop, Serde, LegacyHash, PartialEq, starknet::Store)]
+#[derive(Copy, Drop, Serde, PartialEq, starknet::Store)]
 enum UserAddress {
     // Starknet address type
-    StarknetAddress: ContractAddress,
+    Starknet: ContractAddress,
     // Ethereum address type
-    EthereumAddress: EthAddress,
+    Ethereum: EthAddress,
     // Custom address type to provide compatibility with any address that can be represented as a u256.
-    CustomAddress: u256
+    Custom: u256
 }
 
 impl LegacyHashUserAddress of LegacyHash<UserAddress> {
     fn hash(state: felt252, value: UserAddress) -> felt252 {
         match value {
-            UserAddress::StarknetAddress(address) => LegacyHash::<felt252>::hash(
-                state, address.into()
-            ),
-            UserAddress::EthereumAddress(address) => LegacyHash::<felt252>::hash(
-                state, address.into()
-            ),
-            UserAddress::CustomAddress(address) => LegacyHash::<u256>::hash(state, address),
+            UserAddress::Starknet(address) => LegacyHash::<felt252>::hash(state, address.into()),
+            UserAddress::Ethereum(address) => LegacyHash::<felt252>::hash(state, address.into()),
+            UserAddress::Custom(address) => LegacyHash::<u256>::hash(state, address),
         }
     }
 }
@@ -37,11 +33,11 @@ trait UserAddressTrait {
 impl UserAddressImpl of UserAddressTrait {
     fn to_starknet_address(self: UserAddress) -> ContractAddress {
         match self {
-            UserAddress::StarknetAddress(address) => address,
-            UserAddress::EthereumAddress(_) => {
+            UserAddress::Starknet(address) => address,
+            UserAddress::Ethereum(_) => {
                 panic_with_felt252('Incorrect address type')
             },
-            UserAddress::CustomAddress(_) => {
+            UserAddress::Custom(_) => {
                 panic_with_felt252('Incorrect address type')
             }
         }
@@ -49,11 +45,11 @@ impl UserAddressImpl of UserAddressTrait {
 
     fn to_ethereum_address(self: UserAddress) -> EthAddress {
         match self {
-            UserAddress::StarknetAddress(_) => {
+            UserAddress::Starknet(_) => {
                 panic_with_felt252('Incorrect address type')
             },
-            UserAddress::EthereumAddress(address) => address,
-            UserAddress::CustomAddress(_) => {
+            UserAddress::Ethereum(address) => address,
+            UserAddress::Custom(_) => {
                 panic_with_felt252('Incorrect address type')
             }
         }
@@ -61,13 +57,13 @@ impl UserAddressImpl of UserAddressTrait {
 
     fn to_custom_address(self: UserAddress) -> u256 {
         match self {
-            UserAddress::StarknetAddress(_) => {
+            UserAddress::Starknet(_) => {
                 panic_with_felt252('Incorrect address type')
             },
-            UserAddress::EthereumAddress(_) => {
+            UserAddress::Ethereum(_) => {
                 panic_with_felt252('Incorrect address type')
             },
-            UserAddress::CustomAddress(address) => address,
+            UserAddress::Custom(address) => address,
         }
     }
 }

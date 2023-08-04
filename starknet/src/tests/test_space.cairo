@@ -133,7 +133,7 @@ mod tests {
         let vanilla_execution_strategy = StrategyImpl::from_address(
             vanilla_execution_strategy_address
         );
-        let author = UserAddress::StarknetAddress(contract_address_const::<0x5678>());
+        let author = UserAddress::Starknet(contract_address_const::<0x5678>());
         let mut propose_calldata = array::ArrayTrait::<felt252>::new();
         author.serialize(ref propose_calldata);
         vanilla_execution_strategy.serialize(ref propose_calldata);
@@ -183,7 +183,7 @@ mod tests {
         testing::set_block_timestamp(1_u64);
 
         let mut vote_calldata = array::ArrayTrait::<felt252>::new();
-        let voter = UserAddress::StarknetAddress(contract_address_const::<0x8765>());
+        let voter = UserAddress::Starknet(contract_address_const::<0x8765>());
         voter.serialize(ref vote_calldata);
         let proposal_id = u256_from_felt252(1);
         proposal_id.serialize(ref vote_calldata);
@@ -249,7 +249,7 @@ mod tests {
 
         space.update_settings(input);
 
-        let author = UserAddress::StarknetAddress(contract_address_const::<0x5678>());
+        let author = UserAddress::Starknet(contract_address_const::<0x5678>());
         let mut propose_calldata = array::ArrayTrait::<felt252>::new();
         author.serialize(ref propose_calldata);
         vanilla_execution_strategy.serialize(ref propose_calldata);
@@ -288,7 +288,7 @@ mod tests {
             vanilla_execution_strategy_address
         );
         let mut propose_calldata = array::ArrayTrait::<felt252>::new();
-        let author = UserAddress::StarknetAddress(contract_address_const::<0x5678>());
+        let author = UserAddress::Starknet(contract_address_const::<0x5678>());
         author.serialize(ref propose_calldata);
         vanilla_execution_strategy.serialize(ref propose_calldata);
         ArrayTrait::<felt252>::new().serialize(ref propose_calldata);
@@ -312,7 +312,7 @@ mod tests {
 
         // Try to cast vote on Cancelled Proposal
         let mut vote_calldata = array::ArrayTrait::<felt252>::new();
-        let voter = UserAddress::StarknetAddress(contract_address_const::<0x8765>());
+        let voter = UserAddress::Starknet(contract_address_const::<0x8765>());
         voter.serialize(ref vote_calldata);
         proposal_id.serialize(ref vote_calldata);
         let choice = Choice::For(());

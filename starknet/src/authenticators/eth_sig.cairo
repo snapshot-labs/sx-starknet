@@ -85,7 +85,7 @@ mod EthSigAuthenticator {
                 contract_address: target
             }
                 .propose(
-                    UserAddress::EthereumAddress(author),
+                    UserAddress::Ethereum(author),
                     execution_strategy,
                     user_proposal_validation_params
                 );
@@ -118,10 +118,7 @@ mod EthSigAuthenticator {
 
             ISpaceDispatcher {
                 contract_address: target
-            }
-                .vote(
-                    UserAddress::EthereumAddress(voter), proposal_id, choice, user_voting_strategies
-                );
+            }.vote(UserAddress::Ethereum(voter), proposal_id, choice, user_voting_strategies);
         }
 
         fn authenticate_update_proposal(
@@ -150,10 +147,7 @@ mod EthSigAuthenticator {
 
             ISpaceDispatcher {
                 contract_address: target
-            }
-                .update_proposal(
-                    UserAddress::EthereumAddress(author), proposal_id, execution_strategy
-                );
+            }.update_proposal(UserAddress::Ethereum(author), proposal_id, execution_strategy);
         }
     }
 
