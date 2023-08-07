@@ -46,15 +46,29 @@ const INDEXED_STRATEGY_TYPEHASH_LOW: u128 = 0x8b36195eec0090e913c01e7534729c74;
 
 // ------ Stark Sig Constants ------
 
-// TODO: Add comments containing pre-images of the constants
+// 'StarkNet Message' as short string
 const STARKNET_MESSAGE: felt252 = 0x537461726b4e6574204d657373616765;
+// H('StarkNetDomain(name:felt252,version:felt252,chainId:felt252,verifyingContract:ContractAddress)')
 const DOMAIN_TYPEHASH: felt252 = 0xa9974a36dee531bbc36aad5eeab4ade4df5ad388a296bb14d28ad4e9bf2164;
+// H('Propose(space:ContractAddress,author:ContractAddress,executionStrategy:Strategy,
+//    userProposalValidationParams:felt*,salt:felt252)Strategy(address:felt252,params:felt*)')
 const PROPOSE_TYPEHASH: felt252 = 0x1f8c9b1ab74c5990f89bac4c632dc405457352e22bbc7573a237989aa62cb60;
+// H('Vote(space:ContractAddress,voter:ContractAddress,proposalId:u256,choice:felt252,userVotingStrategies:IndexedStrategy*)
+//    IndexedStrategy(index:felt252,params:felt*)u256(low:felt252,high:felt252)')
 const VOTE_TYPEHASH: felt252 = 0x1845db28c74470cdaa3cf6a1c5017d013586d70ffee45b519a5670e23fe9512;
+// H('UpdateProposal(space:ContractAddress,author:ContractAddress,proposalId:u256,executionStrategy:Strategy,
+//    salt:felt252)Strategy(address:felt252,params:felt*)u256(low:felt252,high:felt252)')
 const UPDATE_PROPOSAL_TYPEHASH: felt252 =
     0x222b737bd5f9ba595cf15e62d789e31a2e51c57c794a82802c94cd3925e7d49;
+// H('Strategy(address:felt252,params:felt*)')
 const STRATEGY_TYPEHASH: felt252 =
     0x39154ec0efadcd0deffdfc2044cf45dd986d260e59c26d69564b50a18f40f6b;
+// H('IndexedStrategy(index:felt252,params:felt*)')
 const INDEXED_STRATEGY_TYPEHASH: felt252 =
     0x1f464f3e668281a899c5f3fc74a009ccd1df05fd0b9331b0460dc3f8054f64c;
+// H('u256(low:felt252,high:felt252)')
 const U256_TYPEHASH: felt252 = 0x1094260a770342332e6a73e9256b901d484a438925316205b4b6ff25df4a97a;
+
+// ------ ERC165 Interface Ids ------
+const ERC165_ACCOUNT_INTERFACE_ID: felt252 = 0xa66bd575; // snake 
+const ERC165_OLD_ACCOUNT_INTERFACE_ID: felt252 = 0x3943f10f; // camel 
