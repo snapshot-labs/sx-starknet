@@ -1,6 +1,5 @@
 use starknet::ContractAddress;
-use starknet::SyscallResult;
-use sx::utils::types::{Strategy, IndexedStrategy, Choice};
+use sx::types::{Strategy, IndexedStrategy, Choice};
 
 #[starknet::interface]
 trait IStarkSigAuthenticator<TContractState> {
@@ -39,14 +38,12 @@ trait IStarkSigAuthenticator<TContractState> {
 #[starknet::contract]
 mod StarkSigAuthenticator {
     use super::IStarkSigAuthenticator;
-    use starknet::ContractAddress;
-    use starknet::syscalls::call_contract_syscall;
+    use starknet::{ContractAddress, info};
     use core::array::{ArrayTrait, SpanTrait};
-    use clone::Clone;
     use serde::Serde;
     use sx::space::space::{ISpaceDispatcher, ISpaceDispatcherTrait};
-    use sx::utils::types::{Strategy, IndexedStrategy, Choice};
-    use sx::utils::stark_signatures;
+    use sx::types::{Strategy, IndexedStrategy, UserAddress, Choice};
+    use sx::utils::stark_eip712;
 
     #[storage]
     struct Storage {
@@ -66,7 +63,7 @@ mod StarkSigAuthenticator {
             salt: felt252,
             account_type: felt252
         ) {
-            stark_signatures::verify_propose_sig(
+            stark_eip712::verify_propose_sig(
                 self._domain_hash.read(),
                 signature,
                 target,
@@ -80,7 +77,12 @@ mod StarkSigAuthenticator {
             self._used_salts.write((author, salt), true);
             ISpaceDispatcher {
                 contract_address: target
-            }.propose(author, execution_strategy, user_proposal_validation_params);
+            }
+                .propose(
+                    UserAddress::Starknet(author),
+                    execution_strategy,
+                    user_proposal_validation_params
+                );
         }
 
         fn authenticate_vote(
@@ -93,7 +95,7 @@ mod StarkSigAuthenticator {
             user_voting_strategies: Array<IndexedStrategy>,
             account_type: felt252
         ) {
-            stark_signatures::verify_vote_sig(
+            stark_eip712::verify_vote_sig(
                 self._domain_hash.read(),
                 signature,
                 target,
@@ -107,7 +109,7 @@ mod StarkSigAuthenticator {
 
             ISpaceDispatcher {
                 contract_address: target
-            }.vote(voter, proposal_id, choice, user_voting_strategies);
+            }.vote(UserAddress::Starknet(voter), proposal_id, choice, user_voting_strategies);
         }
 
         fn authenticate_update_proposal(
@@ -120,7 +122,7 @@ mod StarkSigAuthenticator {
             salt: felt252,
             account_type: felt252
         ) {
-            stark_signatures::verify_update_proposal_sig(
+            stark_eip712::verify_update_proposal_sig(
                 self._domain_hash.read(),
                 signature,
                 target,
@@ -134,13 +136,12 @@ mod StarkSigAuthenticator {
             self._used_salts.write((author, salt), true);
             ISpaceDispatcher {
                 contract_address: target
-            }.update_proposal(author, proposal_id, execution_strategy);
+            }.update_proposal(UserAddress::Starknet(author), proposal_id, execution_strategy);
         }
     }
     #[constructor]
-    fn constructor(
-        ref self: ContractState, name: felt252, version: felt252
-    ) { // TODO: domain hash is immutable so could be placed in the contract code instead of storage to save on reads.
-        self._domain_hash.write(stark_signatures::get_domain_hash(name, version));
+    fn constructor(ref self: ContractState, name: felt252, version: felt252) {
+        // TODO: store domain hash in stark_eip712 component once syntax is live.
+        self._domain_hash.write(stark_eip712::get_domain_hash(name, version));
     }
 }

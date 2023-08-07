@@ -1,109 +1,22 @@
 use core::starknet::SyscallResultTrait;
-use starknet::{ContractAddress, contract_address_to_felt252, get_tx_info, get_contract_address};
+use starknet::{ContractAddress, get_tx_info, get_contract_address};
 use array::{ArrayTrait, SpanTrait};
 use traits::Into;
 use box::BoxTrait;
-use clone::Clone;
 use serde::Serde;
-use ecdsa::check_ecdsa_signature;
-use hash::LegacyHash;
-use integer::u256_from_felt252;
-use sx::utils::types::{Strategy, IndexedStrategy, Choice, Felt252ArrayIntoU256Array};
-use sx::utils::math::pow;
-use sx::utils::constants::{
-    STARKNET_MESSAGE, DOMAIN_TYPEHASH, STRATEGY_TYPEHASH, INDEXED_STRATEGY_TYPEHASH, U256_TYPEHASH,
-    PROPOSE_TYPEHASH, VOTE_TYPEHASH, UPDATE_PROPOSAL_TYPEHASH
+use sx::types::{Strategy, IndexedStrategy, Choice};
+use sx::utils::{
+    struct_hash::StructHash,
+    constants::{
+        STARKNET_MESSAGE, DOMAIN_TYPEHASH, PROPOSE_TYPEHASH, VOTE_TYPEHASH,
+        UPDATE_PROPOSAL_TYPEHASH, ERC165_ACCOUNT_INTERFACE_ID, ERC165_OLD_ACCOUNT_INTERFACE_ID
+    }
 };
 use sx::interfaces::{
     AccountABIDispatcher, AccountABIDispatcherTrait, AccountCamelABIDispatcher,
     AccountCamelABIDispatcherTrait
 };
 
-impl LegacyHashSpanFelt252 of LegacyHash<Span<felt252>> {
-    fn hash(state: felt252, mut value: Span<felt252>) -> felt252 {
-        let mut call_data_state: felt252 = 0;
-        loop {
-            match value.pop_front() {
-                Option::Some(item) => {
-                    call_data_state = LegacyHash::hash(call_data_state, *item);
-                },
-                Option::None(_) => {
-                    break call_data_state;
-                },
-            };
-        }
-    }
-}
-
-trait StructHash<T> {
-    fn struct_hash(self: @T) -> felt252;
-}
-
-impl StructHashSpanFelt252 of StructHash<Span<felt252>> {
-    fn struct_hash(self: @Span<felt252>) -> felt252 {
-        let mut call_data_state = LegacyHash::hash(0, *self);
-        call_data_state = LegacyHash::hash(call_data_state, (*self).len());
-        call_data_state
-    }
-}
-
-impl StructHashStrategy of StructHash<Strategy> {
-    fn struct_hash(self: @Strategy) -> felt252 {
-        let mut encoded_data = ArrayTrait::<felt252>::new();
-        STRATEGY_TYPEHASH.serialize(ref encoded_data);
-        (*self.address).serialize(ref encoded_data);
-        self.params.span().struct_hash().serialize(ref encoded_data);
-        encoded_data.span().struct_hash()
-    }
-}
-
-impl StructHashIndexedStrategy of StructHash<IndexedStrategy> {
-    fn struct_hash(self: @IndexedStrategy) -> felt252 {
-        let mut encoded_data = ArrayTrait::<felt252>::new();
-        INDEXED_STRATEGY_TYPEHASH.serialize(ref encoded_data);
-        (*self.index).serialize(ref encoded_data);
-        self.params.span().struct_hash().serialize(ref encoded_data);
-        encoded_data.span().struct_hash()
-    }
-}
-
-impl StructHashIndexedStrategySpan of StructHash<Span<IndexedStrategy>> {
-    fn struct_hash(self: @Span<IndexedStrategy>) -> felt252 {
-        let mut encoded_data = ArrayTrait::<felt252>::new();
-        let mut i: usize = 0;
-        loop {
-            if i >= (*self).len() {
-                break ();
-            };
-            encoded_data.append((*self).at(i).struct_hash());
-            i += 1;
-        };
-        encoded_data.span().struct_hash()
-    // let mut self_ = *self;
-    // let mut encoded_data = ArrayTrait::<felt252>::new();
-    // loop {
-    //     match self_.pop_front() {
-    //         Option::Some(item) => {
-    //             encoded_data.append(item.struct_hash());
-    //         },
-    //         Option::None(_) => {
-    //             break encoded_data.span().struct_hash();
-    //         },
-    //     };
-    // }
-    }
-}
-
-impl StructHashU256 of StructHash<u256> {
-    fn struct_hash(self: @u256) -> felt252 {
-        let mut encoded_data = ArrayTrait::<felt252>::new();
-        U256_TYPEHASH.serialize(ref encoded_data);
-        self.serialize(ref encoded_data);
-        encoded_data.span().struct_hash()
-    }
-}
-
-// Reverts if the signature was not signed by the author. 
 fn verify_propose_sig(
     domain_hash: felt252,
     signature: Array<felt252>,
@@ -232,19 +145,19 @@ fn hash_typed_data(
 fn verify_signature(
     digest: felt252, signature: Array<felt252>, account: ContractAddress, account_type: felt252
 ) {
-    if account_type == 'camel' {
+    if account_type == 'snake' {
         assert(
             AccountCamelABIDispatcher {
                 contract_address: account
-            }.supportsInterface(0xa66bd575) == true,
+            }.supportsInterface(ERC165_ACCOUNT_INTERFACE_ID) == true,
             'Invalid Account'
         );
         AccountCamelABIDispatcher { contract_address: account }.isValidSignature(digest, signature);
-    } else if account_type == 'snake' {
+    } else if account_type == 'camel' {
         assert(
             AccountABIDispatcher {
                 contract_address: account
-            }.supports_interface(0x01ffc9a7) == true,
+            }.supports_interface(ERC165_OLD_ACCOUNT_INTERFACE_ID) == true,
             'Invalid Account'
         );
         AccountABIDispatcher { contract_address: account }.is_valid_signature(digest, signature);

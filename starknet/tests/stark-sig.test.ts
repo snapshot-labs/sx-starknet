@@ -1,5 +1,4 @@
 import fs from 'fs';
-import dotenv from 'dotenv';
 import { Provider, Account, CallData, typedData, shortString, json } from 'starknet';
 import {
   proposeTypes,
@@ -20,8 +19,8 @@ describe('Starknet Signature Authenticator', () => {
   const address0 = '0x7e00d496e324876bbc8531f2d9a82bf154d1a04a50218ee74cdd372f75a551a';
   const account0 = new Account(provider, address0, privateKey0);
 
-  // change this to 'snake' if the account interface uses snake case
-  const account0Type = shortString.encodeShortString('camel');
+  // change this to 'camel' if the account interface uses camel case
+  const account0Type = shortString.encodeShortString('snake');
 
   let spaceAddress: string;
   let vanillaVotingStrategyAddress: string;
@@ -94,7 +93,7 @@ describe('Starknet Signature Authenticator', () => {
         _owner: 1,
         _max_voting_duration: 100,
         _min_voting_duration: 100,
-        _voting_delay: 10,
+        _voting_delay: 1,
         _proposal_validation_strategy: {
           address: vanillaProposalValidationStrategyAddress,
           params: [],
@@ -179,13 +178,31 @@ describe('Starknet Signature Authenticator', () => {
       calldata: CallData.compile(updateProposalCalldata as any),
     });
 
+    {
+      // Random Tx just to advance the block number on the devnet so the voting period begins.
+
+      await account0.declareAndDeploy({
+        contract: json.parse(
+          fs
+            .readFileSync('starknet/target/dev/sx_StarkSigAuthenticator.sierra.json')
+            .toString('ascii'),
+        ),
+        casm: json.parse(
+          fs
+            .readFileSync('starknet/target/dev/sx_StarkSigAuthenticator.casm.json')
+            .toString('ascii'),
+        ),
+        constructorCalldata: CallData.compile({ name: 'sx-sn', version: '0.1.0' }),
+      });
+    }
+
     // VOTE
 
     const voteMsg: Vote = {
       space: spaceAddress,
       voter: address0,
       proposalId: { low: '0x1', high: '0x0' },
-      choice: '0x2',
+      choice: '0x1',
       userVotingStrategies: [{ index: '0x0', params: ['0x1', '0x2', '0x3', '0x4'] }],
     };
 
