@@ -124,6 +124,11 @@ mod EthTxAuthenticator {
         }
     }
 
+    #[constructor]
+    fn constructor(ref self: ContractState, starknet_commit_address: EthAddress) {
+        self._starknet_commit_address.write(starknet_commit_address);
+    }
+
     #[l1_handler]
     fn commit(
         ref self: ContractState, from_address: felt252, sender_address: felt252, hash: felt252
