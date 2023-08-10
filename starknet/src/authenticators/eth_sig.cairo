@@ -4,12 +4,23 @@ use sx::types::{Strategy, IndexedStrategy, Choice};
 
 #[starknet::interface]
 trait IEthSigAuthenticator<TContractState> {
+    fn get_hash(
+        ref self: TContractState,
+        r: u256,
+        s: u256,
+        v: u32,
+        space: ContractAddress,
+        author: EthAddress,
+        execution_strategy: Strategy,
+        user_proposal_validation_params: Array<felt252>,
+        salt: u256
+    ) -> u256;
     fn authenticate_propose(
         ref self: TContractState,
         r: u256,
         s: u256,
-        v: u256,
-        target: ContractAddress,
+        v: u32,
+        space: ContractAddress,
         author: EthAddress,
         execution_strategy: Strategy,
         user_proposal_validation_params: Array<felt252>,
@@ -20,7 +31,7 @@ trait IEthSigAuthenticator<TContractState> {
         r: u256,
         s: u256,
         v: u256,
-        target: ContractAddress,
+        space: ContractAddress,
         voter: EthAddress,
         proposal_id: u256,
         choice: Choice,
@@ -31,7 +42,7 @@ trait IEthSigAuthenticator<TContractState> {
         r: u256,
         s: u256,
         v: u256,
-        target: ContractAddress,
+        space: ContractAddress,
         author: EthAddress,
         proposal_id: u256,
         execution_strategy: Strategy,
@@ -43,11 +54,19 @@ trait IEthSigAuthenticator<TContractState> {
 mod EthSigAuthenticator {
     use super::IEthSigAuthenticator;
     use starknet::{ContractAddress, EthAddress, syscalls::call_contract_syscall};
-    use core::array::{ArrayTrait, SpanTrait};
-    use clone::Clone;
+    use array::{ArrayTrait, SpanTrait};
+    use option::OptionTrait;
+    use traits::{Into, TryInto};
+    use integer::u128_byte_reverse;
     use sx::space::space::{ISpaceDispatcher, ISpaceDispatcherTrait};
     use sx::types::{Strategy, IndexedStrategy, Choice, UserAddress};
     use sx::utils::{signatures, LegacyHashEthAddress};
+
+    use core::keccak;
+    use core::integer;
+
+    use sx::utils::endian::{into_le_u64_array, ByteReverse};
+
 
     #[storage]
     struct Storage {
@@ -57,41 +76,57 @@ mod EthSigAuthenticator {
 
     #[external(v0)]
     impl EthSigAuthenticator of IEthSigAuthenticator<ContractState> {
+        fn get_hash(
+            ref self: ContractState,
+            r: u256,
+            s: u256,
+            v: u32,
+            space: ContractAddress,
+            author: EthAddress,
+            execution_strategy: Strategy,
+            user_proposal_validation_params: Array<felt252>,
+            salt: u256
+        ) -> u256 {
+            signatures::get_propose_digest(
+                self._domain_hash.read(),
+                space,
+                author,
+                @execution_strategy,
+                user_proposal_validation_params.span(),
+                salt
+            )
+        }
         fn authenticate_propose(
             ref self: ContractState,
             r: u256,
             s: u256,
-            v: u256,
-            target: ContractAddress,
+            v: u32,
+            space: ContractAddress,
             author: EthAddress,
             execution_strategy: Strategy,
             user_proposal_validation_params: Array<felt252>,
             salt: u256,
         ) {
-            // TODO: temporary placing constructor here
-            self._domain_hash.write(signatures::get_domain_hash(1, 1));
-
             signatures::verify_propose_sig(
                 r,
                 s,
                 v,
                 self._domain_hash.read(),
-                target,
+                space,
                 author,
-                execution_strategy.clone(),
-                user_proposal_validation_params.clone(),
+                @execution_strategy,
+                user_proposal_validation_params.span(),
                 salt,
             );
             self._used_salts.write((author, salt), true);
-
-            ISpaceDispatcher {
-                contract_address: target
-            }
-                .propose(
-                    UserAddress::Ethereum(author),
-                    execution_strategy,
-                    user_proposal_validation_params
-                );
+        // ISpaceDispatcher {
+        //     contract_address: space
+        // }
+        //     .propose(
+        //         UserAddress::Ethereum(author),
+        //         execution_strategy,
+        //         user_proposal_validation_params
+        //     );
         }
 
         fn authenticate_vote(
@@ -99,7 +134,7 @@ mod EthSigAuthenticator {
             r: u256,
             s: u256,
             v: u256,
-            target: ContractAddress,
+            space: ContractAddress,
             voter: EthAddress,
             proposal_id: u256,
             choice: Choice,
@@ -110,18 +145,17 @@ mod EthSigAuthenticator {
                 s,
                 v,
                 self._domain_hash.read(),
-                target,
+                space,
                 voter,
                 proposal_id,
                 choice,
-                user_voting_strategies.clone()
+                user_voting_strategies.span()
             );
+        // No need to check salts here, as double voting is prevented by the space itself.
 
-            // No need to check salts here, as double voting is prevented by the space itself.
-
-            ISpaceDispatcher {
-                contract_address: target
-            }.vote(UserAddress::Ethereum(voter), proposal_id, choice, user_voting_strategies);
+        // ISpaceDispatcher {
+        //     contract_address: space
+        // }.vote(UserAddress::Ethereum(voter), proposal_id, choice, user_voting_strategies);
         }
 
         fn authenticate_update_proposal(
@@ -129,7 +163,7 @@ mod EthSigAuthenticator {
             r: u256,
             s: u256,
             v: u256,
-            target: ContractAddress,
+            space: ContractAddress,
             author: EthAddress,
             proposal_id: u256,
             execution_strategy: Strategy,
@@ -140,23 +174,22 @@ mod EthSigAuthenticator {
                 s,
                 v,
                 self._domain_hash.read(),
-                target,
+                space,
                 author,
                 proposal_id,
-                execution_strategy.clone(),
+                @execution_strategy,
                 salt
             );
             self._used_salts.write((author, salt), true);
-
-            ISpaceDispatcher {
-                contract_address: target
-            }.update_proposal(UserAddress::Ethereum(author), proposal_id, execution_strategy);
+        // ISpaceDispatcher {
+        //     contract_address: space
+        // }.update_proposal(UserAddress::Ethereum(author), proposal_id, execution_strategy);
         }
     }
-// TODO: temporary removal of constructor
-// #[constructor]
-// fn constructor(ref self: ContractState) {
-//     // TODO: domain hash is immutable so could be placed in the contract code instead of storage to save on reads.
-//     self._domain_hash.write(signatures::get_domain_hash(1, 1));
-// }
+
+    #[constructor]
+    fn constructor(ref self: ContractState) {
+        // TODO: domain hash is immutable so could be placed in the contract code instead of storage to save on reads.
+        self._domain_hash.write(signatures::get_domain_hash());
+    }
 }
