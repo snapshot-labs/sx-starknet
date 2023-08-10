@@ -1,18 +1,22 @@
-use array::ArrayTrait;
+use array::{ArrayTrait, SpanTrait};
+use option::OptionTrait;
 use traits::Into;
 use integer::u256_from_felt252;
 use starknet::{ContractAddress, EthAddress};
 
-impl Felt252ArrayIntoU256Array of Into<Array<felt252>, Array<u256>> {
-    fn into(self: Array<felt252>) -> Array<u256> {
+impl Felt252ArrayIntoU256Array of Into<Span<felt252>, Array<u256>> {
+    fn into(self: Span<felt252>) -> Array<u256> {
+        let mut self = self;
         let mut arr = ArrayTrait::<u256>::new();
-        let mut i = 0_usize;
         loop {
-            if i >= self.len() {
-                break ();
-            }
-            arr.append((*self.at(i)).into());
-            i += 1;
+            match self.pop_front() {
+                Option::Some(num) => {
+                    arr.append((*num).into());
+                },
+                Option::None(_) => {
+                    break ();
+                },
+            };
         };
         arr
     }
