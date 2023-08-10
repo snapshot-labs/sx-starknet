@@ -11,29 +11,29 @@ use sx::utils::constants::{
 use sx::utils::endian::{into_le_u64_array, ByteReverse};
 use sx::utils::into::{ContractAddressIntoU256, EthAddressIntoU256, Felt252ArrayIntoU256Array};
 
-trait Keccak<T> {
-    fn keccak(self: T) -> u256;
+trait KeccakStructHash<T> {
+    fn keccak_struct_hash(self: T) -> u256;
 }
 
-impl KeccakStrategy of Keccak<Strategy> {
-    fn keccak(self: Strategy) -> u256 {
+impl KeccakStructHashStrategy of KeccakStructHash<Strategy> {
+    fn keccak_struct_hash(self: Strategy) -> u256 {
         let mut encoded_data = ArrayTrait::<u256>::new();
         encoded_data.append(u256 { low: STRATEGY_TYPEHASH_LOW, high: STRATEGY_TYPEHASH_HIGH });
         encoded_data.append(self.address.into());
-        encoded_data.append(self.params.keccak());
+        encoded_data.append(self.params.keccak_struct_hash());
         keccak::keccak_u256s_be_inputs(encoded_data.span()).byte_reverse()
     }
 }
 
-impl KeccakArray of Keccak<Array<felt252>> {
-    fn keccak(self: Array<felt252>) -> u256 {
+impl KeccakStructHashArray of KeccakStructHash<Array<felt252>> {
+    fn keccak_struct_hash(self: Array<felt252>) -> u256 {
         let mut encoded_data: Array<u256> = self.into();
         keccak::keccak_u256s_be_inputs(encoded_data.span()).byte_reverse()
     }
 }
 
-impl KeccakIndexedStrategy of Keccak<IndexedStrategy> {
-    fn keccak(self: IndexedStrategy) -> u256 {
+impl KeccakStructHashIndexedStrategy of KeccakStructHash<IndexedStrategy> {
+    fn keccak_struct_hash(self: IndexedStrategy) -> u256 {
         let mut encoded_data = ArrayTrait::<u256>::new();
         encoded_data
             .append(
@@ -41,20 +41,20 @@ impl KeccakIndexedStrategy of Keccak<IndexedStrategy> {
             );
         let index_felt: felt252 = self.index.into();
         encoded_data.append(index_felt.into());
-        encoded_data.append(self.params.keccak());
+        encoded_data.append(self.params.keccak_struct_hash());
         keccak::keccak_u256s_be_inputs(encoded_data.span()).byte_reverse()
     }
 }
 
-impl KeccakIndexedStrategyArray of Keccak<Array<IndexedStrategy>> {
-    fn keccak(self: Array<IndexedStrategy>) -> u256 {
+impl KeccakStructHashIndexedStrategyArray of KeccakStructHash<Array<IndexedStrategy>> {
+    fn keccak_struct_hash(self: Array<IndexedStrategy>) -> u256 {
         let mut encoded_data = ArrayTrait::<u256>::new();
         let mut i: usize = 0;
         loop {
             if i >= self.len() {
                 break ();
             }
-            encoded_data.append(self.at(i).clone().keccak());
+            encoded_data.append(self.at(i).clone().keccak_struct_hash());
         };
         keccak::keccak_u256s_be_inputs(encoded_data.span()).byte_reverse()
     }
