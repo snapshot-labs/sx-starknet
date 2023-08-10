@@ -1,7 +1,7 @@
 import fs from 'fs';
 import { ethers } from "ethers";
 import { Provider, Account, Contract, CallData, cairo, shortString, json, Calldata } from 'starknet';
-import { Propose, proposeTypes, EthereumSigProposeCalldata } from "./types";
+import { Propose, proposeTypes, EthereumSigProposeCalldata, voteTypes, Vote, updateProposalTypes, UpdateProposal} from "./types";
 
 const pk = process.env.PRIVATE_KEY || '';
 
@@ -48,21 +48,13 @@ describe('Starknet Signature Authenticator', () => {
         salt: "0x7"
     }
 
-    console.log("addr: ", signer.address);
-
-    // console.log(ethers.TypedDataEncoder.from(proposeTypes).hash(proposeMsg));
-
-    console.log("propose digest ts: ", ethers.TypedDataEncoder.hash(domain, proposeTypes, proposeMsg));
-
-    const sig = await signer.signTypedData(domain, proposeTypes, proposeMsg);
-    console.log(sig);
-    const { r, s, v } = getRSVFromSig(sig);
-    console.log(r, s, v);
+    let sig = await signer.signTypedData(domain, proposeTypes, proposeMsg);
+    let splitSig = getRSVFromSig(sig);
 
     const proposeCalldata = {
-        r: cairo.uint256(r),
-        s: cairo.uint256(s),
-        v: v,
+        r: cairo.uint256(splitSig.r),
+        s: cairo.uint256(splitSig.s),
+        v: splitSig.v,
         space: proposeMsg.space,
         author: proposeMsg.author,
         executionStrategy: proposeMsg.executionStrategy,
@@ -70,17 +62,81 @@ describe('Starknet Signature Authenticator', () => {
         salt: cairo.uint256(proposeMsg.salt)
     }
 
-    let out = await ethSigAuth.call("get_hash", CallData.compile(proposeCalldata as any), {parseResponse: false});
-
-    console.log('propose digest: ', out);
-
-    const result = await account0.execute({
+    let result = await account0.execute({
         contractAddress: ethSigAuthAddress,
         entrypoint: "authenticate_propose",
         calldata: CallData.compile(proposeCalldata as any),
     });
 
     console.log(result);
+
+    // VOTE 
+
+    const voteMsg: Vote = {
+        authenticator: ethSigAuthAddress,
+        space: "0x0000000000000000000000000000000000001234",
+        voter: signer.address,
+        proposalId: "0x1",
+        choice: "0x1",
+        userVotingStrategies: [{ index: '0x0', params: ['0x1', '0x2', '0x3', '0x4'] }]
+    }
+
+    sig = await signer.signTypedData(domain, voteTypes, voteMsg);
+    splitSig = getRSVFromSig(sig);
+
+    const voteCalldata = {
+        r: cairo.uint256(splitSig.r),
+        s: cairo.uint256(splitSig.s),
+        v: splitSig.v,
+        space: voteMsg.space,
+        voter: voteMsg.voter,
+        proposalId: cairo.uint256(voteMsg.proposalId),
+        choice: voteMsg.choice,
+        userVotingStrategies: voteMsg.userVotingStrategies
+    }
+
+    result = await account0.execute({
+        contractAddress: ethSigAuthAddress,
+        entrypoint: "authenticate_vote",
+        calldata: CallData.compile(voteCalldata as any),
+    });
+
+    console.log(result);
+
+    const updateProposalMsg: UpdateProposal = {
+        authenticator: ethSigAuthAddress,
+        space: "0x0000000000000000000000000000000000001234",
+        author: signer.address,
+        proposalId: "0x1",
+        executionStrategy: {
+            address: "0x0000000000000000000000000000000000005678",
+            params: ["0x0"]
+        },
+        salt: "0x7"
+    }
+
+    sig = await signer.signTypedData(domain, updateProposalTypes, updateProposalMsg);
+    splitSig = getRSVFromSig(sig);
+
+    const updateProposalCalldata = {
+        r: cairo.uint256(splitSig.r),
+        s: cairo.uint256(splitSig.s),
+        v: splitSig.v,
+        space: updateProposalMsg.space,
+        author: updateProposalMsg.author,
+        proposalId: cairo.uint256(updateProposalMsg.proposalId),
+        executionStrategy: updateProposalMsg.executionStrategy,
+        salt: cairo.uint256(updateProposalMsg.salt)
+    }
+
+    result = await account0.execute({
+        contractAddress: ethSigAuthAddress,
+        entrypoint: "authenticate_update_proposal",
+        calldata: CallData.compile(updateProposalCalldata as any),
+    });
+
+    console.log(result);
+
 
   }, 1000000);
 });
