@@ -8,6 +8,8 @@ mod MerkleWhitelistVotingStrategy {
     use sx::utils::merkle::{assert_valid_proof, Leaf};
     use debug::PrintTrait;
 
+    const LEAF_SIZE: usize = 4; // Serde::<Leaf>::serialize().len()
+
     #[storage]
     struct Storage {}
 
@@ -20,7 +22,6 @@ mod MerkleWhitelistVotingStrategy {
             params: Array<felt252>, // [root]
             user_params: Array<felt252>, // [Serde(leaf), Serde(proofs)]
         ) -> u256 {
-            let LEAF_SIZE = 4; // Serde::<Leaf>::serialize().len()
             let cache = user_params.span(); // cache
 
             let mut leaf_raw = cache.slice(0, LEAF_SIZE);
