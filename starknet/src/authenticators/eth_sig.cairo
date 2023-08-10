@@ -47,7 +47,7 @@ mod EthSigAuthenticator {
     use clone::Clone;
     use sx::space::space::{ISpaceDispatcher, ISpaceDispatcherTrait};
     use sx::types::{Strategy, IndexedStrategy, Choice, UserAddress};
-    use sx::utils::{signatures, LegacyHashEthAddress};
+    use sx::utils::{signatures, legacy_hash::LegacyHashEthAddress};
 
     #[storage]
     struct Storage {

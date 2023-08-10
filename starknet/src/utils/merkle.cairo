@@ -6,6 +6,7 @@ use sx::types::UserAddress;
 use clone::Clone;
 use hash::{LegacyHash};
 use debug::PrintTrait;
+use sx::utils::legacy_hash::LegacyHashSpan;
 
 /// Leaf struct for the merkle tree
 #[derive(Copy, Clone, Drop, Serde)]
@@ -16,25 +17,6 @@ struct Leaf {
 
 trait Hash<T> {
     fn hash(self: @T) -> felt252;
-}
-
-impl LegacyHashSpan of LegacyHash<Span<felt252>> {
-    fn hash(mut state: felt252, mut value: Span<felt252>) -> felt252 {
-        let len = value.len();
-        loop {
-            match value.pop_front() {
-                Option::Some(current) => {
-                    state = LegacyHash::hash(state, *current);
-                },
-                Option::None => {
-                    break;
-                },
-            };
-        };
-        LegacyHash::hash(
-            state, len
-        ) // append the length to conform to computeHashOnElements in starknet.js
-    }
 }
 
 impl HashSerde<T, impl TSerde: Serde<T>> of Hash<T> {
