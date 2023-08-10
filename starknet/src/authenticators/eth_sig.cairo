@@ -4,17 +4,6 @@ use sx::types::{Strategy, IndexedStrategy, Choice};
 
 #[starknet::interface]
 trait IEthSigAuthenticator<TContractState> {
-    fn get_hash(
-        ref self: TContractState,
-        r: u256,
-        s: u256,
-        v: u32,
-        space: ContractAddress,
-        author: EthAddress,
-        execution_strategy: Strategy,
-        user_proposal_validation_params: Array<felt252>,
-        salt: u256
-    ) -> u256;
     fn authenticate_propose(
         ref self: TContractState,
         r: u256,
@@ -30,7 +19,7 @@ trait IEthSigAuthenticator<TContractState> {
         ref self: TContractState,
         r: u256,
         s: u256,
-        v: u256,
+        v: u32,
         space: ContractAddress,
         voter: EthAddress,
         proposal_id: u256,
@@ -41,7 +30,7 @@ trait IEthSigAuthenticator<TContractState> {
         ref self: TContractState,
         r: u256,
         s: u256,
-        v: u256,
+        v: u32,
         space: ContractAddress,
         author: EthAddress,
         proposal_id: u256,
@@ -76,26 +65,6 @@ mod EthSigAuthenticator {
 
     #[external(v0)]
     impl EthSigAuthenticator of IEthSigAuthenticator<ContractState> {
-        fn get_hash(
-            ref self: ContractState,
-            r: u256,
-            s: u256,
-            v: u32,
-            space: ContractAddress,
-            author: EthAddress,
-            execution_strategy: Strategy,
-            user_proposal_validation_params: Array<felt252>,
-            salt: u256
-        ) -> u256 {
-            signatures::get_propose_digest(
-                self._domain_hash.read(),
-                space,
-                author,
-                @execution_strategy,
-                user_proposal_validation_params.span(),
-                salt
-            )
-        }
         fn authenticate_propose(
             ref self: ContractState,
             r: u256,
@@ -133,7 +102,7 @@ mod EthSigAuthenticator {
             ref self: ContractState,
             r: u256,
             s: u256,
-            v: u256,
+            v: u32,
             space: ContractAddress,
             voter: EthAddress,
             proposal_id: u256,
@@ -162,7 +131,7 @@ mod EthSigAuthenticator {
             ref self: ContractState,
             r: u256,
             s: u256,
-            v: u256,
+            v: u32,
             space: ContractAddress,
             author: EthAddress,
             proposal_id: u256,
@@ -189,7 +158,6 @@ mod EthSigAuthenticator {
 
     #[constructor]
     fn constructor(ref self: ContractState) {
-        // TODO: domain hash is immutable so could be placed in the contract code instead of storage to save on reads.
         self._domain_hash.write(signatures::get_domain_hash());
     }
 }

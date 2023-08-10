@@ -5,12 +5,10 @@ const UPDATE_PROPOSAL_SELECTOR: felt252 =
 
 const ETHEREUM_PREFIX: u128 = 0x1901;
 
-// TODO: Decide on contents of Domain
-// Name, Version, Chain ID, Verifying Contract
+// keccak256("EIP712Domain(uint256 chainId)")
 const DOMAIN_TYPEHASH_HIGH: u128 = 0xc49a8e302e3e5d6753b2bb3dbc3c28de;
 const DOMAIN_TYPEHASH_LOW: u128 = 0xba5e16e2572a92aef568063c963e3465;
 
-// Not sure exactly how to define the typehashes. Should we use use Solidity types or Cairo ones? 
 // keccak256(
 //    "Propose(uint256 authenticator,uint256 space,address author,Strategy executionStrategy,uint256[] userProposalValidationParams,uint256 salt)Strategy(uint256 address,uint256[] params)"
 //         )
@@ -18,25 +16,21 @@ const PROPOSE_TYPEHASH_HIGH: u128 = 0x1011cba89700b1acfdd40a56dbfd2960;
 const PROPOSE_TYPEHASH_LOW: u128 = 0xe4866ef5e07732f3e3560c820e90fe2f;
 
 // keccak256(
-//             "Vote(ContractAddress space,ContractAddress voter,Choice choice,"
-//             "IndexedStrategy[] user_voting_strategies)"
-//             "IndexedStrategy(uint256 index,uint8[] params)"
+//    "Vote(uint256 authenticator,uint256 space,address voter,uint256 proposalId,uint256 choice,IndexedStrategy[] userVotingStrategies)IndexedStrategy(uint256 index,uint256[] params)"
 //         )
-const VOTE_TYPEHASH_HIGH: u128 = 0x96d1d90c026a09b7b038acf99c5e292a;
-const VOTE_TYPEHASH_LOW: u128 = 0x7b8d480ba77d954029dd696edd6333cc;
+const VOTE_TYPEHASH_HIGH: u128 = 0x8c7b06f800b2d19203061aaf87d18422;
+const VOTE_TYPEHASH_LOW: u128 = 0x3adaedc5d7d0019ca84c2985f87a37bc;
 
 // keccak256(
-//             "UpdateProposal(ContractAddress space,ContractAddress author,uint256 proposal_id,"
-//             "Strategy execution_strategy)"
-//             "Strategy(ContractAddress address,uint8[] params)"
+//    "UpdateProposal(uint256 authenticator,uint256 space,address author,uint256 proposalId,Strategy executionStrategy,uint256 salt)Strategy(uint256 address,uint256[] params)"
 //         )
-const UPDATE_PROPOSAL_TYPEHASH_HIGH: u128 = 0xe696044e69e092275313905ca33fa3d0;
-const UPDATE_PROPOSAL_TYPEHASH_LOW: u128 = 0x2580ebe8785ab31624d10836156f45b3;
+const UPDATE_PROPOSAL_TYPEHASH_HIGH: u128 = 0x40d2edfc30a6c2f3db15e88660bc1a92;
+const UPDATE_PROPOSAL_TYPEHASH_LOW: u128 = 0x72b77b619e97d1b0120af84bb49b15a2;
 
 // keccak256("Strategy(uint256 address,uint256[] params)")
 const STRATEGY_TYPEHASH_HIGH: u128 = 0xa6cb034787a88e7219605b9db792cb9a;
 const STRATEGY_TYPEHASH_LOW: u128 = 0x312314462975078b4bdad10feee486d9;
 
-// keccak256("IndexedStrategy(uint256 index,uint8[] params)")
-const INDEXED_STRATEGY_TYPEHASH_HIGH: u128 = 0x894665428ec742c74109dc21d320d1ab;
-const INDEXED_STRATEGY_TYPEHASH_LOW: u128 = 0x8b36195eec0090e913c01e7534729c74;
+// keccak256("IndexedStrategy(uint256 index,uint256[] params)")
+const INDEXED_STRATEGY_TYPEHASH_HIGH: u128 = 0xf4acb5967e70f3ad896d52230fe743c9;
+const INDEXED_STRATEGY_TYPEHASH_LOW: u128 = 0x1d011b57ff63174d8f2b064ab6ce9cc6;

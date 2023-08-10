@@ -55,7 +55,7 @@ impl KeccakStructHashIndexedStrategyArray of KeccakStructHash<Span<IndexedStrate
                 Option::Some(item) => {
                     encoded_data.append(item.keccak_struct_hash());
                 },
-                Option::None => {
+                Option::None(_) => {
                     break keccak::keccak_u256s_be_inputs(encoded_data.span()).byte_reverse();
                 }
             };
