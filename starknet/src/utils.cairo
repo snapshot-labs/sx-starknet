@@ -5,10 +5,10 @@ mod constants;
 mod felt_arr_to_uint_arr;
 use felt_arr_to_uint_arr::Felt252ArrayIntoU256Array;
 
-mod legacy_hash_eth_address;
-use legacy_hash_eth_address::LegacyHashEthAddress;
+mod legacy_hash;
 
 mod math;
+mod merkle;
 
 mod single_slot_proof;
 

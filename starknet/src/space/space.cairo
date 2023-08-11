@@ -75,6 +75,7 @@ mod Space {
         NoUpdateStrategy, NoUpdateArray
     };
     use sx::utils::bits::BitSetter;
+    use sx::utils::legacy_hash::LegacyHashChoice;
     use sx::external::ownable::Ownable;
 
     #[storage]
