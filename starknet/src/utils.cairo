@@ -7,13 +7,13 @@ mod into;
 mod legacy_hash;
 
 mod math;
+
 mod merkle;
 
 mod single_slot_proof;
 
-mod signatures;
+mod eip712;
 
 mod endian;
 
 mod keccak;
-

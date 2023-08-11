@@ -1,5 +1,4 @@
 use starknet::{ContractAddress, EthAddress};
-use starknet::SyscallResult;
 use sx::types::{Strategy, IndexedStrategy, Choice};
 
 #[starknet::interface]
@@ -52,13 +51,8 @@ mod EthSigAuthenticator {
     use integer::u128_byte_reverse;
     use sx::space::space::{ISpaceDispatcher, ISpaceDispatcherTrait};
     use sx::types::{Strategy, IndexedStrategy, Choice, UserAddress};
-    use sx::utils::{signatures, legacy_hash::LegacyHashEthAddress};
-
-    use core::keccak;
-    use core::integer;
-
+    use sx::utils::{eip712, legacy_hash::LegacyHashEthAddress};
     use sx::utils::endian::{into_le_u64_array, ByteReverse};
-
 
     #[storage]
     struct Storage {
@@ -80,7 +74,7 @@ mod EthSigAuthenticator {
             metadata_URI: Array<felt252>,
             salt: u256,
         ) {
-            signatures::verify_propose_sig(
+            eip712::verify_propose_sig(
                 r,
                 s,
                 v,
@@ -116,7 +110,7 @@ mod EthSigAuthenticator {
             user_voting_strategies: Array<IndexedStrategy>,
             metadata_URI: Array<felt252>,
         ) {
-            signatures::verify_vote_sig(
+            eip712::verify_vote_sig(
                 r,
                 s,
                 v,
@@ -154,7 +148,7 @@ mod EthSigAuthenticator {
             metadata_URI: Array<felt252>,
             salt: u256
         ) {
-            signatures::verify_update_proposal_sig(
+            eip712::verify_update_proposal_sig(
                 r,
                 s,
                 v,
@@ -178,6 +172,6 @@ mod EthSigAuthenticator {
 
     #[constructor]
     fn constructor(ref self: ContractState) {
-        self._domain_hash.write(signatures::get_domain_hash());
+        self._domain_hash.write(eip712::get_domain_hash());
     }
 }

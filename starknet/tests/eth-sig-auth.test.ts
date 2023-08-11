@@ -246,6 +246,7 @@ describe('Starknet Signature Authenticator', () => {
   }, 1000000);
 });
 
+// From sx.js
 function getRSVFromSig(sig: string) {
   if (sig.startsWith('0x')) {
     sig = sig.substring(2);

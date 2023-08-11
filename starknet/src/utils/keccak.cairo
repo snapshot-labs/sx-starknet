@@ -1,15 +1,14 @@
 use array::{ArrayTrait, SpanTrait};
 use traits::Into;
 use option::OptionTrait;
-use clone::Clone;
 use core::keccak;
 use sx::types::{Strategy, IndexedStrategy};
 use sx::utils::constants::{
     STRATEGY_TYPEHASH_LOW, STRATEGY_TYPEHASH_HIGH, INDEXED_STRATEGY_TYPEHASH_LOW,
     INDEXED_STRATEGY_TYPEHASH_HIGH,
 };
-use sx::utils::endian::{into_le_u64_array, ByteReverse};
-use sx::utils::into::{ContractAddressIntoU256, EthAddressIntoU256, Felt252ArrayIntoU256Array};
+use sx::utils::endian::ByteReverse;
+use sx::utils::into::{ContractAddressIntoU256, EthAddressIntoU256, Felt252SpanIntoU256Array};
 
 trait KeccakStructHash<T> {
     fn keccak_struct_hash(self: @T) -> u256;
