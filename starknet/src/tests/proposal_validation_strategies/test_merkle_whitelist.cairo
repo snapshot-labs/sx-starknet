@@ -53,7 +53,7 @@ mod merkle_whitelist_proposal_strategy {
 
     #[test]
     #[available_gas(1000000000)]
-    fn one_hundred_members() {
+    fn just_enough_vp() {
         let members = generate_n_members(20);
         let threshold = 3_u256; // Voting power required to submit a proposal
 
@@ -69,17 +69,52 @@ mod merkle_whitelist_proposal_strategy {
         };
 
         check_index(
-            0, members.span(), threshold, proposal_validation_strategy
-        ); // Index 0 has voting power 1
+            2, members.span(), threshold, proposal_validation_strategy
+        ); // Index 2 has voting power 3
+    }
+
+    #[test]
+    #[available_gas(1000000000)]
+    fn more_than_enough_vp() {
+        let members = generate_n_members(20);
+        let threshold = 3_u256; // Voting power required to submit a proposal
+
+        let (contract, _) = deploy_syscall(
+            MerkleWhitelistProposalValidationStrategy::TEST_CLASS_HASH.try_into().unwrap(),
+            0,
+            array::ArrayTrait::<felt252>::new().span(),
+            false,
+        )
+            .unwrap();
+        let proposal_validation_strategy = IProposalValidationStrategyDispatcher {
+            contract_address: contract
+        };
+
+        check_index(
+            3, members.span(), threshold, proposal_validation_strategy
+        ); // Index 3 has voting power 4
+    }
+
+    #[test]
+    #[available_gas(1000000000)]
+    fn not_enough_vp() {
+        let members = generate_n_members(20);
+        let threshold = 3_u256; // Voting power required to submit a proposal
+
+        let (contract, _) = deploy_syscall(
+            MerkleWhitelistProposalValidationStrategy::TEST_CLASS_HASH.try_into().unwrap(),
+            0,
+            array::ArrayTrait::<felt252>::new().span(),
+            false,
+        )
+            .unwrap();
+        let proposal_validation_strategy = IProposalValidationStrategyDispatcher {
+            contract_address: contract
+        };
+
         check_index(
             1, members.span(), threshold, proposal_validation_strategy
         ); // Index 1 has voting power 2
-        check_index(
-            2, members.span(), threshold, proposal_validation_strategy
-        ); // Index 2 has voting power 3, should get accepted
-        check_index(
-            3, members.span(), threshold, proposal_validation_strategy
-        ); // Index 3 has voting power 4, should get accepted
     }
 
     #[test]
