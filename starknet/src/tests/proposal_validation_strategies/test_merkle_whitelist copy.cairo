@@ -151,6 +151,7 @@ mod merkle_utils {
         members
     }
 }
+
 #[cfg(test)]
 mod assert_valid_proof {
     use sx::tests::setup::setup::setup::{setup, deploy};
