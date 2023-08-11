@@ -115,14 +115,19 @@ mod setup {
         voting_strategies: @Array<Strategy>,
         authenticators: @Array<ContractAddress>
     ) -> Array<felt252> {
+        // Using empty arrays for all the metadata fields
         let mut constructor_calldata = array::ArrayTrait::<felt252>::new();
         constructor_calldata.append((*owner).into());
         constructor_calldata.append((*max_voting_duration).into());
         constructor_calldata.append((*min_voting_duration).into());
         constructor_calldata.append((*voting_delay).into());
         proposal_validation_strategy.serialize(ref constructor_calldata);
+        ArrayTrait::<felt252>::new().serialize(ref constructor_calldata);
         voting_strategies.serialize(ref constructor_calldata);
+        ArrayTrait::<felt252>::new().serialize(ref constructor_calldata);
         authenticators.serialize(ref constructor_calldata);
+        ArrayTrait::<felt252>::new().serialize(ref constructor_calldata);
+        ArrayTrait::<felt252>::new().serialize(ref constructor_calldata);
 
         constructor_calldata
     }
