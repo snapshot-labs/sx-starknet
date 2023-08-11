@@ -74,6 +74,8 @@ mod EthSigAuthenticator {
             metadata_URI: Array<felt252>,
             salt: u256,
         ) {
+            assert(!self._used_salts.read((author, salt)), 'Salt Already Used');
+
             eip712::verify_propose_sig(
                 r,
                 s,
@@ -110,6 +112,8 @@ mod EthSigAuthenticator {
             user_voting_strategies: Array<IndexedStrategy>,
             metadata_URI: Array<felt252>,
         ) {
+            // No need to check salts here, as double voting is prevented by the space itself.
+
             eip712::verify_vote_sig(
                 r,
                 s,
@@ -122,7 +126,6 @@ mod EthSigAuthenticator {
                 user_voting_strategies.span(),
                 metadata_URI.span(),
             );
-            // No need to check salts here, as double voting is prevented by the space itself.
 
             ISpaceDispatcher {
                 contract_address: space
@@ -148,6 +151,8 @@ mod EthSigAuthenticator {
             metadata_URI: Array<felt252>,
             salt: u256
         ) {
+            assert(!self._used_salts.read((author, salt)), 'Salt Already Used');
+
             eip712::verify_update_proposal_sig(
                 r,
                 s,

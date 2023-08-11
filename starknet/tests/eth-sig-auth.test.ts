@@ -129,7 +129,7 @@ describe('Starknet Signature Authenticator', () => {
         '0x9abc',
       ],
       metadataURI: ['0x1', '0x2', '0x3', '0x4'],
-      salt: '0x7',
+      salt: '0x0',
     };
 
     let sig = await signer.signTypedData(domain, proposeTypes, proposeMsg);
@@ -167,7 +167,7 @@ describe('Starknet Signature Authenticator', () => {
         params: ['0x0'],
       },
       metadataURI: ['0x1', '0x2', '0x3', '0x4'],
-      salt: '0x7',
+      salt: '0x1',
     };
 
     sig = await signer.signTypedData(domain, updateProposalTypes, updateProposalMsg);
