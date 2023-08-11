@@ -33,21 +33,24 @@ trait ISpace<TContractState> {
         ref self: TContractState,
         author: UserAddress,
         execution_strategy: Strategy,
-        user_proposal_validation_params: Array<felt252>
+        user_proposal_validation_params: Array<felt252>,
+        metadata_URI: Array<felt252>,
     );
     fn vote(
         ref self: TContractState,
         voter: UserAddress,
         proposal_id: u256,
         choice: Choice,
-        user_voting_strategies: Array<IndexedStrategy>
+        user_voting_strategies: Array<IndexedStrategy>,
+        metadata_URI: Array<felt252>,
     );
     fn execute(ref self: TContractState, proposal_id: u256, execution_payload: Array<felt252>);
     fn update_proposal(
         ref self: TContractState,
         author: UserAddress,
         proposal_id: u256,
-        execution_strategy: Strategy
+        execution_strategy: Strategy,
+        metadata_URI: Array<felt252>,
     );
     fn cancel_proposal(ref self: TContractState, proposal_id: u256);
     fn upgrade(ref self: TContractState, class_hash: ClassHash);
@@ -102,23 +105,39 @@ mod Space {
         _min_voting_duration: u32,
         _max_voting_duration: u32,
         _proposal_validation_strategy: @Strategy,
+        _proposal_validation_strategy_metadata_URI: @Array<felt252>,
         _voting_strategies: @Array<Strategy>,
-        _authenticators: @Array<ContractAddress>
+        _voting_strategy_metadata_URIs: @Array<Array<felt252>>,
+        _authenticators: @Array<ContractAddress>,
+        _metadata_URI: @Array<felt252>,
+        _dao_URI: @Array<felt252>,
     ) {}
 
     #[event]
     fn ProposalCreated(
-        _proposal_id: u256, _author: UserAddress, _proposal: @Proposal, _payload: @Array<felt252>
+        _proposal_id: u256,
+        _author: UserAddress,
+        _proposal: @Proposal,
+        _payload: @Array<felt252>,
+        _metadata_URI: @Array<felt252>
     ) {}
 
     #[event]
-    fn VoteCast(_proposal_id: u256, _voter: UserAddress, _choice: Choice, _voting_power: u256) {}
+    fn VoteCast(
+        _proposal_id: u256,
+        _voter: UserAddress,
+        _choice: Choice,
+        _voting_power: u256,
+        _metadata_URI: @Array<felt252>
+    ) {}
 
     #[event]
     fn ProposalExecuted(_proposal_id: u256) {}
 
     #[event]
-    fn ProposalUpdated(_proposal_id: u256, _execution_stategy: @Strategy) {}
+    fn ProposalUpdated(
+        _proposal_id: u256, _execution_stategy: @Strategy, _metadata_URI: @Array<felt252>
+    ) {}
 
     #[event]
     fn ProposalCancelled(_proposal_id: u256) {}
@@ -126,7 +145,7 @@ mod Space {
     #[event]
     fn VotingStrategiesAdded(
         _new_voting_strategies: @Array<Strategy>,
-        _new_voting_strategy_metadata_uris: @Array<Array<felt252>>
+        _new_voting_strategy_metadata_URIs: @Array<Array<felt252>>
     ) {}
 
     #[event]
@@ -139,10 +158,10 @@ mod Space {
     fn AuthenticatorsRemoved(_authenticators: @Array<ContractAddress>) {}
 
     #[event]
-    fn MetadataURIUpdated(_new_metadata_uri: @Array<felt252>) {}
+    fn MetadataURIUpdated(_new_metadata_URI: @Array<felt252>) {}
 
     #[event]
-    fn DaoURIUpdated(_new_dao_uri: @Array<felt252>) {}
+    fn DaoURIUpdated(_new_dao_URI: @Array<felt252>) {}
 
     #[event]
     fn MaxVotingDurationUpdated(_new_max_voting_duration: u32) {}
@@ -168,7 +187,8 @@ mod Space {
             ref self: ContractState,
             author: UserAddress,
             execution_strategy: Strategy,
-            user_proposal_validation_params: Array<felt252>
+            user_proposal_validation_params: Array<felt252>,
+            metadata_URI: Array<felt252>,
         ) {
             assert_only_authenticator(@self);
             let proposal_id = self._next_proposal_id.read();
@@ -212,7 +232,9 @@ mod Space {
 
             self._next_proposal_id.write(proposal_id + u256 { low: 1_u128, high: 0_u128 });
 
-            ProposalCreated(proposal_id, author, snap_proposal, @execution_strategy.params);
+            ProposalCreated(
+                proposal_id, author, snap_proposal, @execution_strategy.params, @metadata_URI
+            );
         }
 
         fn vote(
@@ -220,7 +242,8 @@ mod Space {
             voter: UserAddress,
             proposal_id: u256,
             choice: Choice,
-            user_voting_strategies: Array<IndexedStrategy>
+            user_voting_strategies: Array<IndexedStrategy>,
+            metadata_URI: Array<felt252>
         ) {
             assert_only_authenticator(@self);
             let proposal = self._proposals.read(proposal_id);
@@ -255,7 +278,7 @@ mod Space {
                 );
             self._vote_registry.write((proposal_id, voter), true);
 
-            VoteCast(proposal_id, voter, choice, voting_power);
+            VoteCast(proposal_id, voter, choice, voting_power, @metadata_URI);
         }
 
         fn execute(ref self: ContractState, proposal_id: u256, execution_payload: Array<felt252>) {
@@ -284,7 +307,8 @@ mod Space {
             ref self: ContractState,
             author: UserAddress,
             proposal_id: u256,
-            execution_strategy: Strategy
+            execution_strategy: Strategy,
+            metadata_URI: Array<felt252>,
         ) {
             assert_only_authenticator(@self);
             let mut proposal = self._proposals.read(proposal_id);
@@ -303,7 +327,7 @@ mod Space {
 
             self._proposals.write(proposal_id, proposal);
 
-            ProposalUpdated(proposal_id, @execution_strategy);
+            ProposalUpdated(proposal_id, @execution_strategy, @metadata_URI);
         }
 
         fn cancel_proposal(ref self: ContractState, proposal_id: u256) {
@@ -469,8 +493,12 @@ mod Space {
         _min_voting_duration: u32,
         _voting_delay: u32,
         _proposal_validation_strategy: Strategy,
+        _proposal_validation_strategy_metadata_URI: Array<felt252>,
         _voting_strategies: Array<Strategy>,
+        _voting_strategies_metadata_URIs: Array<Array<felt252>>,
         _authenticators: Array<ContractAddress>,
+        _metadata_URI: Array<felt252>,
+        _dao_URI: Array<felt252>
     ) {
         //TODO: temporary component syntax
         let mut state: Ownable::ContractState = Ownable::unsafe_new_contract_state();
@@ -490,8 +518,12 @@ mod Space {
             _min_voting_duration,
             _max_voting_duration,
             @_proposal_validation_strategy,
+            @_proposal_validation_strategy_metadata_URI,
             @_voting_strategies,
-            @_authenticators
+            @_voting_strategies_metadata_URIs,
+            @_authenticators,
+            @_metadata_URI,
+            @_dao_URI
         );
     }
 
