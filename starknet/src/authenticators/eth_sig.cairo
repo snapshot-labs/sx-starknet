@@ -93,15 +93,15 @@ mod EthSigAuthenticator {
                 salt,
             );
             self._used_salts.write((author, salt), true);
-        // ISpaceDispatcher {
-        //     contract_address: space
-        // }
-        //     .propose(
-        //         UserAddress::Ethereum(author),
-        //         execution_strategy,
-        //         user_proposal_validation_params,
-        //         metadata_URI
-        //     );
+            ISpaceDispatcher {
+                contract_address: space
+            }
+                .propose(
+                    UserAddress::Ethereum(author),
+                    execution_strategy,
+                    user_proposal_validation_params,
+                    metadata_URI
+                );
         }
 
         fn authenticate_vote(
@@ -128,20 +128,18 @@ mod EthSigAuthenticator {
                 user_voting_strategies.span(),
                 metadata_URI.span(),
             );
-        // No need to check salts here, as double voting is prevented by the space itself.
+            // No need to check salts here, as double voting is prevented by the space itself.
 
-        // No need to check salts here, as double voting is prevented by the space itself.
-
-        // ISpaceDispatcher {
-        //     contract_address: space
-        // }
-        //     .vote(
-        //         UserAddress::Ethereum(voter),
-        //         proposal_id,
-        //         choice,
-        //         user_voting_strategies,
-        //         metadata_URI
-        //     );
+            ISpaceDispatcher {
+                contract_address: space
+            }
+                .vote(
+                    UserAddress::Ethereum(voter),
+                    proposal_id,
+                    choice,
+                    user_voting_strategies,
+                    metadata_URI
+                );
         }
 
         fn authenticate_update_proposal(
@@ -169,12 +167,12 @@ mod EthSigAuthenticator {
                 salt
             );
             self._used_salts.write((author, salt), true);
-        // ISpaceDispatcher {
-        //     contract_address: space
-        // }
-        //     .update_proposal(
-        //         UserAddress::Ethereum(author), proposal_id, execution_strategy, metadata_URI
-        //     );
+            ISpaceDispatcher {
+                contract_address: space
+            }
+                .update_proposal(
+                    UserAddress::Ethereum(author), proposal_id, execution_strategy, metadata_URI
+                );
         }
     }
 
