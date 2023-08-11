@@ -67,6 +67,8 @@ mod StarkSigAuthenticator {
             salt: felt252,
             account_type: felt252
         ) {
+            assert(!self._used_salts.read((author, salt)), 'Salt Already Used');
+
             stark_eip712::verify_propose_sig(
                 self._domain_hash.read(),
                 signature,
@@ -102,6 +104,8 @@ mod StarkSigAuthenticator {
             metadata_URI: Array<felt252>,
             account_type: felt252
         ) {
+            // No need to check salts here, as double voting is prevented by the space itself.
+
             stark_eip712::verify_vote_sig(
                 self._domain_hash.read(),
                 signature,
@@ -113,7 +117,6 @@ mod StarkSigAuthenticator {
                 metadata_URI.span(),
                 account_type
             );
-            // No need to check salts here, as double voting is prevented by the space itself.
 
             ISpaceDispatcher {
                 contract_address: target
@@ -138,6 +141,8 @@ mod StarkSigAuthenticator {
             salt: felt252,
             account_type: felt252
         ) {
+            assert(!self._used_salts.read((author, salt)), 'Salt Already Used');
+
             stark_eip712::verify_update_proposal_sig(
                 self._domain_hash.read(),
                 signature,
