@@ -45,6 +45,7 @@ describe('Starknet Signature Authenticator', () => {
             params: ["0x0"]
         },
         userProposalValidationParams: ["0xffffffffffffffffffffffffffffffffffffffffff", "0x1234", "0x5678", "0x9abc"],
+        metadataURI: ["0x1", "0x2", "0x3", "0x4"],
         salt: "0x7"
     }
 
@@ -59,6 +60,7 @@ describe('Starknet Signature Authenticator', () => {
         author: proposeMsg.author,
         executionStrategy: proposeMsg.executionStrategy,
         userProposalValidationParams: proposeMsg.userProposalValidationParams,
+        metadataURI: proposeMsg.metadataURI,
         salt: cairo.uint256(proposeMsg.salt)
     }
 
@@ -78,7 +80,8 @@ describe('Starknet Signature Authenticator', () => {
         voter: signer.address,
         proposalId: "0x1",
         choice: "0x1",
-        userVotingStrategies: [{ index: '0x0', params: ['0x1', '0x2', '0x3', '0x4'] }]
+        userVotingStrategies: [{ index: '0x0', params: ['0x1', '0x2', '0x3', '0x4'] }],
+        metadataURI: ["0x1", "0x2", "0x3", "0x4"],
     }
 
     sig = await signer.signTypedData(domain, voteTypes, voteMsg);
@@ -92,7 +95,8 @@ describe('Starknet Signature Authenticator', () => {
         voter: voteMsg.voter,
         proposalId: cairo.uint256(voteMsg.proposalId),
         choice: voteMsg.choice,
-        userVotingStrategies: voteMsg.userVotingStrategies
+        userVotingStrategies: voteMsg.userVotingStrategies,
+        metadataURI: voteMsg.metadataURI
     }
 
     result = await account0.execute({
@@ -112,6 +116,7 @@ describe('Starknet Signature Authenticator', () => {
             address: "0x0000000000000000000000000000000000005678",
             params: ["0x0"]
         },
+        metadataURI: ["0x1", "0x2", "0x3", "0x4"],
         salt: "0x7"
     }
 
@@ -126,6 +131,7 @@ describe('Starknet Signature Authenticator', () => {
         author: updateProposalMsg.author,
         proposalId: cairo.uint256(updateProposalMsg.proposalId),
         executionStrategy: updateProposalMsg.executionStrategy,
+        metadataURI: updateProposalMsg.metadataURI,
         salt: cairo.uint256(updateProposalMsg.salt)
     }
 

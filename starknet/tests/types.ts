@@ -16,6 +16,7 @@ export const proposeTypes = {
       { name: 'author', type: 'address' },
       { name: 'executionStrategy', type: 'Strategy' },
       { name: 'userProposalValidationParams', type: 'uint256[]' },
+      { name: 'metadataURI', type: 'uint256[]'},
       { name: 'salt', type: 'uint256' }
     ],
     Strategy: sharedTypes.Strategy
@@ -29,6 +30,7 @@ export const voteTypes = {
       { name: 'proposalId', type: 'uint256' },
       { name: 'choice', type: 'uint256' },
       { name: 'userVotingStrategies', type: 'IndexedStrategy[]' },
+      { name: 'metadataURI', type: 'uint256[]'},
     ],
     IndexedStrategy: sharedTypes.IndexedStrategy
   };
@@ -40,7 +42,8 @@ export const updateProposalTypes = {
     { name: 'author', type: 'address' },
     { name: 'proposalId', type: 'uint256' },
     { name: 'executionStrategy', type: 'Strategy' },
-    { name: 'salt', type: 'uint256' }
+    { name: 'metadataURI', type: 'uint256[]'},
+    { name: 'salt', type: 'uint256' },
   ],
   Strategy: sharedTypes.Strategy
 };
@@ -52,6 +55,7 @@ export interface Propose {
     author: string;
     executionStrategy: Strategy;
     userProposalValidationParams: string[];
+    metadataURI: string[];
     salt: string;
 }
 
@@ -62,6 +66,7 @@ export interface Vote {
     proposalId: string;
     choice: string;
     userVotingStrategies: IndexedStrategy[];
+    metadataURI: string[];
 }
 
 export interface UpdateProposal {
@@ -70,6 +75,7 @@ export interface UpdateProposal {
   author: string;
   proposalId: string;
   executionStrategy: Strategy;
+  metadataURI: string[];
   salt: string;
 }
 

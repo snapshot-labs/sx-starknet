@@ -4,10 +4,10 @@ mod constants;
 
 mod into;
 
-mod legacy_hash_eth_address;
-use legacy_hash_eth_address::LegacyHashEthAddress;
+mod legacy_hash;
 
 mod math;
+mod merkle;
 
 mod single_slot_proof;
 

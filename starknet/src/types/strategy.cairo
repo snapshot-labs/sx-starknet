@@ -5,7 +5,6 @@ use option::OptionTrait;
 use clone::Clone;
 use result::ResultTrait;
 use traits::TryInto;
-use hash::LegacyHash;
 use starknet::{StorageBaseAddress, Store, SyscallResult};
 
 #[derive(Clone, Drop, Option, Serde, starknet::Store)]

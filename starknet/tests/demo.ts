@@ -18,9 +18,11 @@ async function main() {
 
     // console.log(ethers.solidityPackedKeccak256(["string"], ["EIP712Domain(uint256 chainId,bytes32 salt)"]));
 
-    console.log(ethers.solidityPackedKeccak256(["string"], ["Vote(uint256 authenticator,uint256 space,address voter,uint256 proposalId,uint256 choice,IndexedStrategy[] userVotingStrategies)IndexedStrategy(uint256 index,uint256[] params)"]));
+    console.log(ethers.solidityPackedKeccak256(["string"], ["Propose(uint256 authenticator,uint256 space,address author,Strategy executionStrategy,uint256[] userProposalValidationParams,uint256[] metadataURI,uint256 salt)Strategy(uint256 address,uint256[] params)"]));
 
-    console.log(ethers.solidityPackedKeccak256(["string"], ["UpdateProposal(uint256 authenticator,uint256 space,address author,uint256 proposalId,Strategy executionStrategy,uint256 salt)Strategy(uint256 address,uint256[] params)"]));
+    console.log(ethers.solidityPackedKeccak256(["string"], ["Vote(uint256 authenticator,uint256 space,address voter,uint256 proposalId,uint256 choice,IndexedStrategy[] userVotingStrategies,uint256[] metadataURI)IndexedStrategy(uint256 index,uint256[] params)"]));
+
+    console.log(ethers.solidityPackedKeccak256(["string"], ["UpdateProposal(uint256 authenticator,uint256 space,address author,uint256 proposalId,Strategy executionStrategy,uint256[] metadataURI,uint256 salt)Strategy(uint256 address,uint256[] params)"]));
 
 
     "0x40d2edfc30a6c2f3db15e88660bc1a9272b77b619e97d1b0120af84bb49b15a20214749cacc22fde96d1e23ad383f7c08e54e251544706ae96ad6eec70c310f100000000000000000000000000000000000000000000000000000000000012340000000000000000000000002842c82e20ab600f443646e1bc8550b44a513d820000000000000000000000000000000000000000000000000000000000000001c585e6e9067167fe339d107cf54212a641a517b3f4c9cdec80cf43382365059a0000000000000000000000000000000000000000000000000000000000000007"

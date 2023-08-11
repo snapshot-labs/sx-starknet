@@ -13,6 +13,7 @@ trait IEthSigAuthenticator<TContractState> {
         author: EthAddress,
         execution_strategy: Strategy,
         user_proposal_validation_params: Array<felt252>,
+        metadata_URI: Array<felt252>,
         salt: u256,
     );
     fn authenticate_vote(
@@ -24,7 +25,8 @@ trait IEthSigAuthenticator<TContractState> {
         voter: EthAddress,
         proposal_id: u256,
         choice: Choice,
-        user_voting_strategies: Array<IndexedStrategy>
+        user_voting_strategies: Array<IndexedStrategy>,
+        metadata_URI: Array<felt252>,
     );
     fn authenticate_update_proposal(
         ref self: TContractState,
@@ -35,6 +37,7 @@ trait IEthSigAuthenticator<TContractState> {
         author: EthAddress,
         proposal_id: u256,
         execution_strategy: Strategy,
+        metadata_URI: Array<felt252>,
         salt: u256
     );
 }
@@ -49,7 +52,7 @@ mod EthSigAuthenticator {
     use integer::u128_byte_reverse;
     use sx::space::space::{ISpaceDispatcher, ISpaceDispatcherTrait};
     use sx::types::{Strategy, IndexedStrategy, Choice, UserAddress};
-    use sx::utils::{signatures, LegacyHashEthAddress};
+    use sx::utils::{signatures, legacy_hash::LegacyHashEthAddress};
 
     use core::keccak;
     use core::integer;
@@ -74,6 +77,7 @@ mod EthSigAuthenticator {
             author: EthAddress,
             execution_strategy: Strategy,
             user_proposal_validation_params: Array<felt252>,
+            metadata_URI: Array<felt252>,
             salt: u256,
         ) {
             signatures::verify_propose_sig(
@@ -85,6 +89,7 @@ mod EthSigAuthenticator {
                 author,
                 @execution_strategy,
                 user_proposal_validation_params.span(),
+                metadata_URI.span(),
                 salt,
             );
             self._used_salts.write((author, salt), true);
@@ -94,7 +99,8 @@ mod EthSigAuthenticator {
         //     .propose(
         //         UserAddress::Ethereum(author),
         //         execution_strategy,
-        //         user_proposal_validation_params
+        //         user_proposal_validation_params,
+        //         metadata_URI
         //     );
         }
 
@@ -107,7 +113,8 @@ mod EthSigAuthenticator {
             voter: EthAddress,
             proposal_id: u256,
             choice: Choice,
-            user_voting_strategies: Array<IndexedStrategy>
+            user_voting_strategies: Array<IndexedStrategy>,
+            metadata_URI: Array<felt252>,
         ) {
             signatures::verify_vote_sig(
                 r,
@@ -118,13 +125,23 @@ mod EthSigAuthenticator {
                 voter,
                 proposal_id,
                 choice,
-                user_voting_strategies.span()
+                user_voting_strategies.span(),
+                metadata_URI.span(),
             );
+        // No need to check salts here, as double voting is prevented by the space itself.
+
         // No need to check salts here, as double voting is prevented by the space itself.
 
         // ISpaceDispatcher {
         //     contract_address: space
-        // }.vote(UserAddress::Ethereum(voter), proposal_id, choice, user_voting_strategies);
+        // }
+        //     .vote(
+        //         UserAddress::Ethereum(voter),
+        //         proposal_id,
+        //         choice,
+        //         user_voting_strategies,
+        //         metadata_URI
+        //     );
         }
 
         fn authenticate_update_proposal(
@@ -136,6 +153,7 @@ mod EthSigAuthenticator {
             author: EthAddress,
             proposal_id: u256,
             execution_strategy: Strategy,
+            metadata_URI: Array<felt252>,
             salt: u256
         ) {
             signatures::verify_update_proposal_sig(
@@ -147,12 +165,16 @@ mod EthSigAuthenticator {
                 author,
                 proposal_id,
                 @execution_strategy,
+                metadata_URI.span(),
                 salt
             );
             self._used_salts.write((author, salt), true);
         // ISpaceDispatcher {
         //     contract_address: space
-        // }.update_proposal(UserAddress::Ethereum(author), proposal_id, execution_strategy);
+        // }
+        //     .update_proposal(
+        //         UserAddress::Ethereum(author), proposal_id, execution_strategy, metadata_URI
+        //     );
         }
     }
 
