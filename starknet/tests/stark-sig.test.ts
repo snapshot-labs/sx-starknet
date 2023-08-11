@@ -96,10 +96,14 @@ describe('Starknet Signature Authenticator', () => {
         _voting_delay: 1,
         _proposal_validation_strategy: {
           address: vanillaProposalValidationStrategyAddress,
-          params: [],
+          params: [[]],
         },
+        _proposal_validation_strategy_metadata_URI: [],
         _voting_strategies: [{ address: vanillaVotingStrategyAddress, params: [] }],
+        _voting_strategies_metadata_URI: [],
         _authenticators: [starkSigAuthAddress],
+        _metadata_URI: [],
+        _dao_URI: [],
       }),
     });
     spaceAddress = deployResponse.deploy.contract_address;
@@ -121,6 +125,7 @@ describe('Starknet Signature Authenticator', () => {
         params: ['0x5', '0x6', '0x7', '0x8'],
       },
       userProposalValidationParams: ['0x1', '0x2', '0x3', '0x4'],
+      metadataURI: ['0x1', '0x2', '0x3', '0x4'],
       salt: '0x0',
     };
 
@@ -155,6 +160,7 @@ describe('Starknet Signature Authenticator', () => {
         address: '0x0000000000000000000000000000000000005678',
         params: ['0x5', '0x6', '0x7', '0x8'],
       },
+      metadataURI: ['0x1', '0x2', '0x3', '0x4'],
       salt: '0x0',
     };
     const updateProposalData: typedData.TypedData = {
@@ -204,6 +210,7 @@ describe('Starknet Signature Authenticator', () => {
       proposalId: { low: '0x1', high: '0x0' },
       choice: '0x1',
       userVotingStrategies: [{ index: '0x0', params: ['0x1', '0x2', '0x3', '0x4'] }],
+      metadataURI: ['0x1', '0x2', '0x3', '0x4'],
     };
 
     const voteData: typedData.TypedData = {

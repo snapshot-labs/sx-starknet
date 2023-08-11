@@ -6,9 +6,9 @@ mod felt_arr_to_uint_arr;
 use felt_arr_to_uint_arr::Felt252ArrayIntoU256Array;
 
 mod legacy_hash;
-use legacy_hash::{LegacyHashEthAddress, LegacyHashSpanFelt252};
 
 mod math;
+mod merkle;
 
 mod struct_hash;
 

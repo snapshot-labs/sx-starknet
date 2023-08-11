@@ -24,11 +24,18 @@ fn verify_propose_sig(
     author: ContractAddress,
     execution_strategy: @Strategy,
     user_proposal_validation_params: Span<felt252>,
+    metadata_URI: Span<felt252>,
     salt: felt252,
     account_type: felt252,
 ) {
     let digest: felt252 = get_propose_digest(
-        domain_hash, target, author, execution_strategy, user_proposal_validation_params, salt
+        domain_hash,
+        target,
+        author,
+        execution_strategy,
+        user_proposal_validation_params,
+        metadata_URI,
+        salt
     );
 
     verify_signature(digest, signature, author, account_type);
@@ -42,10 +49,11 @@ fn verify_vote_sig(
     proposal_id: u256,
     choice: Choice,
     user_voting_strategies: Span<IndexedStrategy>,
+    metadata_URI: Span<felt252>,
     account_type: felt252,
 ) {
     let digest: felt252 = get_vote_digest(
-        domain_hash, target, voter, proposal_id, choice, user_voting_strategies
+        domain_hash, target, voter, proposal_id, choice, user_voting_strategies, metadata_URI
     );
     verify_signature(digest, signature, voter, account_type);
 }
@@ -57,11 +65,12 @@ fn verify_update_proposal_sig(
     author: ContractAddress,
     proposal_id: u256,
     execution_strategy: @Strategy,
+    metadata_URI: Span<felt252>,
     salt: felt252,
     account_type: felt252,
 ) {
     let digest: felt252 = get_update_proposal_digest(
-        domain_hash, target, author, proposal_id, execution_strategy, salt
+        domain_hash, target, author, proposal_id, execution_strategy, metadata_URI, salt
     );
     verify_signature(digest, signature, author, account_type);
 }
@@ -72,6 +81,7 @@ fn get_propose_digest(
     author: ContractAddress,
     execution_strategy: @Strategy,
     user_proposal_validation_params: Span<felt252>,
+    metadata_URI: Span<felt252>,
     salt: felt252
 ) -> felt252 {
     let mut encoded_data = ArrayTrait::<felt252>::new();
@@ -80,6 +90,7 @@ fn get_propose_digest(
     author.serialize(ref encoded_data);
     execution_strategy.struct_hash().serialize(ref encoded_data);
     user_proposal_validation_params.struct_hash().serialize(ref encoded_data);
+    metadata_URI.struct_hash().serialize(ref encoded_data);
     salt.serialize(ref encoded_data);
     hash_typed_data(domain_hash, encoded_data.span().struct_hash(), author)
 }
@@ -90,7 +101,8 @@ fn get_vote_digest(
     voter: ContractAddress,
     proposal_id: u256,
     choice: Choice,
-    user_voting_strategies: Span<IndexedStrategy>
+    user_voting_strategies: Span<IndexedStrategy>,
+    metadata_URI: Span<felt252>,
 ) -> felt252 {
     let mut encoded_data = ArrayTrait::<felt252>::new();
     VOTE_TYPEHASH.serialize(ref encoded_data);
@@ -99,6 +111,7 @@ fn get_vote_digest(
     proposal_id.struct_hash().serialize(ref encoded_data);
     choice.serialize(ref encoded_data);
     user_voting_strategies.struct_hash().serialize(ref encoded_data);
+    metadata_URI.struct_hash().serialize(ref encoded_data);
     hash_typed_data(domain_hash, encoded_data.span().struct_hash(), voter)
 }
 
@@ -108,6 +121,7 @@ fn get_update_proposal_digest(
     author: ContractAddress,
     proposal_id: u256,
     execution_strategy: @Strategy,
+    metadata_URI: Span<felt252>,
     salt: felt252
 ) -> felt252 {
     let mut encoded_data = ArrayTrait::<felt252>::new();
@@ -116,6 +130,7 @@ fn get_update_proposal_digest(
     author.serialize(ref encoded_data);
     proposal_id.struct_hash().serialize(ref encoded_data);
     execution_strategy.struct_hash().serialize(ref encoded_data);
+    metadata_URI.struct_hash().serialize(ref encoded_data);
     salt.serialize(ref encoded_data);
     hash_typed_data(domain_hash, encoded_data.span().struct_hash(), author)
 }

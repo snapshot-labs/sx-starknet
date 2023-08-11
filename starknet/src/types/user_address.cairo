@@ -1,8 +1,8 @@
 use starknet::{ContractAddress, EthAddress};
 use traits::{PartialEq, TryInto, Into};
-use hash::LegacyHash;
 use serde::Serde;
 use array::ArrayTrait;
+use sx::utils::legacy_hash::LegacyHashUserAddress;
 
 #[derive(Copy, Drop, Serde, PartialEq, starknet::Store)]
 enum UserAddress {
@@ -12,16 +12,6 @@ enum UserAddress {
     Ethereum: EthAddress,
     // Custom address type to provide compatibility with any address that can be represented as a u256.
     Custom: u256
-}
-
-impl LegacyHashUserAddress of LegacyHash<UserAddress> {
-    fn hash(state: felt252, value: UserAddress) -> felt252 {
-        match value {
-            UserAddress::Starknet(address) => LegacyHash::<felt252>::hash(state, address.into()),
-            UserAddress::Ethereum(address) => LegacyHash::<felt252>::hash(state, address.into()),
-            UserAddress::Custom(address) => LegacyHash::<u256>::hash(state, address),
-        }
-    }
 }
 
 trait UserAddressTrait {
