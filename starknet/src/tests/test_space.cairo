@@ -89,8 +89,12 @@ mod tests {
         constructor_calldata.append(min_voting_duration.into());
         constructor_calldata.append(voting_delay.into());
         vanilla_proposal_validation_strategy.serialize(ref constructor_calldata);
+        ArrayTrait::<felt252>::new().serialize(ref constructor_calldata);
         voting_strategies.serialize(ref constructor_calldata);
+        ArrayTrait::<felt252>::new().serialize(ref constructor_calldata);
         authenticators.serialize(ref constructor_calldata);
+        ArrayTrait::<felt252>::new().serialize(ref constructor_calldata);
+        ArrayTrait::<felt252>::new().serialize(ref constructor_calldata);
 
         let (space_address, _) = deploy_syscall(
             Space::TEST_CLASS_HASH.try_into().unwrap(), 0, constructor_calldata.span(), false
@@ -138,6 +142,7 @@ mod tests {
         author.serialize(ref propose_calldata);
         vanilla_execution_strategy.serialize(ref propose_calldata);
         ArrayTrait::<felt252>::new().serialize(ref propose_calldata);
+        ArrayTrait::<felt252>::new().serialize(ref propose_calldata);
 
         // Create Proposal
         authenticator.authenticate(space.contract_address, PROPOSE_SELECTOR, propose_calldata);
@@ -175,6 +180,7 @@ mod tests {
             address: vanilla_execution_strategy.address, params: new_payload
         };
         execution_strategy.serialize(ref update_calldata);
+        ArrayTrait::<felt252>::new().serialize(ref update_calldata);
 
         authenticator
             .authenticate(space.contract_address, UPDATE_PROPOSAL_SELECTOR, update_calldata);
@@ -193,6 +199,7 @@ mod tests {
         user_voting_strategies
             .append(IndexedStrategy { index: 0_u8, params: ArrayTrait::<felt252>::new() });
         user_voting_strategies.serialize(ref vote_calldata);
+        ArrayTrait::<felt252>::new().serialize(ref vote_calldata);
 
         // Vote on Proposal
         authenticator.authenticate(space.contract_address, VOTE_SELECTOR, vote_calldata);
@@ -254,6 +261,7 @@ mod tests {
         author.serialize(ref propose_calldata);
         vanilla_execution_strategy.serialize(ref propose_calldata);
         ArrayTrait::<felt252>::new().serialize(ref propose_calldata);
+        ArrayTrait::<felt252>::new().serialize(ref propose_calldata);
 
         // Try to create Proposal
         authenticator.authenticate(space.contract_address, PROPOSE_SELECTOR, propose_calldata);
@@ -292,6 +300,7 @@ mod tests {
         author.serialize(ref propose_calldata);
         vanilla_execution_strategy.serialize(ref propose_calldata);
         ArrayTrait::<felt252>::new().serialize(ref propose_calldata);
+        ArrayTrait::<felt252>::new().serialize(ref propose_calldata);
 
         // Create Proposal
         authenticator.authenticate(space.contract_address, PROPOSE_SELECTOR, propose_calldata);
@@ -321,6 +330,7 @@ mod tests {
         user_voting_strategies
             .append(IndexedStrategy { index: 0_u8, params: ArrayTrait::<felt252>::new() });
         user_voting_strategies.serialize(ref vote_calldata);
+        ArrayTrait::<felt252>::new().serialize(ref vote_calldata);
         authenticator.authenticate(space.contract_address, VOTE_SELECTOR, vote_calldata);
     }
 }
