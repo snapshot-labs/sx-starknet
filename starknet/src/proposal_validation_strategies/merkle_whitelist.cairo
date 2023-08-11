@@ -6,12 +6,17 @@ mod MerkleWhitelistProposalValidationStrategy {
     use array::{ArrayTrait, Span, SpanTrait};
     use option::OptionTrait;
     use sx::utils::merkle::{assert_valid_proof, Leaf};
-    use debug::PrintTrait;
 
     const LEAF_SIZE: usize = 4; // Serde::<Leaf>::serialize().len()
 
     #[storage]
     struct Storage {}
+
+    #[derive(Drop, Serde)]
+    struct Input {
+        root: felt252,
+        threshold: u256,
+    }
 
     #[external(v0)]
     impl MerkleWhitelistImpl of IProposalValidationStrategy<ContractState> {
@@ -30,10 +35,10 @@ mod MerkleWhitelistProposalValidationStrategy {
             let proofs = Serde::<Array<felt252>>::deserialize(ref proofs_raw).unwrap();
 
             let mut sp4n = params.span();
-            let (root, threshold) = Serde::<(felt252, u256)>::deserialize(ref sp4n).unwrap();
+            let input = Serde::<Input>::deserialize(ref sp4n).unwrap();
 
-            assert_valid_proof(root, leaf, proofs.span());
-            leaf.voting_power >= threshold
+            assert_valid_proof(input.root, leaf, proofs.span());
+            leaf.voting_power >= input.threshold
         }
     }
 }

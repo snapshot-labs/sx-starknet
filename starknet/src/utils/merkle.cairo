@@ -5,7 +5,6 @@ use serde::Serde;
 use sx::types::UserAddress;
 use clone::Clone;
 use hash::{LegacyHash};
-use debug::PrintTrait;
 use sx::utils::legacy_hash::LegacyHashSpan;
 
 /// Leaf struct for the merkle tree

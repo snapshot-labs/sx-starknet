@@ -11,7 +11,6 @@ mod tests {
     use option::OptionTrait;
     use integer::u256_from_felt252;
     use clone::Clone;
-    use debug::PrintTrait;
     use serde::{Serde};
 
     use sx::space::space::{Space, ISpaceDispatcher, ISpaceDispatcherTrait};

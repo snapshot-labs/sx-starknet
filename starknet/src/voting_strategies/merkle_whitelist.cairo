@@ -6,7 +6,6 @@ mod MerkleWhitelistVotingStrategy {
     use array::{ArrayTrait, Span, SpanTrait};
     use option::OptionTrait;
     use sx::utils::merkle::{assert_valid_proof, Leaf};
-    use debug::PrintTrait;
 
     const LEAF_SIZE: usize = 4; // Serde::<Leaf>::serialize().len()
 
