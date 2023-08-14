@@ -4,6 +4,7 @@ use array::{ArrayTrait};
 use traits::Into;
 use option::OptionTrait;
 use core::keccak;
+use core::integer::Felt252IntoU256;
 use box::BoxTrait;
 use starknet::secp256_trait::{signature_from_vrs, verify_eth_signature, Signature};
 use starknet::secp256k1::{Secp256k1Point, Secp256k1PointImpl};
@@ -16,7 +17,7 @@ use sx::utils::constants::{
 use sx::utils::math::{pow, pow_u128};
 use sx::utils::endian::{into_le_u64_array, ByteReverse};
 use sx::utils::keccak::KeccakStructHash;
-use sx::utils::into::{ContractAddressIntoU256, EthAddressIntoU256};
+use sx::utils::into::TIntoU256;
 
 fn verify_propose_sig(
     r: u256,
@@ -151,7 +152,7 @@ fn get_update_proposal_digest(
 fn get_domain_hash() -> u256 {
     let mut encoded_data = ArrayTrait::<u256>::new();
     encoded_data.append(u256 { low: DOMAIN_TYPEHASH_LOW, high: DOMAIN_TYPEHASH_HIGH });
-    encoded_data.append(get_tx_info().unbox().chain_id.into());
+    encoded_data.append(Felt252IntoU256::into(get_tx_info().unbox().chain_id));
     keccak::keccak_u256s_be_inputs(encoded_data.span()).byte_reverse()
 }
 

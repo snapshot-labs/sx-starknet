@@ -2,13 +2,14 @@ use array::{ArrayTrait, SpanTrait};
 use traits::Into;
 use option::OptionTrait;
 use core::keccak;
+use core::integer::U8IntoU256;
 use sx::types::{Strategy, IndexedStrategy};
 use sx::utils::constants::{
     STRATEGY_TYPEHASH_LOW, STRATEGY_TYPEHASH_HIGH, INDEXED_STRATEGY_TYPEHASH_LOW,
     INDEXED_STRATEGY_TYPEHASH_HIGH,
 };
 use sx::utils::endian::ByteReverse;
-use sx::utils::into::{ContractAddressIntoU256, EthAddressIntoU256, Felt252SpanIntoU256Array};
+use sx::utils::into::{TIntoU256, Felt252SpanIntoU256Array};
 
 trait KeccakStructHash<T> {
     fn keccak_struct_hash(self: @T) -> u256;
@@ -38,8 +39,9 @@ impl KeccakStructHashIndexedStrategy of KeccakStructHash<IndexedStrategy> {
             .append(
                 u256 { low: INDEXED_STRATEGY_TYPEHASH_LOW, high: INDEXED_STRATEGY_TYPEHASH_HIGH }
             );
-        let index_felt: felt252 = (*self.index).into();
-        encoded_data.append(index_felt.into());
+        // let index_felt: felt252 = (*self.index).into();
+        encoded_data.append(U8IntoU256::into(*self.index));
+
         encoded_data.append(self.params.span().keccak_struct_hash());
         keccak::keccak_u256s_be_inputs(encoded_data.span()).byte_reverse()
     }

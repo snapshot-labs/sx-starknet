@@ -11,7 +11,7 @@ impl Felt252SpanIntoU256Array of Into<Span<felt252>, Array<u256>> {
         loop {
             match self.pop_front() {
                 Option::Some(num) => {
-                    arr.append((*num).into());
+                    arr.append(u256_from_felt252(*num));
                 },
                 Option::None(_) => {
                     break ();
@@ -22,14 +22,9 @@ impl Felt252SpanIntoU256Array of Into<Span<felt252>, Array<u256>> {
     }
 }
 
-impl ContractAddressIntoU256 of Into<ContractAddress, u256> {
-    fn into(self: ContractAddress) -> u256 {
+impl TIntoU256<T, impl TIntoFelt252: Into<T, felt252>> of Into<T, u256> {
+    fn into(self: T) -> u256 {
         u256_from_felt252(self.into())
     }
 }
 
-impl EthAddressIntoU256 of Into<EthAddress, u256> {
-    fn into(self: EthAddress) -> u256 {
-        u256_from_felt252(self.into())
-    }
-}
