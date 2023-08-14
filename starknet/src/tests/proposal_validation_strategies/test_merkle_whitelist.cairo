@@ -160,7 +160,7 @@ mod merkle_whitelist_proposal_strategy {
     #[test]
     #[available_gas(1000000000)]
     #[should_panic(expected: ('Merkle: Invalid proof', 'ENTRYPOINT_FAILED'))]
-    fn lying_address_power() {
+    fn lying_address() {
         let members = generate_n_members(20);
         let threshold = 0_u256;
 

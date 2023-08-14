@@ -93,7 +93,7 @@ mod merkle_whitelist_voting_power {
     #[test]
     #[available_gas(1000000000)]
     #[should_panic(expected: ('Merkle: Invalid proof', 'ENTRYPOINT_FAILED'))]
-    fn lying_address_power() {
+    fn lying_address() {
         let members = generate_n_members(20);
 
         let (contract, _) = deploy_syscall(
