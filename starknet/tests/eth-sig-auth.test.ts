@@ -1,5 +1,6 @@
 import fs from 'fs';
 import { ethers } from 'ethers';
+import dotenv from 'dotenv';
 import { Provider, Account, CallData, cairo, json } from 'starknet';
 import {
   Propose,
@@ -10,16 +11,18 @@ import {
   UpdateProposal,
 } from './types';
 
-const pk = process.env.PRIVATE_KEY || '';
+dotenv.config();
 
-describe('Starknet Signature Authenticator', () => {
-  const signer = new ethers.Wallet(pk);
-  const provider = new Provider({ sequencer: { baseUrl: 'http://127.0.0.1:5050' } });
-  // devnet predeployed account
+const network = process.env.NETWORK_URL || '';
+
+describe('Ethereum Signature Authenticator', () => {
+  const provider = new Provider({ sequencer: { baseUrl: network } });
+  // starknet devnet predeployed account 0 with seed 0
   const privateKey0 = '0xe3e70682c2094cac629f6fbed82c07cd';
   const address0 = '0x7e00d496e324876bbc8531f2d9a82bf154d1a04a50218ee74cdd372f75a551a';
   const account0 = new Account(provider, address0, privateKey0);
 
+  let signer: ethers.HDNodeWallet;
   let spaceAddress: string;
   let vanillaVotingStrategyAddress: string;
   let vanillaProposalValidationStrategyAddress: string;
@@ -27,6 +30,7 @@ describe('Starknet Signature Authenticator', () => {
   let domain: any;
 
   beforeAll(async () => {
+    signer = ethers.Wallet.createRandom();
     // Deploy Ethereum Signature Authenticator
     const ethSigAuthSierra = json.parse(
       fs.readFileSync('starknet/target/dev/sx_EthSigAuthenticator.sierra.json').toString('ascii'),
@@ -110,7 +114,7 @@ describe('Starknet Signature Authenticator', () => {
     domain = {
       chainId: '0x534e5f474f45524c49', // devnet id
     };
-  }, 100000);
+  }, 1000000);
   test('can authenticate a proposal, a vote, and a proposal update', async () => {
     // PROPOSE
 
