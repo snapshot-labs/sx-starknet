@@ -167,37 +167,34 @@ fn hash_typed_data(domain_hash: u256, message_hash: u256) -> u256 {
 // Prefixes a 16 bit prefix to an array of 256 bit values.
 fn _add_prefix_array(input: Array<u256>, mut prefix: u128) -> Array<u256> {
     let mut out = ArrayTrait::<u256>::new();
-    let mut i = 0_usize;
+    let mut input = input;
     loop {
-        if i >= input.len() {
-            // left shift so that the prefix is in the high bits
-            // let prefix_u256 = u256 { low: 0_128, high: prefix };
-            // let shifted_prefix = prefix_u256 * pow(u256 { low: 2_u128, high: 0_u128 }, 112_u8);
-            let shifted_prefix = prefix * pow_u128(2_u128, 112_u8);
-            out.append(u256 { high: shifted_prefix, low: 0_u128 });
-            break ();
-        }
-        let num = *input.at(i);
-        let (w1, high_carry) = _add_prefix_u128(num.high, prefix);
-        let (w0, low_carry) = _add_prefix_u128(num.low, high_carry);
-
-        out.append(u256 { low: w0, high: w1 });
-        prefix = low_carry;
-        i += 1;
+        match input.pop_front() {
+            Option::Some(num) => {
+                let (w1, high_carry) = _add_prefix_u128(num.high, prefix);
+                let (w0, low_carry) = _add_prefix_u128(num.low, high_carry);
+                out.append(u256 { low: w0, high: w1 });
+                prefix = low_carry;
+            },
+            Option::None(_) => {
+                // left shift so that the prefix is in the high bits
+                out
+                    .append(
+                        u256 { high: prefix * 0x10000000000000000000000000000_u128, low: 0_u128 }
+                    );
+                break ();
+            }
+        };
     };
     out
 }
 
-// prefixes a 16 bit prefix to a 128 bit input, returning the result and a carry if it overflows 128 bits
+
+// Adds a 16 bit prefix to a 128 bit input, returning the result and a carry.
 fn _add_prefix_u128(input: u128, prefix: u128) -> (u128, u128) {
-    let prefix_u256 = u256 { low: prefix, high: 0_u128 };
-    let shifted_prefix = prefix_u256 * pow(u256 { low: 2_u128, high: 0_u128 }, 128_u8);
-    let with_prefix = u256 { low: input, high: 0_u128 } + shifted_prefix;
-    let overflow_mask = pow(u256 { low: 2_u128, high: 0_u128 }, 16_u8) - u256 {
-        low: 1_u128, high: 0_u128
-    };
-    let carry = with_prefix & overflow_mask;
-    // Removing the carry and shifting back. The result fits in 128 bits.
-    let out = ((with_prefix - carry) / pow(u256 { low: 2_u128, high: 0_u128 }, 16_u8));
+    let with_prefix = u256 { low: input, high: 0_u128 } + u256 { low: 0_u128, high: prefix };
+    let carry = with_prefix & 0xffff;
+    // Removing the carry and shifting back.
+    let out = (with_prefix - carry) / 0x10000;
     (out.low, carry.low)
 }
