@@ -91,15 +91,18 @@ fn get_propose_digest(
     metadata_URI: Span<felt252>,
     salt: u256
 ) -> u256 {
-    let mut encoded_data = ArrayTrait::<u256>::new();
-    encoded_data.append(u256 { low: PROPOSE_TYPEHASH_LOW, high: PROPOSE_TYPEHASH_HIGH });
-    encoded_data.append(get_contract_address().into());
-    encoded_data.append(space.into());
-    encoded_data.append(author.into());
-    encoded_data.append(execution_strategy.keccak_struct_hash());
-    encoded_data.append(user_proposal_validation_params.keccak_struct_hash());
-    encoded_data.append(metadata_URI.keccak_struct_hash());
-    encoded_data.append(salt);
+    let encoded_data = array![
+        u256 {
+            low: PROPOSE_TYPEHASH_LOW, high: PROPOSE_TYPEHASH_HIGH
+        },
+        get_contract_address().into(),
+        space.into(),
+        author.into(),
+        execution_strategy.keccak_struct_hash(),
+        user_proposal_validation_params.keccak_struct_hash(),
+        metadata_URI.keccak_struct_hash(),
+        salt
+    ];
     let message_hash = keccak::keccak_u256s_be_inputs(encoded_data.span()).byte_reverse();
     hash_typed_data(domain_hash, message_hash)
 }
@@ -113,15 +116,18 @@ fn get_vote_digest(
     user_voting_strategies: Span<IndexedStrategy>,
     metadata_URI: Span<felt252>,
 ) -> u256 {
-    let mut encoded_data = ArrayTrait::<u256>::new();
-    encoded_data.append(u256 { low: VOTE_TYPEHASH_LOW, high: VOTE_TYPEHASH_HIGH });
-    encoded_data.append(get_contract_address().into());
-    encoded_data.append(space.into());
-    encoded_data.append(voter.into());
-    encoded_data.append(proposal_id);
-    encoded_data.append(choice.into());
-    encoded_data.append(user_voting_strategies.keccak_struct_hash());
-    encoded_data.append(metadata_URI.keccak_struct_hash());
+    let encoded_data = array![
+        u256 {
+            low: VOTE_TYPEHASH_LOW, high: VOTE_TYPEHASH_HIGH
+        },
+        get_contract_address().into(),
+        space.into(),
+        voter.into(),
+        proposal_id,
+        choice.into(),
+        user_voting_strategies.keccak_struct_hash(),
+        metadata_URI.keccak_struct_hash()
+    ];
     let message_hash = keccak::keccak_u256s_be_inputs(encoded_data.span()).byte_reverse();
     hash_typed_data(domain_hash, message_hash)
 }
@@ -135,16 +141,18 @@ fn get_update_proposal_digest(
     metadata_URI: Span<felt252>,
     salt: u256
 ) -> u256 {
-    let mut encoded_data = ArrayTrait::<u256>::new();
-    encoded_data
-        .append(u256 { low: UPDATE_PROPOSAL_TYPEHASH_LOW, high: UPDATE_PROPOSAL_TYPEHASH_HIGH });
-    encoded_data.append(get_contract_address().into());
-    encoded_data.append(space.into());
-    encoded_data.append(author.into());
-    encoded_data.append(proposal_id);
-    encoded_data.append(execution_strategy.keccak_struct_hash());
-    encoded_data.append(metadata_URI.keccak_struct_hash());
-    encoded_data.append(salt);
+    let encoded_data = array![
+        u256 {
+            low: UPDATE_PROPOSAL_TYPEHASH_LOW, high: UPDATE_PROPOSAL_TYPEHASH_HIGH
+        },
+        get_contract_address().into(),
+        space.into(),
+        author.into(),
+        proposal_id,
+        execution_strategy.keccak_struct_hash(),
+        metadata_URI.keccak_struct_hash(),
+        salt
+    ];
     let message_hash = keccak::keccak_u256s_be_inputs(encoded_data.span()).byte_reverse();
     hash_typed_data(domain_hash, message_hash)
 }
@@ -153,17 +161,16 @@ fn get_domain_hash() -> u256 {
     // The ethers typed data encoder is not compatible with a Starknet address as the `verifyingContract`
     // therefore we cannot use the `verifyingContract` field in the domain separator, instead we add the 
     //  verifying contract address to the message itself.
-    let mut encoded_data = ArrayTrait::<u256>::new();
-    encoded_data.append(u256 { low: DOMAIN_TYPEHASH_LOW, high: DOMAIN_TYPEHASH_HIGH });
-    encoded_data.append(Felt252IntoU256::into(get_tx_info().unbox().chain_id));
+    let encoded_data = array![
+        u256 {
+            low: DOMAIN_TYPEHASH_LOW, high: DOMAIN_TYPEHASH_HIGH
+        }, Felt252IntoU256::into(get_tx_info().unbox().chain_id)
+    ];
     keccak::keccak_u256s_be_inputs(encoded_data.span()).byte_reverse()
 }
 
 fn hash_typed_data(domain_hash: u256, message_hash: u256) -> u256 {
-    let mut encoded_data = ArrayTrait::<u256>::new();
-    encoded_data.append(domain_hash);
-    encoded_data.append(message_hash);
-    let encoded_data = _add_prefix_array(encoded_data, ETHEREUM_PREFIX);
+    let encoded_data = _add_prefix_array(array![domain_hash, message_hash], ETHEREUM_PREFIX);
     let (mut u64_arr, overflow) = into_le_u64_array(encoded_data);
     keccak::cairo_keccak(ref u64_arr, overflow, 2).byte_reverse()
 }
