@@ -150,6 +150,9 @@ fn get_update_proposal_digest(
 }
 
 fn get_domain_hash() -> u256 {
+    // The ethers typed data encoder is not compatible with a Starknet address as the `verifyingContract`
+    // therefore we cannot use the `verifyingContract` field in the domain separator, instead we add the 
+    //  verifying contract address to the message itself.
     let mut encoded_data = ArrayTrait::<u256>::new();
     encoded_data.append(u256 { low: DOMAIN_TYPEHASH_LOW, high: DOMAIN_TYPEHASH_HIGH });
     encoded_data.append(Felt252IntoU256::into(get_tx_info().unbox().chain_id));
