@@ -6,12 +6,13 @@ use array::ArrayTrait;
 
 const MASK_LOW: u128 = 0xffffffffffffffff; // 2^64 - 1
 const MASK_HIGH: u128 = 0xffffffffffffffff0000000000000000; // 2^128 - 2^64
+const SHIFT_64: u128 = 0x10000000000000000;
 
 // Converts a u256 into a tuple of 4 u64s in little endian order
 fn uint256_into_le_u64s(self: u256) -> (u64, u64, u64, u64) {
-    let low_low = u128_byte_reverse(self.low & MASK_LOW) / pow_u128(2_u128, 64_u8);
+    let low_low = u128_byte_reverse(self.low & MASK_LOW) / SHIFT_64;
     let low_high = u128_byte_reverse(self.low & MASK_HIGH);
-    let high_low = u128_byte_reverse(self.high & MASK_LOW) / pow_u128(2_u128, 64_u8);
+    let high_low = u128_byte_reverse(self.high & MASK_LOW) / SHIFT_64;
     let high_high = u128_byte_reverse(self.high & MASK_HIGH);
     (
         low_high.try_into().unwrap(),
@@ -22,7 +23,7 @@ fn uint256_into_le_u64s(self: u256) -> (u64, u64, u64, u64) {
 }
 
 // Converts an array of u256s into an array of u64s in little endian order 
-// NOT FOR GENERAL USE. Assumes the final u256 fits into a single u64.
+// NOT FOR GENERAL USE. Reverts if the final u256 fits does not fit into a single u64.
 fn into_le_u64_array(self: Array<u256>) -> (Array<u64>, u64) {
     let mut self = self;
     let mut out = ArrayTrait::<u64>::new();
@@ -32,6 +33,9 @@ fn into_le_u64_array(self: Array<u256>) -> (Array<u64>, u64) {
             Option::Some(num) => {
                 let (low_high, low_low, high_high, high_low) = uint256_into_le_u64s(num);
                 if self.len() == 0 {
+                    assert(low_high == 0, 'Final u256 overflows u64');
+                    assert(low_low == 0, 'Final u256 overflows u64');
+                    assert(high_low == 0, 'Final u256 overflows u64');
                     break (high_high);
                 }
                 out.append(high_high);
