@@ -6,7 +6,8 @@
   "author": "Snapshot Labs",
   "license": "MIT",
   "scripts": {
-    "format": "eslint . --ext .ts --fix"
+    "format:ts": "eslint . --ext .ts --fix",
+    "test:stark-sig-auth": "jest -c jest.config.ts"
   },
   "devDependencies": {
     "@types/jest": "^29.5.3",
