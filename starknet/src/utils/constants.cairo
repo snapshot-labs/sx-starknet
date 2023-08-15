@@ -45,6 +45,7 @@ const INDEXED_STRATEGY_TYPEHASH_LOW: u128 = 0x8b36195eec0090e913c01e7534729c74;
 
 
 // ------ Stark Signature Constants ------
+// H refers to the Starknet Keccak hash function
 
 const STARKNET_MESSAGE: felt252 = 'StarkNet Message';
 
@@ -77,5 +78,6 @@ const INDEXED_STRATEGY_TYPEHASH: felt252 =
 const U256_TYPEHASH: felt252 = 0x1094260a770342332e6a73e9256b901d484a438925316205b4b6ff25df4a97a;
 
 // ------ ERC165 Interface Ids ------
+// For more information, refer to: https://github.com/starknet-io/SNIPs/blob/main/SNIPS/snip-5.md
 const ERC165_ACCOUNT_INTERFACE_ID: felt252 = 0xa66bd575; // snake 
 const ERC165_OLD_ACCOUNT_INTERFACE_ID: felt252 = 0x3943f10f; // camel 

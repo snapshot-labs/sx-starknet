@@ -3,6 +3,7 @@ use array::SpanTrait;
 use starknet::account::Call;
 use starknet::ContractAddress;
 
+// Interfaces from OZ: https://github.com/OpenZeppelin/cairo-contracts/blob/cairo-2/src/account/interface.cairo
 #[starknet::interface]
 trait AccountABI<TState> {
     fn __execute__(self: @TState, calls: Array<Call>) -> Array<Span<felt252>>;
