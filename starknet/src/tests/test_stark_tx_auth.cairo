@@ -47,7 +47,7 @@ mod tests {
 
     #[test]
     #[available_gas(10000000000)]
-    fn test__propose_update_vote() {
+    fn test_propose_update_vote() {
         let config = setup();
         let (factory, space) = deploy(@config);
         let authenticator = setup_stark_tx_auth(space, config.owner);
@@ -134,7 +134,7 @@ mod tests {
     #[test]
     #[available_gas(10000000000)]
     #[should_panic(expected: ('Invalid Caller', 'ENTRYPOINT_FAILED'))]
-    fn test__propose_invalid_caller() {
+    fn test_propose_invalid_caller() {
         let config = setup();
         let (factory, space) = deploy(@config);
         let authenticator = setup_stark_tx_auth(space, config.owner);
@@ -170,7 +170,7 @@ mod tests {
     #[test]
     #[available_gas(10000000000)]
     #[should_panic(expected: ('Invalid Caller', 'ENTRYPOINT_FAILED'))]
-    fn test__update_proposal_invalid_caller() {
+    fn test_update_proposal_invalid_caller() {
         let config = setup();
         let (factory, space) = deploy(@config);
         let authenticator = setup_stark_tx_auth(space, config.owner);
@@ -232,7 +232,7 @@ mod tests {
     #[test]
     #[available_gas(10000000000)]
     #[should_panic(expected: ('Invalid Caller', 'ENTRYPOINT_FAILED'))]
-    fn test__vote_invalid_caller() {
+    fn test_vote_invalid_caller() {
         let config = setup();
         let (factory, space) = deploy(@config);
         let authenticator = setup_stark_tx_auth(space, config.owner);
