@@ -65,7 +65,7 @@ mod SingleSlotProof {
     #[internal]
     fn get_storage_slot(
         self: @ContractState,
-        block_number: u32,
+        timestamp: u32,
         contract_address: felt252,
         slot_index: u256,
         mapping_key: u256,
@@ -90,7 +90,7 @@ mod SingleSlotProof {
             contract_address: self._facts_registry.read()
         }
             .get_storage_uint(
-                block_number.into(),
+                timestamp.into(),
                 contract_address,
                 proofs.slot,
                 proofs.proof_size_bytes,
