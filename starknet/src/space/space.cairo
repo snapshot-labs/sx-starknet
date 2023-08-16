@@ -191,6 +191,7 @@ mod Space {
             metadata_URI: Array<felt252>,
         ) {
             assert_only_authenticator(@self);
+            assert(author.is_non_zero(), 'Zero Address');
             let proposal_id = self._next_proposal_id.read();
 
             // Proposal Validation
@@ -246,6 +247,7 @@ mod Space {
             metadata_URI: Array<felt252>
         ) {
             assert_only_authenticator(@self);
+            assert(voter.is_non_zero(), 'Zero Address');
             let proposal = self._proposals.read(proposal_id);
             assert_proposal_exists(@proposal);
 
@@ -311,6 +313,7 @@ mod Space {
             metadata_URI: Array<felt252>,
         ) {
             assert_only_authenticator(@self);
+            assert(author.is_non_zero(), 'Zero Address');
             let mut proposal = self._proposals.read(proposal_id);
             assert_proposal_exists(@proposal);
             assert(proposal.author == author, 'Only Author');
