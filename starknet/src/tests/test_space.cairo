@@ -32,15 +32,15 @@ mod tests {
 
     #[test]
     #[available_gas(100000000)]
-    fn test_constructor() {
+    fn test_initialize() {
         let deployer = contract_address_const::<0xdead>();
 
         testing::set_caller_address(deployer);
         testing::set_contract_address(deployer);
         // Space Settings
         let owner = contract_address_const::<0x123456789>();
-        let max_voting_duration = 2_u32;
         let min_voting_duration = 1_u32;
+        let max_voting_duration = 2_u32;
         let voting_delay = 1_u32;
 
         // Deploy Vanilla Authenticator 
@@ -83,29 +83,31 @@ mod tests {
             );
 
         // Deploy Space 
-        let mut constructor_calldata = array::ArrayTrait::<felt252>::new();
-        constructor_calldata.append(owner.into());
-        constructor_calldata.append(max_voting_duration.into());
-        constructor_calldata.append(min_voting_duration.into());
-        constructor_calldata.append(voting_delay.into());
-        vanilla_proposal_validation_strategy.serialize(ref constructor_calldata);
-        ArrayTrait::<felt252>::new().serialize(ref constructor_calldata);
-        voting_strategies.serialize(ref constructor_calldata);
-        ArrayTrait::<felt252>::new().serialize(ref constructor_calldata);
-        authenticators.serialize(ref constructor_calldata);
-        ArrayTrait::<felt252>::new().serialize(ref constructor_calldata);
-        ArrayTrait::<felt252>::new().serialize(ref constructor_calldata);
-
         let (space_address, _) = deploy_syscall(
-            Space::TEST_CLASS_HASH.try_into().unwrap(), 0, constructor_calldata.span(), false
+            Space::TEST_CLASS_HASH.try_into().unwrap(), 0, array![].span(), false
         )
             .unwrap();
 
         let space = ISpaceDispatcher { contract_address: space_address };
 
+        space
+            .initialize(
+                owner,
+                min_voting_duration,
+                max_voting_duration,
+                voting_delay,
+                vanilla_proposal_validation_strategy.clone(),
+                array![],
+                voting_strategies,
+                array![],
+                authenticators,
+                array![],
+                array![]
+            );
+
         assert(space.owner() == owner, 'owner incorrect');
-        assert(space.max_voting_duration() == max_voting_duration, 'max incorrect');
         assert(space.min_voting_duration() == min_voting_duration, 'min incorrect');
+        assert(space.max_voting_duration() == max_voting_duration, 'max incorrect');
         assert(space.voting_delay() == voting_delay, 'voting delay incorrect');
         assert(
             space.proposal_validation_strategy() == vanilla_proposal_validation_strategy,
@@ -146,7 +148,6 @@ mod tests {
 
         // Create Proposal
         authenticator.authenticate(space.contract_address, PROPOSE_SELECTOR, propose_calldata);
-
         assert(
             space.next_proposal_id() == u256 { low: 2_u128, high: 0_u128 },
             'next_proposal_id should be 2'
