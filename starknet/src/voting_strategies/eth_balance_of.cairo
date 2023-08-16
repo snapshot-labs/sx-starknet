@@ -13,7 +13,7 @@ mod EthBalanceOfVotingStrategy {
     impl EthBalanceOfVotingStrategy of IVotingStrategy<ContractState> {
         fn get_voting_power(
             self: @ContractState,
-            block_number: u32,
+            timestamp: u32,
             voter: UserAddress,
             params: Array<felt252>,
             user_params: Array<felt252>,
@@ -30,9 +30,9 @@ mod EthBalanceOfVotingStrategy {
             let state: SingleSlotProof::ContractState =
                 SingleSlotProof::unsafe_new_contract_state();
 
-            // Get the balance of the voter at the given block number
+            // Get the balance of the voter at the given block timestamp
             let balance = SingleSlotProof::get_storage_slot(
-                @state, block_number, voter.into(), contract_address, slot_index, user_params
+                @state, timestamp, voter.into(), contract_address, slot_index, user_params
             );
             balance
         }

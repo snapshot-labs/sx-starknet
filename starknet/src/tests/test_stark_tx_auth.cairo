@@ -104,8 +104,8 @@ mod tests {
                 ArrayTrait::<felt252>::new()
             );
 
-        // Increasing block block_number by 1 to pass voting delay
-        testing::set_block_number(1_u64);
+        // Increasing block timestamp by 1 to pass voting delay
+        testing::set_block_timestamp(1_u64);
 
         let voter = contract_address_const::<0x8765>();
         let choice = Choice::For(());
@@ -125,7 +125,7 @@ mod tests {
                 ArrayTrait::<felt252>::new()
             );
 
-        testing::set_block_number(2_u64);
+        testing::set_block_timestamp(2_u64);
 
         // Execute Proposal
         space.execute(u256_from_felt252(1), new_payload);
@@ -289,8 +289,8 @@ mod tests {
                 ArrayTrait::<felt252>::new()
             );
 
-        // Increasing block block_number by 1 to pass voting delay
-        testing::set_block_number(1_u64);
+        // Increasing block timestamp by 1 to pass voting delay
+        testing::set_block_timestamp(1_u64);
 
         let voter = contract_address_const::<0x8765>();
         let choice = Choice::For(());

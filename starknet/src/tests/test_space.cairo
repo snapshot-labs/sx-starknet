@@ -153,11 +153,11 @@ mod tests {
         );
 
         let proposal = space.proposals(u256_from_felt252(1));
-        let block_number = info::get_block_number().try_into().unwrap();
+        let timestamp = info::get_block_timestamp().try_into().unwrap();
         let expected_proposal = Proposal {
-            start_block_number: block_number + 1_u32,
-            min_end_block_number: block_number + 2_u32,
-            max_end_block_number: block_number + 3_u32,
+            start_timestamp: timestamp + 1_u32,
+            min_end_timestamp: timestamp + 2_u32,
+            max_end_timestamp: timestamp + 3_u32,
             execution_payload_hash: poseidon::poseidon_hash_span(
                 vanilla_execution_strategy.clone().params.span()
             ),
@@ -185,8 +185,8 @@ mod tests {
         authenticator
             .authenticate(space.contract_address, UPDATE_PROPOSAL_SELECTOR, update_calldata);
 
-        // Increasing block block_number by 1 to pass voting delay
-        testing::set_block_number(1_u64);
+        // Increasing block timestamp by 1 to pass voting delay
+        testing::set_block_timestamp(1_u64);
 
         let mut vote_calldata = array::ArrayTrait::<felt252>::new();
         let voter = UserAddress::Starknet(contract_address_const::<0x8765>());
@@ -204,7 +204,7 @@ mod tests {
         // Vote on Proposal
         authenticator.authenticate(space.contract_address, VOTE_SELECTOR, vote_calldata);
 
-        testing::set_block_number(2_u64);
+        testing::set_block_timestamp(2_u64);
 
         // Execute Proposal
         space.execute(u256_from_felt252(1), vanilla_execution_strategy.params);
@@ -306,8 +306,8 @@ mod tests {
         authenticator.authenticate(space.contract_address, PROPOSE_SELECTOR, propose_calldata);
         let proposal_id = u256_from_felt252(1);
 
-        // Increasing block block_number by 1 to pass voting delay
-        testing::set_block_number(1_u64);
+        // Increasing block timestamp by 1 to pass voting delay
+        testing::set_block_timestamp(1_u64);
         let proposal = space.proposals(proposal_id);
         assert(proposal.finalization_status == FinalizationStatus::Pending(()), 'pending');
 

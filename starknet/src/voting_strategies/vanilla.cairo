@@ -11,7 +11,7 @@ mod VanillaVotingStrategy {
     impl VanillaVotingStrategy of IVotingStrategy<ContractState> {
         fn get_voting_power(
             self: @ContractState,
-            block_number: u32,
+            timestamp: u32,
             voter: UserAddress,
             params: Array<felt252>,
             user_params: Array<felt252>,
