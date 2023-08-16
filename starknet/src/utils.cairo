@@ -10,7 +10,10 @@ mod legacy_hash;
 mod math;
 mod merkle;
 
+mod struct_hash;
+
 mod single_slot_proof;
 
 mod signatures;
 
+mod stark_eip712;

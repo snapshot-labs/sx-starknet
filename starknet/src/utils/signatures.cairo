@@ -72,6 +72,7 @@ impl KeccakTypeHashIndexedStrategyArray of KeccakTypeHash<Array<IndexedStrategy>
                 break ();
             }
             encoded_data.append(self.at(i).clone().hash());
+            i += 1;
         };
         keccak::keccak_u256s_le_inputs(encoded_data.span())
     }
