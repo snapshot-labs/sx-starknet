@@ -2,7 +2,7 @@
 mod tests {
     use array::ArrayTrait;
     use starknet::{
-        ContractAddress, syscalls::deploy_syscall, testing, contract_address_const, info
+        ContractAddress, EthAddress, syscalls::deploy_syscall, testing, contract_address_const, info
     };
     use traits::{Into, TryInto};
     use result::ResultTrait;
@@ -332,5 +332,79 @@ mod tests {
         user_voting_strategies.serialize(ref vote_calldata);
         ArrayTrait::<felt252>::new().serialize(ref vote_calldata);
         authenticator.authenticate(space.contract_address, VOTE_SELECTOR, vote_calldata);
+    }
+
+    #[test]
+    #[available_gas(10000000000)]
+    #[should_panic(expected: ('Zero Address', 'ENTRYPOINT_FAILED', 'ENTRYPOINT_FAILED'))]
+    fn test_propose_from_zero_starknet_address() {
+        let config = setup();
+        let (factory, space) = deploy(@config);
+
+        let authenticator = IVanillaAuthenticatorDispatcher {
+            contract_address: *config.authenticators.at(0), 
+        };
+
+        let quorum = u256_from_felt252(1);
+        let mut constructor_calldata = ArrayTrait::<felt252>::new();
+        quorum.serialize(ref constructor_calldata);
+
+        let (vanilla_execution_strategy_address, _) = deploy_syscall(
+            VanillaExecutionStrategy::TEST_CLASS_HASH.try_into().unwrap(),
+            0,
+            constructor_calldata.span(),
+            false
+        )
+            .unwrap();
+        let vanilla_execution_strategy = StrategyImpl::from_address(
+            vanilla_execution_strategy_address
+        );
+        // author is the zero address
+        let author = UserAddress::Starknet(contract_address_const::<0x0>());
+        let mut propose_calldata = array::ArrayTrait::<felt252>::new();
+        author.serialize(ref propose_calldata);
+        vanilla_execution_strategy.serialize(ref propose_calldata);
+        ArrayTrait::<felt252>::new().serialize(ref propose_calldata);
+        ArrayTrait::<felt252>::new().serialize(ref propose_calldata);
+
+        // Create Proposal
+        authenticator.authenticate(space.contract_address, PROPOSE_SELECTOR, propose_calldata);
+    }
+
+    #[test]
+    #[available_gas(10000000000)]
+    #[should_panic(expected: ('Zero Address', 'ENTRYPOINT_FAILED', 'ENTRYPOINT_FAILED'))]
+    fn test_propose_from_zero_eth_address() {
+        let config = setup();
+        let (factory, space) = deploy(@config);
+
+        let authenticator = IVanillaAuthenticatorDispatcher {
+            contract_address: *config.authenticators.at(0), 
+        };
+
+        let quorum = u256_from_felt252(1);
+        let mut constructor_calldata = ArrayTrait::<felt252>::new();
+        quorum.serialize(ref constructor_calldata);
+
+        let (vanilla_execution_strategy_address, _) = deploy_syscall(
+            VanillaExecutionStrategy::TEST_CLASS_HASH.try_into().unwrap(),
+            0,
+            constructor_calldata.span(),
+            false
+        )
+            .unwrap();
+        let vanilla_execution_strategy = StrategyImpl::from_address(
+            vanilla_execution_strategy_address
+        );
+        // author is the zero address
+        let author = UserAddress::Ethereum(EthAddress { address: 0 });
+        let mut propose_calldata = array::ArrayTrait::<felt252>::new();
+        author.serialize(ref propose_calldata);
+        vanilla_execution_strategy.serialize(ref propose_calldata);
+        ArrayTrait::<felt252>::new().serialize(ref propose_calldata);
+        ArrayTrait::<felt252>::new().serialize(ref propose_calldata);
+
+        // Create Proposal
+        authenticator.authenticate(space.contract_address, PROPOSE_SELECTOR, propose_calldata);
     }
 }
