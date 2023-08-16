@@ -20,7 +20,6 @@ const network = process.env.NETWORK_URL || '';
 describe('Starknet Signature Authenticator', () => {
   const provider = new Provider({ sequencer: { baseUrl: network } });
   // starknet devnet predeployed account 0 with seed 0
-
   const privateKey_0 = '0xe3e70682c2094cac629f6fbed82c07cd';
   const address0 = '0x7e00d496e324876bbc8531f2d9a82bf154d1a04a50218ee74cdd372f75a551a';
   const account0 = new Account(provider, address0, privateKey_0);
@@ -99,7 +98,7 @@ describe('Starknet Signature Authenticator', () => {
         _owner: 1,
         _max_voting_duration: 100,
         _min_voting_duration: 100,
-        _voting_delay: 1,
+        _voting_delay: 10,
         _proposal_validation_strategy: {
           address: vanillaProposalValidationStrategyAddress,
           params: [[]],
@@ -189,24 +188,6 @@ describe('Starknet Signature Authenticator', () => {
       entrypoint: 'authenticate_update_proposal',
       calldata: CallData.compile(updateProposalCalldata as any),
     });
-
-    {
-      // Random Tx just to advance the block number on the devnet so the voting period begins.
-
-      await account0.declareAndDeploy({
-        contract: json.parse(
-          fs
-            .readFileSync('starknet/target/dev/sx_StarkSigAuthenticator.sierra.json')
-            .toString('ascii'),
-        ),
-        casm: json.parse(
-          fs
-            .readFileSync('starknet/target/dev/sx_StarkSigAuthenticator.casm.json')
-            .toString('ascii'),
-        ),
-        constructorCalldata: CallData.compile({ name: 'sx-sn', version: '0.1.0' }),
-      });
-    }
 
     // VOTE
 
