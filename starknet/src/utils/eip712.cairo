@@ -40,8 +40,7 @@ fn verify_propose_sig(
         metadata_URI,
         salt
     );
-    // TODO: temp flipping y parity bit as I think its wrong
-    verify_eth_signature::<Secp256k1Point>(digest, signature_from_vrs(v + 1, r, s), author);
+    verify_eth_signature::<Secp256k1Point>(digest, signature_from_vrs(v, r, s), author);
 }
 
 fn verify_vote_sig(
@@ -59,8 +58,7 @@ fn verify_vote_sig(
     let digest: u256 = get_vote_digest(
         domain_hash, target, voter, proposal_id, choice, user_voting_strategies, metadata_URI
     );
-    // TODO: temp flipping y parity bit as I think its wrong
-    verify_eth_signature::<Secp256k1Point>(digest, signature_from_vrs(v + 1, r, s), voter);
+    verify_eth_signature::<Secp256k1Point>(digest, signature_from_vrs(v, r, s), voter);
 }
 
 fn verify_update_proposal_sig(
@@ -78,8 +76,7 @@ fn verify_update_proposal_sig(
     let digest: u256 = get_update_proposal_digest(
         domain_hash, target, author, proposal_id, execution_strategy, metadata_URI, salt
     );
-    // TODO: temp flipping y parity bit as I think its wrong
-    verify_eth_signature::<Secp256k1Point>(digest, signature_from_vrs(v + 1, r, s), author);
+    verify_eth_signature::<Secp256k1Point>(digest, signature_from_vrs(v, r, s), author);
 }
 
 fn get_propose_digest(
