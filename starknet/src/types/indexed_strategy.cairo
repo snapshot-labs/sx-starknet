@@ -29,7 +29,7 @@ impl IndexedStrategyImpl of IndexedStrategyTrait {
             // Check that bit at index `strats[i].index` is not set.
             let s = math::pow(u256 { low: 2_u128, high: 0_u128 }, *self.at(i).index);
 
-            assert((bit_map & s) == u256 { low: 1_u128, high: 0_u128 }, 'Duplicate Found');
+            assert((bit_map & s) != u256 { low: 1_u128, high: 0_u128 }, 'Duplicate Found');
             // Update aforementioned bit.
             bit_map = bit_map | s;
             i += 1;
