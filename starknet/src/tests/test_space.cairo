@@ -147,10 +147,7 @@ mod tests {
         // Create Proposal
         authenticator.authenticate(space.contract_address, PROPOSE_SELECTOR, propose_calldata);
 
-        assert(
-            space.next_proposal_id() == u256 { low: 2_u128, high: 0_u128 },
-            'next_proposal_id should be 2'
-        );
+        assert(space.next_proposal_id() == 2_u256, 'next_proposal_id should be 2');
 
         let proposal = space.proposals(u256_from_felt252(1));
         let timestamp = info::get_block_timestamp().try_into().unwrap();
@@ -235,10 +232,7 @@ mod tests {
             vanilla_execution_strategy_address
         );
 
-        assert(
-            space.next_proposal_id() == u256 { low: 1_u128, high: 0_u128 },
-            'next_proposal_id should be 1'
-        );
+        assert(space.next_proposal_id() == 1_u256, 'next_proposal_id should be 1');
 
         // Replace proposal validation strategy with one that always fails
         let (strategy_address, _) = deploy_syscall(
