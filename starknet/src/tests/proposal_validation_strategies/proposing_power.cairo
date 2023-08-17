@@ -46,7 +46,7 @@ mod tests {
 
         let allowed_strategies = array![vanilla_strategy.clone()];
         let proposal_threshold = 1_u256;
-        let mut params: Array<felt252> = array![];
+        let mut params = array![];
         proposal_threshold.serialize(ref params);
         allowed_strategies.serialize(ref params);
 
@@ -68,7 +68,7 @@ mod tests {
 
         // Now increase threshold
         let proposal_threshold = 2_u256;
-        let mut params: Array<felt252> = array![];
+        let mut params = array![];
         proposal_threshold.serialize(ref params);
         allowed_strategies.serialize(ref params);
 
@@ -81,7 +81,7 @@ mod tests {
             vanilla_strategy.clone(), vanilla_strategy.clone()
         ]; // Add it twice
         let proposal_threshold = 2_u256; // Threshold is still 2
-        let mut params: Array<felt252> = array![];
+        let mut params = array![];
         proposal_threshold.serialize(ref params);
         allowed_strategies.serialize(ref params);
 
@@ -148,7 +148,7 @@ mod tests {
         let proposal_threshold =
             2_u256; // voter1 should not hit threshold but voter2 and voter3 should
 
-        let mut params: Array<felt252> = array![];
+        let mut params = array![];
         proposal_threshold.serialize(ref params);
         allowed_strategies.serialize(ref params);
 
@@ -205,7 +205,7 @@ mod tests {
             merkle_whitelist_strategy.clone(), vanilla_strategy.clone()
         ]; // update allowed strategies
         let proposal_threshold = proposal_threshold; // threshold is left unchanged
-        let mut params: Array<felt252> = array![]; // update params
+        let mut params = array![]; // update params
         proposal_threshold.serialize(ref params);
         allowed_strategies.serialize(ref params);
 
