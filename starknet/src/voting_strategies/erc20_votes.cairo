@@ -30,9 +30,8 @@ mod ERC20VotesVotingStrategy {
             let voter = voter.to_starknet_address();
 
             // Get the ERC20 contract address from the params array
-            let mut params_span = params.span();
-            let erc20_contract_address = Serde::<ContractAddress>::deserialize(ref params_span)
-                .unwrap();
+            let mut params = params.span();
+            let erc20_contract_address = Serde::<ContractAddress>::deserialize(ref params).unwrap();
 
             let erc20 = IVotesDispatcher { contract_address: erc20_contract_address,  };
 
