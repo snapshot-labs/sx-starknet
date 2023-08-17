@@ -24,7 +24,7 @@ impl StructHashSpanFelt252 of StructHash<Span<felt252>> {
 
 impl StructHashStrategy of StructHash<Strategy> {
     fn struct_hash(self: @Strategy) -> felt252 {
-        let mut encoded_data = ArrayTrait::<felt252>::new();
+        let mut encoded_data = array![];
         STRATEGY_TYPEHASH.serialize(ref encoded_data);
         (*self.address).serialize(ref encoded_data);
         self.params.span().struct_hash().serialize(ref encoded_data);
@@ -34,7 +34,7 @@ impl StructHashStrategy of StructHash<Strategy> {
 
 impl StructHashIndexedStrategy of StructHash<IndexedStrategy> {
     fn struct_hash(self: @IndexedStrategy) -> felt252 {
-        let mut encoded_data = ArrayTrait::<felt252>::new();
+        let mut encoded_data = array![];
         INDEXED_STRATEGY_TYPEHASH.serialize(ref encoded_data);
         (*self.index).serialize(ref encoded_data);
         self.params.span().struct_hash().serialize(ref encoded_data);
@@ -45,7 +45,7 @@ impl StructHashIndexedStrategy of StructHash<IndexedStrategy> {
 impl StructHashIndexedStrategySpan of StructHash<Span<IndexedStrategy>> {
     fn struct_hash(self: @Span<IndexedStrategy>) -> felt252 {
         let mut self_ = *self;
-        let mut encoded_data = ArrayTrait::<felt252>::new();
+        let mut encoded_data = array![];
         loop {
             match self_.pop_front() {
                 Option::Some(item) => {
@@ -61,7 +61,7 @@ impl StructHashIndexedStrategySpan of StructHash<Span<IndexedStrategy>> {
 
 impl StructHashU256 of StructHash<u256> {
     fn struct_hash(self: @u256) -> felt252 {
-        let mut encoded_data = ArrayTrait::<felt252>::new();
+        let mut encoded_data = array![];
         U256_TYPEHASH.serialize(ref encoded_data);
         self.serialize(ref encoded_data);
         encoded_data.span().struct_hash()
