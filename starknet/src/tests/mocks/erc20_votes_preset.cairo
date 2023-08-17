@@ -1,3 +1,4 @@
+// Needed until Scarb fixes https://github.com/software-mansion/scarb/discussions/568#discussioncomment-6742412
 // SPDX-License-Identifier: MIT
 // OpenZeppelin Contracts for Cairo v0.7.0 (token/erc20/presets/erc20votes.cairo)
 
