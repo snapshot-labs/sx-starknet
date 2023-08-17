@@ -24,10 +24,9 @@ mod tests {
         VanillaAuthenticator, IVanillaAuthenticatorDispatcher, IVanillaAuthenticatorDispatcherTrait
     };
     use sx::voting_strategies::erc20_votes::ERC20VotesVotingStrategy;
-    use debug::PrintTrait;
     use sx::types::{
         Choice, Proposal, IndexedStrategy, Strategy, UpdateSettingsCalldata,
-        UpdateSettingsCalldataImpl, UserAddress
+        UpdateSettingsCalldataImpl, UserAddress, UserAddressTrait
     };
     use sx::tests::utils::strategy_trait::StrategyImpl;
     use sx::utils::constants::{PROPOSE_SELECTOR, VOTE_SELECTOR};
@@ -110,7 +109,7 @@ mod tests {
 
     // Setup 5 accounts with 5 tokens each
     // They each self delegate
-    fn setup_accounts(voting_strategy: Strategy) -> Array<ContractAddress> {
+    fn setup_accounts(voting_strategy: Strategy) -> Array<UserAddress> {
         let mut params = voting_strategy.params.span();
         let contract = Serde::<ContractAddress>::deserialize(ref params).unwrap();
 
@@ -148,12 +147,18 @@ mod tests {
         testing::set_contract_address(OWNER());
 
         // Return them
-        return array![account0, account1, account2, account3, account4];
+        return array![
+            UserAddress::Starknet(account0),
+            UserAddress::Starknet(account1),
+            UserAddress::Starknet(account2),
+            UserAddress::Starknet(account3),
+            UserAddress::Starknet(account4),
+        ];
     }
 
     #[test]
     #[available_gas(1000000000)]
-    fn test_works() {
+    fn works() {
         let (config, space) = setup_space();
         let vanilla_execution_strategy = get_vanilla_execution_strategy();
         let accounts = setup_accounts(space.voting_strategies(1));
@@ -169,16 +174,15 @@ mod tests {
         ArrayTrait::<felt252>::new().serialize(ref propose_calldata);
         ArrayTrait::<felt252>::new().serialize(ref propose_calldata);
 
-        testing::set_block_number(100);
-
-        // Create Proposal
+        // Create a proposal
         authenticator.authenticate(space.contract_address, PROPOSE_SELECTOR, propose_calldata);
 
-        // Increasing block block_number by 1 to pass voting delay
-        testing::set_block_number(101);
+        // Advance to vote start + 1
+        let current = info::get_block_timestamp();
+        testing::set_block_timestamp(current + config.voting_delay + 1);
 
         let mut vote_calldata = array::ArrayTrait::<felt252>::new();
-        let voter = UserAddress::Starknet(contract_address_const::<0x8765>());
+        let voter = *accounts.at(0);
         voter.serialize(ref vote_calldata);
         let proposal_id = 1_u256;
         proposal_id.serialize(ref vote_calldata);
@@ -189,13 +193,104 @@ mod tests {
         user_voting_strategies.serialize(ref vote_calldata);
         ArrayTrait::<felt252>::new().serialize(ref vote_calldata);
 
-        // Vote on Proposal
+        // Vote on proposal
         authenticator.authenticate(space.contract_address, VOTE_SELECTOR, vote_calldata);
 
-        testing::set_block_number(102);
+        testing::set_block_timestamp(current + config.max_voting_duration);
 
-        // Execute Proposal
+        // Execute proposal
         space.execute(1_u256, vanilla_execution_strategy.params);
+    }
+
+    #[test]
+    #[available_gas(1000000000)]
+    #[should_panic]
+    fn revert_if_queried_at_vote_start() {
+        let (config, space) = setup_space();
+        let vanilla_execution_strategy = get_vanilla_execution_strategy();
+        let accounts = setup_accounts(space.voting_strategies(1));
+
+        let authenticator = IVanillaAuthenticatorDispatcher {
+            contract_address: *config.authenticators.at(0), 
+        };
+
+        let author = UserAddress::Starknet(contract_address_const::<0x5678>());
+        let mut propose_calldata = array::ArrayTrait::<felt252>::new();
+        author.serialize(ref propose_calldata);
+        vanilla_execution_strategy.serialize(ref propose_calldata);
+        ArrayTrait::<felt252>::new().serialize(ref propose_calldata);
+        ArrayTrait::<felt252>::new().serialize(ref propose_calldata);
+
+        // Create proposal
+        authenticator.authenticate(space.contract_address, PROPOSE_SELECTOR, propose_calldata);
+
+        // Move to the exact voting period start so the strategy will revert.
+        let current = info::get_block_timestamp();
+        testing::set_block_timestamp(current + config.voting_delay);
+
+        let mut vote_calldata = array::ArrayTrait::<felt252>::new();
+        let voter = *accounts.at(0);
+        voter.serialize(ref vote_calldata);
+        let proposal_id = 1_u256;
+        proposal_id.serialize(ref vote_calldata);
+        let choice = Choice::For(());
+        choice.serialize(ref vote_calldata);
+        let mut user_voting_strategies = array![];
+        user_voting_strategies.append(IndexedStrategy { index: 1, params: array![] });
+        user_voting_strategies.serialize(ref vote_calldata);
+        ArrayTrait::<felt252>::new().serialize(ref vote_calldata);
+
+        // Vote on proposal
+        authenticator.authenticate(space.contract_address, VOTE_SELECTOR, vote_calldata);
+    }
+
+    #[test]
+    #[available_gas(1000000000)]
+    #[should_panic]
+    fn no_delegation_means_no_voting_power() {
+        let (config, space) = setup_space();
+        let vanilla_execution_strategy = get_vanilla_execution_strategy();
+        let accounts = setup_accounts(space.voting_strategies(1));
+
+        let authenticator = IVanillaAuthenticatorDispatcher {
+            contract_address: *config.authenticators.at(0), 
+        };
+
+        // Account0 will delegate to another account, so he should not have any voting power
+        let token_contract = IVotesDispatcher {
+            contract_address: space.voting_strategies(1).address, 
+        };
+        testing::set_contract_address((*accounts.at(0)).to_starknet_address());
+        token_contract.delegate((contract_address_const::<0xdeadbeef>()));
+
+        let author = UserAddress::Starknet(contract_address_const::<0x5678>());
+        let mut propose_calldata = array::ArrayTrait::<felt252>::new();
+        author.serialize(ref propose_calldata);
+        vanilla_execution_strategy.serialize(ref propose_calldata);
+        ArrayTrait::<felt252>::new().serialize(ref propose_calldata);
+        ArrayTrait::<felt252>::new().serialize(ref propose_calldata);
+
+        // Create proposal
+        authenticator.authenticate(space.contract_address, PROPOSE_SELECTOR, propose_calldata);
+
+        // Move to the exact voting period start + 1
+        let current = info::get_block_timestamp();
+        testing::set_block_timestamp(current + config.voting_delay + 1);
+
+        let mut vote_calldata = array::ArrayTrait::<felt252>::new();
+        let voter = *accounts.at(0);
+        voter.serialize(ref vote_calldata);
+        let proposal_id = 1_u256;
+        proposal_id.serialize(ref vote_calldata);
+        let choice = Choice::For(());
+        choice.serialize(ref vote_calldata);
+        let mut user_voting_strategies = array![];
+        user_voting_strategies.append(IndexedStrategy { index: 1, params: array![] });
+        user_voting_strategies.serialize(ref vote_calldata);
+        ArrayTrait::<felt252>::new().serialize(ref vote_calldata);
+
+        // Vote on proposal
+        authenticator.authenticate(space.contract_address, VOTE_SELECTOR, vote_calldata);
     }
 }
 

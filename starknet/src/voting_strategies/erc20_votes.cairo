@@ -10,7 +10,6 @@ mod ERC20VotesVotingStrategy {
         IVotes, IVotesDispatcher, IVotesDispatcherTrait
     };
     use traits::Into;
-    use debug::PrintTrait;
 
     use option::OptionTrait;
 
@@ -21,7 +20,7 @@ mod ERC20VotesVotingStrategy {
     impl ERC20VotesVotingStrategy of IVotingStrategy<ContractState> {
         fn get_voting_power(
             self: @ContractState,
-            block_number: u32,
+            timestamp: u32,
             voter: UserAddress,
             params: Array<felt252>,
             user_params: Array<felt252>,
@@ -37,8 +36,7 @@ mod ERC20VotesVotingStrategy {
 
             let erc20 = IVotesDispatcher { contract_address: erc20_contract_address,  };
 
-            block_number.print();
-            erc20.get_past_votes(voter, block_number.into() - 1) // TODO; verify - 1
+            erc20.get_past_votes(voter, timestamp.into()) // TODO; verify - 1
         }
     }
 }
