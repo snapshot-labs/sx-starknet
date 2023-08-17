@@ -10,6 +10,8 @@ mod legacy_hash;
 mod math;
 mod merkle;
 
+mod proposition_power;
+
 mod struct_hash;
 
 mod single_slot_proof;
