@@ -69,7 +69,7 @@ impl NoUpdateStrategy of NoUpdateTrait<Strategy> {
     fn no_update() -> Strategy {
         Strategy {
             address: contract_address_const::<0xf2cda9b13ed04e585461605c0d6e804933ca828111bd94d4e6a96c75e8b048>(),
-            params: array::ArrayTrait::new(),
+            params: array![],
         }
     }
 
@@ -82,7 +82,7 @@ impl NoUpdateStrategy of NoUpdateTrait<Strategy> {
 // TODO: find a way for "Strings"
 impl NoUpdateArray<T> of NoUpdateTrait<Array<T>> {
     fn no_update() -> Array<T> {
-        array::ArrayTrait::<T>::new()
+        array![]
     }
 
     fn should_update(self: @Array<T>) -> bool {

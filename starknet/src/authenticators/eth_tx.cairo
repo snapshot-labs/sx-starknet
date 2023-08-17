@@ -61,7 +61,7 @@ mod EthTxAuthenticator {
             user_proposal_validation_params: Array<felt252>,
             metadata_URI: Array<felt252>
         ) {
-            let mut payload = ArrayTrait::<felt252>::new();
+            let mut payload = array![];
             target.serialize(ref payload);
             PROPOSE_SELECTOR.serialize(ref payload);
             author.serialize(ref payload);
@@ -92,7 +92,7 @@ mod EthTxAuthenticator {
             user_voting_strategies: Array<IndexedStrategy>,
             metadata_URI: Array<felt252>
         ) {
-            let mut payload = ArrayTrait::<felt252>::new();
+            let mut payload = array![];
             target.serialize(ref payload);
             VOTE_SELECTOR.serialize(ref payload);
             voter.serialize(ref payload);
@@ -124,7 +124,7 @@ mod EthTxAuthenticator {
             execution_strategy: Strategy,
             metadata_URI: Array<felt252>
         ) {
-            let mut payload = ArrayTrait::<felt252>::new();
+            let mut payload = array![];
             target.serialize(ref payload);
             UPDATE_PROPOSAL_SELECTOR.serialize(ref payload);
             author.serialize(ref payload);
@@ -163,7 +163,7 @@ mod EthTxAuthenticator {
 
     fn consume_commit(ref self: ContractState, hash: felt252, sender_address: EthAddress) {
         let committer_address = self._commits.read(hash);
-        assert(committer_address.is_zero(), 'Commit not found');
+        assert(!committer_address.is_zero(), 'Commit not found');
         assert(committer_address == sender_address, 'Invalid sender address');
         // Delete the commit to prevent replay attacks.
         self._commits.write(hash, Zeroable::zero());

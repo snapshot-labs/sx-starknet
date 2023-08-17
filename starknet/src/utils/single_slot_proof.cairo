@@ -56,16 +56,14 @@ mod SingleSlotProof {
 
     #[internal]
     fn get_mapping_slot_key(slot_index: u256, mapping_key: u256) -> u256 {
-        let mut encoded_array = ArrayTrait::<u256>::new();
-        encoded_array.append(mapping_key);
-        encoded_array.append(slot_index);
+        let mut encoded_array = array![mapping_key, slot_index];
         keccak::keccak_u256s_le_inputs(encoded_array.span())
     }
 
     #[internal]
     fn get_storage_slot(
         self: @ContractState,
-        block_number: u32,
+        timestamp: u32,
         contract_address: felt252,
         slot_index: u256,
         mapping_key: u256,
@@ -90,7 +88,7 @@ mod SingleSlotProof {
             contract_address: self._facts_registry.read()
         }
             .get_storage_uint(
-                block_number.into(),
+                timestamp.into(),
                 contract_address,
                 proofs.slot,
                 proofs.proof_size_bytes,

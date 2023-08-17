@@ -13,7 +13,7 @@ mod merkle_utils {
     impl SpanIntoArray<T, impl TClone: Clone<T>, impl TDrop: Drop<T>> of Into<Span<T>, Array<T>> {
         fn into(self: Span<T>) -> Array<T> {
             let mut self = self;
-            let mut output = ArrayTrait::<T>::new();
+            let mut output = array![];
             loop {
                 match self.pop_front() {
                     Option::Some(val) => output.append(val.clone()),
@@ -28,7 +28,7 @@ mod merkle_utils {
 
     // Generates the proof for the given `index` in the `merkle_data`.
     fn generate_proof(mut merkle_data: Span<felt252>, mut index: usize) -> Array<felt252> {
-        let mut proof = ArrayTrait::new();
+        let mut proof = array![];
 
         loop {
             if merkle_data.len() == 1 {
@@ -82,7 +82,7 @@ mod merkle_utils {
     }
 
     fn get_next_level(mut merkle_data: Span<felt252>) -> Array<felt252> {
-        let mut next_level = ArrayTrait::<felt252>::new();
+        let mut next_level = array![];
         loop {
             match merkle_data.pop_front() {
                 Option::Some(a) => {
@@ -114,7 +114,7 @@ mod merkle_utils {
     // The `merkle_data` corresponds to the hashes leaves of the members.
     fn generate_merkle_data(members: Span<Leaf>) -> Array<felt252> {
         let mut members_ = members;
-        let mut output = ArrayTrait::<felt252>::new();
+        let mut output = array![];
         loop {
             match members_.pop_front() {
                 Option::Some(leaf) => {
@@ -132,7 +132,7 @@ mod merkle_utils {
     // address 1, 2, 3, ...
     // Even members will be Ethereum addresses and odd members will be Starknet addresses.
     fn generate_n_members(n: usize) -> Array<Leaf> {
-        let mut members = ArrayTrait::<Leaf>::new();
+        let mut members = array![];
         let mut i = 1_usize;
         loop {
             if i >= n + 1 {
@@ -251,7 +251,7 @@ mod assert_valid_proof {
         let leaf = Leaf {
             address: UserAddress::Starknet(contract_address_const::<0>()), voting_power: 0
         };
-        let proof = ArrayTrait::new();
+        let proof = array![];
         assert_valid_proof(root, leaf, proof.span());
     }
 
@@ -259,37 +259,19 @@ mod assert_valid_proof {
     #[available_gas(10000000)]
     #[should_panic(expected: ('Merkle: Invalid proof', ))]
     fn invalid_extra_node() {
-        let mut members = ArrayTrait::new();
-        members
-            .append(
-                Leaf {
-                    address: UserAddress::Starknet(contract_address_const::<5>()), voting_power: 5
-                }
-            );
-        members
-            .append(
-                Leaf {
-                    address: UserAddress::Starknet(contract_address_const::<4>()), voting_power: 4
-                }
-            );
-        members
-            .append(
-                Leaf {
-                    address: UserAddress::Starknet(contract_address_const::<3>()), voting_power: 3
-                }
-            );
-        members
-            .append(
-                Leaf {
-                    address: UserAddress::Starknet(contract_address_const::<2>()), voting_power: 2
-                }
-            );
-        members
-            .append(
-                Leaf {
-                    address: UserAddress::Starknet(contract_address_const::<1>()), voting_power: 1
-                }
-            );
+        let mut members = array![
+            Leaf {
+                address: UserAddress::Starknet(contract_address_const::<5>()), voting_power: 5
+                }, Leaf {
+                address: UserAddress::Starknet(contract_address_const::<4>()), voting_power: 4
+                }, Leaf {
+                address: UserAddress::Starknet(contract_address_const::<3>()), voting_power: 3
+                }, Leaf {
+                address: UserAddress::Starknet(contract_address_const::<2>()), voting_power: 2
+                }, Leaf {
+                address: UserAddress::Starknet(contract_address_const::<1>()), voting_power: 1
+            },
+        ];
         let merkle_data = generate_merkle_data(members.span());
 
         let root = generate_merkle_root(merkle_data.span());
@@ -304,37 +286,19 @@ mod assert_valid_proof {
     #[available_gas(10000000)]
     #[should_panic(expected: ('Merkle: Invalid proof', ))]
     fn invalid_proof() {
-        let mut members = ArrayTrait::new();
-        members
-            .append(
-                Leaf {
-                    address: UserAddress::Starknet(contract_address_const::<5>()), voting_power: 5
-                }
-            );
-        members
-            .append(
-                Leaf {
-                    address: UserAddress::Starknet(contract_address_const::<4>()), voting_power: 4
-                }
-            );
-        members
-            .append(
-                Leaf {
-                    address: UserAddress::Starknet(contract_address_const::<3>()), voting_power: 3
-                }
-            );
-        members
-            .append(
-                Leaf {
-                    address: UserAddress::Starknet(contract_address_const::<2>()), voting_power: 2
-                }
-            );
-        members
-            .append(
-                Leaf {
-                    address: UserAddress::Starknet(contract_address_const::<1>()), voting_power: 1
-                }
-            );
+        let mut members = array![
+            Leaf {
+                address: UserAddress::Starknet(contract_address_const::<5>()), voting_power: 5
+                }, Leaf {
+                address: UserAddress::Starknet(contract_address_const::<4>()), voting_power: 4
+                }, Leaf {
+                address: UserAddress::Starknet(contract_address_const::<3>()), voting_power: 3
+                }, Leaf {
+                address: UserAddress::Starknet(contract_address_const::<2>()), voting_power: 2
+                }, Leaf {
+                address: UserAddress::Starknet(contract_address_const::<1>()), voting_power: 1
+            },
+        ];
         let merkle_data = generate_merkle_data(members.span());
 
         let root = generate_merkle_root(merkle_data.span());
@@ -373,7 +337,7 @@ mod merkle_whitelist_voting_power {
         let (contract, _) = deploy_syscall(
             MerkleWhitelistVotingStrategy::TEST_CLASS_HASH.try_into().unwrap(),
             0,
-            array::ArrayTrait::<felt252>::new().span(),
+            array![].span(),
             false,
         )
             .unwrap();
@@ -387,10 +351,10 @@ mod merkle_whitelist_voting_power {
         let root = generate_merkle_root(merkle_data.span());
         let proof = generate_proof(merkle_data.span(), index);
 
-        let mut params = ArrayTrait::<felt252>::new();
+        let mut params = array![];
         root.serialize(ref params);
 
-        let mut user_params = ArrayTrait::<felt252>::new();
+        let mut user_params = array![];
         leaf.serialize(ref user_params);
         proof.serialize(ref user_params);
 
@@ -406,7 +370,7 @@ mod merkle_whitelist_voting_power {
         let (contract, _) = deploy_syscall(
             MerkleWhitelistVotingStrategy::TEST_CLASS_HASH.try_into().unwrap(),
             0,
-            array::ArrayTrait::<felt252>::new().span(),
+            array![].span(),
             false,
         )
             .unwrap();
@@ -420,10 +384,10 @@ mod merkle_whitelist_voting_power {
         let root = generate_merkle_root(merkle_data.span());
         let proof = generate_proof(merkle_data.span(), index);
 
-        let mut params = ArrayTrait::<felt252>::new();
+        let mut params = array![];
         root.serialize(ref params);
 
-        let mut user_params = ArrayTrait::<felt252>::new();
+        let mut user_params = array![];
         let fake_leaf = Leaf {
             address: leaf.address, voting_power: leaf.voting_power + 1, 
         }; // lying about voting power here
@@ -442,7 +406,7 @@ mod merkle_whitelist_voting_power {
         let (contract, _) = deploy_syscall(
             MerkleWhitelistVotingStrategy::TEST_CLASS_HASH.try_into().unwrap(),
             0,
-            array::ArrayTrait::<felt252>::new().span(),
+            array![].span(),
             false,
         )
             .unwrap();
@@ -456,10 +420,10 @@ mod merkle_whitelist_voting_power {
         let root = generate_merkle_root(merkle_data.span());
         let proof = generate_proof(merkle_data.span(), index);
 
-        let mut params = ArrayTrait::<felt252>::new();
+        let mut params = array![];
         root.serialize(ref params);
 
-        let mut user_params = ArrayTrait::<felt252>::new();
+        let mut user_params = array![];
         let fake_leaf = Leaf {
             address: UserAddress::Starknet(contract_address_const::<0x1337>()),
             voting_power: leaf.voting_power,

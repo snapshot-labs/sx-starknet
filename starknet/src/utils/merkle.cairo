@@ -6,7 +6,7 @@ use sx::types::UserAddress;
 use clone::Clone;
 use hash::{LegacyHash};
 use debug::PrintTrait;
-use sx::utils::legacy_hash::LegacyHashSpan;
+use sx::utils::legacy_hash::LegacyHashSpanFelt252;
 
 /// Leaf struct for the merkle tree
 #[derive(Copy, Clone, Drop, Serde)]
@@ -21,7 +21,7 @@ trait Hash<T> {
 
 impl HashSerde<T, impl TSerde: Serde<T>> of Hash<T> {
     fn hash(self: @T) -> felt252 {
-        let mut serialized = ArrayTrait::new();
+        let mut serialized = array![];
         Serde::<T>::serialize(self, ref serialized);
         let hashed = LegacyHash::hash(0, serialized.span());
         hashed

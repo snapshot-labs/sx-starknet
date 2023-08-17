@@ -5,7 +5,7 @@ use sx::types::UserAddress;
 trait IVotingStrategy<TContractState> {
     fn get_voting_power(
         self: @TContractState,
-        block_number: u32,
+        timestamp: u32,
         voter: UserAddress,
         params: Array<felt252>,
         user_params: Array<felt252>,

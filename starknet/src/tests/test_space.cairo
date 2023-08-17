@@ -45,20 +45,16 @@ mod tests {
 
         // Deploy Vanilla Authenticator 
         let (vanilla_authenticator_address, _) = deploy_syscall(
-            VanillaAuthenticator::TEST_CLASS_HASH.try_into().unwrap(),
-            0,
-            array::ArrayTrait::<felt252>::new().span(),
-            false
+            VanillaAuthenticator::TEST_CLASS_HASH.try_into().unwrap(), 0, array![].span(), false
         )
             .unwrap();
-        let mut authenticators = ArrayTrait::<ContractAddress>::new();
-        authenticators.append(vanilla_authenticator_address);
+        let mut authenticators = array![vanilla_authenticator_address];
 
         // Deploy Vanilla Proposal Validation Strategy
         let (vanilla_proposal_validation_address, _) = deploy_syscall(
             VanillaProposalValidationStrategy::TEST_CLASS_HASH.try_into().unwrap(),
             0,
-            array::ArrayTrait::<felt252>::new().span(),
+            array![].span(),
             false
         )
             .unwrap();
@@ -68,26 +64,20 @@ mod tests {
 
         // Deploy Vanilla Voting Strategy 
         let (vanilla_voting_strategy_address, _) = deploy_syscall(
-            VanillaVotingStrategy::TEST_CLASS_HASH.try_into().unwrap(),
-            0,
-            array::ArrayTrait::<felt252>::new().span(),
-            false
+            VanillaVotingStrategy::TEST_CLASS_HASH.try_into().unwrap(), 0, array![].span(), false
         )
             .unwrap();
-        let mut voting_strategies = ArrayTrait::<Strategy>::new();
-        voting_strategies
-            .append(
-                Strategy {
-                    address: vanilla_voting_strategy_address, params: ArrayTrait::<felt252>::new()
-                }
-            );
+        let mut voting_strategies = array![
+            Strategy { address: vanilla_voting_strategy_address, params: array![] }
+        ];
 
         // Deploy Space 
-        let mut constructor_calldata = array::ArrayTrait::<felt252>::new();
-        constructor_calldata.append(owner.into());
-        constructor_calldata.append(max_voting_duration.into());
-        constructor_calldata.append(min_voting_duration.into());
-        constructor_calldata.append(voting_delay.into());
+        let mut constructor_calldata = array![
+            owner.into(),
+            max_voting_duration.into(),
+            min_voting_duration.into(),
+            voting_delay.into()
+        ];
         vanilla_proposal_validation_strategy.serialize(ref constructor_calldata);
         ArrayTrait::<felt252>::new().serialize(ref constructor_calldata);
         voting_strategies.serialize(ref constructor_calldata);
@@ -124,7 +114,7 @@ mod tests {
         };
 
         let quorum = u256_from_felt252(1);
-        let mut constructor_calldata = ArrayTrait::<felt252>::new();
+        let mut constructor_calldata = array![];
         quorum.serialize(ref constructor_calldata);
 
         let (vanilla_execution_strategy_address, _) = deploy_syscall(
@@ -138,7 +128,7 @@ mod tests {
             vanilla_execution_strategy_address
         );
         let author = UserAddress::Starknet(contract_address_const::<0x5678>());
-        let mut propose_calldata = array::ArrayTrait::<felt252>::new();
+        let mut propose_calldata = array![];
         author.serialize(ref propose_calldata);
         vanilla_execution_strategy.serialize(ref propose_calldata);
         ArrayTrait::<felt252>::new().serialize(ref propose_calldata);
@@ -147,17 +137,14 @@ mod tests {
         // Create Proposal
         authenticator.authenticate(space.contract_address, PROPOSE_SELECTOR, propose_calldata);
 
-        assert(
-            space.next_proposal_id() == u256 { low: 2_u128, high: 0_u128 },
-            'next_proposal_id should be 2'
-        );
+        assert(space.next_proposal_id() == 2_u256, 'next_proposal_id should be 2');
 
         let proposal = space.proposals(u256_from_felt252(1));
-        let block_number = info::get_block_number().try_into().unwrap();
+        let timestamp = info::get_block_timestamp().try_into().unwrap();
         let expected_proposal = Proposal {
-            start_block_number: block_number + 1_u32,
-            min_end_block_number: block_number + 2_u32,
-            max_end_block_number: block_number + 3_u32,
+            start_timestamp: timestamp + 1_u32,
+            min_end_timestamp: timestamp + 2_u32,
+            max_end_timestamp: timestamp + 3_u32,
             execution_payload_hash: poseidon::poseidon_hash_span(
                 vanilla_execution_strategy.clone().params.span()
             ),
@@ -169,13 +156,12 @@ mod tests {
         assert(proposal == expected_proposal, 'proposal state');
 
         // Update Proposal
-        let mut update_calldata = array::ArrayTrait::<felt252>::new();
+        let mut update_calldata = array![];
         author.serialize(ref update_calldata);
         let proposal_id = u256_from_felt252(1);
         proposal_id.serialize(ref update_calldata);
         // Keeping the same execution strategy contract but changing the payload
-        let mut new_payload = ArrayTrait::<felt252>::new();
-        new_payload.append(1);
+        let mut new_payload = array![1];
         let execution_strategy = Strategy {
             address: vanilla_execution_strategy.address, params: new_payload
         };
@@ -185,26 +171,24 @@ mod tests {
         authenticator
             .authenticate(space.contract_address, UPDATE_PROPOSAL_SELECTOR, update_calldata);
 
-        // Increasing block block_number by 1 to pass voting delay
-        testing::set_block_number(1_u64);
+        // Increasing block timestamp by 1 to pass voting delay
+        testing::set_block_timestamp(1_u64);
 
-        let mut vote_calldata = array::ArrayTrait::<felt252>::new();
+        let mut vote_calldata = array![];
         let voter = UserAddress::Starknet(contract_address_const::<0x8765>());
         voter.serialize(ref vote_calldata);
         let proposal_id = u256_from_felt252(1);
         proposal_id.serialize(ref vote_calldata);
         let choice = Choice::For(());
         choice.serialize(ref vote_calldata);
-        let mut user_voting_strategies = ArrayTrait::<IndexedStrategy>::new();
-        user_voting_strategies
-            .append(IndexedStrategy { index: 0_u8, params: ArrayTrait::<felt252>::new() });
+        let mut user_voting_strategies = array![IndexedStrategy { index: 0_u8, params: array![] }];
         user_voting_strategies.serialize(ref vote_calldata);
         ArrayTrait::<felt252>::new().serialize(ref vote_calldata);
 
         // Vote on Proposal
         authenticator.authenticate(space.contract_address, VOTE_SELECTOR, vote_calldata);
 
-        testing::set_block_number(2_u64);
+        testing::set_block_timestamp(2_u64);
 
         // Execute Proposal
         space.execute(u256_from_felt252(1), vanilla_execution_strategy.params);
@@ -221,7 +205,7 @@ mod tests {
         };
 
         let quorum = u256_from_felt252(1);
-        let mut constructor_calldata = ArrayTrait::<felt252>::new();
+        let mut constructor_calldata = array![];
         quorum.serialize(ref constructor_calldata);
 
         let (vanilla_execution_strategy_address, _) = deploy_syscall(
@@ -235,16 +219,13 @@ mod tests {
             vanilla_execution_strategy_address
         );
 
-        assert(
-            space.next_proposal_id() == u256 { low: 1_u128, high: 0_u128 },
-            'next_proposal_id should be 1'
-        );
+        assert(space.next_proposal_id() == 1_u256, 'next_proposal_id should be 1');
 
         // Replace proposal validation strategy with one that always fails
         let (strategy_address, _) = deploy_syscall(
             AlwaysFailProposalValidationStrategy::TEST_CLASS_HASH.try_into().unwrap(),
             0,
-            array::ArrayTrait::<felt252>::new().span(),
+            array![].span(),
             false
         )
             .unwrap();
@@ -257,7 +238,7 @@ mod tests {
         space.update_settings(input);
 
         let author = UserAddress::Starknet(contract_address_const::<0x5678>());
-        let mut propose_calldata = array::ArrayTrait::<felt252>::new();
+        let mut propose_calldata = array![];
         author.serialize(ref propose_calldata);
         vanilla_execution_strategy.serialize(ref propose_calldata);
         ArrayTrait::<felt252>::new().serialize(ref propose_calldata);
@@ -282,7 +263,7 @@ mod tests {
         };
 
         let quorum = u256_from_felt252(1);
-        let mut constructor_calldata = ArrayTrait::<felt252>::new();
+        let mut constructor_calldata = array![];
         quorum.serialize(ref constructor_calldata);
 
         let (vanilla_execution_strategy_address, _) = deploy_syscall(
@@ -295,7 +276,7 @@ mod tests {
         let vanilla_execution_strategy = StrategyImpl::from_address(
             vanilla_execution_strategy_address
         );
-        let mut propose_calldata = array::ArrayTrait::<felt252>::new();
+        let mut propose_calldata = array![];
         let author = UserAddress::Starknet(contract_address_const::<0x5678>());
         author.serialize(ref propose_calldata);
         vanilla_execution_strategy.serialize(ref propose_calldata);
@@ -306,8 +287,8 @@ mod tests {
         authenticator.authenticate(space.contract_address, PROPOSE_SELECTOR, propose_calldata);
         let proposal_id = u256_from_felt252(1);
 
-        // Increasing block block_number by 1 to pass voting delay
-        testing::set_block_number(1_u64);
+        // Increasing block timestamp by 1 to pass voting delay
+        testing::set_block_timestamp(1_u64);
         let proposal = space.proposals(proposal_id);
         assert(proposal.finalization_status == FinalizationStatus::Pending(()), 'pending');
 
@@ -320,15 +301,13 @@ mod tests {
         assert(proposal.finalization_status == FinalizationStatus::Cancelled(()), 'cancelled');
 
         // Try to cast vote on Cancelled Proposal
-        let mut vote_calldata = array::ArrayTrait::<felt252>::new();
+        let mut vote_calldata = array![];
         let voter = UserAddress::Starknet(contract_address_const::<0x8765>());
         voter.serialize(ref vote_calldata);
         proposal_id.serialize(ref vote_calldata);
         let choice = Choice::For(());
         choice.serialize(ref vote_calldata);
-        let mut user_voting_strategies = ArrayTrait::<IndexedStrategy>::new();
-        user_voting_strategies
-            .append(IndexedStrategy { index: 0_u8, params: ArrayTrait::<felt252>::new() });
+        let mut user_voting_strategies = array![IndexedStrategy { index: 0_u8, params: array![] }];
         user_voting_strategies.serialize(ref vote_calldata);
         ArrayTrait::<felt252>::new().serialize(ref vote_calldata);
         authenticator.authenticate(space.contract_address, VOTE_SELECTOR, vote_calldata);
