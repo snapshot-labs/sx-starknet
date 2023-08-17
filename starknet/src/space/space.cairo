@@ -60,6 +60,7 @@ trait ISpace<TContractState> {
 mod Space {
     use super::ISpace;
     use starknet::{ClassHash, ContractAddress, info, Store};
+    use starknet::storage_access::{StorePacking, StoreUsingPacking};
     use zeroable::Zeroable;
     use array::{ArrayTrait, SpanTrait};
     use clone::Clone;
@@ -74,8 +75,8 @@ mod Space {
     };
     use sx::types::{
         UserAddress, Choice, FinalizationStatus, Strategy, IndexedStrategy, Proposal,
-        IndexedStrategyTrait, IndexedStrategyImpl, UpdateSettingsCalldata, NoUpdateU32,
-        NoUpdateStrategy, NoUpdateArray
+        PackedProposal, IndexedStrategyTrait, IndexedStrategyImpl, UpdateSettingsCalldata,
+        NoUpdateU32, NoUpdateStrategy, NoUpdateArray
     };
     use sx::utils::bits::BitSetter;
     use sx::utils::legacy_hash::LegacyHashChoice;
