@@ -16,7 +16,7 @@ mod VanillaVotingStrategy {
             params: Array<felt252>,
             user_params: Array<felt252>,
         ) -> u256 {
-            u256 { low: 1_u128, high: 0_u128 }
+            1_u256
         }
     }
 }

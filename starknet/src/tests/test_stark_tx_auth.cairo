@@ -79,10 +79,7 @@ mod tests {
                 ArrayTrait::<felt252>::new()
             );
 
-        assert(
-            space.next_proposal_id() == u256 { low: 2_u128, high: 0_u128 },
-            'next_proposal_id should be 2'
-        );
+        assert(space.next_proposal_id() == 2_u256, 'next_proposal_id should be 2');
 
         // Update Proposal
 
@@ -202,10 +199,7 @@ mod tests {
                 ArrayTrait::<felt252>::new()
             );
 
-        assert(
-            space.next_proposal_id() == u256 { low: 2_u128, high: 0_u128 },
-            'next_proposal_id should be 2'
-        );
+        assert(space.next_proposal_id() == 2_u256, 'next_proposal_id should be 2');
 
         // Update Proposal
 
@@ -264,10 +258,7 @@ mod tests {
                 ArrayTrait::<felt252>::new()
             );
 
-        assert(
-            space.next_proposal_id() == u256 { low: 2_u128, high: 0_u128 },
-            'next_proposal_id should be 2'
-        );
+        assert(space.next_proposal_id() == 2_u256, 'next_proposal_id should be 2');
 
         // Update Proposal
 
