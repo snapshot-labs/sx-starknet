@@ -177,7 +177,9 @@ mod tests {
         };
 
         let packed = ProposalStorePacking::pack(proposal.clone());
-        assert(packed.timestamps_and_finalization_status == 0x2a0000000000000000, 'invalid max packing');
+        assert(
+            packed.timestamps_and_finalization_status == 0x2a0000000000000000, 'invalid max packing'
+        );
         let result = ProposalStorePacking::unpack(packed);
         assert(result == proposal, 'invalid max unpacking');
     }
@@ -196,7 +198,10 @@ mod tests {
         };
 
         let packed = ProposalStorePacking::pack(proposal.clone());
-        assert(packed.timestamps_and_finalization_status == 0x01000000000000000000000000, 'invalid status packing');
+        assert(
+            packed.timestamps_and_finalization_status == 0x01000000000000000000000000,
+            'invalid status packing'
+        );
         let result = ProposalStorePacking::unpack(packed);
         assert(result == proposal, 'invalid status unpacking');
     }
@@ -215,7 +220,10 @@ mod tests {
         };
 
         let packed = ProposalStorePacking::pack(proposal.clone());
-        assert(packed.timestamps_and_finalization_status == 0x02ffffffffffffffffffffffff, 'invalid full packing');
+        assert(
+            packed.timestamps_and_finalization_status == 0x02ffffffffffffffffffffffff,
+            'invalid full packing'
+        );
         let result = ProposalStorePacking::unpack(packed);
         assert(result == proposal, 'invalid full unpacking');
     }
