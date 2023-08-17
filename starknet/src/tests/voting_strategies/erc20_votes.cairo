@@ -204,7 +204,15 @@ mod tests {
 
     #[test]
     #[available_gas(1000000000)]
-    #[should_panic]
+    #[should_panic(
+        expected: (
+            'ERC5805: future Lookup',
+            'ENTRYPOINT_FAILED',
+            'ENTRYPOINT_FAILED',
+            'ENTRYPOINT_FAILED',
+            'ENTRYPOINT_FAILED'
+        )
+    )]
     fn revert_if_queried_at_vote_start() {
         let (config, space) = setup_space();
         let vanilla_execution_strategy = get_vanilla_execution_strategy();
@@ -246,7 +254,9 @@ mod tests {
 
     #[test]
     #[available_gas(1000000000)]
-    #[should_panic]
+    #[should_panic(
+        expected: ('User has no voting power', 'ENTRYPOINT_FAILED', 'ENTRYPOINT_FAILED')
+    )]
     fn no_delegation_means_no_voting_power() {
         let (config, space) = setup_space();
         let vanilla_execution_strategy = get_vanilla_execution_strategy();
@@ -257,9 +267,10 @@ mod tests {
         };
 
         // Account0 will delegate to another account, so he should not have any voting power
-        let token_contract = IVotesDispatcher {
-            contract_address: space.voting_strategies(1).address, 
-        };
+        let mut encoded_token_contract = space.voting_strategies(1).params.span();
+        let token_contract = Serde::<ContractAddress>::deserialize(ref encoded_token_contract)
+            .unwrap();
+        let token_contract = IVotesDispatcher { contract_address: token_contract,  };
         testing::set_contract_address((*accounts.at(0)).to_starknet_address());
         token_contract.delegate((contract_address_const::<0xdeadbeef>()));
 
