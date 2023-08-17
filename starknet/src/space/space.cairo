@@ -198,7 +198,7 @@ mod Space {
     fn VotingDelayUpdated(_new_voting_delay: u32) {}
 
     #[event]
-    fn Upgraded(class_hash: ClassHash) {}
+    fn Upgraded(class_hash: ClassHash, initialize_calldata: Array<felt252>) {}
 
     #[external(v0)]
     impl Space of ISpace<ContractState> {
@@ -428,7 +428,7 @@ mod Space {
                 info::get_contract_address(), INITIALIZE_SELECTOR, initialize_calldata.span()
             )
                 .unwrap_syscall();
-            Upgraded(class_hash);
+            Upgraded(class_hash, initialize_calldata);
         }
 
         fn owner(self: @ContractState) -> ContractAddress {
