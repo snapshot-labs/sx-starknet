@@ -1,4 +1,7 @@
-/// Copy paste from OZ while waiting for Scarb to work.
+// SPDX-License-Identifier: MIT
+// OpenZeppelin Contracts for Cairo v0.7.0 (token/erc20/presets/erc20votes.cairo)
+
+/// ERC20 with the ERC20Votes extension.
 #[starknet::contract]
 mod ERC20VotesPreset {
     use openzeppelin::governance::utils::interfaces::IVotes;
@@ -154,6 +157,20 @@ mod ERC20VotesPreset {
         fn delegate(ref self: ContractState, delegatee: ContractAddress) {
             let mut unsafe_state = ERC20Votes::unsafe_new_contract_state();
             ERC20Votes::VotesImpl::delegate(ref unsafe_state, delegatee);
+        }
+
+        fn delegate_by_sig(
+            ref self: ContractState,
+            delegator: ContractAddress,
+            delegatee: ContractAddress,
+            nonce: felt252,
+            expiry: u64,
+            signature: Array<felt252>
+        ) {
+            let mut unsafe_state = ERC20Votes::unsafe_new_contract_state();
+            ERC20Votes::VotesImpl::delegate_by_sig(
+                ref unsafe_state, delegator, delegatee, nonce, expiry, signature
+            );
         }
     }
 
