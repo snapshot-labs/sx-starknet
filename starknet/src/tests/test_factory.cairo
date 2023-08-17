@@ -26,7 +26,7 @@ mod tests {
     #[test]
     #[available_gas(10000000000)]
     fn test_deploy_reuse_salt() {
-        let mut constructor_calldata = ArrayTrait::<felt252>::new();
+        let mut constructor_calldata = array![];
 
         let (factory_address, _) = deploy_syscall(
             Factory::TEST_CLASS_HASH.try_into().unwrap(), 0, constructor_calldata.span(), false

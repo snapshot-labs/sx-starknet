@@ -70,7 +70,7 @@ mod tests {
         let (execution_contract_address, _) = deploy_syscall(
             ExecutorExecutionStrategy::TEST_CLASS_HASH.try_into().unwrap(),
             0,
-            ArrayTrait::<felt252>::new().span(),
+            array![].span(),
             false
         )
             .unwrap();
@@ -81,19 +81,19 @@ mod tests {
 
         // keccak256("upgrade") & (2**250 - 1)
         let selector = 0xf2f7c15cbe06c8d94597cd91fd7f3369eae842359235712def5584f8d270cd;
-        let mut tx_calldata = ArrayTrait::new();
+        let mut tx_calldata = array![];
         new_implem.serialize(ref tx_calldata);
         array![7].serialize(ref tx_calldata); // initialize calldata
         let tx = Transaction { target: space.contract_address, selector, data: tx_calldata,  };
 
-        let mut execution_params = ArrayTrait::<felt252>::new();
+        let mut execution_params = array![];
         tx.serialize(ref execution_params);
 
         let execution_strategy = Strategy {
             address: execution_contract_address, params: execution_params.clone(), 
         };
 
-        let mut propose_calldata = ArrayTrait::<felt252>::new();
+        let mut propose_calldata = array![];
         UserAddress::Starknet(contract_address_const::<0x7676>()).serialize(ref propose_calldata);
         execution_strategy.serialize(ref propose_calldata);
         ArrayTrait::<felt252>::new().serialize(ref propose_calldata);
