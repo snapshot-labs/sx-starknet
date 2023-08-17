@@ -56,9 +56,7 @@ mod SingleSlotProof {
 
     #[internal]
     fn get_mapping_slot_key(slot_index: u256, mapping_key: u256) -> u256 {
-        let mut encoded_array = ArrayTrait::<u256>::new();
-        encoded_array.append(mapping_key);
-        encoded_array.append(slot_index);
+        let mut encoded_array = array![mapping_key, slot_index];
         keccak::keccak_u256s_le_inputs(encoded_array.span())
     }
 

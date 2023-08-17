@@ -9,12 +9,10 @@ trait StrategyTrait {
 
 impl StrategyImpl of StrategyTrait {
     fn test_value() -> Strategy {
-        Strategy {
-            address: contract_address_const::<0x5c011>(), params: ArrayTrait::<felt252>::new(), 
-        }
+        Strategy { address: contract_address_const::<0x5c011>(), params: array![],  }
     }
 
     fn from_address(addr: ContractAddress) -> Strategy {
-        Strategy { address: addr, params: ArrayTrait::<felt252>::new(),  }
+        Strategy { address: addr, params: array![],  }
     }
 }

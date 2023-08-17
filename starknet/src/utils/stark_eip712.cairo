@@ -84,7 +84,7 @@ fn get_propose_digest(
     metadata_URI: Span<felt252>,
     salt: felt252
 ) -> felt252 {
-    let mut encoded_data = ArrayTrait::<felt252>::new();
+    let mut encoded_data = array![];
     PROPOSE_TYPEHASH.serialize(ref encoded_data);
     space.serialize(ref encoded_data);
     author.serialize(ref encoded_data);
@@ -104,7 +104,7 @@ fn get_vote_digest(
     user_voting_strategies: Span<IndexedStrategy>,
     metadata_URI: Span<felt252>,
 ) -> felt252 {
-    let mut encoded_data = ArrayTrait::<felt252>::new();
+    let mut encoded_data = array![];
     VOTE_TYPEHASH.serialize(ref encoded_data);
     space.serialize(ref encoded_data);
     voter.serialize(ref encoded_data);
@@ -124,7 +124,7 @@ fn get_update_proposal_digest(
     metadata_URI: Span<felt252>,
     salt: felt252
 ) -> felt252 {
-    let mut encoded_data = ArrayTrait::<felt252>::new();
+    let mut encoded_data = array![];
     UPDATE_PROPOSAL_TYPEHASH.serialize(ref encoded_data);
     space.serialize(ref encoded_data);
     author.serialize(ref encoded_data);
@@ -136,7 +136,7 @@ fn get_update_proposal_digest(
 }
 
 fn get_domain_hash(name: felt252, version: felt252) -> felt252 {
-    let mut encoded_data = ArrayTrait::<felt252>::new();
+    let mut encoded_data = array![];
     DOMAIN_TYPEHASH.serialize(ref encoded_data);
     name.serialize(ref encoded_data);
     version.serialize(ref encoded_data);
@@ -148,7 +148,7 @@ fn get_domain_hash(name: felt252, version: felt252) -> felt252 {
 fn hash_typed_data(
     domain_hash: felt252, message_hash: felt252, signer: ContractAddress
 ) -> felt252 {
-    let mut encoded_data = ArrayTrait::<felt252>::new();
+    let mut encoded_data = array![];
     STARKNET_MESSAGE.serialize(ref encoded_data);
     domain_hash.serialize(ref encoded_data);
     signer.serialize(ref encoded_data);
