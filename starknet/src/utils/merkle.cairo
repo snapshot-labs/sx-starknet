@@ -20,7 +20,7 @@ trait Hash<T> {
 
 impl HashSerde<T, impl TSerde: Serde<T>> of Hash<T> {
     fn hash(self: @T) -> felt252 {
-        let mut serialized = ArrayTrait::new();
+        let mut serialized = array![];
         Serde::<T>::serialize(self, ref serialized);
         let hashed = LegacyHash::hash(0, serialized.span());
         hashed
