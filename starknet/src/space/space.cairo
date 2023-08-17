@@ -230,7 +230,7 @@ mod Space {
             // TODO: Lots of copying, maybe figure out how to pass snapshots to events/storage writers. 
             self._proposals.write(proposal_id, proposal);
 
-            self._next_proposal_id.write(proposal_id + u256 { low: 1_u128, high: 0_u128 });
+            self._next_proposal_id.write(proposal_id + 1_u256);
 
             ProposalCreated(
                 proposal_id, author, snap_proposal, @execution_strategy.params, @metadata_URI
@@ -269,7 +269,7 @@ mod Space {
                 proposal.active_voting_strategies
             );
 
-            assert(voting_power > u256 { low: 0_u128, high: 0_u128 }, 'User has no voting power');
+            assert(voting_power > 0_u256, 'User has no voting power');
             self
                 ._vote_power
                 .write(
@@ -510,7 +510,7 @@ mod Space {
         _set_proposal_validation_strategy(ref self, _proposal_validation_strategy.clone());
         _add_voting_strategies(ref self, _voting_strategies.clone());
         _add_authenticators(ref self, _authenticators.clone());
-        self._next_proposal_id.write(u256 { low: 1_u128, high: 0_u128 });
+        self._next_proposal_id.write(1_u256);
         SpaceCreated(
             info::get_contract_address(),
             _owner,
@@ -548,7 +548,7 @@ mod Space {
         allowed_strategies: u256
     ) -> u256 {
         user_strategies.assert_no_duplicate_indices();
-        let mut total_voting_power = u256 { low: 0_u128, high: 0_u128 };
+        let mut total_voting_power = 0_u256;
         let mut i = 0_usize;
         loop {
             if i >= user_strategies.len() {
