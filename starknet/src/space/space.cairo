@@ -93,6 +93,8 @@ mod Space {
         IndexedStrategyTrait, IndexedStrategyImpl, UpdateSettingsCalldata, NoUpdateU32,
         NoUpdateStrategy, NoUpdateArray
     };
+    use sx::utils::reinitializable::Reinitializable;
+    use sx::utils::ReinitializableImpl;
     use sx::utils::bits::BitSetter;
     use sx::utils::legacy_hash::LegacyHashChoice;
     use sx::external::ownable::Ownable;
@@ -100,7 +102,6 @@ mod Space {
 
     #[storage]
     struct Storage {
-        _initialized: bool,
         _min_voting_duration: u32,
         _max_voting_duration: u32,
         _next_proposal_id: u256,
@@ -230,8 +231,10 @@ mod Space {
                 @dao_URI
             );
             // Checking that the contract is not already initialized
-            assert(self._initialized.read() == false, 'Space already initialized');
-            self._initialized.write(true);
+            //TODO: temporary component syntax (see imports too)
+            let mut state: Reinitializable::ContractState =
+                Reinitializable::unsafe_new_contract_state();
+            ReinitializableImpl::initialize(ref state);
 
             //TODO: temporary component syntax
             let mut state: Ownable::ContractState = Ownable::unsafe_new_contract_state();
@@ -416,7 +419,9 @@ mod Space {
             starknet::replace_class_syscall(class_hash).unwrap_syscall();
 
             // Allowing initializer to be called again.
-            self._initialized.write(false);
+            let mut state: Reinitializable::ContractState =
+                Reinitializable::unsafe_new_contract_state();
+            ReinitializableImpl::reinitialize(ref state);
 
             // Call initializer on the new version.
             syscalls::call_contract_syscall(

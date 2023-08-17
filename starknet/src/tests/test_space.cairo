@@ -29,101 +29,8 @@ mod tests {
 
     use Space::Space as SpaceImpl;
 
-
     #[test]
     #[available_gas(100000000)]
-    fn test_reinitialize() {
-        let deployer = contract_address_const::<0xdead>();
-
-        testing::set_caller_address(deployer);
-        testing::set_contract_address(deployer);
-        // Space Settings
-        let owner = contract_address_const::<0x123456789>();
-        let min_voting_duration = 1_u32;
-        let max_voting_duration = 2_u32;
-        let voting_delay = 1_u32;
-
-        // Deploy Vanilla Authenticator 
-        let (vanilla_authenticator_address, _) = deploy_syscall(
-            VanillaAuthenticator::TEST_CLASS_HASH.try_into().unwrap(),
-            0,
-            array::ArrayTrait::<felt252>::new().span(),
-            false
-        )
-            .unwrap();
-        let mut authenticators = ArrayTrait::<ContractAddress>::new();
-        authenticators.append(vanilla_authenticator_address);
-
-        // Deploy Vanilla Proposal Validation Strategy
-        let (vanilla_proposal_validation_address, _) = deploy_syscall(
-            VanillaProposalValidationStrategy::TEST_CLASS_HASH.try_into().unwrap(),
-            0,
-            array::ArrayTrait::<felt252>::new().span(),
-            false
-        )
-            .unwrap();
-        let vanilla_proposal_validation_strategy = StrategyImpl::from_address(
-            vanilla_proposal_validation_address
-        );
-
-        // Deploy Vanilla Voting Strategy 
-        let (vanilla_voting_strategy_address, _) = deploy_syscall(
-            VanillaVotingStrategy::TEST_CLASS_HASH.try_into().unwrap(),
-            0,
-            array::ArrayTrait::<felt252>::new().span(),
-            false
-        )
-            .unwrap();
-        let mut voting_strategies = ArrayTrait::<Strategy>::new();
-        voting_strategies
-            .append(
-                Strategy {
-                    address: vanilla_voting_strategy_address, params: ArrayTrait::<felt252>::new()
-                }
-            );
-
-        // Deploy Space 
-        let (space_address, _) = deploy_syscall(
-            Space::TEST_CLASS_HASH.try_into().unwrap(), 0, array![].span(), false
-        )
-            .unwrap();
-
-        let space = ISpaceDispatcher { contract_address: space_address };
-
-        space
-            .initialize(
-                owner,
-                min_voting_duration,
-                max_voting_duration,
-                voting_delay,
-                vanilla_proposal_validation_strategy.clone(),
-                array![],
-                voting_strategies.clone(),
-                array![],
-                authenticators.clone(),
-                array![],
-                array![]
-            );
-
-        space
-            .initialize(
-                owner,
-                min_voting_duration,
-                max_voting_duration,
-                voting_delay,
-                vanilla_proposal_validation_strategy,
-                array![],
-                voting_strategies,
-                array![],
-                authenticators,
-                array![],
-                array![]
-            );
-    }
-
-    #[test]
-    #[available_gas(100000000)]
-    #[should_panic(expected: ('Space already initialized', 'ENTRYPOINT_FAILED'))]
     fn test_initialize() {
         let deployer = contract_address_const::<0xdead>();
 
@@ -205,6 +112,99 @@ mod tests {
             space.proposal_validation_strategy() == vanilla_proposal_validation_strategy,
             'proposal validation incorrect'
         );
+    }
+
+    #[test]
+    #[available_gas(100000000)]
+    #[should_panic(expected: ('Already Initialized', 'ENTRYPOINT_FAILED'))]
+    fn test_reinitialize() {
+        let deployer = contract_address_const::<0xdead>();
+
+        testing::set_caller_address(deployer);
+        testing::set_contract_address(deployer);
+        // Space Settings
+        let owner = contract_address_const::<0x123456789>();
+        let min_voting_duration = 1_u32;
+        let max_voting_duration = 2_u32;
+        let voting_delay = 1_u32;
+
+        // Deploy Vanilla Authenticator 
+        let (vanilla_authenticator_address, _) = deploy_syscall(
+            VanillaAuthenticator::TEST_CLASS_HASH.try_into().unwrap(),
+            0,
+            array::ArrayTrait::<felt252>::new().span(),
+            false
+        )
+            .unwrap();
+        let mut authenticators = ArrayTrait::<ContractAddress>::new();
+        authenticators.append(vanilla_authenticator_address);
+
+        // Deploy Vanilla Proposal Validation Strategy
+        let (vanilla_proposal_validation_address, _) = deploy_syscall(
+            VanillaProposalValidationStrategy::TEST_CLASS_HASH.try_into().unwrap(),
+            0,
+            array::ArrayTrait::<felt252>::new().span(),
+            false
+        )
+            .unwrap();
+        let vanilla_proposal_validation_strategy = StrategyImpl::from_address(
+            vanilla_proposal_validation_address
+        );
+
+        // Deploy Vanilla Voting Strategy 
+        let (vanilla_voting_strategy_address, _) = deploy_syscall(
+            VanillaVotingStrategy::TEST_CLASS_HASH.try_into().unwrap(),
+            0,
+            array::ArrayTrait::<felt252>::new().span(),
+            false
+        )
+            .unwrap();
+        let mut voting_strategies = ArrayTrait::<Strategy>::new();
+        voting_strategies
+            .append(
+                Strategy {
+                    address: vanilla_voting_strategy_address, params: ArrayTrait::<felt252>::new()
+                }
+            );
+
+        // Deploy Space 
+        let (space_address, _) = deploy_syscall(
+            Space::TEST_CLASS_HASH.try_into().unwrap(), 0, array![].span(), false
+        )
+            .unwrap();
+
+        let space = ISpaceDispatcher { contract_address: space_address };
+
+        space
+            .initialize(
+                owner,
+                min_voting_duration,
+                max_voting_duration,
+                voting_delay,
+                vanilla_proposal_validation_strategy.clone(),
+                array![],
+                voting_strategies.clone(),
+                array![],
+                authenticators.clone(),
+                array![],
+                array![]
+            );
+
+        // Atempting to call the initialize function again
+        space
+            .initialize(
+                owner,
+                min_voting_duration,
+                max_voting_duration,
+                voting_delay,
+                vanilla_proposal_validation_strategy,
+                array![],
+                voting_strategies,
+                array![],
+                authenticators,
+                array![],
+                array![]
+            );
     }
 
     #[test]
