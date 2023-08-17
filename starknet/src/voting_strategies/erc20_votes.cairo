@@ -35,7 +35,7 @@ mod ERC20VotesVotingStrategy {
 
             let erc20 = IVotesDispatcher { contract_address: erc20_contract_address,  };
 
-            erc20.get_past_votes(voter, timestamp.into()) // TODO; verify - 1
+            erc20.get_past_votes(voter, timestamp.into())
         }
     }
 }
