@@ -468,7 +468,7 @@ mod Space {
             }
 
             if NoUpdateArray::should_update((@input).authenticators_to_add) {
-                _add_authenticators(ref self, input.authenticators_to_add.clone());
+                _add_authenticators(ref self, input.authenticators_to_add.span());
                 AuthenticatorsAdded(@input.authenticators_to_add);
             }
 
@@ -532,7 +532,7 @@ mod Space {
         _set_voting_delay(ref self, _voting_delay);
         _set_proposal_validation_strategy(ref self, _proposal_validation_strategy.clone());
         _add_voting_strategies(ref self, _voting_strategies.span());
-        _add_authenticators(ref self, _authenticators.clone());
+        _add_authenticators(ref self, _authenticators.span());
         self._next_proposal_id.write(1_u256);
         SpaceCreated(
             info::get_contract_address(),
@@ -653,15 +653,16 @@ mod Space {
         self._active_voting_strategies.write(cachedActiveVotingStrategies);
     }
 
-    fn _add_authenticators(ref self: ContractState, _authenticators: Array<ContractAddress>) {
-        let mut _authenticators_span = _authenticators.span();
-        let mut i = 0_usize;
+    fn _add_authenticators(ref self: ContractState, mut _authenticators: Span<ContractAddress>) {
         loop {
-            if i >= _authenticators.len() {
-                break ();
-            }
-            self._authenticators.write(*_authenticators_span.pop_front().unwrap(), true);
-            i += 1;
+            match _authenticators.pop_front() {
+                Option::Some(authenticator) => {
+                    self._authenticators.write(*authenticator, true);
+                },
+                Option::None => {
+                    break;
+                },
+            };
         }
     }
 
