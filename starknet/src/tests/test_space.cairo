@@ -115,7 +115,7 @@ mod tests {
 
     #[test]
     #[available_gas(10000000000)]
-    fn test__propose_update_vote_execute() {
+    fn test_propose_update_vote_execute() {
         let config = setup();
         let (factory, space) = deploy(@config);
 
@@ -337,7 +337,7 @@ mod tests {
     #[test]
     #[available_gas(10000000000)]
     #[should_panic(expected: ('Zero Address', 'ENTRYPOINT_FAILED', 'ENTRYPOINT_FAILED'))]
-    fn test_propose_from_zero_starknet_address() {
+    fn test_propose_zero_address() {
         let config = setup();
         let (factory, space) = deploy(@config);
 
@@ -374,7 +374,7 @@ mod tests {
     #[test]
     #[available_gas(10000000000)]
     #[should_panic(expected: ('Zero Address', 'ENTRYPOINT_FAILED', 'ENTRYPOINT_FAILED'))]
-    fn test_propose_from_zero_eth_address() {
+    fn test_update_zero_address() {
         let config = setup();
         let (factory, space) = deploy(@config);
 
@@ -397,7 +397,7 @@ mod tests {
             vanilla_execution_strategy_address
         );
         // author is the zero address
-        let author = UserAddress::Ethereum(EthAddress { address: 0 });
+        let author = UserAddress::Starknet(contract_address_const::<0x0>());
         let mut propose_calldata = array::ArrayTrait::<felt252>::new();
         author.serialize(ref propose_calldata);
         vanilla_execution_strategy.serialize(ref propose_calldata);
@@ -406,12 +406,30 @@ mod tests {
 
         // Create Proposal
         authenticator.authenticate(space.contract_address, PROPOSE_SELECTOR, propose_calldata);
+
+        // Update Proposal
+        let mut update_calldata = array::ArrayTrait::<felt252>::new();
+        author.serialize(ref update_calldata);
+        let proposal_id = u256_from_felt252(1);
+        proposal_id.serialize(ref update_calldata);
+        // Keeping the same execution strategy contract but changing the payload
+        let mut new_payload = ArrayTrait::<felt252>::new();
+        new_payload.append(1);
+        let execution_strategy = Strategy {
+            address: vanilla_execution_strategy.address, params: new_payload
+        };
+        execution_strategy.serialize(ref update_calldata);
+        ArrayTrait::<felt252>::new().serialize(ref update_calldata);
+
+        authenticator
+            .authenticate(space.contract_address, UPDATE_PROPOSAL_SELECTOR, update_calldata);
     }
+
 
     #[test]
     #[available_gas(10000000000)]
     #[should_panic(expected: ('Zero Address', 'ENTRYPOINT_FAILED', 'ENTRYPOINT_FAILED'))]
-    fn test_propose_from_zero_custom_address() {
+    fn test_vote_zero_address() {
         let config = setup();
         let (factory, space) = deploy(@config);
 
@@ -433,8 +451,7 @@ mod tests {
         let vanilla_execution_strategy = StrategyImpl::from_address(
             vanilla_execution_strategy_address
         );
-        // author is the zero address
-        let author = UserAddress::Custom(0_u256);
+        let author = UserAddress::Starknet(contract_address_const::<0x5678>());
         let mut propose_calldata = array::ArrayTrait::<felt252>::new();
         author.serialize(ref propose_calldata);
         vanilla_execution_strategy.serialize(ref propose_calldata);
@@ -443,5 +460,63 @@ mod tests {
 
         // Create Proposal
         authenticator.authenticate(space.contract_address, PROPOSE_SELECTOR, propose_calldata);
+
+        assert(
+            space.next_proposal_id() == u256 { low: 2_u128, high: 0_u128 },
+            'next_proposal_id should be 2'
+        );
+
+        let proposal = space.proposals(u256_from_felt252(1));
+        let block_number = info::get_block_number().try_into().unwrap();
+        let expected_proposal = Proposal {
+            start_block_number: block_number + 1_u32,
+            min_end_block_number: block_number + 2_u32,
+            max_end_block_number: block_number + 3_u32,
+            execution_payload_hash: poseidon::poseidon_hash_span(
+                vanilla_execution_strategy.clone().params.span()
+            ),
+            execution_strategy: vanilla_execution_strategy.address,
+            author: author,
+            finalization_status: FinalizationStatus::Pending(()),
+            active_voting_strategies: u256_from_felt252(1)
+        };
+        assert(proposal == expected_proposal, 'proposal state');
+
+        // Update Proposal
+        let mut update_calldata = array::ArrayTrait::<felt252>::new();
+        author.serialize(ref update_calldata);
+        let proposal_id = u256_from_felt252(1);
+        proposal_id.serialize(ref update_calldata);
+        // Keeping the same execution strategy contract but changing the payload
+        let mut new_payload = ArrayTrait::<felt252>::new();
+        new_payload.append(1);
+        let execution_strategy = Strategy {
+            address: vanilla_execution_strategy.address, params: new_payload
+        };
+        execution_strategy.serialize(ref update_calldata);
+        ArrayTrait::<felt252>::new().serialize(ref update_calldata);
+
+        authenticator
+            .authenticate(space.contract_address, UPDATE_PROPOSAL_SELECTOR, update_calldata);
+
+        // Increasing block block_number by 1 to pass voting delay
+        testing::set_block_number(1_u64);
+
+        let mut vote_calldata = array::ArrayTrait::<felt252>::new();
+        // Voter is the zero address
+        let voter = UserAddress::Starknet(contract_address_const::<0x0>());
+        voter.serialize(ref vote_calldata);
+        let proposal_id = u256_from_felt252(1);
+        proposal_id.serialize(ref vote_calldata);
+        let choice = Choice::For(());
+        choice.serialize(ref vote_calldata);
+        let mut user_voting_strategies = ArrayTrait::<IndexedStrategy>::new();
+        user_voting_strategies
+            .append(IndexedStrategy { index: 0_u8, params: ArrayTrait::<felt252>::new() });
+        user_voting_strategies.serialize(ref vote_calldata);
+        ArrayTrait::<felt252>::new().serialize(ref vote_calldata);
+
+        // Vote on Proposal
+        authenticator.authenticate(space.contract_address, VOTE_SELECTOR, vote_calldata);
     }
 }
