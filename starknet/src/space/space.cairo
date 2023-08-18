@@ -285,6 +285,15 @@ mod Space {
             let mut proposal = self._proposals.read(proposal_id);
             assert_proposal_exists(@proposal);
 
+            let recovered_hash = poseidon::poseidon_hash_span(execution_payload.span());
+            // Check that payload matches
+            assert(recovered_hash == proposal.execution_payload_hash, 'Invalid payload hash');
+
+            // Check that finalization status is not pending
+            assert(
+                proposal.finalization_status == FinalizationStatus::Pending(()), 'Already finalized'
+            );
+
             IExecutionStrategyDispatcher {
                 contract_address: proposal.execution_strategy
             }
@@ -323,7 +332,7 @@ mod Space {
 
             proposal
                 .execution_payload_hash =
-                    poseidon::poseidon_hash_span(execution_strategy.clone().params.span());
+                    poseidon::poseidon_hash_span(execution_strategy.params.span());
 
             self._proposals.write(proposal_id, proposal);
 
