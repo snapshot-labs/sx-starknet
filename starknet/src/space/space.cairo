@@ -488,7 +488,7 @@ mod Space {
 
             // if not NO_UPDATE
             if NoUpdateArray::should_update((@input).voting_strategies_to_remove) {
-                _remove_voting_strategies(ref self, input.voting_strategies_to_remove.clone());
+                _remove_voting_strategies(ref self, input.voting_strategies_to_remove.span());
                 VotingStrategiesRemoved(@input.voting_strategies_to_remove);
             }
         }
@@ -635,23 +635,20 @@ mod Space {
         self._next_voting_strategy_index.write(cachedNextVotingStrategyIndex);
     }
 
-    fn _remove_voting_strategies(ref self: ContractState, _voting_strategies: Array<u8>) {
+    fn _remove_voting_strategies(ref self: ContractState, mut _voting_strategies: Span<u8>) {
         let mut cachedActiveVotingStrategies = self._active_voting_strategies.read();
-        let mut _voting_strategies_span = _voting_strategies.span();
-        let mut i = 0_usize;
         loop {
-            if i >= _voting_strategies.len() {
-                break ();
-            }
-
-            let index = _voting_strategies_span.pop_front().unwrap();
-            cachedActiveVotingStrategies.set_bit(*index, false);
-            i += 1;
+            match _voting_strategies.pop_front() {
+                Option::Some(index) => {
+                    cachedActiveVotingStrategies.set_bit(*index, false);
+                },
+                Option::None => {
+                    break;
+                },
+            };
         };
 
-        if cachedActiveVotingStrategies == 0 {
-            panic_with_felt252('No active voting strategy left');
-        }
+        assert(cachedActiveVotingStrategies != 0, 'No active voting strategy left');
 
         self._active_voting_strategies.write(cachedActiveVotingStrategies);
     }
