@@ -29,6 +29,20 @@ trait ISpace<TContractState> {
     fn transfer_ownership(ref self: TContractState, new_owner: ContractAddress);
     fn renounce_ownership(ref self: TContractState);
     // Actions 
+    fn initialize(
+        ref self: TContractState,
+        owner: ContractAddress,
+        min_voting_duration: u32,
+        max_voting_duration: u32,
+        voting_delay: u32,
+        proposal_validation_strategy: Strategy,
+        proposal_validation_strategy_metadata_URI: Array<felt252>,
+        voting_strategies: Array<Strategy>,
+        voting_strategy_metadata_URIs: Array<Array<felt252>>,
+        authenticators: Array<ContractAddress>,
+        metadata_URI: Array<felt252>,
+        dao_URI: Array<felt252>,
+    );
     fn propose(
         ref self: TContractState,
         author: UserAddress,
@@ -53,13 +67,15 @@ trait ISpace<TContractState> {
         metadata_URI: Array<felt252>,
     );
     fn cancel_proposal(ref self: TContractState, proposal_id: u256);
-    fn upgrade(ref self: TContractState, class_hash: ClassHash);
+    fn upgrade(
+        ref self: TContractState, class_hash: ClassHash, initialize_calldata: Array<felt252>
+    );
 }
 
 #[starknet::contract]
 mod Space {
     use super::ISpace;
-    use starknet::{ClassHash, ContractAddress, info, Store};
+    use starknet::{ClassHash, ContractAddress, info, Store, syscalls};
     use zeroable::Zeroable;
     use array::{ArrayTrait, SpanTrait};
     use clone::Clone;
@@ -77,14 +93,17 @@ mod Space {
         IndexedStrategyTrait, IndexedStrategyImpl, UpdateSettingsCalldata, NoUpdateU32,
         NoUpdateStrategy, NoUpdateArray
     };
+    use sx::utils::reinitializable::Reinitializable;
+    use sx::utils::ReinitializableImpl;
     use sx::utils::bits::BitSetter;
     use sx::utils::legacy_hash::LegacyHashChoice;
     use sx::external::ownable::Ownable;
+    use sx::utils::constants::INITIALIZE_SELECTOR;
 
     #[storage]
     struct Storage {
-        _max_voting_duration: u32,
         _min_voting_duration: u32,
+        _max_voting_duration: u32,
         _next_proposal_id: u256,
         _voting_delay: u32,
         _active_voting_strategies: u256,
@@ -101,9 +120,9 @@ mod Space {
     fn SpaceCreated(
         _space: ContractAddress,
         _owner: ContractAddress,
-        _voting_delay: u32,
         _min_voting_duration: u32,
         _max_voting_duration: u32,
+        _voting_delay: u32,
         _proposal_validation_strategy: @Strategy,
         _proposal_validation_strategy_metadata_URI: @Array<felt252>,
         _voting_strategies: @Array<Strategy>,
@@ -179,10 +198,56 @@ mod Space {
     fn VotingDelayUpdated(_new_voting_delay: u32) {}
 
     #[event]
-    fn Upgraded(class_hash: ClassHash) {}
+    fn Upgraded(class_hash: ClassHash, initialize_calldata: Array<felt252>) {}
 
     #[external(v0)]
     impl Space of ISpace<ContractState> {
+        fn initialize(
+            ref self: ContractState,
+            owner: ContractAddress,
+            min_voting_duration: u32,
+            max_voting_duration: u32,
+            voting_delay: u32,
+            proposal_validation_strategy: Strategy,
+            proposal_validation_strategy_metadata_URI: Array<felt252>,
+            voting_strategies: Array<Strategy>,
+            voting_strategy_metadata_URIs: Array<Array<felt252>>,
+            authenticators: Array<ContractAddress>,
+            metadata_URI: Array<felt252>,
+            dao_URI: Array<felt252>,
+        ) {
+            SpaceCreated(
+                info::get_contract_address(),
+                owner,
+                min_voting_duration,
+                max_voting_duration,
+                voting_delay,
+                @proposal_validation_strategy,
+                @proposal_validation_strategy_metadata_URI,
+                @voting_strategies,
+                @voting_strategy_metadata_URIs,
+                @authenticators,
+                @metadata_URI,
+                @dao_URI
+            );
+            // Checking that the contract is not already initialized
+            //TODO: temporary component syntax (see imports too)
+            let mut state: Reinitializable::ContractState =
+                Reinitializable::unsafe_new_contract_state();
+            ReinitializableImpl::initialize(ref state);
+
+            //TODO: temporary component syntax
+            let mut state: Ownable::ContractState = Ownable::unsafe_new_contract_state();
+            Ownable::initializer(ref state);
+            Ownable::transfer_ownership(ref state, owner);
+            _set_min_voting_duration(ref self, min_voting_duration);
+            _set_max_voting_duration(ref self, max_voting_duration);
+            _set_voting_delay(ref self, voting_delay);
+            _set_proposal_validation_strategy(ref self, proposal_validation_strategy);
+            _add_voting_strategies(ref self, voting_strategies);
+            _add_authenticators(ref self, authenticators);
+            self._next_proposal_id.write(1_u256);
+        }
         fn propose(
             ref self: ContractState,
             author: UserAddress,
@@ -204,11 +269,11 @@ mod Space {
                 );
             assert(is_valid, 'Proposal is not valid');
 
-            // The snapshot block number is the start of the voting period
-            let start_block_number = info::get_block_number().try_into().unwrap()
+            // The snapshot block timestamp is the start of the voting period
+            let start_timestamp = info::get_block_timestamp().try_into().unwrap()
                 + self._voting_delay.read();
-            let min_end_block_number = start_block_number + self._min_voting_duration.read();
-            let max_end_block_number = start_block_number + self._max_voting_duration.read();
+            let min_end_timestamp = start_timestamp + self._min_voting_duration.read();
+            let max_end_timestamp = start_timestamp + self._max_voting_duration.read();
 
             // TODO: we use a felt252 for the hash despite felts being discouraged 
             // a new field would just replace the hash. Might be worth casting to a Uint256 though? 
@@ -217,9 +282,9 @@ mod Space {
             );
 
             let proposal = Proposal {
-                start_block_number: start_block_number,
-                min_end_block_number: min_end_block_number,
-                max_end_block_number: max_end_block_number,
+                start_timestamp: start_timestamp,
+                min_end_timestamp: min_end_timestamp,
+                max_end_timestamp: max_end_timestamp,
                 execution_payload_hash: execution_payload_hash,
                 execution_strategy: execution_strategy.address,
                 author: author,
@@ -231,7 +296,7 @@ mod Space {
             // TODO: Lots of copying, maybe figure out how to pass snapshots to events/storage writers. 
             self._proposals.write(proposal_id, proposal);
 
-            self._next_proposal_id.write(proposal_id + u256 { low: 1_u128, high: 0_u128 });
+            self._next_proposal_id.write(proposal_id + 1_u256);
 
             ProposalCreated(
                 proposal_id, author, snap_proposal, @execution_strategy.params, @metadata_URI
@@ -251,10 +316,10 @@ mod Space {
             let proposal = self._proposals.read(proposal_id);
             assert_proposal_exists(@proposal);
 
-            let block_number = info::get_block_number().try_into().unwrap();
+            let timestamp = info::get_block_timestamp().try_into().unwrap();
 
-            assert(block_number < proposal.max_end_block_number, 'Voting period has ended');
-            assert(block_number >= proposal.start_block_number, 'Voting period has not started');
+            assert(timestamp < proposal.max_end_timestamp, 'Voting period has ended');
+            assert(timestamp >= proposal.start_timestamp, 'Voting period has not started');
             assert(
                 proposal.finalization_status == FinalizationStatus::Pending(()),
                 'Proposal has been finalized'
@@ -266,12 +331,12 @@ mod Space {
             let voting_power = _get_cumulative_power(
                 @self,
                 voter,
-                proposal.start_block_number,
+                proposal.start_timestamp,
                 user_voting_strategies,
                 proposal.active_voting_strategies
             );
 
-            assert(voting_power > u256 { low: 0_u128, high: 0_u128 }, 'User has no voting power');
+            assert(voting_power > 0_u256, 'User has no voting power');
             self
                 ._vote_power
                 .write(
@@ -318,7 +383,7 @@ mod Space {
             assert_proposal_exists(@proposal);
             assert(proposal.author == author, 'Only Author');
             assert(
-                info::get_block_number() < proposal.start_block_number.into(),
+                info::get_block_timestamp() < proposal.start_timestamp.into(),
                 'Voting period started'
             );
 
@@ -347,15 +412,26 @@ mod Space {
             ProposalCancelled(proposal_id);
         }
 
-        fn upgrade(ref self: ContractState, class_hash: ClassHash) {
+        fn upgrade(
+            ref self: ContractState, class_hash: ClassHash, initialize_calldata: Array<felt252>
+        ) {
             let state: Ownable::ContractState = Ownable::unsafe_new_contract_state();
             Ownable::assert_only_owner(@state);
 
-            assert(
-                class_hash.is_non_zero(), 'Class Hash cannot be zero'
-            ); // TODO: not sure this is needed
+            assert(class_hash.is_non_zero(), 'Class Hash cannot be zero');
             starknet::replace_class_syscall(class_hash).unwrap_syscall();
-            Upgraded(class_hash);
+
+            // Allowing initializer to be called again.
+            let mut state: Reinitializable::ContractState =
+                Reinitializable::unsafe_new_contract_state();
+            ReinitializableImpl::reinitialize(ref state);
+
+            // Call initializer on the new version.
+            syscalls::call_contract_syscall(
+                info::get_contract_address(), INITIALIZE_SELECTOR, initialize_calldata.span()
+            )
+                .unwrap_syscall();
+            Upgraded(class_hash, initialize_calldata);
         }
 
         fn owner(self: @ContractState) -> ContractAddress {
@@ -488,48 +564,6 @@ mod Space {
         }
     }
 
-    #[constructor]
-    fn constructor(
-        ref self: ContractState,
-        _owner: ContractAddress,
-        _max_voting_duration: u32,
-        _min_voting_duration: u32,
-        _voting_delay: u32,
-        _proposal_validation_strategy: Strategy,
-        _proposal_validation_strategy_metadata_URI: Array<felt252>,
-        _voting_strategies: Array<Strategy>,
-        _voting_strategies_metadata_URIs: Array<Array<felt252>>,
-        _authenticators: Array<ContractAddress>,
-        _metadata_URI: Array<felt252>,
-        _dao_URI: Array<felt252>
-    ) {
-        //TODO: temporary component syntax
-        let mut state: Ownable::ContractState = Ownable::unsafe_new_contract_state();
-        Ownable::initializer(ref state);
-        Ownable::transfer_ownership(ref state, _owner);
-        _set_max_voting_duration(ref self, _max_voting_duration);
-        _set_min_voting_duration(ref self, _min_voting_duration);
-        _set_voting_delay(ref self, _voting_delay);
-        _set_proposal_validation_strategy(ref self, _proposal_validation_strategy.clone());
-        _add_voting_strategies(ref self, _voting_strategies.clone());
-        _add_authenticators(ref self, _authenticators.clone());
-        self._next_proposal_id.write(u256 { low: 1_u128, high: 0_u128 });
-        SpaceCreated(
-            info::get_contract_address(),
-            _owner,
-            _voting_delay,
-            _min_voting_duration,
-            _max_voting_duration,
-            @_proposal_validation_strategy,
-            @_proposal_validation_strategy_metadata_URI,
-            @_voting_strategies,
-            @_voting_strategies_metadata_URIs,
-            @_authenticators,
-            @_metadata_URI,
-            @_dao_URI
-        );
-    }
-
     /// 
     /// Internals
     ///
@@ -540,18 +574,18 @@ mod Space {
     }
 
     fn assert_proposal_exists(proposal: @Proposal) {
-        assert(!(*proposal.start_block_number).is_zero(), 'Proposal does not exist');
+        assert(!(*proposal.start_timestamp).is_zero(), 'Proposal does not exist');
     }
 
     fn _get_cumulative_power(
         self: @ContractState,
         voter: UserAddress,
-        block_number: u32,
+        timestamp: u32,
         user_strategies: Array<IndexedStrategy>,
         allowed_strategies: u256
     ) -> u256 {
         user_strategies.assert_no_duplicate_indices();
-        let mut total_voting_power = u256 { low: 0_u128, high: 0_u128 };
+        let mut total_voting_power = 0_u256;
         let mut i = 0_usize;
         loop {
             if i >= user_strategies.len() {
@@ -564,7 +598,7 @@ mod Space {
                 contract_address: strategy.address
             }
                 .get_voting_power(
-                    block_number, voter, strategy.params, user_strategies.at(i).params.clone()
+                    timestamp, voter, strategy.params, user_strategies.at(i).params.clone()
                 );
             i += 1;
         };

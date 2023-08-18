@@ -32,10 +32,11 @@ trait KeccakTypeHash<T> {
 
 impl KeccakTypeHashStrategy of KeccakTypeHash<Strategy> {
     fn hash(self: Strategy) -> u256 {
-        let mut encoded_data = ArrayTrait::<u256>::new();
-        encoded_data.append(u256 { low: STRATEGY_TYPEHASH_LOW, high: STRATEGY_TYPEHASH_HIGH });
-        encoded_data.append(self.address.into());
-        encoded_data.append(self.params.hash());
+        let mut encoded_data = array![
+            u256 {
+                low: STRATEGY_TYPEHASH_LOW, high: STRATEGY_TYPEHASH_HIGH
+            }, self.address.into(), self.params.hash(),
+        ];
         keccak::keccak_u256s_le_inputs(encoded_data.span())
     }
 }
@@ -51,14 +52,12 @@ impl KeccakTypeHashArray of KeccakTypeHash<Array<felt252>> {
 
 impl KeccakTypeHashIndexedStrategy of KeccakTypeHash<IndexedStrategy> {
     fn hash(self: IndexedStrategy) -> u256 {
-        let mut encoded_data = ArrayTrait::<u256>::new();
-        encoded_data
-            .append(
-                u256 { low: INDEXED_STRATEGY_TYPEHASH_LOW, high: INDEXED_STRATEGY_TYPEHASH_HIGH }
-            );
         let index_felt: felt252 = self.index.into();
-        encoded_data.append(index_felt.into());
-        encoded_data.append(self.params.hash());
+        let mut encoded_data = array![
+            u256 {
+                low: INDEXED_STRATEGY_TYPEHASH_LOW, high: INDEXED_STRATEGY_TYPEHASH_HIGH
+            }, index_felt.into(), self.params.hash(),
+        ];
         keccak::keccak_u256s_le_inputs(encoded_data.span())
     }
 }
@@ -143,13 +142,16 @@ fn get_propose_digest(
     user_proposal_validation_params: Array<felt252>,
     salt: u256
 ) -> u256 {
-    let mut encoded_data = ArrayTrait::<u256>::new();
-    encoded_data.append(u256 { low: PROPOSE_TYPEHASH_LOW, high: PROPOSE_TYPEHASH_HIGH });
-    encoded_data.append(space.into());
-    encoded_data.append(author.into());
-    encoded_data.append(execution_strategy.hash());
-    encoded_data.append(user_proposal_validation_params.hash());
-    encoded_data.append(salt);
+    let mut encoded_data = array![
+        u256 {
+            low: PROPOSE_TYPEHASH_LOW, high: PROPOSE_TYPEHASH_HIGH
+        },
+        space.into(),
+        author.into(),
+        execution_strategy.hash(),
+        user_proposal_validation_params.hash(),
+        salt,
+    ];
     let message_hash = keccak::keccak_u256s_le_inputs(encoded_data.span());
     hash_typed_data(domain_hash, message_hash)
 }
@@ -162,13 +164,11 @@ fn get_vote_digest(
     choice: Choice,
     user_voting_strategies: Array<IndexedStrategy>
 ) -> u256 {
-    let mut encoded_data = ArrayTrait::<u256>::new();
-    encoded_data.append(u256 { low: VOTE_TYPEHASH_LOW, high: VOTE_TYPEHASH_HIGH });
-    encoded_data.append(space.into());
-    encoded_data.append(voter.into());
-    encoded_data.append(proposal_id);
-    encoded_data.append(choice.into());
-    encoded_data.append(user_voting_strategies.hash());
+    let mut encoded_data = array![
+        u256 {
+            low: VOTE_TYPEHASH_LOW, high: VOTE_TYPEHASH_HIGH
+        }, space.into(), voter.into(), proposal_id, choice.into(), user_voting_strategies.hash(),
+    ];
     let message_hash = keccak::keccak_u256s_le_inputs(encoded_data.span());
     hash_typed_data(domain_hash, message_hash)
 }
@@ -181,33 +181,32 @@ fn get_update_proposal_digest(
     execution_strategy: Strategy,
     salt: u256
 ) -> u256 {
-    let mut encoded_data = ArrayTrait::<u256>::new();
-    encoded_data
-        .append(u256 { low: UPDATE_PROPOSAL_TYPEHASH_LOW, high: UPDATE_PROPOSAL_TYPEHASH_HIGH });
-    encoded_data.append(space.into());
-    encoded_data.append(author.into());
-    encoded_data.append(proposal_id);
-    encoded_data.append(execution_strategy.hash());
-    encoded_data.append(salt);
+    let mut encoded_data = array![
+        u256 {
+            low: UPDATE_PROPOSAL_TYPEHASH_LOW, high: UPDATE_PROPOSAL_TYPEHASH_HIGH
+        }, space.into(), author.into(), proposal_id, execution_strategy.hash(), salt,
+    ];
     let message_hash = keccak::keccak_u256s_le_inputs(encoded_data.span());
     hash_typed_data(domain_hash, message_hash)
 }
 
 fn get_domain_hash(name: felt252, version: felt252) -> u256 {
-    let mut encoded_data = ArrayTrait::<u256>::new();
-    encoded_data.append(u256 { low: DOMAIN_TYPEHASH_LOW, high: DOMAIN_TYPEHASH_HIGH });
-    encoded_data.append(name.into());
-    encoded_data.append(version.into());
-    // TODO: chain id doesnt seem like its exposed atm, so just dummy value for now
-    encoded_data.append(u256 { low: 'dummy', high: 0 });
-    encoded_data.append(starknet::get_contract_address().into());
+    let mut encoded_data = array![
+        u256 {
+            low: DOMAIN_TYPEHASH_LOW, high: DOMAIN_TYPEHASH_HIGH
+            },
+            name.into(),
+            version
+                .into(), // TODO: chain id doesnt seem like its exposed atm, so just dummy value for now
+            u256 {
+            low: 'dummy', high: 0
+        }, starknet::get_contract_address().into(),
+    ];
     keccak::keccak_u256s_le_inputs(encoded_data.span())
 }
 
 fn hash_typed_data(domain_hash: u256, message_hash: u256) -> u256 {
-    let mut encoded_data = ArrayTrait::<u256>::new();
-    encoded_data.append(domain_hash);
-    encoded_data.append(message_hash);
+    let mut encoded_data = array![domain_hash, message_hash, ];
     let encoded_data = _add_prefix_array(encoded_data, ETHEREUM_PREFIX);
     keccak::keccak_u256s_le_inputs(encoded_data.span())
 }
@@ -215,13 +214,13 @@ fn hash_typed_data(domain_hash: u256, message_hash: u256) -> u256 {
 
 // Prefixes a 16 bit prefix to an array of 256 bit values.
 fn _add_prefix_array(input: Array<u256>, mut prefix: u128) -> Array<u256> {
-    let mut out = ArrayTrait::<u256>::new();
+    let mut out = array![];
     let mut i = 0_usize;
     loop {
         if i >= input.len() {
             // left shift so that the prefix is in the high bits
             let prefix_u256 = u256 { low: prefix, high: 0_u128 };
-            let shifted_prefix = prefix_u256 * pow(u256 { low: 2_u128, high: 0_u128 }, 112_u8);
+            let shifted_prefix = prefix_u256 * pow(2_u256, 112_u8);
             out.append(shifted_prefix);
             break ();
         }
@@ -238,14 +237,11 @@ fn _add_prefix_array(input: Array<u256>, mut prefix: u128) -> Array<u256> {
 
 // prefixes a 16 bit prefix to a 128 bit input, returning the result and a carry if it overflows 128 bits
 fn _add_prefix_u128(input: u128, prefix: u128) -> (u128, u128) {
-    let prefix_u256 = u256 { low: prefix, high: 0_u128 };
-    let shifted_prefix = prefix_u256 * pow(u256 { low: 2_u128, high: 0_u128 }, 128_u8);
-    let with_prefix = u256 { low: input, high: 0_u128 } + shifted_prefix;
-    let overflow_mask = pow(u256 { low: 2_u128, high: 0_u128 }, 16_u8) - u256 {
-        low: 1_u128, high: 0_u128
-    };
+    let shifted_prefix = prefix.into() * pow(2_u256, 128_u8);
+    let with_prefix = input.into() + shifted_prefix;
+    let overflow_mask = pow(2_u256, 16_u8) - 1_u256;
     let carry = with_prefix & overflow_mask;
     // Removing the carry and shifting back. The result fits in 128 bits.
-    let out = ((with_prefix - carry) / pow(u256 { low: 2_u128, high: 0_u128 }, 16_u8));
+    let out = ((with_prefix - carry) / pow(2_u256, 16_u8));
     (out.low, carry.low)
 }

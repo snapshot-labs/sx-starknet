@@ -10,7 +10,7 @@ mod tests {
     use sx::types::Strategy;
     use starknet::ClassHash;
 
-    use sx::tests::setup::setup::setup::{setup, get_constructor_calldata, deploy};
+    use sx::tests::setup::setup::setup::{setup, get_initialize_calldata, deploy};
 
     #[test]
     #[available_gas(10000000000)]
@@ -26,7 +26,7 @@ mod tests {
     #[test]
     #[available_gas(10000000000)]
     fn test_deploy_reuse_salt() {
-        let mut constructor_calldata = ArrayTrait::<felt252>::new();
+        let mut constructor_calldata = array![];
 
         let (factory_address, _) = deploy_syscall(
             Factory::TEST_CLASS_HASH.try_into().unwrap(), 0, constructor_calldata.span(), false
@@ -39,7 +39,7 @@ mod tests {
         let contract_address_salt = 0;
 
         let config = setup();
-        let constructor_calldata = get_constructor_calldata(
+        let constructor_calldata = get_initialize_calldata(
             @config.owner,
             @config.min_voting_duration,
             @config.max_voting_duration,
