@@ -1,3 +1,4 @@
+use core::array::SpanTrait;
 use option::OptionTrait;
 use serde::Serde;
 use clone::Clone;
@@ -21,18 +22,21 @@ impl IndexedStrategyImpl of IndexedStrategyTrait {
         }
 
         let mut bit_map = 0_u256;
-        let mut i = 0_usize;
+        let mut self = self.span();
         loop {
-            if i >= self.len() {
-                break ();
-            }
-            // Check that bit at index `strats[i].index` is not set.
-            let s = math::pow(2_u256, *self.at(i).index);
+            match self.pop_front() {
+                Option::Some(indexed_strategy) => {
+                    // Check that bit at index `strats[i].index` is not set.
+                    let s = math::pow(2_u256, *indexed_strategy.index);
 
-            assert((bit_map & s) == 1_u256, 'Duplicate Found');
-            // Update aforementioned bit.
-            bit_map = bit_map | s;
-            i += 1;
+                    assert((bit_map & s) == 1_u256, 'Duplicate Found');
+                    // Update aforementioned bit.
+                    bit_map = bit_map | s;
+                },
+                Option::None => {
+                    break;
+                },
+            };
         };
     }
 }
