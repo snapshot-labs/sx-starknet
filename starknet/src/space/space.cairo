@@ -474,7 +474,7 @@ mod Space {
 
             // if not NO_UPDATE
             if NoUpdateArray::should_update((@input).authenticators_to_remove) {
-                _remove_authenticators(ref self, input.authenticators_to_remove.clone());
+                _remove_authenticators(ref self, input.authenticators_to_remove.span());
                 AuthenticatorsRemoved(@input.authenticators_to_remove);
             }
 
@@ -666,15 +666,16 @@ mod Space {
         }
     }
 
-    fn _remove_authenticators(ref self: ContractState, _authenticators: Array<ContractAddress>) {
-        let mut _authenticators_span = _authenticators.span();
-        let mut i = 0_usize;
+    fn _remove_authenticators(ref self: ContractState, mut _authenticators: Span<ContractAddress>) {
         loop {
-            if i >= _authenticators.len() {
-                break ();
-            }
-            self._authenticators.write(*_authenticators_span.pop_front().unwrap(), false);
-            i += 1;
+            match _authenticators.pop_front() {
+                Option::Some(authenticator) => {
+                    self._authenticators.write(*authenticator, false);
+                },
+                Option::None => {
+                    break;
+                },
+            };
         }
     }
 }
