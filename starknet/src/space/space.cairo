@@ -416,15 +416,29 @@ mod Space {
             let state: Ownable::ContractState = Ownable::unsafe_new_contract_state();
             Ownable::assert_only_owner(@state);
 
+            // Needed because the compiiler will go crazy if we try to use `input` directly
+            let _min_voting_duration = input.min_voting_duration;
+            let _max_voting_duration = input.max_voting_duration;
             // if not NO_UPDATE
-            if NoUpdateU32::should_update(@input.max_voting_duration) {
-                _set_max_voting_duration(ref self, input.max_voting_duration);
-                MaxVotingDurationUpdated(input.max_voting_duration);
-            }
+            if NoUpdateU32::should_update(@_max_voting_duration)
+                && NoUpdateU32::should_update(@_min_voting_duration) {
+                // Check that min and max voting durations are valid
+                // We don't use the internal `_set_min_voting_duration` and `_set_max_voting_duration` functions because
+                // it would revert when `_min_voting_duration > max_voting_duration` (when the new `_min` is
+                // bigger than the current `max`).
+                assert(_min_voting_duration <= _max_voting_duration, 'Invalid duration');
 
-            if NoUpdateU32::should_update(@input.min_voting_duration) {
+                self._min_voting_duration.write(input.min_voting_duration);
+                MinVotingDurationUpdated(input.min_voting_duration);
+
+                self._max_voting_duration.write(input.max_voting_duration);
+                MaxVotingDurationUpdated(input.max_voting_duration);
+            } else if NoUpdateU32::should_update(@_min_voting_duration) {
                 _set_min_voting_duration(ref self, input.min_voting_duration);
                 MinVotingDurationUpdated(input.min_voting_duration);
+            } else if NoUpdateU32::should_update(@_max_voting_duration) {
+                _set_max_voting_duration(ref self, input.max_voting_duration);
+                MaxVotingDurationUpdated(input.max_voting_duration);
             }
 
             if NoUpdateU32::should_update(@input.voting_delay) {
@@ -578,10 +592,12 @@ mod Space {
     }
 
     fn _set_max_voting_duration(ref self: ContractState, _max_voting_duration: u32) {
+        assert(_max_voting_duration >= self._min_voting_duration.read(), 'Invalid duration');
         self._max_voting_duration.write(_max_voting_duration);
     }
 
     fn _set_min_voting_duration(ref self: ContractState, _min_voting_duration: u32) {
+        assert(_min_voting_duration <= self._max_voting_duration.read(), 'Invalid duration');
         self._min_voting_duration.write(_min_voting_duration);
     }
 
