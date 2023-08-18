@@ -54,7 +54,7 @@ jobs:
       - name: Step 2 - Install Scarb 
         uses: software-mansion/setup-scarb@v1
         with: 
-          scarb-version: 0.6.0-alpha.1
+          scarb-version: 0.6.2
 
       - name: Step 3 - Check formatting
         working-directory: ./starknet
