@@ -480,7 +480,7 @@ mod Space {
 
             // if not NO_UPDATE
             if NoUpdateArray::should_update((@input).voting_strategies_to_add) {
-                _add_voting_strategies(ref self, input.voting_strategies_to_add.clone());
+                _add_voting_strategies(ref self, input.voting_strategies_to_add.span());
                 VotingStrategiesAdded(
                     @input.voting_strategies_to_add, @input.voting_strategies_metadata_URIs_to_add
                 );
@@ -531,7 +531,7 @@ mod Space {
         _set_min_voting_duration(ref self, _min_voting_duration);
         _set_voting_delay(ref self, _voting_delay);
         _set_proposal_validation_strategy(ref self, _proposal_validation_strategy.clone());
-        _add_voting_strategies(ref self, _voting_strategies.clone());
+        _add_voting_strategies(ref self, _voting_strategies.span());
         _add_authenticators(ref self, _authenticators.clone());
         self._next_proposal_id.write(1_u256);
         SpaceCreated(
@@ -611,26 +611,25 @@ mod Space {
         self._proposal_validation_strategy.write(_proposal_validation_strategy);
     }
 
-    fn _add_voting_strategies(ref self: ContractState, _voting_strategies: Array<Strategy>) {
+    fn _add_voting_strategies(ref self: ContractState, mut _voting_strategies: Span<Strategy>) {
         let mut cachedActiveVotingStrategies = self._active_voting_strategies.read();
         let mut cachedNextVotingStrategyIndex = self._next_voting_strategy_index.read();
         assert(
             cachedNextVotingStrategyIndex.into() < 256_u32 - _voting_strategies.len(),
             'Exceeds Voting Strategy Limit'
         );
-        let mut _voting_strategies_span = _voting_strategies.span();
-        let mut i = 0_usize;
         loop {
-            if i >= _voting_strategies.len() {
-                break ();
-            }
-
-            let strategy = _voting_strategies_span.pop_front().unwrap().clone();
-            assert(!strategy.address.is_zero(), 'Invalid voting strategy');
-            cachedActiveVotingStrategies.set_bit(cachedNextVotingStrategyIndex, true);
-            self._voting_strategies.write(cachedNextVotingStrategyIndex, strategy);
-            cachedNextVotingStrategyIndex += 1_u8;
-            i += 1;
+            match _voting_strategies.pop_front() {
+                Option::Some(strategy) => {
+                    assert(!(*strategy.address).is_zero(), 'Invalid voting strategy');
+                    cachedActiveVotingStrategies.set_bit(cachedNextVotingStrategyIndex, true);
+                    self._voting_strategies.write(cachedNextVotingStrategyIndex, strategy.clone());
+                    cachedNextVotingStrategyIndex += 1_u8;
+                },
+                Option::None => {
+                    break;
+                },
+            };
         };
         self._active_voting_strategies.write(cachedActiveVotingStrategies);
         self._next_voting_strategy_index.write(cachedNextVotingStrategyIndex);
