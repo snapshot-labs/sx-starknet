@@ -8,6 +8,8 @@ mod tests {
     use starknet::info;
     use starknet::contract_address_const;
     use clone::Clone;
+    use array::{ArrayTrait, SpanTrait};
+    use serde::Serde;
 
     fn setup_update_settings() -> (Config, ISpaceDispatcher) {
         let config = setup();
@@ -43,6 +45,7 @@ mod tests {
             space.min_voting_duration() == input.min_voting_duration,
             'Min voting duration not updated'
         );
+    // TODO: check event once it's been added
     }
 
     #[test]
@@ -70,6 +73,7 @@ mod tests {
             space.max_voting_duration() == input.max_voting_duration,
             'Max voting duration not updated'
         );
+    // TODO: check event once it's been added
     }
 
     #[test]
@@ -81,6 +85,7 @@ mod tests {
         input.max_voting_duration = config.min_voting_duration - 1;
 
         space.update_settings(input.clone());
+    // TODO: check event once it's been added
     }
 
     #[test]
@@ -100,6 +105,7 @@ mod tests {
             space.max_voting_duration() == input.max_voting_duration,
             'Max voting duration not updated'
         );
+    // TODO: check event once it's been added
     }
 
     #[test]
@@ -114,5 +120,103 @@ mod tests {
             .max_voting_duration; // min is bigger than max, should fail
 
         space.update_settings(input.clone());
+    // TODO: check event once it's been added
     }
+
+    #[test]
+    #[available_gas(10000000000)]
+    fn update_voting_delay() {
+        let (config, space) = setup_update_settings();
+        let mut input = UpdateSettingsCalldataImpl::default();
+        input.voting_delay = config.voting_delay + 1;
+
+        space.update_settings(input.clone());
+
+        assert(space.voting_delay() == input.voting_delay, 'Voting delay not updated');
+    // TODO: check event once it's been added
+    }
+
+    #[test]
+    #[available_gas(10000000000)]
+    fn metadata_uri() {
+        let (config, space) = setup_update_settings();
+        let mut input = UpdateSettingsCalldataImpl::default();
+        let mut arr = array![];
+        'hello!'.serialize(ref arr);
+        input.metadata_URI = arr;
+
+        space.update_settings(input.clone());
+    // TODO: check event once it's been added
+    }
+
+    #[test]
+    #[available_gas(10000000000)]
+    fn dao_uri() {
+        let (config, space) = setup_update_settings();
+        let mut input = UpdateSettingsCalldataImpl::default();
+        let mut arr = array![];
+        'hello!'.serialize(ref arr);
+        input.dao_URI = arr;
+
+        space.update_settings(input.clone());
+    // TODO: check event once it's been added
+    }
+
+    #[test]
+    #[available_gas(10000000000)]
+    fn proposal_validation_strategy() {
+        let (config, space) = setup_update_settings();
+        let mut input = UpdateSettingsCalldataImpl::default();
+        let randomStrategy = StrategyImpl::from_address(
+            contract_address_const::<'randomStrategy'>()
+        );
+        input.proposal_validation_strategy = randomStrategy;
+        let mut arr = array![];
+        'hello!'.serialize(ref arr);
+        input.proposal_validation_strategy_metadata_URI = arr;
+
+        space.update_settings(input.clone());
+
+        assert(
+            space.proposal_validation_strategy() == input.proposal_validation_strategy,
+            'Proposal strategy not updated'
+        );
+    // TODO: check event once it's been added
+    }
+
+    #[test]
+    #[available_gas(10000000000)]
+    fn add_authenticators() {
+        let (config, space) = setup_update_settings();
+        let mut input = UpdateSettingsCalldataImpl::default();
+        let auth1 = contract_address_const::<'authenticator1'>();
+        let auth2 = contract_address_const::<'authenticator2'>();
+        let mut arr = array![auth1, auth2];
+        input.authenticators_to_add = arr;
+
+        space.update_settings(input.clone());
+
+        assert(space.authenticators(auth1) == true, 'Authenticator 1 not added');
+
+        assert(space.authenticators(auth2) == true, 'Authenticator 2 not added');
+    // TODO: check event once it's been added
+    }
+
+    #[test]
+    #[available_gas(10000000000)]
+    fn remove_authenticators() {
+        let (config, space) = setup_update_settings();
+        let mut input = UpdateSettingsCalldataImpl::default();
+        let auth1 = *config.authenticators.at(0);
+        let mut arr = array![auth1];
+        input.authenticators_to_remove = arr;
+
+        space.update_settings(input.clone());
+
+        assert(space.authenticators(auth1) == false, 'Authenticator not removed');
+    // TODO: check event once it's been added
+    }
+// voting_strategies_to_add: Array<Strategy>,
+// voting_strategies_metadata_URIs_to_add: Array<Array<felt252>>,
+// voting_strategies_to_remove: Array<u8>,
 }
