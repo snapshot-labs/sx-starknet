@@ -265,7 +265,7 @@ mod Space {
                 @self,
                 voter,
                 proposal.start_timestamp,
-                user_voting_strategies,
+                user_voting_strategies.span(),
                 proposal.active_voting_strategies
             );
 
@@ -567,26 +567,30 @@ mod Space {
         self: @ContractState,
         voter: UserAddress,
         timestamp: u32,
-        user_strategies: Array<IndexedStrategy>,
+        mut user_strategies: Span<IndexedStrategy>,
         allowed_strategies: u256
     ) -> u256 {
         user_strategies.assert_no_duplicate_indices();
         let mut total_voting_power = 0_u256;
-        let mut i = 0_usize;
         loop {
-            if i >= user_strategies.len() {
-                break ();
-            }
-            let strategy_index = user_strategies.at(i).index;
-            assert(allowed_strategies.is_bit_set(*strategy_index), 'Invalid strategy index');
-            let strategy = self._voting_strategies.read(*strategy_index);
-            total_voting_power += IVotingStrategyDispatcher {
-                contract_address: strategy.address
-            }
-                .get_voting_power(
-                    timestamp, voter, strategy.params, user_strategies.at(i).params.clone()
-                );
-            i += 1;
+            match user_strategies.pop_front() {
+                Option::Some(strategy_index) => {
+                    assert(
+                        allowed_strategies.is_bit_set(*strategy_index.index),
+                        'Invalid strategy index'
+                    );
+                    let strategy = self._voting_strategies.read(*strategy_index.index);
+                    total_voting_power += IVotingStrategyDispatcher {
+                        contract_address: strategy.address
+                    }
+                        .get_voting_power(
+                            timestamp, voter, strategy.params.span(), strategy_index.params.span()
+                        );
+                },
+                Option::None => {
+                    break;
+                },
+            };
         };
         total_voting_power
     }

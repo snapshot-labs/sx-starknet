@@ -358,7 +358,7 @@ mod merkle_whitelist_voting_power {
         leaf.serialize(ref user_params);
         proof.serialize(ref user_params);
 
-        voting_strategy.get_voting_power(timestamp, voter, params, user_params);
+        voting_strategy.get_voting_power(timestamp, voter, params.span(), user_params.span());
     }
 
     #[test]
@@ -394,7 +394,7 @@ mod merkle_whitelist_voting_power {
         fake_leaf.serialize(ref user_params);
         proof.serialize(ref user_params);
 
-        voting_strategy.get_voting_power(timestamp, voter, params, user_params);
+        voting_strategy.get_voting_power(timestamp, voter, params.span(), user_params.span());
     }
 
     #[test]
@@ -431,6 +431,6 @@ mod merkle_whitelist_voting_power {
         fake_leaf.serialize(ref user_params);
         proof.serialize(ref user_params);
 
-        voting_strategy.get_voting_power(timestamp, voter, params, user_params);
+        voting_strategy.get_voting_power(timestamp, voter, params.span(), user_params.span());
     }
 }

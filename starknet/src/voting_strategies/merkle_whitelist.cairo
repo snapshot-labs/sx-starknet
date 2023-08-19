@@ -19,10 +19,10 @@ mod MerkleWhitelistVotingStrategy {
             self: @ContractState,
             timestamp: u32,
             voter: UserAddress,
-            params: Array<felt252>, // [root]
-            user_params: Array<felt252>, // [Serde(leaf), Serde(proofs)]
+            params: Span<felt252>, // [root]
+            user_params: Span<felt252>, // [Serde(leaf), Serde(proofs)]
         ) -> u256 {
-            let cache = user_params.span(); // cache
+            let cache = user_params; // cache
 
             let mut leaf_raw = cache.slice(0, LEAF_SIZE);
             let leaf = Serde::<Leaf>::deserialize(ref leaf_raw).unwrap();

@@ -12,17 +12,16 @@ struct IndexedStrategy {
 }
 
 trait IndexedStrategyTrait {
-    fn assert_no_duplicate_indices(self: @Array<IndexedStrategy>);
+    fn assert_no_duplicate_indices(ref self: Span<IndexedStrategy>);
 }
 
 impl IndexedStrategyImpl of IndexedStrategyTrait {
-    fn assert_no_duplicate_indices(self: @Array<IndexedStrategy>) {
+    fn assert_no_duplicate_indices(ref self: Span<IndexedStrategy>) {
         if self.len() < 2 {
             return ();
         }
 
         let mut bit_map = 0_u256;
-        let mut self = self.span();
         loop {
             match self.pop_front() {
                 Option::Some(indexed_strategy) => {
