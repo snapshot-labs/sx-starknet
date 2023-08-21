@@ -13,7 +13,7 @@ mod AlwaysFailProposalValidationStrategy {
             self: @ContractState,
             author: UserAddress,
             params: Array<felt252>,
-            userParams: Array<felt252>
+            user_params: Array<felt252>
         ) -> bool {
             false
         }

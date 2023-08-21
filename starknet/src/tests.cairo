@@ -4,6 +4,8 @@ mod test_space;
 mod test_upgrade;
 mod test_stark_tx_auth;
 
+mod proposal_validation_strategies;
+
 mod mocks;
 mod setup;
 
