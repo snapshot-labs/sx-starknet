@@ -216,7 +216,64 @@ mod tests {
         assert(space.authenticators(auth1) == false, 'Authenticator not removed');
     // TODO: check event once it's been added
     }
-// voting_strategies_to_add: Array<Strategy>,
-// voting_strategies_metadata_URIs_to_add: Array<Array<felt252>>,
-// voting_strategies_to_remove: Array<u8>,
+
+    #[test]
+    #[available_gas(10000000000)]
+    fn add_voting_strategies() {
+        let (config, space) = setup_update_settings();
+        let mut input = UpdateSettingsCalldataImpl::default();
+
+        let vs1 = StrategyImpl::from_address(contract_address_const::<'votingStrategy1'>());
+        let vs2 = StrategyImpl::from_address(contract_address_const::<'votingStrategy2'>());
+
+        let mut arr = array![vs1.clone(), vs2.clone()];
+        input.voting_strategies_to_add = arr;
+
+        space.update_settings(input);
+
+        assert(space.voting_strategies(1) == vs1, 'Voting strategy 1 not added');
+        assert(space.voting_strategies(2) == vs2, 'Voting strategy 2 not added');
+        assert(space.active_voting_strategies() == 0b111, 'Voting strategies not active');
+    // TODO: check event once it's been added
+    // voting_strategies_metadata_URIs_to_add: Array<Array<felt252>>,
+    }
+
+
+    #[test]
+    #[available_gas(10000000000)]
+    fn remove_voting_strategies() {
+        let (config, space) = setup_update_settings();
+        let mut input = UpdateSettingsCalldataImpl::default();
+
+        // First, add a new voting strategy
+        let vs1 = StrategyImpl::from_address(contract_address_const::<'votingStrategy1'>());
+        let mut arr = array![vs1.clone()];
+        input.voting_strategies_to_add = arr;
+        space.update_settings(input);
+        assert(space.voting_strategies(1) == vs1, 'Voting strategy 1 not added');
+        assert(space.active_voting_strategies() == 0b11, 'Voting strategy not active');
+
+        // Now, remove the first voting strategy
+        let mut input = UpdateSettingsCalldataImpl::default();
+        let mut arr = array![0];
+        input.voting_strategies_to_remove = arr;
+
+        space.update_settings(input);
+        assert(space.active_voting_strategies() == 0b10, 'strategy not removed');
+    // TODO: check event once it's been added
+    }
+
+    #[test]
+    #[available_gas(10000000000)]
+    #[should_panic(expected: ('No active voting strategy left', 'ENTRYPOINT_FAILED'))]
+    fn remove_all_voting_strategies() {
+        let (config, space) = setup_update_settings();
+        let mut input = UpdateSettingsCalldataImpl::default();
+
+        // Remove the first voting strategy
+        let mut arr = array![0];
+        input.voting_strategies_to_remove = arr;
+
+        space.update_settings(input);
+    }
 }
