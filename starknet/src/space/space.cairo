@@ -238,7 +238,7 @@ mod Space {
             ReinitializableImpl::initialize(ref state);
 
             //TODO: temporary component syntax
-            let mut state: Ownable::ContractState = Ownable::unsafe_new_contract_state();
+            let mut state = Ownable::unsafe_new_contract_state();
             Ownable::initializer(ref state);
             Ownable::transfer_ownership(ref state, owner);
             _set_min_voting_duration(ref self, min_voting_duration);
@@ -398,7 +398,7 @@ mod Space {
 
         fn cancel_proposal(ref self: ContractState, proposal_id: u256) {
             //TODO: temporary component syntax
-            let state: Ownable::ContractState = Ownable::unsafe_new_contract_state();
+            let state = Ownable::unsafe_new_contract_state();
             Ownable::assert_only_owner(@state);
             let mut proposal = self._proposals.read(proposal_id);
             assert_proposal_exists(@proposal);
@@ -434,7 +434,7 @@ mod Space {
 
         fn owner(self: @ContractState) -> ContractAddress {
             //TODO: temporary component syntax
-            let state: Ownable::ContractState = Ownable::unsafe_new_contract_state();
+            let state = Ownable::unsafe_new_contract_state();
             Ownable::owner(@state)
         }
 
@@ -481,7 +481,7 @@ mod Space {
 
         fn update_settings(ref self: ContractState, input: UpdateSettingsCalldata) {
             //TODO: temporary component syntax
-            let state: Ownable::ContractState = Ownable::unsafe_new_contract_state();
+            let state = Ownable::unsafe_new_contract_state();
             Ownable::assert_only_owner(@state);
 
             // if not NO_UPDATE
@@ -549,14 +549,14 @@ mod Space {
 
         fn transfer_ownership(ref self: ContractState, new_owner: ContractAddress) {
             //TODO: temporary component syntax
-            let mut state: Ownable::ContractState = Ownable::unsafe_new_contract_state();
+            let mut state = Ownable::unsafe_new_contract_state();
             Ownable::assert_only_owner(@state);
             Ownable::transfer_ownership(ref state, new_owner);
         }
 
         fn renounce_ownership(ref self: ContractState) {
             //TODO: temporary component syntax
-            let mut state: Ownable::ContractState = Ownable::unsafe_new_contract_state();
+            let mut state = Ownable::unsafe_new_contract_state();
             Ownable::assert_only_owner(@state);
             Ownable::renounce_ownership(ref state);
         }

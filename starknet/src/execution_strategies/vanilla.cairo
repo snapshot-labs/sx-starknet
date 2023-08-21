@@ -38,8 +38,7 @@ mod VanillaExecutionStrategy {
     #[constructor]
     fn constructor(ref self: ContractState, quorum: u256) {
         // TODO: temporary until components are released
-        let mut state: SimpleQuorumExecutionStrategy::ContractState =
-            SimpleQuorumExecutionStrategy::unsafe_new_contract_state();
+        let mut state = SimpleQuorumExecutionStrategy::unsafe_new_contract_state();
         SimpleQuorumExecutionStrategy::initializer(ref state, quorum);
     }
 

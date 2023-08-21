@@ -18,8 +18,7 @@ mod SpaceV2 {
     impl SpaceV2 of ISpaceV2<ContractState> {
         fn initialize(ref self: ContractState, var: felt252) {
             // TODO: Temp component syntax
-            let mut state: Reinitializable::ContractState =
-                Reinitializable::unsafe_new_contract_state();
+            let mut state = Reinitializable::unsafe_new_contract_state();
             ReinitializableImpl::initialize(ref state);
             self._var.write(var);
         }
