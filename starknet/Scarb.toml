@@ -9,6 +9,7 @@ allowed-libfuncs-list.name = "audited"
 casm = true
 
 [dependencies]
+openzeppelin = { git = "https://github.com/ericnordelo/cairo-contracts", branch = "feat/erc20votes-#631" }
 starknet = ">=2.1.0-rc1"
 
 [scripts]
