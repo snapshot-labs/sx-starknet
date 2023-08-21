@@ -8,7 +8,6 @@ use sx::utils::math::pow;
 use traits::{Into, TryInto};
 use sx::types::{FinalizationStatus, UserAddress};
 use option::OptionTrait;
-use debug::PrintTrait;
 
 const BITMASK_32: u128 = 0xffffffff;
 const BITMASK_64: u128 = 0xffffffffffffffff;

@@ -60,7 +60,7 @@ fn _validate(
     let user_strategies = Serde::<Array<IndexedStrategy>>::deserialize(ref user_params_span)
         .unwrap();
 
-    let timestamp: u32 = info::get_block_timestamp().try_into().unwrap();
+    let timestamp: u32 = info::get_block_timestamp().try_into().unwrap() - 1;
     let voting_power = _get_cumulative_power(
         author, timestamp, user_strategies, allowed_strategies
     );
