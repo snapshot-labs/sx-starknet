@@ -17,7 +17,7 @@ trait ISpace<TContractState> {
     fn next_voting_strategy_index(self: @TContractState) -> u8;
     fn proposal_validation_strategy(self: @TContractState) -> Strategy;
     // #[view]
-    // fn vote_power(proposal_id: u256, choice: u8) -> u256;
+    fn vote_power(self: @TContractState, proposal_id: u256, choice: Choice) -> u256;
     // #[view]
     // fn vote_registry(proposal_id: u256, voter: ContractAddress) -> bool;
     fn proposals(self: @TContractState, proposal_id: u256) -> Proposal;
@@ -75,31 +75,33 @@ trait ISpace<TContractState> {
 #[starknet::contract]
 mod Space {
     use super::ISpace;
-    use starknet::storage_access::{StorePacking, StoreUsingPacking};
-    use starknet::{ClassHash, ContractAddress, info, Store, syscalls};
+    use starknet::{
+        storage_access::{StorePacking, StoreUsingPacking}, ClassHash, ContractAddress, info, Store,
+        syscalls
+    };
     use zeroable::Zeroable;
     use array::{ArrayTrait, SpanTrait};
     use clone::Clone;
     use option::OptionTrait;
     use hash::LegacyHash;
     use traits::{Into, TryInto};
-
-    use sx::interfaces::{
-        IProposalValidationStrategyDispatcher, IProposalValidationStrategyDispatcherTrait,
-        IVotingStrategyDispatcher, IVotingStrategyDispatcherTrait, IExecutionStrategyDispatcher,
-        IExecutionStrategyDispatcherTrait
+    use sx::{
+        interfaces::{
+            IProposalValidationStrategyDispatcher, IProposalValidationStrategyDispatcherTrait,
+            IVotingStrategyDispatcher, IVotingStrategyDispatcherTrait, IExecutionStrategyDispatcher,
+            IExecutionStrategyDispatcherTrait
+        },
+        types::{
+            UserAddress, Choice, FinalizationStatus, Strategy, IndexedStrategy, Proposal,
+            PackedProposal, IndexedStrategyTrait, IndexedStrategyImpl, UpdateSettingsCalldata,
+            NoUpdateU32, NoUpdateStrategy, NoUpdateArray
+        },
+        utils::{
+            reinitializable::{Reinitializable}, ReinitializableImpl, bits::BitSetter,
+            legacy_hash::LegacyHashChoice, constants::INITIALIZE_SELECTOR
+        },
+        external::ownable::Ownable
     };
-    use sx::types::{
-        UserAddress, Choice, FinalizationStatus, Strategy, IndexedStrategy, Proposal,
-        PackedProposal, IndexedStrategyTrait, IndexedStrategyImpl, UpdateSettingsCalldata,
-        NoUpdateU32, NoUpdateStrategy, NoUpdateArray
-    };
-    use sx::utils::reinitializable::Reinitializable;
-    use sx::utils::ReinitializableImpl;
-    use sx::utils::bits::BitSetter;
-    use sx::utils::legacy_hash::LegacyHashChoice;
-    use sx::external::ownable::Ownable;
-    use sx::utils::constants::INITIALIZE_SELECTOR;
 
     #[storage]
     struct Storage {
@@ -249,6 +251,7 @@ mod Space {
             _add_authenticators(ref self, authenticators);
             self._next_proposal_id.write(1_u256);
         }
+
         fn propose(
             ref self: ContractState,
             author: UserAddress,
@@ -545,6 +548,10 @@ mod Space {
                 _remove_voting_strategies(ref self, input.voting_strategies_to_remove.clone());
                 VotingStrategiesRemoved(@input.voting_strategies_to_remove);
             }
+        }
+
+        fn vote_power(self: @ContractState, proposal_id: u256, choice: Choice) -> u256 {
+            self._vote_power.read((proposal_id, choice))
         }
 
         fn transfer_ownership(ref self: ContractState, new_owner: ContractAddress) {
