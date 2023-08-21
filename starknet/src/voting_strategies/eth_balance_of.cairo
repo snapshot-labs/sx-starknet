@@ -18,7 +18,7 @@ mod EthBalanceOfVotingStrategy {
             params: Array<felt252>,
             user_params: Array<felt252>,
         ) -> u256 {
-            // Cast voter address is an Ethereum address
+            // Cast voter address to an Ethereum address
             // Will revert if the address is not an Ethereum address
             let voter = voter.to_ethereum_address();
 

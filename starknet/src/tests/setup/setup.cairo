@@ -72,12 +72,12 @@ mod setup {
             .append(Strategy { address: vanilla_voting_strategy_address, params: array![] });
 
         // Deploy Vanilla Execution Strategy 
-        let mut constructor_calldata = array![];
-        quorum.serialize(ref constructor_calldata);
+        let mut initializer_calldata = array![];
+        quorum.serialize(ref initializer_calldata);
         let (vanilla_execution_strategy_address, _) = deploy_syscall(
             VanillaExecutionStrategy::TEST_CLASS_HASH.try_into().unwrap(),
             0,
-            constructor_calldata.span(),
+            initializer_calldata.span(),
             false
         )
             .unwrap();
@@ -96,7 +96,7 @@ mod setup {
         }
     }
 
-    fn get_constructor_calldata(
+    fn get_initialize_calldata(
         owner: @ContractAddress,
         min_voting_duration: @u32,
         max_voting_duration: @u32,
@@ -106,20 +106,20 @@ mod setup {
         authenticators: @Array<ContractAddress>
     ) -> Array<felt252> {
         // Using empty arrays for all the metadata fields
-        let mut constructor_calldata = array![];
-        constructor_calldata.append((*owner).into());
-        constructor_calldata.append((*max_voting_duration).into());
-        constructor_calldata.append((*min_voting_duration).into());
-        constructor_calldata.append((*voting_delay).into());
-        proposal_validation_strategy.serialize(ref constructor_calldata);
-        ArrayTrait::<felt252>::new().serialize(ref constructor_calldata);
-        voting_strategies.serialize(ref constructor_calldata);
-        ArrayTrait::<felt252>::new().serialize(ref constructor_calldata);
-        authenticators.serialize(ref constructor_calldata);
-        ArrayTrait::<felt252>::new().serialize(ref constructor_calldata);
-        ArrayTrait::<felt252>::new().serialize(ref constructor_calldata);
+        let mut initializer_calldata = array![];
+        owner.serialize(ref initializer_calldata);
+        min_voting_duration.serialize(ref initializer_calldata);
+        max_voting_duration.serialize(ref initializer_calldata);
+        voting_delay.serialize(ref initializer_calldata);
+        proposal_validation_strategy.serialize(ref initializer_calldata);
+        ArrayTrait::<felt252>::new().serialize(ref initializer_calldata);
+        voting_strategies.serialize(ref initializer_calldata);
+        ArrayTrait::<felt252>::new().serialize(ref initializer_calldata);
+        authenticators.serialize(ref initializer_calldata);
+        ArrayTrait::<felt252>::new().serialize(ref initializer_calldata);
+        ArrayTrait::<felt252>::new().serialize(ref initializer_calldata);
 
-        constructor_calldata
+        initializer_calldata
     }
 
     fn deploy(config: @Config) -> (IFactoryDispatcher, ISpaceDispatcher) {
@@ -133,7 +133,7 @@ mod setup {
 
         let factory = IFactoryDispatcher { contract_address: factory_address };
 
-        let constructor_calldata = get_constructor_calldata(
+        let initializer_calldata = get_initialize_calldata(
             config.owner,
             config.min_voting_duration,
             config.max_voting_duration,
@@ -143,7 +143,7 @@ mod setup {
             config.authenticators
         );
         let space_address = factory
-            .deploy(space_class_hash, contract_address_salt, constructor_calldata.span());
+            .deploy(space_class_hash, contract_address_salt, initializer_calldata.span());
 
         let space = ISpaceDispatcher { contract_address: space_address };
 
