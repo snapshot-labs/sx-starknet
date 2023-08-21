@@ -206,7 +206,7 @@ mod tests {
     #[available_gas(1000000000)]
     #[should_panic(
         expected: (
-            'ERC5805: future Lookup',
+            'Votes: future Lookup',
             'ENTRYPOINT_FAILED',
             'ENTRYPOINT_FAILED',
             'ENTRYPOINT_FAILED',
