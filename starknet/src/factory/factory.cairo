@@ -1,5 +1,4 @@
-use starknet::ContractAddress;
-use starknet::ClassHash;
+use starknet::{ContractAddress, ClassHash};
 
 #[starknet::interface]
 trait IFactory<TContractState> {
@@ -15,10 +14,10 @@ trait IFactory<TContractState> {
 #[starknet::contract]
 mod Factory {
     use super::IFactory;
-    use starknet::ContractAddress;
-    use starknet::contract_address_const;
-    use starknet::syscalls::{deploy_syscall, call_contract_syscall};
-    use starknet::ClassHash;
+    use starknet::{
+        ContractAddress, ClassHash, contract_address_const,
+        syscalls::{deploy_syscall, call_contract_syscall}
+    };
     use result::ResultTrait;
     use array::{ArrayTrait, SpanTrait};
     use sx::utils::constants::INITIALIZE_SELECTOR;

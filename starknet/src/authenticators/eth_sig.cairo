@@ -1,5 +1,4 @@
-use starknet::{ContractAddress, EthAddress};
-use starknet::SyscallResult;
+use starknet::{ContractAddress, EthAddress, SyscallResult};
 use sx::types::{Strategy, IndexedStrategy, Choice};
 
 #[starknet::interface]
@@ -48,9 +47,11 @@ mod EthSigAuthenticator {
     use starknet::{ContractAddress, EthAddress, syscalls::call_contract_syscall};
     use core::array::{ArrayTrait, SpanTrait};
     use clone::Clone;
-    use sx::space::space::{ISpaceDispatcher, ISpaceDispatcherTrait};
-    use sx::types::{Strategy, IndexedStrategy, Choice, UserAddress};
-    use sx::utils::{signatures, legacy_hash::LegacyHashEthAddress};
+    use sx::{
+        space::space::{ISpaceDispatcher, ISpaceDispatcherTrait},
+        types::{Strategy, IndexedStrategy, Choice, UserAddress},
+        utils::{signatures, legacy_hash::LegacyHashEthAddress}
+    };
 
     #[storage]
     struct Storage {

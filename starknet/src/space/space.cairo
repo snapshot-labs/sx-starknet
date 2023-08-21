@@ -75,31 +75,33 @@ trait ISpace<TContractState> {
 #[starknet::contract]
 mod Space {
     use super::ISpace;
-    use starknet::storage_access::{StorePacking, StoreUsingPacking};
-    use starknet::{ClassHash, ContractAddress, info, Store, syscalls};
+    use starknet::{
+        storage_access::{StorePacking, StoreUsingPacking}, ClassHash, ContractAddress, info, Store,
+        syscalls
+    };
     use zeroable::Zeroable;
     use array::{ArrayTrait, SpanTrait};
     use clone::Clone;
     use option::OptionTrait;
     use hash::LegacyHash;
     use traits::{Into, TryInto};
-
-    use sx::interfaces::{
-        IProposalValidationStrategyDispatcher, IProposalValidationStrategyDispatcherTrait,
-        IVotingStrategyDispatcher, IVotingStrategyDispatcherTrait, IExecutionStrategyDispatcher,
-        IExecutionStrategyDispatcherTrait
+    use sx::{
+        interfaces::{
+            IProposalValidationStrategyDispatcher, IProposalValidationStrategyDispatcherTrait,
+            IVotingStrategyDispatcher, IVotingStrategyDispatcherTrait, IExecutionStrategyDispatcher,
+            IExecutionStrategyDispatcherTrait
+        },
+        types::{
+            UserAddress, Choice, FinalizationStatus, Strategy, IndexedStrategy, Proposal,
+            PackedProposal, IndexedStrategyTrait, IndexedStrategyImpl, UpdateSettingsCalldata,
+            NoUpdateU32, NoUpdateStrategy, NoUpdateArray
+        },
+        utils::{
+            reinitializable::{Reinitializable}, ReinitializableImpl, bits::BitSetter,
+            legacy_hash::LegacyHashChoice, constants::INITIALIZE_SELECTOR
+        },
+        external::ownable::Ownable
     };
-    use sx::types::{
-        UserAddress, Choice, FinalizationStatus, Strategy, IndexedStrategy, Proposal,
-        PackedProposal, IndexedStrategyTrait, IndexedStrategyImpl, UpdateSettingsCalldata,
-        NoUpdateU32, NoUpdateStrategy, NoUpdateArray
-    };
-    use sx::utils::reinitializable::Reinitializable;
-    use sx::utils::ReinitializableImpl;
-    use sx::utils::bits::BitSetter;
-    use sx::utils::legacy_hash::LegacyHashChoice;
-    use sx::external::ownable::Ownable;
-    use sx::utils::constants::INITIALIZE_SELECTOR;
 
     #[storage]
     struct Storage {
