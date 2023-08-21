@@ -22,7 +22,7 @@ mod EthRelayerExecutionStrategy {
             // keccak hash of the proposal execution payload
             let execution_hash = u256 { low: payload[2], high: payload[1] };
 
-            let mut message_payload = ArrayTrait::<felt252>::new();
+            let mut message_payload = array![];
             space.serialize(mut message_payload);
             proposal.serialize(mut message_payload);
             votes_for.serialize(mut message_payload);

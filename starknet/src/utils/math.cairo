@@ -16,7 +16,7 @@ impl U64Zeroable of Zeroable<u64> {
 }
 
 fn pow(base: u256, mut exp: u8) -> u256 {
-    let mut res = u256 { low: 1_u128, high: 0_u128 };
+    let mut res = 1_u256;
     loop {
         if exp == 0 {
             break res;
