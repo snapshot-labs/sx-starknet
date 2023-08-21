@@ -18,8 +18,8 @@ mod MerkleWhitelistVotingStrategy {
             self: @ContractState,
             timestamp: u32,
             voter: UserAddress,
-            params: Array<felt252>, // [root]
-            user_params: Array<felt252>, // [Serde(leaf), Serde(proofs)]
+            params: Array<felt252>, // [root: felt252]
+            user_params: Array<felt252>, // [leaf: Leaf, proof: Array<felt252>)]
         ) -> u256 {
             let cache = user_params.span(); // cache
 

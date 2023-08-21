@@ -11,7 +11,7 @@ mod indexed_strategy;
 use indexed_strategy::{IndexedStrategy, IndexedStrategyImpl, IndexedStrategyTrait};
 
 mod proposal;
-use proposal::Proposal;
+use proposal::{Proposal, PackedProposal};
 
 mod proposal_status;
 use proposal_status::ProposalStatus;
