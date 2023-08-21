@@ -14,7 +14,7 @@ use clone::Clone;
 
 fn _get_cumulative_power(
     voter: UserAddress,
-    block_number: u32,
+    timestamp: u32,
     mut user_strategies: Array<IndexedStrategy>,
     allowed_strategies: Array<Strategy>,
 ) -> u256 {
@@ -30,7 +30,7 @@ fn _get_cumulative_power(
                             contract_address: strategy.address
                         }
                             .get_voting_power(
-                                block_number, voter, strategy.params, indexed_strategy.params, 
+                                timestamp, voter, strategy.params, indexed_strategy.params, 
                             );
                     },
                     Option::None => {
