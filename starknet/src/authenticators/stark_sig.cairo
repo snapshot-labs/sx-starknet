@@ -10,7 +10,7 @@ trait IStarkSigAuthenticator<TContractState> {
         author: ContractAddress,
         execution_strategy: Strategy,
         user_proposal_validation_params: Array<felt252>,
-        metadata_URI: Array<felt252>,
+        metadata_uri: Array<felt252>,
         salt: felt252,
         account_type: felt252
     );
@@ -22,7 +22,7 @@ trait IStarkSigAuthenticator<TContractState> {
         proposal_id: u256,
         choice: Choice,
         user_voting_strategies: Array<IndexedStrategy>,
-        metadata_URI: Array<felt252>,
+        metadata_uri: Array<felt252>,
         account_type: felt252
     );
     fn authenticate_update_proposal(
@@ -32,7 +32,7 @@ trait IStarkSigAuthenticator<TContractState> {
         author: ContractAddress,
         proposal_id: u256,
         execution_strategy: Strategy,
-        metadata_URI: Array<felt252>,
+        metadata_uri: Array<felt252>,
         salt: felt252,
         account_type: felt252
     );
@@ -63,7 +63,7 @@ mod StarkSigAuthenticator {
             author: ContractAddress,
             execution_strategy: Strategy,
             user_proposal_validation_params: Array<felt252>,
-            metadata_URI: Array<felt252>,
+            metadata_uri: Array<felt252>,
             salt: felt252,
             account_type: felt252
         ) {
@@ -76,7 +76,7 @@ mod StarkSigAuthenticator {
                 author,
                 @execution_strategy,
                 user_proposal_validation_params.span(),
-                metadata_URI.span(),
+                metadata_uri.span(),
                 salt,
                 account_type
             );
@@ -89,7 +89,7 @@ mod StarkSigAuthenticator {
                     UserAddress::Starknet(author),
                     execution_strategy,
                     user_proposal_validation_params,
-                    metadata_URI
+                    metadata_uri
                 );
         }
 
@@ -101,7 +101,7 @@ mod StarkSigAuthenticator {
             proposal_id: u256,
             choice: Choice,
             user_voting_strategies: Array<IndexedStrategy>,
-            metadata_URI: Array<felt252>,
+            metadata_uri: Array<felt252>,
             account_type: felt252
         ) {
             // No need to check salts here, as double voting is prevented by the space itself.
@@ -114,7 +114,7 @@ mod StarkSigAuthenticator {
                 proposal_id,
                 choice,
                 user_voting_strategies.span(),
-                metadata_URI.span(),
+                metadata_uri.span(),
                 account_type
             );
 
@@ -126,7 +126,7 @@ mod StarkSigAuthenticator {
                     proposal_id,
                     choice,
                     user_voting_strategies,
-                    metadata_URI
+                    metadata_uri
                 );
         }
 
@@ -137,7 +137,7 @@ mod StarkSigAuthenticator {
             author: ContractAddress,
             proposal_id: u256,
             execution_strategy: Strategy,
-            metadata_URI: Array<felt252>,
+            metadata_uri: Array<felt252>,
             salt: felt252,
             account_type: felt252
         ) {
@@ -150,7 +150,7 @@ mod StarkSigAuthenticator {
                 author,
                 proposal_id,
                 @execution_strategy,
-                metadata_URI.span(),
+                metadata_uri.span(),
                 salt,
                 account_type
             );
@@ -160,7 +160,7 @@ mod StarkSigAuthenticator {
                 contract_address: target
             }
                 .update_proposal(
-                    UserAddress::Starknet(author), proposal_id, execution_strategy, metadata_URI
+                    UserAddress::Starknet(author), proposal_id, execution_strategy, metadata_uri
                 );
         }
     }

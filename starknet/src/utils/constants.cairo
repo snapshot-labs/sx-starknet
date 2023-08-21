@@ -55,16 +55,16 @@ const STARKNET_MESSAGE: felt252 = 'StarkNet Message';
 const DOMAIN_TYPEHASH: felt252 = 0xa9974a36dee531bbc36aad5eeab4ade4df5ad388a296bb14d28ad4e9bf2164;
 
 // H('Propose(space:ContractAddress,author:ContractAddress,executionStrategy:Strategy,
-//    userProposalValidationParams:felt*,metadataURI:felt*,salt:felt252)Strategy(address:felt252,params:felt*)')
+//    userProposalValidationParams:felt*,metadatauri:felt*,salt:felt252)Strategy(address:felt252,params:felt*)')
 const PROPOSE_TYPEHASH: felt252 = 0x248246f9067bb8dd7f7661e894ff088ed3e08cb0957df6cf9c9044cc71fffcb;
 
 // H('Vote(space:ContractAddress,voter:ContractAddress,proposalId:u256,choice:felt252,
-//    userVotingStrategies:IndexedStrategy*,metadataURI:felt*)IndexedStrategy(index:felt252,params:felt*)
+//    userVotingStrategies:IndexedStrategy*,metadatauri:felt*)IndexedStrategy(index:felt252,params:felt*)
 //    u256(low:felt252,high:felt252)')
 const VOTE_TYPEHASH: felt252 = 0x3ef46c9599d94309c080fa67cc9f79a94483b2a3ac938a28bba717aca5e1983;
 
 // H('UpdateProposal(space:ContractAddress,author:ContractAddress,proposalId:u256,executionStrategy:Strategy,
-//    metadataURI:felt*,salt:felt252)Strategy(address:felt252,params:felt*)u256(low:felt252,high:felt252)')
+//    metadatauri:felt*,salt:felt252)Strategy(address:felt252,params:felt*)u256(low:felt252,high:felt252)')
 const UPDATE_PROPOSAL_TYPEHASH: felt252 =
     0x2dc58602de2862bc8c8dfae763fd5d754f9f4d0b5e6268a403783b7d9164c67;
 

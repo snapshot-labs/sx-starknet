@@ -13,7 +13,7 @@ trait IEthSigAuthenticator<TContractState> {
         author: EthAddress,
         execution_strategy: Strategy,
         user_proposal_validation_params: Array<felt252>,
-        metadata_URI: Array<felt252>,
+        metadata_uri: Array<felt252>,
         salt: u256,
     );
     fn authenticate_vote(
@@ -26,7 +26,7 @@ trait IEthSigAuthenticator<TContractState> {
         proposal_id: u256,
         choice: Choice,
         user_voting_strategies: Array<IndexedStrategy>,
-        metadata_URI: Array<felt252>,
+        metadata_uri: Array<felt252>,
     );
     fn authenticate_update_proposal(
         ref self: TContractState,
@@ -37,7 +37,7 @@ trait IEthSigAuthenticator<TContractState> {
         author: EthAddress,
         proposal_id: u256,
         execution_strategy: Strategy,
-        metadata_URI: Array<felt252>,
+        metadata_uri: Array<felt252>,
         salt: u256
     );
 }
@@ -69,7 +69,7 @@ mod EthSigAuthenticator {
             author: EthAddress,
             execution_strategy: Strategy,
             user_proposal_validation_params: Array<felt252>,
-            metadata_URI: Array<felt252>,
+            metadata_uri: Array<felt252>,
             salt: u256,
         ) {
             signatures::verify_propose_sig(
@@ -92,7 +92,7 @@ mod EthSigAuthenticator {
                     UserAddress::Ethereum(author),
                     execution_strategy,
                     user_proposal_validation_params,
-                    metadata_URI
+                    metadata_uri
                 );
         }
 
@@ -106,7 +106,7 @@ mod EthSigAuthenticator {
             proposal_id: u256,
             choice: Choice,
             user_voting_strategies: Array<IndexedStrategy>,
-            metadata_URI: Array<felt252>,
+            metadata_uri: Array<felt252>,
         ) {
             signatures::verify_vote_sig(
                 r,
@@ -130,7 +130,7 @@ mod EthSigAuthenticator {
                     proposal_id,
                     choice,
                     user_voting_strategies,
-                    metadata_URI
+                    metadata_uri
                 );
         }
 
@@ -143,7 +143,7 @@ mod EthSigAuthenticator {
             author: EthAddress,
             proposal_id: u256,
             execution_strategy: Strategy,
-            metadata_URI: Array<felt252>,
+            metadata_uri: Array<felt252>,
             salt: u256
         ) {
             signatures::verify_update_proposal_sig(
@@ -163,7 +163,7 @@ mod EthSigAuthenticator {
                 contract_address: target
             }
                 .update_proposal(
-                    UserAddress::Ethereum(author), proposal_id, execution_strategy, metadata_URI
+                    UserAddress::Ethereum(author), proposal_id, execution_strategy, metadata_uri
                 );
         }
     }

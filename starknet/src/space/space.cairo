@@ -36,19 +36,19 @@ trait ISpace<TContractState> {
         max_voting_duration: u32,
         voting_delay: u32,
         proposal_validation_strategy: Strategy,
-        proposal_validation_strategy_metadata_URI: Array<felt252>,
+        proposal_validation_strategy_metadata_uri: Array<felt252>,
         voting_strategies: Array<Strategy>,
-        voting_strategy_metadata_URIs: Array<Array<felt252>>,
+        voting_strategy_metadata_uris: Array<Array<felt252>>,
         authenticators: Array<ContractAddress>,
-        metadata_URI: Array<felt252>,
-        dao_URI: Array<felt252>,
+        metadata_uri: Array<felt252>,
+        dao_uri: Array<felt252>,
     );
     fn propose(
         ref self: TContractState,
         author: UserAddress,
         execution_strategy: Strategy,
         user_proposal_validation_params: Array<felt252>,
-        metadata_URI: Array<felt252>,
+        metadata_uri: Array<felt252>,
     );
     fn vote(
         ref self: TContractState,
@@ -56,7 +56,7 @@ trait ISpace<TContractState> {
         proposal_id: u256,
         choice: Choice,
         user_voting_strategies: Array<IndexedStrategy>,
-        metadata_URI: Array<felt252>,
+        metadata_uri: Array<felt252>,
     );
     fn execute(ref self: TContractState, proposal_id: u256, execution_payload: Array<felt252>);
     fn update_proposal(
@@ -64,7 +64,7 @@ trait ISpace<TContractState> {
         author: UserAddress,
         proposal_id: u256,
         execution_strategy: Strategy,
-        metadata_URI: Array<felt252>,
+        metadata_uri: Array<felt252>,
     );
     fn cancel_proposal(ref self: TContractState, proposal_id: u256);
     fn upgrade(
@@ -125,12 +125,12 @@ mod Space {
         _max_voting_duration: u32,
         _voting_delay: u32,
         _proposal_validation_strategy: @Strategy,
-        _proposal_validation_strategy_metadata_URI: @Array<felt252>,
+        _proposal_validation_strategy_metadata_uri: @Array<felt252>,
         _voting_strategies: @Array<Strategy>,
-        _voting_strategy_metadata_URIs: @Array<Array<felt252>>,
+        _voting_strategy_metadata_uris: @Array<Array<felt252>>,
         _authenticators: @Array<ContractAddress>,
-        _metadata_URI: @Array<felt252>,
-        _dao_URI: @Array<felt252>,
+        _metadata_uri: @Array<felt252>,
+        _dao_uri: @Array<felt252>,
     ) {}
 
     #[event]
@@ -139,7 +139,7 @@ mod Space {
         _author: UserAddress,
         _proposal: @Proposal,
         _payload: @Array<felt252>,
-        _metadata_URI: @Array<felt252>
+        _metadata_uri: @Array<felt252>
     ) {}
 
     #[event]
@@ -148,7 +148,7 @@ mod Space {
         _voter: UserAddress,
         _choice: Choice,
         _voting_power: u256,
-        _metadata_URI: @Array<felt252>
+        _metadata_uri: @Array<felt252>
     ) {}
 
     #[event]
@@ -156,7 +156,7 @@ mod Space {
 
     #[event]
     fn ProposalUpdated(
-        _proposal_id: u256, _execution_stategy: @Strategy, _metadata_URI: @Array<felt252>
+        _proposal_id: u256, _execution_stategy: @Strategy, _metadata_uri: @Array<felt252>
     ) {}
 
     #[event]
@@ -165,7 +165,7 @@ mod Space {
     #[event]
     fn VotingStrategiesAdded(
         _new_voting_strategies: @Array<Strategy>,
-        _new_voting_strategy_metadata_URIs: @Array<Array<felt252>>
+        _new_voting_strategy_metadata_uris: @Array<Array<felt252>>
     ) {}
 
     #[event]
@@ -178,10 +178,10 @@ mod Space {
     fn AuthenticatorsRemoved(_authenticators: @Array<ContractAddress>) {}
 
     #[event]
-    fn MetadataURIUpdated(_new_metadata_URI: @Array<felt252>) {}
+    fn MetadatauriUpdated(_new_metadata_uri: @Array<felt252>) {}
 
     #[event]
-    fn DaoURIUpdated(_new_dao_URI: @Array<felt252>) {}
+    fn DaouriUpdated(_new_dao_uri: @Array<felt252>) {}
 
     #[event]
     fn MaxVotingDurationUpdated(_new_max_voting_duration: u32) {}
@@ -192,7 +192,7 @@ mod Space {
     #[event]
     fn ProposalValidationStrategyUpdated(
         _new_proposal_validation_strategy: @Strategy,
-        _new_proposal_validation_strategy_metadata_URI: @Array<felt252>
+        _new_proposal_validation_strategy_metadata_uri: @Array<felt252>
     ) {}
 
     #[event]
@@ -210,12 +210,12 @@ mod Space {
             max_voting_duration: u32,
             voting_delay: u32,
             proposal_validation_strategy: Strategy,
-            proposal_validation_strategy_metadata_URI: Array<felt252>,
+            proposal_validation_strategy_metadata_uri: Array<felt252>,
             voting_strategies: Array<Strategy>,
-            voting_strategy_metadata_URIs: Array<Array<felt252>>,
+            voting_strategy_metadata_uris: Array<Array<felt252>>,
             authenticators: Array<ContractAddress>,
-            metadata_URI: Array<felt252>,
-            dao_URI: Array<felt252>,
+            metadata_uri: Array<felt252>,
+            dao_uri: Array<felt252>,
         ) {
             SpaceCreated(
                 info::get_contract_address(),
@@ -224,12 +224,12 @@ mod Space {
                 max_voting_duration,
                 voting_delay,
                 @proposal_validation_strategy,
-                @proposal_validation_strategy_metadata_URI,
+                @proposal_validation_strategy_metadata_uri,
                 @voting_strategies,
-                @voting_strategy_metadata_URIs,
+                @voting_strategy_metadata_uris,
                 @authenticators,
-                @metadata_URI,
-                @dao_URI
+                @metadata_uri,
+                @dao_uri
             );
             // Checking that the contract is not already initialized
             //TODO: temporary component syntax (see imports too)
@@ -254,7 +254,7 @@ mod Space {
             author: UserAddress,
             execution_strategy: Strategy,
             user_proposal_validation_params: Array<felt252>,
-            metadata_URI: Array<felt252>,
+            metadata_uri: Array<felt252>,
         ) {
             assert_only_authenticator(@self);
             let proposal_id = self._next_proposal_id.read();
@@ -299,7 +299,7 @@ mod Space {
             self._next_proposal_id.write(proposal_id + 1_u256);
 
             ProposalCreated(
-                proposal_id, author, snap_proposal, @execution_strategy.params, @metadata_URI
+                proposal_id, author, snap_proposal, @execution_strategy.params, @metadata_uri
             );
         }
 
@@ -309,7 +309,7 @@ mod Space {
             proposal_id: u256,
             choice: Choice,
             user_voting_strategies: Array<IndexedStrategy>,
-            metadata_URI: Array<felt252>
+            metadata_uri: Array<felt252>
         ) {
             assert_only_authenticator(@self);
             let proposal = self._proposals.read(proposal_id);
@@ -344,7 +344,7 @@ mod Space {
                 );
             self._vote_registry.write((proposal_id, voter), true);
 
-            VoteCast(proposal_id, voter, choice, voting_power, @metadata_URI);
+            VoteCast(proposal_id, voter, choice, voting_power, @metadata_uri);
         }
 
         fn execute(ref self: ContractState, proposal_id: u256, execution_payload: Array<felt252>) {
@@ -374,7 +374,7 @@ mod Space {
             author: UserAddress,
             proposal_id: u256,
             execution_strategy: Strategy,
-            metadata_URI: Array<felt252>,
+            metadata_uri: Array<felt252>,
         ) {
             assert_only_authenticator(@self);
             let mut proposal = self._proposals.read(proposal_id);
@@ -393,7 +393,7 @@ mod Space {
 
             self._proposals.write(proposal_id, proposal);
 
-            ProposalUpdated(proposal_id, @execution_strategy, @metadata_URI);
+            ProposalUpdated(proposal_id, @execution_strategy, @metadata_uri);
         }
 
         fn cancel_proposal(ref self: ContractState, proposal_id: u256) {
@@ -500,12 +500,12 @@ mod Space {
                 VotingDelayUpdated(input.voting_delay);
             }
 
-            if NoUpdateArray::should_update((@input).metadata_URI) {
-                MetadataURIUpdated(@input.metadata_URI);
+            if NoUpdateArray::should_update((@input).metadata_uri) {
+                MetadatauriUpdated(@input.metadata_uri);
             }
 
-            if NoUpdateArray::should_update((@input).dao_URI) {
-                DaoURIUpdated(@input.dao_URI);
+            if NoUpdateArray::should_update((@input).dao_uri) {
+                DaouriUpdated(@input.dao_uri);
             }
 
             // if not NO_UPDATE
@@ -517,7 +517,7 @@ mod Space {
                 );
                 ProposalValidationStrategyUpdated(
                     @input.proposal_validation_strategy,
-                    @input.proposal_validation_strategy_metadata_URI
+                    @input.proposal_validation_strategy_metadata_uri
                 );
             }
 
@@ -536,7 +536,7 @@ mod Space {
             if NoUpdateArray::should_update((@input).voting_strategies_to_add) {
                 _add_voting_strategies(ref self, input.voting_strategies_to_add.clone());
                 VotingStrategiesAdded(
-                    @input.voting_strategies_to_add, @input.voting_strategies_metadata_URIs_to_add
+                    @input.voting_strategies_to_add, @input.voting_strategies_metadata_uris_to_add
                 );
             }
 
