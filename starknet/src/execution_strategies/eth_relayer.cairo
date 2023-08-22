@@ -2,8 +2,9 @@
 mod EthRelayerExecutionStrategy {
     use array::ArrayTrait;
     use option::OptionTrait;
-    use traits::TryInto;
+    use traits::{Into, TryInto};
     use serde::Serde;
+    use starknet::EthAddress;
     use starknet::syscalls::send_message_to_l1_syscall;
     use starknet::info::get_caller_address;
     use sx::interfaces::IExecutionStrategy;
@@ -24,15 +25,12 @@ mod EthRelayerExecutionStrategy {
         ) {
             let space = get_caller_address();
 
-            // Decode payload
-            let mut payload = payload;
-            // L1 destination contract address 
-            let l1_destination = payload.pop_front().unwrap();
-            // keccak hash of the L1 proposal execution payload
-            let l1_execution_hash = u256 {
-                low: payload.pop_front().unwrap().try_into().unwrap(),
-                high: payload.pop_front().unwrap().try_into().unwrap()
-            };
+            // Decode payload into L1 destination and L1 keccak execution hash
+            let mut payload = payload.span();
+            let (l1_destination, l1_execution_hash) = Serde::<(
+                EthAddress, u256
+            )>::deserialize(ref payload)
+                .unwrap();
 
             let mut l1_payload = array![];
             space.serialize(ref l1_payload);
@@ -42,7 +40,7 @@ mod EthRelayerExecutionStrategy {
             votes_abstain.serialize(ref l1_payload);
             l1_execution_hash.serialize(ref l1_payload);
 
-            send_message_to_l1_syscall(l1_destination, l1_payload.span());
+            send_message_to_l1_syscall(l1_destination.into(), l1_payload.span());
         }
     }
 }
