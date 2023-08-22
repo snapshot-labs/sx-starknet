@@ -140,26 +140,32 @@ contract L1AvatarExecutionStrategy is SimpleQuorumExecutionStrategy {
         uint256 votesAbstain,
         bytes32 executionHash
     ) internal {
-        uint256[] memory payload = new uint256[](15);
+        uint256[] memory payload = new uint256[](19);
         payload[0] = space;
-        // The serialized Proposal struct
-        // TODO: this is probably an incorrect serialization
-        payload[1] = uint256(proposal.snapshotTimestamp);
-        payload[2] = uint256(proposal.startTimestamp);
-        payload[3] = uint256(proposal.minEndTimestamp);
-        payload[4] = uint256(proposal.maxEndTimestamp);
+
+        // The Cairo serialization of the Proposal struct where felts are uint256s
+        payload[1] = uint256(proposal.startTimestamp);
+        payload[2] = uint256(proposal.minEndTimestamp);
+        payload[3] = uint256(proposal.maxEndTimestamp);
+        payload[4] = uint256(proposal.finalizationStatus);
         payload[5] = proposal.executionPayloadHash;
-        payload[6] = uint256(uint160(proposal.executionStrategy));
-        payload[7] = uint256(uint160(proposal.author));
-        payload[8] = uint256(proposal.finalizationStatus);
-        payload[9] = proposal.activeVotingStrategies;
+        payload[6] = proposal.executionStrategy;
+        payload[7] = proposal.authorAddressType;
+        payload[8] = proposal.author;
+        payload[9] = proposal.activeVotingStrategies >> 128;
+        payload[10] = proposal.activeVotingStrategies & (2 ** 128 - 1);
 
-        payload[10] = votesFor;
-        payload[11] = votesAgainst;
-        payload[12] = votesAbstain;
+        payload[11] = votesFor >> 128;
+        payload[12] = votesFor & (2 ** 128 - 1);
 
-        payload[13] = uint256(executionHash >> 128); // High 128 bits of executionHash
-        payload[14] = uint256(executionHash) & (2 ** 128 - 1); // Low 128 bits of executionHash
+        payload[13] = votesAgainst >> 128;
+        payload[14] = votesAgainst & (2 ** 128 - 1);
+
+        payload[15] = votesAbstain >> 128;
+        payload[16] = votesAbstain & (2 ** 128 - 1);
+
+        payload[17] = uint256(executionHash >> 128);
+        payload[18] = uint256(executionHash) & (2 ** 128 - 1);
 
         // If proposal execution message did not exist/not received yet, then this will revert.
         IStarknetCore(starknetCore).consumeMessageFromL2(executionRelayer, payload);
