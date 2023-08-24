@@ -83,6 +83,7 @@ mod Space {
     use option::OptionTrait;
     use hash::LegacyHash;
     use traits::{Into, TryInto};
+    use serde::Serde;
 
     use sx::interfaces::{
         IProposalValidationStrategyDispatcher, IProposalValidationStrategyDispatcherTrait,
@@ -118,88 +119,135 @@ mod Space {
     }
 
     #[event]
-    fn SpaceCreated(
-        _space: ContractAddress,
-        _owner: ContractAddress,
-        _min_voting_duration: u32,
-        _max_voting_duration: u32,
-        _voting_delay: u32,
-        _proposal_validation_strategy: @Strategy,
-        _proposal_validation_strategy_metadata_URI: @Array<felt252>,
-        _voting_strategies: @Array<Strategy>,
-        _voting_strategy_metadata_URIs: @Array<Array<felt252>>,
-        _authenticators: @Array<ContractAddress>,
-        _metadata_URI: @Array<felt252>,
-        _dao_URI: @Array<felt252>,
-    ) {}
+    #[derive(Drop, starknet::Event)]
+    enum Event {
+        SpaceCreated: SpaceCreated,
+        ProposalCreated: ProposalCreated,
+        VoteCast: VoteCast,
+        ProposalExecuted: ProposalExecuted,
+        ProposalUpdated: ProposalUpdated,
+        ProposalCancelled: ProposalCancelled,
+        VotingStrategiesAdded: VotingStrategiesAdded,
+        VotingStrategiesRemoved: VotingStrategiesRemoved,
+        AuthenticatorsAdded: AuthenticatorsAdded,
+        AuthenticatorsRemoved: AuthenticatorsRemoved,
+        MetadataURIUpdated: MetadataURIUpdated,
+        DAOURIUpdated: DAOURIUpdated,
+        MaxVotingDurationUpdated: MaxVotingDurationUpdated,
+        MinVotingDurationUpdated: MinVotingDurationUpdated,
+        ProposalValidationStrategyUpdated: ProposalValidationStrategyUpdated,
+        VotingDelayUpdated: VotingDelayUpdated,
+        Upgraded: Upgraded,
+    }
 
-    #[event]
-    fn ProposalCreated(
-        _proposal_id: u256,
-        _author: UserAddress,
-        _proposal: @Proposal,
-        _payload: @Array<felt252>,
-        _metadata_URI: @Array<felt252>
-    ) {}
+    #[derive(Drop, starknet::Event)]
+    struct SpaceCreated {
+        space: ContractAddress,
+        owner: ContractAddress,
+        min_voting_duration: u32,
+        max_voting_duration: u32,
+        voting_delay: u32,
+        proposal_validation_strategy: Strategy,
+        proposal_validation_strategy_metadata_URI: Span<felt252>,
+        voting_strategies: Span<Strategy>,
+        voting_strategy_metadata_URIs: Span<Array<felt252>>,
+        authenticators: Span<ContractAddress>,
+        metadata_URI: Span<felt252>,
+        dao_URI: Span<felt252>,
+    }
 
-    #[event]
-    fn VoteCast(
-        _proposal_id: u256,
-        _voter: UserAddress,
-        _choice: Choice,
-        _voting_power: u256,
-        _metadata_URI: @Array<felt252>
-    ) {}
+    #[derive(Drop, starknet::Event)]
+    struct ProposalCreated {
+        proposal_id: u256,
+        author: UserAddress,
+        proposal: Proposal,
+        payload: Span<felt252>,
+        metadata_URI: Span<felt252>,
+    }
 
-    #[event]
-    fn ProposalExecuted(_proposal_id: u256) {}
+    #[derive(Drop, starknet::Event)]
+    struct VoteCast {
+        proposal_id: u256,
+        voter: UserAddress,
+        choice: Choice,
+        voting_power: u256,
+        metadata_URI: Span<felt252>,
+    }
 
-    #[event]
-    fn ProposalUpdated(
-        _proposal_id: u256, _execution_stategy: @Strategy, _metadata_URI: @Array<felt252>
-    ) {}
+    #[derive(Drop, starknet::Event)]
+    struct ProposalExecuted {
+        proposal_id: u256, 
+    }
 
-    #[event]
-    fn ProposalCancelled(_proposal_id: u256) {}
+    #[derive(Drop, starknet::Event)]
+    struct ProposalUpdated {
+        proposal_id: u256,
+        execution_strategy: Strategy,
+        metadata_URI: Span<felt252>,
+    }
 
-    #[event]
-    fn VotingStrategiesAdded(
-        _new_voting_strategies: @Array<Strategy>,
-        _new_voting_strategy_metadata_URIs: @Array<Array<felt252>>
-    ) {}
+    #[derive(Drop, starknet::Event)]
+    struct ProposalCancelled {
+        proposal_id: u256, 
+    }
 
-    #[event]
-    fn VotingStrategiesRemoved(_voting_strategy_indices: @Array<u8>) {}
+    #[derive(Drop, starknet::Event)]
+    struct VotingStrategiesAdded {
+        voting_strategies: Span<Strategy>,
+        voting_strategy_metadata_URIs: Span<Array<felt252>>,
+    }
 
-    #[event]
-    fn AuthenticatorsAdded(_new_authenticators: @Array<ContractAddress>) {}
+    #[derive(Drop, starknet::Event)]
+    struct VotingStrategiesRemoved {
+        voting_strategy_indices: Span<u8>, 
+    }
 
-    #[event]
-    fn AuthenticatorsRemoved(_authenticators: @Array<ContractAddress>) {}
+    #[derive(Drop, starknet::Event)]
+    struct AuthenticatorsAdded {
+        authenticators: Span<ContractAddress>, 
+    }
 
-    #[event]
-    fn MetadataURIUpdated(_new_metadata_URI: @Array<felt252>) {}
+    #[derive(Drop, starknet::Event)]
+    struct AuthenticatorsRemoved {
+        authenticators: Span<ContractAddress>, 
+    }
 
-    #[event]
-    fn DaoURIUpdated(_new_dao_URI: @Array<felt252>) {}
+    #[derive(Drop, starknet::Event)]
+    struct MaxVotingDurationUpdated {
+        max_voting_duration: u32, 
+    }
 
-    #[event]
-    fn MaxVotingDurationUpdated(_new_max_voting_duration: u32) {}
+    #[derive(Drop, starknet::Event)]
+    struct MinVotingDurationUpdated {
+        min_voting_duration: u32, 
+    }
 
-    #[event]
-    fn MinVotingDurationUpdated(_new_min_voting_duration: u32) {}
+    #[derive(Drop, starknet::Event)]
+    struct ProposalValidationStrategyUpdated {
+        proposal_validation_strategy: Strategy,
+        proposal_validation_strategy_metadata_URI: Span<felt252>,
+    }
 
-    #[event]
-    fn ProposalValidationStrategyUpdated(
-        _new_proposal_validation_strategy: @Strategy,
-        _new_proposal_validation_strategy_metadata_URI: @Array<felt252>
-    ) {}
+    #[derive(Drop, starknet::Event)]
+    struct VotingDelayUpdated {
+        voting_delay: u32, 
+    }
 
-    #[event]
-    fn VotingDelayUpdated(_new_voting_delay: u32) {}
+    #[derive(Drop, starknet::Event)]
+    struct Upgraded {
+        class_hash: ClassHash,
+        initialize_calldata: Span<felt252>,
+    }
 
-    #[event]
-    fn Upgraded(class_hash: ClassHash, initialize_calldata: Array<felt252>) {}
+    #[derive(Drop, starknet::Event)]
+    struct MetadataURIUpdated {
+        metadata_URI: Span<felt252>, 
+    }
+
+    #[derive(Drop, starknet::Event)]
+    struct DAOURIUpdated {
+        dao_URI: Span<felt252>, 
+    }
 
     #[external(v0)]
     impl Space of ISpace<ContractState> {
@@ -217,20 +265,27 @@ mod Space {
             metadata_URI: Array<felt252>,
             dao_URI: Array<felt252>,
         ) {
-            SpaceCreated(
-                info::get_contract_address(),
-                owner,
-                min_voting_duration,
-                max_voting_duration,
-                voting_delay,
-                @proposal_validation_strategy,
-                @proposal_validation_strategy_metadata_URI,
-                @voting_strategies,
-                @voting_strategy_metadata_URIs,
-                @authenticators,
-                @metadata_URI,
-                @dao_URI
-            );
+            self
+                .emit(
+                    Event::SpaceCreated(
+                        SpaceCreated {
+                            space: info::get_contract_address(),
+                            owner: owner,
+                            min_voting_duration: min_voting_duration,
+                            max_voting_duration: max_voting_duration,
+                            voting_delay: voting_delay,
+                            proposal_validation_strategy: proposal_validation_strategy.clone(),
+                            proposal_validation_strategy_metadata_URI: proposal_validation_strategy_metadata_URI
+                                .span(),
+                            voting_strategies: voting_strategies.span(),
+                            voting_strategy_metadata_URIs: voting_strategy_metadata_URIs.span(),
+                            authenticators: authenticators.span(),
+                            metadata_URI: metadata_URI.span(),
+                            dao_URI: dao_URI.span()
+                        }
+                    )
+                );
+
             // Checking that the contract is not already initialized
             //TODO: temporary component syntax (see imports too)
             let mut state: Reinitializable::ContractState =
@@ -292,16 +347,25 @@ mod Space {
                 finalization_status: FinalizationStatus::Pending(()),
                 active_voting_strategies: self._active_voting_strategies.read()
             };
-            let snap_proposal = @proposal;
+            let clone_proposal = proposal.clone();
 
             // TODO: Lots of copying, maybe figure out how to pass snapshots to events/storage writers. 
             self._proposals.write(proposal_id, proposal);
 
             self._next_proposal_id.write(proposal_id + 1_u256);
 
-            ProposalCreated(
-                proposal_id, author, snap_proposal, @execution_strategy.params, @metadata_URI
-            );
+            self
+                .emit(
+                    Event::ProposalCreated(
+                        ProposalCreated {
+                            proposal_id: proposal_id,
+                            author: author,
+                            proposal: clone_proposal,
+                            payload: execution_strategy.params.span(),
+                            metadata_URI: metadata_URI.span()
+                        }
+                    )
+                );
         }
 
         fn vote(
@@ -346,7 +410,18 @@ mod Space {
                 );
             self._vote_registry.write((proposal_id, voter), true);
 
-            VoteCast(proposal_id, voter, choice, voting_power, @metadata_URI);
+            self
+                .emit(
+                    Event::VoteCast(
+                        VoteCast {
+                            proposal_id: proposal_id,
+                            voter: voter,
+                            choice: choice,
+                            voting_power: voting_power,
+                            metadata_URI: metadata_URI.span()
+                        }
+                    )
+                );
         }
 
         fn execute(ref self: ContractState, proposal_id: u256, execution_payload: Array<felt252>) {
@@ -368,7 +443,7 @@ mod Space {
 
             self._proposals.write(proposal_id, proposal);
 
-            ProposalExecuted(proposal_id);
+            self.emit(Event::ProposalExecuted(ProposalExecuted { proposal_id: proposal_id }));
         }
 
         fn update_proposal(
@@ -396,7 +471,16 @@ mod Space {
 
             self._proposals.write(proposal_id, proposal);
 
-            ProposalUpdated(proposal_id, @execution_strategy, @metadata_URI);
+            self
+                .emit(
+                    Event::ProposalUpdated(
+                        ProposalUpdated {
+                            proposal_id: proposal_id,
+                            execution_strategy: execution_strategy,
+                            metadata_URI: metadata_URI.span()
+                        }
+                    )
+                );
         }
 
         fn cancel_proposal(ref self: ContractState, proposal_id: u256) {
@@ -410,7 +494,8 @@ mod Space {
             );
             proposal.finalization_status = FinalizationStatus::Cancelled(());
             self._proposals.write(proposal_id, proposal);
-            ProposalCancelled(proposal_id);
+
+            self.emit(Event::ProposalCancelled(ProposalCancelled { proposal_id: proposal_id }));
         }
 
         fn upgrade(
@@ -432,7 +517,15 @@ mod Space {
                 info::get_contract_address(), INITIALIZE_SELECTOR, initialize_calldata.span()
             )
                 .unwrap_syscall();
-            Upgraded(class_hash, initialize_calldata);
+
+            self
+                .emit(
+                    Event::Upgraded(
+                        Upgraded {
+                            class_hash: class_hash, initialize_calldata: initialize_calldata.span()
+                        }
+                    )
+                );
         }
 
         fn owner(self: @ContractState) -> ContractAddress {
@@ -477,7 +570,6 @@ mod Space {
             self._proposal_validation_strategy.read()
         }
 
-
         fn proposals(self: @ContractState, proposal_id: u256) -> Proposal {
             self._proposals.read(proposal_id)
         }
@@ -490,63 +582,126 @@ mod Space {
             // if not NO_UPDATE
             if NoUpdateU32::should_update(@input.max_voting_duration) {
                 _set_max_voting_duration(ref self, input.max_voting_duration);
-                MaxVotingDurationUpdated(input.max_voting_duration);
+
+                self
+                    .emit(
+                        Event::MaxVotingDurationUpdated(
+                            MaxVotingDurationUpdated {
+                                max_voting_duration: input.max_voting_duration
+                            }
+                        )
+                    );
             }
 
             if NoUpdateU32::should_update(@input.min_voting_duration) {
                 _set_min_voting_duration(ref self, input.min_voting_duration);
-                MinVotingDurationUpdated(input.min_voting_duration);
+
+                self
+                    .emit(
+                        Event::MinVotingDurationUpdated(
+                            MinVotingDurationUpdated {
+                                min_voting_duration: input.min_voting_duration
+                            }
+                        )
+                    );
             }
 
             if NoUpdateU32::should_update(@input.voting_delay) {
                 _set_voting_delay(ref self, input.voting_delay);
-                VotingDelayUpdated(input.voting_delay);
+
+                self
+                    .emit(
+                        Event::VotingDelayUpdated(
+                            VotingDelayUpdated { voting_delay: input.voting_delay }
+                        )
+                    );
             }
 
             if NoUpdateArray::should_update((@input).metadata_URI) {
-                MetadataURIUpdated(@input.metadata_URI);
+                self
+                    .emit(
+                        Event::MetadataURIUpdated(
+                            MetadataURIUpdated { metadata_URI: input.metadata_URI.span() }
+                        )
+                    );
             }
 
             if NoUpdateArray::should_update((@input).dao_URI) {
-                DaoURIUpdated(@input.dao_URI);
+                self.emit(Event::DAOURIUpdated(DAOURIUpdated { dao_URI: input.dao_URI.span() }));
             }
 
             // if not NO_UPDATE
             if NoUpdateStrategy::should_update((@input).proposal_validation_strategy) {
-                // TODO: might be possible to remove need to clone by defining the event or setter on a snapshot.
-                // Similarly for all non value types.
                 _set_proposal_validation_strategy(
                     ref self, input.proposal_validation_strategy.clone()
                 );
-                ProposalValidationStrategyUpdated(
-                    @input.proposal_validation_strategy,
-                    @input.proposal_validation_strategy_metadata_URI
-                );
+                self
+                    .emit(
+                        Event::ProposalValidationStrategyUpdated(
+                            ProposalValidationStrategyUpdated {
+                                proposal_validation_strategy: input
+                                    .proposal_validation_strategy
+                                    .clone(),
+                                proposal_validation_strategy_metadata_URI: input
+                                    .proposal_validation_strategy_metadata_URI
+                                    .span()
+                            }
+                        )
+                    );
             }
 
             if NoUpdateArray::should_update((@input).authenticators_to_add) {
                 _add_authenticators(ref self, input.authenticators_to_add.clone());
-                AuthenticatorsAdded(@input.authenticators_to_add);
+                self
+                    .emit(
+                        Event::AuthenticatorsAdded(
+                            AuthenticatorsAdded {
+                                authenticators: input.authenticators_to_add.span()
+                            }
+                        )
+                    );
             }
 
             // if not NO_UPDATE
             if NoUpdateArray::should_update((@input).authenticators_to_remove) {
                 _remove_authenticators(ref self, input.authenticators_to_remove.clone());
-                AuthenticatorsRemoved(@input.authenticators_to_remove);
+                self
+                    .emit(
+                        Event::AuthenticatorsRemoved(
+                            AuthenticatorsRemoved {
+                                authenticators: input.authenticators_to_remove.span()
+                            }
+                        )
+                    );
             }
 
             // if not NO_UPDATE
             if NoUpdateArray::should_update((@input).voting_strategies_to_add) {
                 _add_voting_strategies(ref self, input.voting_strategies_to_add.clone());
-                VotingStrategiesAdded(
-                    @input.voting_strategies_to_add, @input.voting_strategies_metadata_URIs_to_add
-                );
+                self
+                    .emit(
+                        Event::VotingStrategiesAdded(
+                            VotingStrategiesAdded {
+                                voting_strategies: input.voting_strategies_to_add.span(),
+                                voting_strategy_metadata_URIs: input
+                                    .voting_strategies_metadata_URIs_to_add
+                                    .span()
+                            }
+                        )
+                    );
             }
 
             // if not NO_UPDATE
             if NoUpdateArray::should_update((@input).voting_strategies_to_remove) {
                 _remove_voting_strategies(ref self, input.voting_strategies_to_remove.clone());
-                VotingStrategiesRemoved(@input.voting_strategies_to_remove);
+                self
+                    .emit(
+                        Event::VotingStrategiesRemoved(
+                            VotingStrategiesRemoved {
+                                voting_strategy_indices: input.voting_strategies_to_remove.span()
+                            }
+                        )
+                    );
             }
         }
 
