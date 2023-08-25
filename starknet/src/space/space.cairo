@@ -131,8 +131,8 @@ mod Space {
         VotingStrategiesRemoved: VotingStrategiesRemoved,
         AuthenticatorsAdded: AuthenticatorsAdded,
         AuthenticatorsRemoved: AuthenticatorsRemoved,
-        MetadataURIUpdated: MetadataURIUpdated,
-        DAOURIUpdated: DAOURIUpdated,
+        MetadataUriUpdated: MetadataUriUpdated,
+        DaoUriUpdated: DaoUriUpdated,
         MaxVotingDurationUpdated: MaxVotingDurationUpdated,
         MinVotingDurationUpdated: MinVotingDurationUpdated,
         ProposalValidationStrategyUpdated: ProposalValidationStrategyUpdated,
@@ -240,12 +240,12 @@ mod Space {
     }
 
     #[derive(Drop, starknet::Event)]
-    struct MetadataURIUpdated {
+    struct MetadataUriUpdated {
         metadata_URI: Span<felt252>, 
     }
 
     #[derive(Drop, starknet::Event)]
-    struct DAOURIUpdated {
+    struct DaoUriUpdated {
         dao_URI: Span<felt252>, 
     }
 
@@ -620,14 +620,14 @@ mod Space {
             if NoUpdateArray::should_update((@input).metadata_URI) {
                 self
                     .emit(
-                        Event::MetadataURIUpdated(
-                            MetadataURIUpdated { metadata_URI: input.metadata_URI.span() }
+                        Event::MetadataUriUpdated(
+                            MetadataUriUpdated { metadata_URI: input.metadata_URI.span() }
                         )
                     );
             }
 
             if NoUpdateArray::should_update((@input).dao_URI) {
-                self.emit(Event::DAOURIUpdated(DAOURIUpdated { dao_URI: input.dao_URI.span() }));
+                self.emit(Event::DaoUriUpdated(DaoUriUpdated { dao_URI: input.dao_URI.span() }));
             }
 
             // if not NO_UPDATE
