@@ -18,7 +18,7 @@ mod EthBalanceOfVotingStrategy {
             params: Span<felt252>,
             user_params: Span<felt252>,
         ) -> u256 {
-            // Cast voter address is an Ethereum address
+            // Cast voter address to an Ethereum address
             // Will revert if the address is not an Ethereum address
             let voter = voter.to_ethereum_address();
 
@@ -27,8 +27,7 @@ mod EthBalanceOfVotingStrategy {
             let slot_index = (*params[1]).into();
 
             // TODO: temporary until components are released
-            let state: SingleSlotProof::ContractState =
-                SingleSlotProof::unsafe_new_contract_state();
+            let state = SingleSlotProof::unsafe_new_contract_state();
 
             // Get the balance of the voter at the given block timestamp
             let balance = SingleSlotProof::get_storage_slot(
@@ -43,8 +42,7 @@ mod EthBalanceOfVotingStrategy {
         ref self: ContractState, facts_registry: ContractAddress, l1_headers_store: ContractAddress
     ) {
         // TODO: temporary until components are released
-        let mut state: SingleSlotProof::ContractState =
-            SingleSlotProof::unsafe_new_contract_state();
+        let mut state = SingleSlotProof::unsafe_new_contract_state();
         SingleSlotProof::initializer(ref state, facts_registry);
     }
 }

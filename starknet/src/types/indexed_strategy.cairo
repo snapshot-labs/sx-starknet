@@ -12,11 +12,12 @@ struct IndexedStrategy {
 }
 
 trait IndexedStrategyTrait {
-    fn assert_no_duplicate_indices(ref self: Span<IndexedStrategy>);
+    fn assert_no_duplicate_indices(self: Span<IndexedStrategy>);
 }
 
 impl IndexedStrategyImpl of IndexedStrategyTrait {
-    fn assert_no_duplicate_indices(ref self: Span<IndexedStrategy>) {
+    fn assert_no_duplicate_indices(self: Span<IndexedStrategy>) {
+        let mut self = self;
         if self.len() < 2 {
             return ();
         }
@@ -28,7 +29,7 @@ impl IndexedStrategyImpl of IndexedStrategyTrait {
                     // Check that bit at index `strats[i].index` is not set.
                     let s = math::pow(2_u256, *indexed_strategy.index);
 
-                    assert((bit_map & s) == 1_u256, 'Duplicate Found');
+                    assert((bit_map & s) != 1_u256, 'Duplicate Found');
                     // Update aforementioned bit.
                     bit_map = bit_map | s;
                 },

@@ -6,7 +6,6 @@ mod MerkleWhitelistVotingStrategy {
     use array::{ArrayTrait, Span, SpanTrait};
     use option::OptionTrait;
     use sx::utils::merkle::{assert_valid_proof, Leaf};
-    use debug::PrintTrait;
 
     const LEAF_SIZE: usize = 4; // Serde::<Leaf>::serialize().len()
 
@@ -19,8 +18,8 @@ mod MerkleWhitelistVotingStrategy {
             self: @ContractState,
             timestamp: u32,
             voter: UserAddress,
-            params: Span<felt252>, // [root]
-            user_params: Span<felt252>, // [Serde(leaf), Serde(proofs)]
+            params: Span<felt252>, // [root: felt252]
+            user_params: Span<felt252>, // [leaf: Leaf, proof: Array<felt252>]
         ) -> u256 {
             let cache = user_params; // cache
 

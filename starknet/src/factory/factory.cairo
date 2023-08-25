@@ -4,7 +4,7 @@ use starknet::ClassHash;
 #[starknet::interface]
 trait IFactory<TContractState> {
     fn deploy(
-        self: @TContractState,
+        ref self: TContractState,
         class_hash: ClassHash,
         contract_address_salt: felt252,
         initialize_calldata: Span<felt252>
@@ -24,7 +24,16 @@ mod Factory {
     use sx::utils::constants::INITIALIZE_SELECTOR;
 
     #[event]
-    fn SpaceDeployed(class_hash: ClassHash, space_address: ContractAddress) {}
+    #[derive(Drop, starknet::Event)]
+    enum Event {
+        SpaceDeployed: SpaceDeployed
+    }
+
+    #[derive(Drop, starknet::Event)]
+    struct SpaceDeployed {
+        class_hash: ClassHash,
+        space_address: ContractAddress
+    }
 
     #[storage]
     struct Storage {}
@@ -32,7 +41,7 @@ mod Factory {
     #[external(v0)]
     impl Factory of IFactory<ContractState> {
         fn deploy(
-            self: @ContractState,
+            ref self: ContractState,
             class_hash: ClassHash,
             contract_address_salt: felt252,
             initialize_calldata: Span<felt252>
@@ -46,7 +55,7 @@ mod Factory {
             call_contract_syscall(space_address, INITIALIZE_SELECTOR, initialize_calldata)
                 .unwrap_syscall();
 
-            SpaceDeployed(class_hash, space_address);
+            self.emit(Event::SpaceDeployed(SpaceDeployed { class_hash, space_address }));
 
             space_address
         }
