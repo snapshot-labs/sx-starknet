@@ -11,3 +11,5 @@ mod mocks;
 mod setup;
 
 mod utils;
+
+mod vote;
