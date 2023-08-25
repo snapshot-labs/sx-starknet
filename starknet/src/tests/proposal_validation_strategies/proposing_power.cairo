@@ -23,10 +23,20 @@ mod tests {
     use sx::tests::test_merkle_whitelist::merkle_utils::{
         generate_merkle_data, generate_merkle_root, generate_proof
     };
+    use sx::tests::mocks::erc20_votes_preset::{ERC20VotesPreset};
+    use openzeppelin::token::erc20::interface::{IERC20Dispatcher, IERC20DispatcherTrait};
+    use openzeppelin::governance::utils::interfaces::votes::{
+        IVotes, IVotesDispatcher, IVotesDispatcherTrait
+    };
+    use traits::Into;
+    use sx::voting_strategies::erc20_votes::ERC20VotesVotingStrategy;
+    use starknet::ContractAddress;
 
-    // #[test]
-    // #[available_gas(10000000000)]
+    #[test]
+    #[available_gas(10000000000)]
     fn test_vanilla_works() {
+        starknet::testing::set_block_timestamp(1);
+
         // deploy vanilla voting strategy
         let (vanilla_contract, _) = deploy_syscall(
             VanillaVotingStrategy::TEST_CLASS_HASH.try_into().unwrap(), 0, array![].span(), false
@@ -98,6 +108,8 @@ mod tests {
     #[test]
     #[available_gas(10000000000)]
     fn test_merkle_whitelist_works() {
+        starknet::testing::set_block_timestamp(1);
+
         // deploy merkle whitelist contract
         let (merkle_contract, _) = deploy_syscall(
             MerkleWhitelistVotingStrategy::TEST_CLASS_HASH.try_into().unwrap(),
@@ -232,5 +244,85 @@ mod tests {
 
         let is_validated = contract.validate(author, params.clone(), user_params.clone());
         assert(!is_validated, 'should not have enough VP');
+    }
+
+    fn strategy_from_contract(token_contract: ContractAddress) -> Strategy {
+        let (contract, _) = deploy_syscall(
+            ERC20VotesVotingStrategy::TEST_CLASS_HASH.try_into().unwrap(),
+            0,
+            array![].span(),
+            false,
+        )
+            .unwrap();
+
+        let params: Array<felt252> = array![token_contract.into()];
+
+        Strategy { address: contract, params,  }
+    }
+
+    #[test]
+    #[available_gas(10000000000)]
+    fn test_erc20votes_works() {
+        let SUPPLY = 100_u256;
+
+        // deploy erc20 voting strategy
+        let owner = contract_address_const::<'owner'>();
+        let mut constructor = array!['TEST', 'TST'];
+        SUPPLY.serialize(ref constructor);
+        owner.serialize(ref constructor);
+
+        let (erc20_contract, _) = deploy_syscall(
+            ERC20VotesPreset::TEST_CLASS_HASH.try_into().unwrap(), 0, constructor.span(), false
+        )
+            .unwrap();
+
+        let erc20 = IVotesDispatcher { contract_address: erc20_contract,  };
+
+        let erc20_strategy = strategy_from_contract(erc20_contract);
+
+        starknet::testing::set_contract_address(owner);
+        erc20.delegate(owner);
+
+        // advance block timestamp
+        starknet::testing::set_block_timestamp(1);
+
+        // create a proposal validation strategy
+        let (proposal_validation_contract, _) = deploy_syscall(
+            ProposingPowerProposalValidationStrategy::TEST_CLASS_HASH.try_into().unwrap(),
+            0,
+            array![].span(),
+            false
+        )
+            .unwrap();
+
+        let allowed_strategies = array![erc20_strategy.clone()];
+        let mut params = array![];
+        let proposal_threshold = SUPPLY;
+        proposal_threshold.serialize(ref params);
+        allowed_strategies.serialize(ref params);
+
+        // used strategies
+        let used_strategy = IndexedStrategy { index: 0, params: array![],  };
+        let used_strategies = array![used_strategy.clone()];
+        let mut user_params = array![];
+        used_strategies.serialize(ref user_params);
+
+        let contract = IProposalValidationStrategyDispatcher {
+            contract_address: proposal_validation_contract, 
+        };
+
+        let author = UserAddress::Starknet(owner);
+
+        let is_validated = contract.validate(author, params, user_params.clone());
+        assert(is_validated, 'not enough VP');
+
+        // Now increase threshold
+        let proposal_threshold = SUPPLY + 1;
+        let mut params = array![];
+        proposal_threshold.serialize(ref params);
+        allowed_strategies.serialize(ref params);
+
+        let is_validated = contract.validate(author, params.clone(), user_params);
+        assert(!is_validated, 'Threshold should not be reached');
     }
 }
