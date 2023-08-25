@@ -14,7 +14,7 @@ use clone::Clone;
 
 fn _get_cumulative_power(
     voter: UserAddress,
-    block_number: u32,
+    timestamp: u32,
     mut user_strategies: Array<IndexedStrategy>,
     allowed_strategies: Array<Strategy>,
 ) -> u256 {
@@ -30,7 +30,7 @@ fn _get_cumulative_power(
                             contract_address: strategy.address
                         }
                             .get_voting_power(
-                                block_number, voter, strategy.params, indexed_strategy.params, 
+                                timestamp, voter, strategy.params, indexed_strategy.params, 
                             );
                     },
                     Option::None => {
@@ -60,7 +60,7 @@ fn _validate(
     let user_strategies = Serde::<Array<IndexedStrategy>>::deserialize(ref user_params_span)
         .unwrap();
 
-    let timestamp: u32 = info::get_block_timestamp().try_into().unwrap();
+    let timestamp: u32 = info::get_block_timestamp().try_into().unwrap() - 1;
     let voting_power = _get_cumulative_power(
         author, timestamp, user_strategies, allowed_strategies
     );
