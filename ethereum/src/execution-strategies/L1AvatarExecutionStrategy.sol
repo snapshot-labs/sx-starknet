@@ -57,7 +57,8 @@ contract L1AvatarExecutionStrategy is SimpleQuorumExecutionStrategy {
         uint256[] memory _starknetSpaces,
         uint256 _quorum
     ) {
-        bytes memory initParams = abi.encode(_owner, _target, _starknetCore, _executionRelayer, _starknetSpaces, _quorum);
+        bytes memory initParams =
+            abi.encode(_owner, _target, _starknetCore, _executionRelayer, _starknetSpaces, _quorum);
         setUp(initParams);
     }
 
@@ -70,7 +71,7 @@ contract L1AvatarExecutionStrategy is SimpleQuorumExecutionStrategy {
             address _starknetCore,
             uint256 _executionRelayer,
             uint256[] memory _starknetSpaces,
-            uint256 _quorum 
+            uint256 _quorum
         ) = abi.decode(initParams, (address, address, address, uint256, uint256[], uint256));
         __Ownable_init();
         transferOwnership(_owner);
@@ -146,7 +147,7 @@ contract L1AvatarExecutionStrategy is SimpleQuorumExecutionStrategy {
         payload[6] = proposal.executionStrategy;
         payload[7] = proposal.authorAddressType;
         payload[8] = proposal.author;
-        payload[9] = proposal.activeVotingStrategies & (2 ** 128 - 1); 
+        payload[9] = proposal.activeVotingStrategies & (2 ** 128 - 1);
         payload[10] = proposal.activeVotingStrategies >> 128;
 
         payload[11] = votesFor & (2 ** 128 - 1);

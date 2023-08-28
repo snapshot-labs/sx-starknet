@@ -3,7 +3,7 @@
 pragma solidity ^0.8.19;
 
 import {OwnableUpgradeable} from "@openzeppelin/contracts-upgradeable/access/OwnableUpgradeable.sol";
-import { TRUE, FALSE } from "../types.sol";
+import {TRUE, FALSE} from "../types.sol";
 
 /// @title Space Manager
 /// @notice Manages a whitelist of Spaces that are authorized to execute transactions via this contract.
@@ -32,7 +32,7 @@ contract StarknetSpaceManager is OwnableUpgradeable {
     /// @notice Enable a space.
     /// @param space Address of the space.
     function enableSpace(uint256 space) public onlyOwner {
-        if (space == 0 ||  (spaces[space] != FALSE)) revert InvalidSpace();
+        if (space == 0 || (spaces[space] != FALSE)) revert InvalidSpace();
         spaces[space] = TRUE;
         emit SpaceEnabled(space);
     }

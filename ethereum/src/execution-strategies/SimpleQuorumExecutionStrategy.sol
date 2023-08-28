@@ -9,7 +9,7 @@ import {StarknetSpaceManager} from "./StarknetSpaceManager.sol";
 /// @title Simple Quorum Base Execution Strategy
 abstract contract SimpleQuorumExecutionStrategy is IExecutionStrategy, StarknetSpaceManager {
     event QuorumUpdated(uint256 newQuorum);
-    
+
     /// @notice The quorum required to execute a proposal using this strategy.
     uint256 public quorum;
 

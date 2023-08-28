@@ -16,11 +16,7 @@ interface IStarknetMessagingEvents {
     );
 
     // An event that is raised when a message from L2 to L1 is consumed.
-    event ConsumedMessageToL1(
-        uint256 indexed fromAddress,
-        address indexed toAddress,
-        uint256[] payload
-    );
+    event ConsumedMessageToL1(uint256 indexed fromAddress, address indexed toAddress, uint256[] payload);
 
     // An event that is raised when a message from L1 to L2 is consumed.
     event ConsumedMessageToL2(

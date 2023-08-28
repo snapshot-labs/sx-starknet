@@ -4,8 +4,6 @@ mod EthRelayerExecutionStrategy {
     use option::OptionTrait;
     use traits::{Into, TryInto};
     use serde::Serde;
-    use clone::Clone;
-    use starknet::{EthAddress, contract_address_const};
     use starknet::syscalls::send_message_to_l1_syscall;
     use starknet::info;
     use sx::interfaces::IExecutionStrategy;
