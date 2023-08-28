@@ -280,7 +280,9 @@ mod tests {
         // Vote on Proposal
         authenticator.authenticate(space.contract_address, VOTE_SELECTOR, vote_calldata);
 
-        testing::set_block_timestamp(config.voting_delay.into() + config.max_voting_duration.into());
+        testing::set_block_timestamp(
+            config.voting_delay.into() + config.max_voting_duration.into()
+        );
 
         // Execute Proposal
         space.execute(u256_from_felt252(1), new_payload);
@@ -393,7 +395,9 @@ mod tests {
         // Vote on Proposal
         authenticator.authenticate(space.contract_address, VOTE_SELECTOR, vote_calldata);
 
-        testing::set_block_timestamp(config.voting_delay.into() + config.max_voting_duration.into());
+        testing::set_block_timestamp(
+            config.voting_delay.into() + config.max_voting_duration.into()
+        );
 
         // Execute Proposal
         space.execute(u256_from_felt252(1), vanilla_execution_strategy.params.clone());

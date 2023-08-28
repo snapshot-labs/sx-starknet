@@ -1,16 +1,15 @@
 #[cfg(test)]
 mod tests {
     use array::{ArrayTrait, SpanTrait};
-    use starknet::{syscalls::deploy_syscall, testing, contract_address_const, };
+    use starknet::{syscalls::deploy_syscall, testing, contract_address_const, ContractAddress};
     use traits::TryInto;
     use sx::factory::factory::{Factory, IFactoryDispatcher, IFactoryDispatcherTrait};
     use option::OptionTrait;
     use result::ResultTrait;
     use sx::space::space::Space;
-    use sx::types::Strategy;
+    use sx::types::{Strategy};
     use starknet::ClassHash;
-
-    use sx::tests::setup::setup::setup::{setup, ConfigTrait, deploy};
+    use sx::tests::setup::setup::setup::{setup, Config, ConfigTrait, deploy};
     use openzeppelin::tests::utils;
     use openzeppelin::tests::utils::constants::ZERO;
     use sx::space::space::Space::SpaceCreated;
@@ -18,6 +17,44 @@ mod tests {
 
     use traits::{PartialEq};
     use clone::Clone;
+
+    fn assert_space_event_is_correct(
+        event: SpaceCreated, config: Config, space_address: ContractAddress
+    ) {
+        assert(event.space == space_address, 'space');
+        assert(event.owner == config.owner, 'owner');
+        assert(event.min_voting_duration == config.min_voting_duration, 'min_voting_duration');
+        assert(event.max_voting_duration == config.max_voting_duration, 'max_voting_duration');
+        assert(event.voting_delay == config.voting_delay, 'voting_delay');
+        assert(
+            event.proposal_validation_strategy == config.proposal_validation_strategy,
+            'proposal_validation_strategy'
+        );
+        assert(
+            event
+                .proposal_validation_strategy_metadata_URI == config
+                .proposal_validation_strategy_metadata_uri
+                .span(),
+            'prop_val_strat_metadata'
+        );
+        assert(event.voting_strategies == config.voting_strategies.span(), 'voting_strategies');
+        assert(
+            event.voting_strategy_metadata_URIs == config.voting_strategies_metadata_uris.span(),
+            'voting_strat_metadata'
+        );
+        assert(event.authenticators == config.authenticators.span(), 'authenticators');
+        assert(event.metadata_URI == config.metadata_uri.span(), 'metadata_URI');
+        assert(event.dao_URI == config.dao_uri.span(), 'dao_URI');
+    }
+
+    fn assert_factory_event_is_correct(
+        factory_event: NewContractDeployed, space_address: ContractAddress
+    ) {
+        assert(factory_event.contract_address == space_address, 'space_contract_address');
+        assert(
+            factory_event.class_hash == Space::TEST_CLASS_HASH.try_into().unwrap(), 'class_hash'
+        );
+    }
 
     #[test]
     #[available_gas(10000000000)]
@@ -27,48 +64,15 @@ mod tests {
 
         let (factory, space) = deploy(@config);
 
-        // Ensure the space emitted the proper event
         let space_event = utils::pop_log::<SpaceCreated>(space.contract_address).unwrap();
-        assert(space_event.space == space.contract_address, 'space');
-        assert(space_event.owner == config.owner, 'owner');
-        assert(
-            space_event.min_voting_duration == config.min_voting_duration, 'min_voting_duration'
-        );
-        assert(
-            space_event.max_voting_duration == config.max_voting_duration, 'max_voting_duration'
-        );
-        assert(space_event.voting_delay == config.voting_delay, 'voting_delay');
-        assert(
-            space_event.proposal_validation_strategy == config.proposal_validation_strategy,
-            'proposal_validation_strategy'
-        );
-        assert(
-            space_event
-                .proposal_validation_strategy_metadata_URI == config
-                .proposal_validation_strategy_metadata_uri
-                .span(),
-            'prop_val_strat_metadata'
-        );
-        assert(
-            space_event.voting_strategies == config.voting_strategies.span(), 'voting_strategies'
-        );
-        assert(
-            space_event
-                .voting_strategy_metadata_URIs == config
-                .voting_strategies_metadata_uris
-                .span(),
-            'voting_strat_metadata'
-        );
-        assert(space_event.authenticators == config.authenticators.span(), 'authenticators');
-        assert(space_event.metadata_URI == config.metadata_uri.span(), 'metadata_URI');
-        assert(space_event.dao_URI == config.dao_uri.span(), 'dao_URI');
+
+        // Ensure the space emitted the proper event
+        assert_space_event_is_correct(space_event, config, space.contract_address);
 
         let factory_event = utils::pop_log::<NewContractDeployed>(factory.contract_address)
             .unwrap();
-        assert(factory_event.contract_address == space.contract_address, 'space_contract_address');
-        assert(
-            factory_event.class_hash == Space::TEST_CLASS_HASH.try_into().unwrap(), 'class_hash'
-        );
+
+        assert_factory_event_is_correct(factory_event, space.contract_address);
     }
 
 
