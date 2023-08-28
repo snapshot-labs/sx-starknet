@@ -98,11 +98,12 @@ mod Space {
         },
         utils::{
             reinitializable::{Reinitializable}, ReinitializableImpl, bits::BitSetter,
-            legacy_hash::LegacyHashChoice, constants::INITIALIZE_SELECTOR
+            legacy_hash::LegacyHashChoice, legacy_hash::LegacyHashUserAddress, constants::INITIALIZE_SELECTOR
         },
         external::ownable::Ownable
     };
     use hash::{HashStateTrait, Hash, HashStateExTrait};
+    use debug::PrintTrait;
 
 
     #[storage]
@@ -119,6 +120,25 @@ mod Space {
         _proposals: LegacyMap::<u256, Proposal>,
         _vote_power: LegacyMap::<(u256, Choice), u256>,
         _vote_registry: LegacyMap::<(u256, UserAddress), bool>,
+    }
+
+
+    // TODO: investigate if we can derive Hash on Choice
+    impl VotePowerHash of LegacyHash<(u256, Choice)> {
+        fn hash(state: felt252, value: (u256, Choice)) -> felt252 {
+            let (proposal_id, choice) = value;
+            let state = LegacyHash::hash(state, proposal_id);
+            LegacyHash::hash(state, choice)
+        }
+    }
+
+    // TODO: investigate if we can derive Hash on UserAddress
+    impl VoteRegistryHash of LegacyHash<(u256, UserAddress)> {
+        fn hash(state: felt252, value: (u256, UserAddress)) -> felt252 {
+            let (proposal_id, user) = value;
+            let state = LegacyHash::hash(state, proposal_id);
+            LegacyHash::hash(state, user)
+        }
     }
 
     #[event]
@@ -318,7 +338,9 @@ mod Space {
             metadata_URI: Array<felt252>,
         ) {
             assert_only_authenticator(@self);
+            '1'.print();
             assert(author.is_non_zero(), 'Zero Address');
+            '2'.print();
             let proposal_id = self._next_proposal_id.read();
 
             // Proposal Validation
@@ -368,7 +390,7 @@ mod Space {
                         ProposalCreated {
                             proposal_id: proposal_id,
                             author: author,
-                            proposal: clone_proposal,
+                            proposal: clone_proposal, // TODO: use span, remove clone
                             payload: execution_strategy.params.span(),
                             metadata_URI: metadata_URI.span()
                         }

@@ -3,8 +3,8 @@ use traits::{PartialEq, TryInto, Into};
 use zeroable::Zeroable;
 use serde::Serde;
 use array::ArrayTrait;
-use sx::utils::legacy_hash::LegacyHashUserAddress;
 use hash::{LegacyHash};
+use debug::PrintTrait;
 
 #[derive(Copy, Drop, Serde, PartialEq, starknet::Store)]
 enum UserAddress {
@@ -64,6 +64,7 @@ impl UserAddressZeroable of Zeroable<UserAddress> {
     fn zero() -> UserAddress {
         panic_with_felt252('Undefined')
     }
+
     fn is_zero(self: UserAddress) -> bool {
         match self {
             UserAddress::Starknet(address) => address.is_zero(),
@@ -71,6 +72,7 @@ impl UserAddressZeroable of Zeroable<UserAddress> {
             UserAddress::Custom(address) => address.is_zero(),
         }
     }
+
     fn is_non_zero(self: UserAddress) -> bool {
         !self.is_zero()
     }

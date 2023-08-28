@@ -26,6 +26,7 @@ mod tests {
     };
     use sx::tests::utils::strategy_trait::{StrategyImpl};
     use sx::utils::constants::{PROPOSE_SELECTOR, VOTE_SELECTOR, UPDATE_PROPOSAL_SELECTOR};
+    use debug::PrintTrait;
 
     use Space::Space as SpaceImpl;
 
@@ -500,6 +501,7 @@ mod tests {
         ArrayTrait::<felt252>::new().serialize(ref propose_calldata);
 
         // Create Proposal
+        'proposing'.print();
         authenticator.authenticate(space.contract_address, PROPOSE_SELECTOR, propose_calldata);
     }
 
