@@ -1,7 +1,7 @@
 #[cfg(test)]
 mod tests {
     use array::ArrayTrait;
-    use starknet::{syscalls::deploy_syscall, testing, contract_address_const, };
+    use starknet::{syscalls::deploy_syscall, testing, contract_address_const,};
     use traits::TryInto;
     use sx::factory::factory::{Factory, IFactoryDispatcher, IFactoryDispatcherTrait};
     use option::OptionTrait;

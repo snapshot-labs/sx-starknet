@@ -32,7 +32,7 @@ mod ERC20VotesVotingStrategy {
             // Get the ERC20 contract address from the params array
             let erc20_contract_address = Serde::<ContractAddress>::deserialize(ref params).unwrap();
 
-            let erc20 = IVotesDispatcher { contract_address: erc20_contract_address,  };
+            let erc20 = IVotesDispatcher { contract_address: erc20_contract_address, };
 
             erc20.get_past_votes(voter, timestamp.into())
         }

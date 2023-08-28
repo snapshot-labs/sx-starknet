@@ -203,7 +203,7 @@ mod tests {
         let (factory, space) = deploy(@config);
 
         let authenticator = IVanillaAuthenticatorDispatcher {
-            contract_address: *config.authenticators.at(0), 
+            contract_address: *config.authenticators.at(0),
         };
 
         let quorum = u256_from_felt252(1);
@@ -288,7 +288,7 @@ mod tests {
 
     #[test]
     #[available_gas(10000000000)]
-    #[should_panic(expected: ('Proposal is not valid', 'ENTRYPOINT_FAILED', 'ENTRYPOINT_FAILED'))]
+    #[should_panic(expected: ('Proposal is not valid', 'ENTRYPOINT_FAILED'))]
     fn test__propose_failed_validation() {
         let config = setup();
         let (factory, space) = deploy(@config);
@@ -348,7 +348,7 @@ mod tests {
         let (factory, space) = deploy(@config);
 
         let authenticator = IVanillaAuthenticatorDispatcher {
-            contract_address: *config.authenticators.at(0), 
+            contract_address: *config.authenticators.at(0),
         };
 
         let quorum = u256_from_felt252(1);
@@ -404,9 +404,7 @@ mod tests {
 
     #[test]
     #[available_gas(10000000000)]
-    #[should_panic(
-        expected: ('Proposal has been finalized', 'ENTRYPOINT_FAILED', 'ENTRYPOINT_FAILED')
-    )]
+    #[should_panic(expected: ('Proposal has been finalized', 'ENTRYPOINT_FAILED'))]
     fn test__cancel() {
         let relayer = contract_address_const::<0x1234>();
         let config = setup();
@@ -468,13 +466,13 @@ mod tests {
 
     #[test]
     #[available_gas(10000000000)]
-    #[should_panic(expected: ('Zero Address', 'ENTRYPOINT_FAILED', 'ENTRYPOINT_FAILED'))]
+    #[should_panic(expected: ('Zero Address', 'ENTRYPOINT_FAILED'))]
     fn test_propose_zero_address() {
         let config = setup();
         let (factory, space) = deploy(@config);
 
         let authenticator = IVanillaAuthenticatorDispatcher {
-            contract_address: *config.authenticators.at(0), 
+            contract_address: *config.authenticators.at(0),
         };
 
         let quorum = u256_from_felt252(1);
@@ -505,13 +503,13 @@ mod tests {
 
     #[test]
     #[available_gas(10000000000)]
-    #[should_panic(expected: ('Zero Address', 'ENTRYPOINT_FAILED', 'ENTRYPOINT_FAILED'))]
+    #[should_panic(expected: ('Zero Address', 'ENTRYPOINT_FAILED'))]
     fn test_update_zero_address() {
         let config = setup();
         let (factory, space) = deploy(@config);
 
         let authenticator = IVanillaAuthenticatorDispatcher {
-            contract_address: *config.authenticators.at(0), 
+            contract_address: *config.authenticators.at(0),
         };
 
         let quorum = u256_from_felt252(1);
@@ -559,13 +557,13 @@ mod tests {
 
     #[test]
     #[available_gas(10000000000)]
-    #[should_panic(expected: ('Zero Address', 'ENTRYPOINT_FAILED', 'ENTRYPOINT_FAILED'))]
+    #[should_panic(expected: ('Zero Address', 'ENTRYPOINT_FAILED'))]
     fn test_vote_zero_address() {
         let config = setup();
         let (factory, space) = deploy(@config);
 
         let authenticator = IVanillaAuthenticatorDispatcher {
-            contract_address: *config.authenticators.at(0), 
+            contract_address: *config.authenticators.at(0),
         };
 
         let quorum = u256_from_felt252(1);

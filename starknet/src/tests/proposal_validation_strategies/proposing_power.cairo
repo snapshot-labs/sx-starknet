@@ -43,7 +43,7 @@ mod tests {
         )
             .unwrap();
 
-        let vanilla_strategy = Strategy { address: vanilla_contract, params: array![],  };
+        let vanilla_strategy = Strategy { address: vanilla_contract, params: array![], };
 
         // create a proposal validation strategy
         let (proposal_validation_contract, _) = deploy_syscall(
@@ -61,13 +61,13 @@ mod tests {
         allowed_strategies.serialize(ref params);
 
         // used strategies
-        let used_strategy = IndexedStrategy { index: 0, params: array![],  };
+        let used_strategy = IndexedStrategy { index: 0, params: array![], };
         let used_strategies = array![used_strategy.clone()];
         let mut user_params = array![];
         used_strategies.serialize(ref user_params);
 
         let contract = IProposalValidationStrategyDispatcher {
-            contract_address: proposal_validation_contract, 
+            contract_address: proposal_validation_contract,
         };
 
         let author = UserAddress::Starknet(contract_address_const::<0x123456789>());
@@ -96,7 +96,7 @@ mod tests {
         allowed_strategies.serialize(ref params);
 
         let used_strategy1 = used_strategy;
-        let used_strategy2 = IndexedStrategy { index: 1, params: array![],  };
+        let used_strategy2 = IndexedStrategy { index: 1, params: array![], };
         let used_strategies = array![used_strategy1, used_strategy2];
         let mut user_params = array![];
         used_strategies.serialize(ref user_params);
@@ -129,7 +129,7 @@ mod tests {
             .unwrap();
 
         let contract = IProposalValidationStrategyDispatcher {
-            contract_address: proposal_validation_contract, 
+            contract_address: proposal_validation_contract,
         };
 
         // Generate leaves
@@ -154,7 +154,7 @@ mod tests {
 
         let root = generate_merkle_root(merkle_data.span());
         let merkle_whitelist_strategy = Strategy {
-            address: merkle_contract, params: array![root], 
+            address: merkle_contract, params: array![root],
         };
         let allowed_strategies = array![merkle_whitelist_strategy.clone()];
         let proposal_threshold =
@@ -169,7 +169,7 @@ mod tests {
         let mut indexed_params = array![];
         leaf1.serialize(ref indexed_params);
         proof1.serialize(ref indexed_params);
-        let used_strategy = IndexedStrategy { index: 0, params: indexed_params,  };
+        let used_strategy = IndexedStrategy { index: 0, params: indexed_params, };
         let used_strategies = array![used_strategy.clone()];
         let mut user_params = array![];
         used_strategies.serialize(ref user_params);
@@ -182,7 +182,7 @@ mod tests {
         let mut indexed_params = array![];
         leaf2.serialize(ref indexed_params);
         proof2.serialize(ref indexed_params);
-        let used_strategy = IndexedStrategy { index: 0, params: indexed_params,  };
+        let used_strategy = IndexedStrategy { index: 0, params: indexed_params, };
         let used_strategies = array![used_strategy.clone()];
         let mut user_params = array![];
         used_strategies.serialize(ref user_params);
@@ -195,7 +195,7 @@ mod tests {
         let mut indexed_params = array![];
         leaf3.serialize(ref indexed_params);
         proof3.serialize(ref indexed_params);
-        let used_strategy = IndexedStrategy { index: 0, params: indexed_params,  };
+        let used_strategy = IndexedStrategy { index: 0, params: indexed_params, };
         let used_strategies = array![used_strategy.clone()];
         let mut user_params = array![];
         used_strategies.serialize(ref user_params);
@@ -211,7 +211,7 @@ mod tests {
         )
             .unwrap();
 
-        let vanilla_strategy = Strategy { address: vanilla_contract, params: array![],  };
+        let vanilla_strategy = Strategy { address: vanilla_contract, params: array![], };
 
         let allowed_strategies = array![
             merkle_whitelist_strategy.clone(), vanilla_strategy.clone()
@@ -223,11 +223,11 @@ mod tests {
 
         // voter 1 should now have enough voting power!
         let author = leaf1.address;
-        let vanilla = IndexedStrategy { index: 1, params: array![],  };
+        let vanilla = IndexedStrategy { index: 1, params: array![], };
         let mut indexed_params = array![];
         leaf1.serialize(ref indexed_params);
         proof1.serialize(ref indexed_params);
-        let merkle = IndexedStrategy { index: 0, params: indexed_params,  };
+        let merkle = IndexedStrategy { index: 0, params: indexed_params, };
 
         let used_strategies = array![vanilla.clone(), merkle.clone()];
         let mut user_params = array![];
@@ -257,7 +257,7 @@ mod tests {
 
         let params: Array<felt252> = array![token_contract.into()];
 
-        Strategy { address: contract, params,  }
+        Strategy { address: contract, params, }
     }
 
     #[test]
@@ -276,7 +276,7 @@ mod tests {
         )
             .unwrap();
 
-        let erc20 = IVotesDispatcher { contract_address: erc20_contract,  };
+        let erc20 = IVotesDispatcher { contract_address: erc20_contract, };
 
         let erc20_strategy = strategy_from_contract(erc20_contract);
 
@@ -302,13 +302,13 @@ mod tests {
         allowed_strategies.serialize(ref params);
 
         // used strategies
-        let used_strategy = IndexedStrategy { index: 0, params: array![],  };
+        let used_strategy = IndexedStrategy { index: 0, params: array![], };
         let used_strategies = array![used_strategy.clone()];
         let mut user_params = array![];
         used_strategies.serialize(ref user_params);
 
         let contract = IProposalValidationStrategyDispatcher {
-            contract_address: proposal_validation_contract, 
+            contract_address: proposal_validation_contract,
         };
 
         let author = UserAddress::Starknet(owner);

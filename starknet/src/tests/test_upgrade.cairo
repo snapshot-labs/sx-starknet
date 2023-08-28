@@ -83,13 +83,13 @@ mod tests {
         let mut tx_calldata = array![];
         new_implem.serialize(ref tx_calldata);
         array![7].serialize(ref tx_calldata); // initialize calldata
-        let tx = Transaction { target: space.contract_address, selector, data: tx_calldata,  };
+        let tx = Transaction { target: space.contract_address, selector, data: tx_calldata, };
 
         let mut execution_params = array![];
         tx.serialize(ref execution_params);
 
         let execution_strategy = Strategy {
-            address: execution_contract_address, params: execution_params.clone(), 
+            address: execution_contract_address, params: execution_params.clone(),
         };
 
         let mut propose_calldata = array![];

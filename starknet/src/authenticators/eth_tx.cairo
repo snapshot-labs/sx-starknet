@@ -34,10 +34,7 @@ trait IEthTxAuthenticator<TContractState> {
 #[starknet::contract]
 mod EthTxAuthenticator {
     use super::IEthTxAuthenticator;
-    use starknet::{
-        ContractAddress, EthAddress, Felt252TryIntoEthAddress, EthAddressIntoFelt252,
-        syscalls::call_contract_syscall
-    };
+    use starknet::{ContractAddress, EthAddress, Felt252TryIntoEthAddress, EthAddressIntoFelt252,};
     use core::{serde::Serde, array::{ArrayTrait, SpanTrait}};
     use traits::{PartialEq, TryInto, Into};
     use option::OptionTrait;
@@ -75,9 +72,7 @@ mod EthTxAuthenticator {
 
             consume_commit(ref self, payload_hash, author);
 
-            ISpaceDispatcher {
-                contract_address: target
-            }
+            ISpaceDispatcher { contract_address: target }
                 .propose(
                     UserAddress::Ethereum(author),
                     execution_strategy,
@@ -107,9 +102,7 @@ mod EthTxAuthenticator {
 
             consume_commit(ref self, payload_hash, voter);
 
-            ISpaceDispatcher {
-                contract_address: target
-            }
+            ISpaceDispatcher { contract_address: target }
                 .vote(
                     UserAddress::Ethereum(voter),
                     proposal_id,
@@ -138,9 +131,7 @@ mod EthTxAuthenticator {
 
             consume_commit(ref self, payload_hash, author);
 
-            ISpaceDispatcher {
-                contract_address: target
-            }
+            ISpaceDispatcher { contract_address: target }
                 .update_proposal(
                     UserAddress::Ethereum(author), proposal_id, execution_strategy, metadata_URI
                 );

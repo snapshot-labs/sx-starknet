@@ -164,17 +164,15 @@ fn verify_signature(
 ) {
     if account_type == 'snake' {
         assert(
-            AccountCamelABIDispatcher {
-                contract_address: account
-            }.supportsInterface(ERC165_ACCOUNT_INTERFACE_ID) == true,
+            AccountCamelABIDispatcher { contract_address: account }
+                .supportsInterface(ERC165_ACCOUNT_INTERFACE_ID) == true,
             'Invalid Account'
         );
         AccountCamelABIDispatcher { contract_address: account }.isValidSignature(digest, signature);
     } else if account_type == 'camel' {
         assert(
-            AccountABIDispatcher {
-                contract_address: account
-            }.supports_interface(ERC165_OLD_ACCOUNT_INTERFACE_ID) == true,
+            AccountABIDispatcher { contract_address: account }
+                .supports_interface(ERC165_OLD_ACCOUNT_INTERFACE_ID) == true,
             'Invalid Account'
         );
         AccountABIDispatcher { contract_address: account }.is_valid_signature(digest, signature);
