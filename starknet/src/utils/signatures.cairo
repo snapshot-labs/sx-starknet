@@ -4,14 +4,17 @@ use traits::Into;
 use clone::Clone;
 use core::keccak;
 use integer::u256_from_felt252;
-use sx::types::{Strategy, IndexedStrategy, Choice};
-use sx::utils::Felt252ArrayIntoU256Array;
-use sx::utils::math::pow;
-use sx::utils::constants::{
-    DOMAIN_TYPEHASH_LOW, DOMAIN_TYPEHASH_HIGH, ETHEREUM_PREFIX, STRATEGY_TYPEHASH_LOW,
-    STRATEGY_TYPEHASH_HIGH, INDEXED_STRATEGY_TYPEHASH_LOW, INDEXED_STRATEGY_TYPEHASH_HIGH,
-    PROPOSE_TYPEHASH_LOW, PROPOSE_TYPEHASH_HIGH, VOTE_TYPEHASH_LOW, VOTE_TYPEHASH_HIGH,
-    UPDATE_PROPOSAL_TYPEHASH_LOW, UPDATE_PROPOSAL_TYPEHASH_HIGH
+use sx::{
+    types::{Strategy, IndexedStrategy, Choice},
+    utils::{
+        Felt252ArrayIntoU256Array, math::pow,
+        constants::{
+            DOMAIN_TYPEHASH_LOW, DOMAIN_TYPEHASH_HIGH, ETHEREUM_PREFIX, STRATEGY_TYPEHASH_LOW,
+            STRATEGY_TYPEHASH_HIGH, INDEXED_STRATEGY_TYPEHASH_LOW, INDEXED_STRATEGY_TYPEHASH_HIGH,
+            PROPOSE_TYPEHASH_LOW, PROPOSE_TYPEHASH_HIGH, VOTE_TYPEHASH_LOW, VOTE_TYPEHASH_HIGH,
+            UPDATE_PROPOSAL_TYPEHASH_LOW, UPDATE_PROPOSAL_TYPEHASH_HIGH
+        }
+    }
 };
 
 impl ContractAddressIntoU256 of Into<ContractAddress, u256> {

@@ -35,8 +35,10 @@ mod StarkTxAuthenticator {
     use super::IStarkTxAuthenticator;
     use starknet::{ContractAddress, info};
     use core::array::ArrayTrait;
-    use sx::space::space::{ISpaceDispatcher, ISpaceDispatcherTrait};
-    use sx::types::{UserAddress, Strategy, IndexedStrategy, Choice};
+    use sx::{
+        space::space::{ISpaceDispatcher, ISpaceDispatcherTrait},
+        types::{UserAddress, Strategy, IndexedStrategy, Choice},
+    };
 
     #[storage]
     struct Storage {}

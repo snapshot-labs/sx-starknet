@@ -1,36 +1,40 @@
-use sx::interfaces::IProposalValidationStrategy;
-use sx::types::{UserAddress, IndexedStrategy, IndexedStrategyTrait, Strategy};
-use sx::interfaces::{IVotingStrategyDispatcher, IVotingStrategyDispatcherTrait};
-use starknet::ContractAddress;
-use starknet::info;
+use sx::{
+    interfaces::{
+        IProposalValidationStrategy, IVotingStrategyDispatcher, IVotingStrategyDispatcherTrait
+    },
+    types::{UserAddress, IndexedStrategy, IndexedStrategyTrait, Strategy}, utils::bits::BitSetter
+};
+use starknet::{ContractAddress, info};
 use traits::{Into, TryInto};
 use option::OptionTrait;
 use result::ResultTrait;
 use array::{ArrayTrait, SpanTrait};
 use serde::Serde;
-use sx::utils::bits::BitSetter;
 use box::BoxTrait;
 use clone::Clone;
 
 fn _get_cumulative_power(
     voter: UserAddress,
-    block_number: u32,
-    mut user_strategies: Array<IndexedStrategy>,
-    allowed_strategies: Array<Strategy>,
+    timestamp: u32,
+    mut user_strategies: Span<IndexedStrategy>,
+    allowed_strategies: Span<Strategy>,
 ) -> u256 {
     user_strategies.assert_no_duplicate_indices();
     let mut total_voting_power = 0_u256;
     loop {
         match user_strategies.pop_front() {
             Option::Some(indexed_strategy) => {
-                match allowed_strategies.get(indexed_strategy.index.into()) {
+                match allowed_strategies.get((*indexed_strategy.index).into()) {
                     Option::Some(strategy) => {
                         let strategy: Strategy = strategy.unbox().clone();
                         total_voting_power += IVotingStrategyDispatcher {
                             contract_address: strategy.address
                         }
                             .get_voting_power(
-                                block_number, voter, strategy.params, indexed_strategy.params, 
+                                timestamp,
+                                voter,
+                                strategy.params.span(),
+                                indexed_strategy.params.span(),
                             );
                     },
                     Option::None => {
@@ -47,22 +51,19 @@ fn _get_cumulative_power(
 
 fn _validate(
     author: UserAddress,
-    params: Array<felt252>, // [proposal_threshold: u256, allowed_strategies: Array<Strategy>]
-    user_params: Array<felt252> // [user_strategies: Array<IndexedStrategy>]
+    mut params: Span<felt252>, // [proposal_threshold: u256, allowed_strategies: Array<Strategy>]
+    mut user_params: Span<felt252> // [user_strategies: Array<IndexedStrategy>]
 ) -> bool {
-    let mut params_span = params.span();
     let (proposal_threshold, allowed_strategies) = Serde::<(
         u256, Array<Strategy>
-    )>::deserialize(ref params_span)
+    )>::deserialize(ref params)
         .unwrap();
 
-    let mut user_params_span = user_params.span();
-    let user_strategies = Serde::<Array<IndexedStrategy>>::deserialize(ref user_params_span)
-        .unwrap();
+    let user_strategies = Serde::<Array<IndexedStrategy>>::deserialize(ref user_params).unwrap();
 
-    let timestamp: u32 = info::get_block_timestamp().try_into().unwrap();
+    let timestamp: u32 = info::get_block_timestamp().try_into().unwrap() - 1;
     let voting_power = _get_cumulative_power(
-        author, timestamp, user_strategies, allowed_strategies
+        author, timestamp, user_strategies.span(), allowed_strategies.span()
     );
     voting_power >= proposal_threshold
 }

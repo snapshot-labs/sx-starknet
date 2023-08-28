@@ -1,5 +1,4 @@
-use starknet::ContractAddress;
-use starknet::SyscallResult;
+use starknet::{ContractAddress, SyscallResult};
 
 #[starknet::interface]
 trait IVanillaAuthenticator<TContractState> {

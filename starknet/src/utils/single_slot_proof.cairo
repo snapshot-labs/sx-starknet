@@ -1,6 +1,3 @@
-use core::zeroable::Zeroable;
-use array::ArrayTrait;
-
 // Each word is 64 bits
 #[derive(Serde, Option, Drop)]
 struct StorageSlot {
@@ -67,11 +64,10 @@ mod SingleSlotProof {
         contract_address: felt252,
         slot_index: u256,
         mapping_key: u256,
-        encoded_proofs: Array<felt252>
+        mut encoded_proofs: Span<felt252>
     ) -> u256 {
         let slot_key = get_mapping_slot_key(slot_index, mapping_key);
-        let mut s = encoded_proofs.span();
-        let proofs: Proofs = Serde::<Proofs>::deserialize(ref s).unwrap();
+        let proofs: Proofs = Serde::<Proofs>::deserialize(ref encoded_proofs).unwrap();
 
         // Check proof corresponds to correct storage slot.
         assert(

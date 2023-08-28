@@ -44,9 +44,10 @@ mod StarkSigAuthenticator {
     use starknet::{ContractAddress, info};
     use core::array::{ArrayTrait, SpanTrait};
     use serde::Serde;
-    use sx::space::space::{ISpaceDispatcher, ISpaceDispatcherTrait};
-    use sx::types::{Strategy, IndexedStrategy, UserAddress, Choice};
-    use sx::utils::stark_eip712;
+    use sx::{
+        space::space::{ISpaceDispatcher, ISpaceDispatcherTrait},
+        types::{Strategy, IndexedStrategy, UserAddress, Choice}, utils::stark_eip712
+    };
 
     #[storage]
     struct Storage {
