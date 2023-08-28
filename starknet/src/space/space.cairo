@@ -102,6 +102,8 @@ mod Space {
         },
         external::ownable::Ownable
     };
+    use hash::{HashStateTrait, Hash, HashStateExTrait};
+
 
     #[storage]
     struct Storage {
@@ -520,7 +522,7 @@ mod Space {
             Ownable::assert_only_owner(@state);
 
             assert(class_hash.is_non_zero(), 'Class Hash cannot be zero');
-            starknet::replace_class_syscall(class_hash).unwrap_syscall();
+            starknet::replace_class_syscall(class_hash).unwrap();
 
             // Allowing initializer to be called again.
             let mut state: Reinitializable::ContractState =
@@ -531,7 +533,7 @@ mod Space {
             syscalls::call_contract_syscall(
                 info::get_contract_address(), INITIALIZE_SELECTOR, initialize_calldata.span()
             )
-                .unwrap_syscall();
+                .unwrap();
 
             self
                 .emit(

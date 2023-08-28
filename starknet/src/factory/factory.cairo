@@ -52,7 +52,7 @@ mod Factory {
 
             // Call initializer. 
             call_contract_syscall(space_address, INITIALIZE_SELECTOR, initialize_calldata)
-                .unwrap_syscall();
+                .unwrap();
 
             self.emit(Event::SpaceDeployed(SpaceDeployed { class_hash, space_address }));
 

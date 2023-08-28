@@ -36,7 +36,7 @@ mod merkle_utils {
             }
 
             if merkle_data.len() % 2 != 0 {
-                let mut cpy = merkle_data.into();
+                let mut cpy: Array<felt252> = merkle_data.into();
                 cpy.append(0_felt252); // append 0 because of odd length
                 merkle_data = cpy.span();
             }
@@ -72,7 +72,7 @@ mod merkle_utils {
         }
 
         if merkle_data.len() % 2 != 0 {
-            let mut cpy = merkle_data.into();
+            let mut cpy: Array<felt252> = merkle_data.into();
             cpy.append(0_felt252); // append 0 because of odd length
             merkle_data = cpy.span();
         }

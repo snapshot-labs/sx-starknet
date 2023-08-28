@@ -4,6 +4,7 @@ use zeroable::Zeroable;
 use serde::Serde;
 use array::ArrayTrait;
 use sx::utils::legacy_hash::LegacyHashUserAddress;
+use hash::{LegacyHash};
 
 #[derive(Copy, Drop, Serde, PartialEq, starknet::Store)]
 enum UserAddress {

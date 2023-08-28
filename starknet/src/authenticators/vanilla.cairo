@@ -25,7 +25,7 @@ mod VanillaAuthenticator {
             selector: felt252,
             data: Array<felt252>
         ) {
-            call_contract_syscall(target, selector, data.span()).unwrap_syscall();
+            call_contract_syscall(target, selector, data.span()).unwrap();
         }
     }
 }
