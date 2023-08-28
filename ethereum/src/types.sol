@@ -4,11 +4,18 @@ pragma solidity ^0.8.18;
 
 import {Enum} from "@gnosis.pm/safe-contracts/contracts/common/Enum.sol";
 
+/// @dev Constants used to replace the `bool` type in mappings for gas efficiency.
+uint256 constant TRUE = 1;
+uint256 constant FALSE = 0;
+
+/// @notice Transaction struct that can be used to represent transactions inside a proposal.
 struct MetaTransaction {
     address to;
     uint256 value;
     bytes data;
     Enum.Operation operation;
+    // We use a salt so that the struct can always be unique and we can use its hash as a unique identifier.
+    uint256 salt;
 }
 
 /// @notice The set of possible finalization statuses for a proposal.
@@ -19,7 +26,7 @@ enum FinalizationStatus {
     Cancelled
 }
 
-/// @notice The data stored for each proposal when it is created.
+/// @notice Solidity Representation of a SX-Starknet Proposal
 struct Proposal {
     uint32 startTimestamp;
     uint32 minEndTimestamp;

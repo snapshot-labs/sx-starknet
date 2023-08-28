@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: MIT
 
-pragma solidity ^0.8.18;
+pragma solidity ^0.8.19;
 
 import {IExecutionStrategy} from "../interfaces/IExecutionStrategy.sol";
 import {FinalizationStatus, Proposal, ProposalStatus} from "../types.sol";
@@ -8,6 +8,8 @@ import {StarknetSpaceManager} from "./StarknetSpaceManager.sol";
 
 /// @title Simple Quorum Base Execution Strategy
 abstract contract SimpleQuorumExecutionStrategy is IExecutionStrategy, StarknetSpaceManager {
+    event QuorumUpdated(uint256 newQuorum);
+    
     /// @notice The quorum required to execute a proposal using this strategy.
     uint256 public quorum;
 

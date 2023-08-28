@@ -3,15 +3,17 @@
 pragma solidity ^0.8.19;
 
 import {OwnableUpgradeable} from "@openzeppelin/contracts-upgradeable/access/OwnableUpgradeable.sol";
+import { TRUE, FALSE } from "../types.sol";
 
-/// @title Space Manager - A contract that manages SX spaces on Starknet that are able to execute transactions via this contract
-/// @author Snapshot Labs
+/// @title Space Manager
+/// @notice Manages a whitelist of Spaces that are authorized to execute transactions via this contract.
 contract StarknetSpaceManager is OwnableUpgradeable {
+    /// @notice Thrown if a space is not in the whitelist.
     error InvalidSpace();
 
     /// @dev Mapping of spaces that are enabled.
     /// A uint256 is used as Starknet addresses cannot be cast to a solidity address type.
-    mapping(uint256 => bool) internal spaces;
+    mapping(uint256 spaces => uint256 isEnabled) internal spaces;
 
     /// @notice Emitted when a space is enabled.
     event SpaceEnabled(uint256 space);
@@ -19,40 +21,39 @@ contract StarknetSpaceManager is OwnableUpgradeable {
     /// @notice Emitted when a space is disabled.
     event SpaceDisabled(uint256 space);
 
-    /// @notice Initialize the contract with a list of spaces. Called only once.
+    /// @notice Initialize the contract with a list of Starknet spaces. Called only once.
     /// @param _spaces List of spaces.
     function __SpaceManager_init(uint256[] memory _spaces) internal onlyInitializing {
         for (uint256 i = 0; i < _spaces.length; i++) {
-            if (_spaces[i] == 0 || isSpaceEnabled(_spaces[i])) revert InvalidSpace();
-            spaces[_spaces[i]] = true;
+            spaces[_spaces[i]] = TRUE;
         }
     }
 
     /// @notice Enable a space.
     /// @param space Address of the space.
     function enableSpace(uint256 space) public onlyOwner {
-        if (space == 0 || isSpaceEnabled(space)) revert InvalidSpace();
-        spaces[space] = true;
+        if (space == 0 ||  (spaces[space] != FALSE)) revert InvalidSpace();
+        spaces[space] = TRUE;
         emit SpaceEnabled(space);
     }
 
     /// @notice Disable a space.
     /// @param space Address of the space.
-    function disableSpace(uint256 space) public onlyOwner {
-        if (!spaces[space]) revert InvalidSpace();
-        spaces[space] = false;
+    function disableSpace(uint256 space) external onlyOwner {
+        if (spaces[space] == FALSE) revert InvalidSpace();
+        spaces[space] = FALSE;
         emit SpaceDisabled(space);
     }
 
     /// @notice Check if a space is enabled.
     /// @param space Address of the space.
-    /// @return bool whether the space is enabled.
-    function isSpaceEnabled(uint256 space) public view returns (bool) {
+    /// @return uint256 whether the space is enabled.
+    function isSpaceEnabled(uint256 space) external view returns (uint256) {
         return spaces[space];
     }
 
-    modifier onlySpace(uint256 callerAddress) {
-        if (!isSpaceEnabled(callerAddress)) revert InvalidSpace();
+    modifier onlySpace(uint256 space) {
+        if (spaces[space] == FALSE) revert InvalidSpace();
         _;
     }
 }
