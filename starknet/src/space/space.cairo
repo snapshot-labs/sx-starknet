@@ -297,12 +297,14 @@ mod Space {
             let mut state = Ownable::unsafe_new_contract_state();
             Ownable::initializer(ref state);
             Ownable::transfer_ownership(ref state, owner);
+            _set_max_voting_duration(
+                ref self, max_voting_duration
+            ); // Need to set max before min, or else `max == 0` and set_min will revert
             _set_min_voting_duration(ref self, min_voting_duration);
-            _set_max_voting_duration(ref self, max_voting_duration);
             _set_voting_delay(ref self, voting_delay);
             _set_proposal_validation_strategy(ref self, proposal_validation_strategy);
-            _add_voting_strategies(ref self, voting_strategies);
-            _add_authenticators(ref self, authenticators);
+            _add_voting_strategies(ref self, voting_strategies.span());
+            _add_authenticators(ref self, authenticators.span());
             self._next_proposal_id.write(1_u256);
         }
 
@@ -323,7 +325,9 @@ mod Space {
                 contract_address: proposal_validation_strategy.address
             }
                 .validate(
-                    author, proposal_validation_strategy.params, user_proposal_validation_params
+                    author,
+                    proposal_validation_strategy.params.span(),
+                    user_proposal_validation_params.span()
                 );
             assert(is_valid, 'Proposal is not valid');
 
@@ -399,7 +403,7 @@ mod Space {
                 @self,
                 voter,
                 proposal.start_timestamp,
-                user_voting_strategies,
+                user_voting_strategies.span(),
                 proposal.active_voting_strategies
             );
 
@@ -429,6 +433,15 @@ mod Space {
         fn execute(ref self: ContractState, proposal_id: u256, execution_payload: Array<felt252>) {
             let mut proposal = self._proposals.read(proposal_id);
             assert_proposal_exists(@proposal);
+
+            let recovered_hash = poseidon::poseidon_hash_span(execution_payload.span());
+            // Check that payload matches
+            assert(recovered_hash == proposal.execution_payload_hash, 'Invalid payload hash');
+
+            // Check that finalization status is not pending
+            assert(
+                proposal.finalization_status == FinalizationStatus::Pending(()), 'Already finalized'
+            );
 
             IExecutionStrategyDispatcher {
                 contract_address: proposal.execution_strategy
@@ -469,7 +482,7 @@ mod Space {
 
             proposal
                 .execution_payload_hash =
-                    poseidon::poseidon_hash_span(execution_strategy.clone().params.span());
+                    poseidon::poseidon_hash_span(execution_strategy.params.span());
 
             self._proposals.write(proposal_id, proposal);
 
@@ -581,10 +594,29 @@ mod Space {
             let state = Ownable::unsafe_new_contract_state();
             Ownable::assert_only_owner(@state);
 
-            // if not NO_UPDATE
-            if NoUpdateU32::should_update(@input.max_voting_duration) {
-                _set_max_voting_duration(ref self, input.max_voting_duration);
+            // Needed because the compiler will go crazy if we try to use `input` directly
+            let _min_voting_duration = input.min_voting_duration;
+            let _max_voting_duration = input.max_voting_duration;
 
+            if NoUpdateU32::should_update(@_max_voting_duration)
+                && NoUpdateU32::should_update(@_min_voting_duration) {
+                // Check that min and max voting durations are valid
+                // We don't use the internal `_set_min_voting_duration` and `_set_max_voting_duration` functions because
+                // it would revert when `_min_voting_duration > max_voting_duration` (when the new `_min` is
+                // bigger than the current `max`).
+                assert(_min_voting_duration <= _max_voting_duration, 'Invalid duration');
+
+                self._min_voting_duration.write(input.min_voting_duration);
+                self
+                    .emit(
+                        Event::MinVotingDurationUpdated(
+                            MinVotingDurationUpdated {
+                                min_voting_duration: input.min_voting_duration
+                            }
+                        )
+                    );
+
+                self._max_voting_duration.write(input.max_voting_duration);
                 self
                     .emit(
                         Event::MaxVotingDurationUpdated(
@@ -593,16 +625,23 @@ mod Space {
                             }
                         )
                     );
-            }
-
-            if NoUpdateU32::should_update(@input.min_voting_duration) {
+            } else if NoUpdateU32::should_update(@_min_voting_duration) {
                 _set_min_voting_duration(ref self, input.min_voting_duration);
-
                 self
                     .emit(
                         Event::MinVotingDurationUpdated(
                             MinVotingDurationUpdated {
                                 min_voting_duration: input.min_voting_duration
+                            }
+                        )
+                    );
+            } else if NoUpdateU32::should_update(@_max_voting_duration) {
+                _set_max_voting_duration(ref self, input.max_voting_duration);
+                self
+                    .emit(
+                        Event::MaxVotingDurationUpdated(
+                            MaxVotingDurationUpdated {
+                                max_voting_duration: input.max_voting_duration
                             }
                         )
                     );
@@ -632,7 +671,6 @@ mod Space {
                 self.emit(Event::DaoUriUpdated(DaoUriUpdated { dao_URI: input.dao_URI.span() }));
             }
 
-            // if not NO_UPDATE
             if NoUpdateStrategy::should_update((@input).proposal_validation_strategy) {
                 _set_proposal_validation_strategy(
                     ref self, input.proposal_validation_strategy.clone()
@@ -653,7 +691,7 @@ mod Space {
             }
 
             if NoUpdateArray::should_update((@input).authenticators_to_add) {
-                _add_authenticators(ref self, input.authenticators_to_add.clone());
+                _add_authenticators(ref self, input.authenticators_to_add.span());
                 self
                     .emit(
                         Event::AuthenticatorsAdded(
@@ -664,9 +702,8 @@ mod Space {
                     );
             }
 
-            // if not NO_UPDATE
             if NoUpdateArray::should_update((@input).authenticators_to_remove) {
-                _remove_authenticators(ref self, input.authenticators_to_remove.clone());
+                _remove_authenticators(ref self, input.authenticators_to_remove.span());
                 self
                     .emit(
                         Event::AuthenticatorsRemoved(
@@ -677,9 +714,8 @@ mod Space {
                     );
             }
 
-            // if not NO_UPDATE
             if NoUpdateArray::should_update((@input).voting_strategies_to_add) {
-                _add_voting_strategies(ref self, input.voting_strategies_to_add.clone());
+                _add_voting_strategies(ref self, input.voting_strategies_to_add.span());
                 self
                     .emit(
                         Event::VotingStrategiesAdded(
@@ -693,9 +729,8 @@ mod Space {
                     );
             }
 
-            // if not NO_UPDATE
             if NoUpdateArray::should_update((@input).voting_strategies_to_remove) {
-                _remove_voting_strategies(ref self, input.voting_strategies_to_remove.clone());
+                _remove_voting_strategies(ref self, input.voting_strategies_to_remove.span());
                 self
                     .emit(
                         Event::VotingStrategiesRemoved(
@@ -743,35 +778,41 @@ mod Space {
         self: @ContractState,
         voter: UserAddress,
         timestamp: u32,
-        user_strategies: Array<IndexedStrategy>,
+        mut user_strategies: Span<IndexedStrategy>,
         allowed_strategies: u256
     ) -> u256 {
         user_strategies.assert_no_duplicate_indices();
         let mut total_voting_power = 0_u256;
-        let mut i = 0_usize;
         loop {
-            if i >= user_strategies.len() {
-                break ();
-            }
-            let strategy_index = user_strategies.at(i).index;
-            assert(allowed_strategies.is_bit_set(*strategy_index), 'Invalid strategy index');
-            let strategy = self._voting_strategies.read(*strategy_index);
-            total_voting_power += IVotingStrategyDispatcher {
-                contract_address: strategy.address
-            }
-                .get_voting_power(
-                    timestamp, voter, strategy.params, user_strategies.at(i).params.clone()
-                );
-            i += 1;
+            match user_strategies.pop_front() {
+                Option::Some(strategy_index) => {
+                    assert(
+                        allowed_strategies.is_bit_set(*strategy_index.index),
+                        'Invalid strategy index'
+                    );
+                    let strategy = self._voting_strategies.read(*strategy_index.index);
+                    total_voting_power += IVotingStrategyDispatcher {
+                        contract_address: strategy.address
+                    }
+                        .get_voting_power(
+                            timestamp, voter, strategy.params.span(), strategy_index.params.span()
+                        );
+                },
+                Option::None => {
+                    break;
+                },
+            };
         };
         total_voting_power
     }
 
     fn _set_max_voting_duration(ref self: ContractState, _max_voting_duration: u32) {
+        assert(_max_voting_duration >= self._min_voting_duration.read(), 'Invalid duration');
         self._max_voting_duration.write(_max_voting_duration);
     }
 
     fn _set_min_voting_duration(ref self: ContractState, _min_voting_duration: u32) {
+        assert(_min_voting_duration <= self._max_voting_duration.read(), 'Invalid duration');
         self._min_voting_duration.write(_min_voting_duration);
     }
 
@@ -785,73 +826,71 @@ mod Space {
         self._proposal_validation_strategy.write(_proposal_validation_strategy);
     }
 
-    fn _add_voting_strategies(ref self: ContractState, _voting_strategies: Array<Strategy>) {
+    fn _add_voting_strategies(ref self: ContractState, mut _voting_strategies: Span<Strategy>) {
         let mut cachedActiveVotingStrategies = self._active_voting_strategies.read();
         let mut cachedNextVotingStrategyIndex = self._next_voting_strategy_index.read();
         assert(
             cachedNextVotingStrategyIndex.into() < 256_u32 - _voting_strategies.len(),
             'Exceeds Voting Strategy Limit'
         );
-        let mut _voting_strategies_span = _voting_strategies.span();
-        let mut i = 0_usize;
         loop {
-            if i >= _voting_strategies.len() {
-                break ();
-            }
-
-            let strategy = _voting_strategies_span.pop_front().unwrap().clone();
-            assert(!strategy.address.is_zero(), 'Invalid voting strategy');
-            cachedActiveVotingStrategies.set_bit(cachedNextVotingStrategyIndex, true);
-            self._voting_strategies.write(cachedNextVotingStrategyIndex, strategy);
-            cachedNextVotingStrategyIndex += 1_u8;
-            i += 1;
+            match _voting_strategies.pop_front() {
+                Option::Some(strategy) => {
+                    assert(!(*strategy.address).is_zero(), 'Invalid voting strategy');
+                    cachedActiveVotingStrategies.set_bit(cachedNextVotingStrategyIndex, true);
+                    self._voting_strategies.write(cachedNextVotingStrategyIndex, strategy.clone());
+                    cachedNextVotingStrategyIndex += 1_u8;
+                },
+                Option::None => {
+                    break;
+                },
+            };
         };
         self._active_voting_strategies.write(cachedActiveVotingStrategies);
         self._next_voting_strategy_index.write(cachedNextVotingStrategyIndex);
     }
 
-    fn _remove_voting_strategies(ref self: ContractState, _voting_strategies: Array<u8>) {
+    fn _remove_voting_strategies(ref self: ContractState, mut _voting_strategies: Span<u8>) {
         let mut cachedActiveVotingStrategies = self._active_voting_strategies.read();
-        let mut _voting_strategies_span = _voting_strategies.span();
-        let mut i = 0_usize;
         loop {
-            if i >= _voting_strategies.len() {
-                break ();
-            }
-
-            let index = _voting_strategies_span.pop_front().unwrap();
-            cachedActiveVotingStrategies.set_bit(*index, false);
-            i += 1;
+            match _voting_strategies.pop_front() {
+                Option::Some(index) => {
+                    cachedActiveVotingStrategies.set_bit(*index, false);
+                },
+                Option::None => {
+                    break;
+                },
+            };
         };
 
-        if cachedActiveVotingStrategies == 0 {
-            panic_with_felt252('No active voting strategy left');
-        }
+        assert(cachedActiveVotingStrategies != 0, 'No active voting strategy left');
 
         self._active_voting_strategies.write(cachedActiveVotingStrategies);
     }
 
-    fn _add_authenticators(ref self: ContractState, _authenticators: Array<ContractAddress>) {
-        let mut _authenticators_span = _authenticators.span();
-        let mut i = 0_usize;
+    fn _add_authenticators(ref self: ContractState, mut _authenticators: Span<ContractAddress>) {
         loop {
-            if i >= _authenticators.len() {
-                break ();
-            }
-            self._authenticators.write(*_authenticators_span.pop_front().unwrap(), true);
-            i += 1;
+            match _authenticators.pop_front() {
+                Option::Some(authenticator) => {
+                    self._authenticators.write(*authenticator, true);
+                },
+                Option::None => {
+                    break;
+                },
+            };
         }
     }
 
-    fn _remove_authenticators(ref self: ContractState, _authenticators: Array<ContractAddress>) {
-        let mut _authenticators_span = _authenticators.span();
-        let mut i = 0_usize;
+    fn _remove_authenticators(ref self: ContractState, mut _authenticators: Span<ContractAddress>) {
         loop {
-            if i >= _authenticators.len() {
-                break ();
-            }
-            self._authenticators.write(*_authenticators_span.pop_front().unwrap(), false);
-            i += 1;
+            match _authenticators.pop_front() {
+                Option::Some(authenticator) => {
+                    self._authenticators.write(*authenticator, false);
+                },
+                Option::None => {
+                    break;
+                },
+            };
         }
     }
 }

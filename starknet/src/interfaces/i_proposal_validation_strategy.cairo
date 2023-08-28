@@ -6,7 +6,7 @@ trait IProposalValidationStrategy<TContractState> {
     fn validate(
         self: @TContractState,
         author: UserAddress,
-        params: Array<felt252>,
-        user_params: Array<felt252>
+        params: Span<felt252>,
+        user_params: Span<felt252>
     ) -> bool;
 }

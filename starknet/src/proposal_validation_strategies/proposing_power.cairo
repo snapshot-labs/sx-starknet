@@ -24,8 +24,8 @@ mod ProposingPowerProposalValidationStrategy {
         fn validate(
             self: @ContractState,
             author: UserAddress,
-            params: Array<felt252>, // [proposal_threshold: u256, allowed_strategies: Array<Strategy>]
-            user_params: Array<felt252> // [user_strategies: Array<IndexedStrategy>]
+            params: Span<felt252>, // [proposal_threshold: u256, allowed_strategies: Array<Strategy>]
+            user_params: Span<felt252> // [user_strategies: Array<IndexedStrategy>]
         ) -> bool {
             _validate(author, params, user_params)
         }

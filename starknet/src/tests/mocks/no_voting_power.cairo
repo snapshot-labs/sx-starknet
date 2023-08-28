@@ -13,8 +13,8 @@ mod NoVotingPowerVotingStrategy {
             self: @ContractState,
             timestamp: u32,
             voter: UserAddress,
-            params: Array<felt252>,
-            user_params: Array<felt252>,
+            params: Span<felt252>,
+            user_params: Span<felt252>,
         ) -> u256 {
             0
         }

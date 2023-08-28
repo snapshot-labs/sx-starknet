@@ -73,7 +73,7 @@ mod tests {
         let author = UserAddress::Starknet(contract_address_const::<0x123456789>());
 
         // Vanilla should return 1 so it should be fine
-        let is_validated = contract.validate(author, params, user_params.clone());
+        let is_validated = contract.validate(author, params.span(), user_params.span());
         assert(is_validated, 'not enough VP');
 
         // Now increase threshold
@@ -83,7 +83,7 @@ mod tests {
         allowed_strategies.serialize(ref params);
 
         // Threshold is 2 but VP should be 1
-        let is_validated = contract.validate(author, params.clone(), user_params);
+        let is_validated = contract.validate(author, params.span(), user_params.span());
         assert(!is_validated, 'Threshold should not be reached');
 
         // But now if we add the vanilla voting strategy twice then it should be fine
@@ -101,7 +101,7 @@ mod tests {
         let mut user_params = array![];
         used_strategies.serialize(ref user_params);
 
-        let is_validated = contract.validate(author, params, user_params);
+        let is_validated = contract.validate(author, params.span(), user_params.span());
         assert(is_validated, 'should have 2 VP');
     }
 
@@ -174,7 +174,7 @@ mod tests {
         let mut user_params = array![];
         used_strategies.serialize(ref user_params);
 
-        let is_validated = contract.validate(author, params.clone(), user_params.clone());
+        let is_validated = contract.validate(author, params.span(), user_params.span());
         assert(!is_validated, 'should not have enough VP');
 
         // setup for voter2
@@ -187,8 +187,8 @@ mod tests {
         let mut user_params = array![];
         used_strategies.serialize(ref user_params);
 
-        let is_validated = contract.validate(author, params.clone(), user_params.clone());
-        assert(is_validated, 'should have enough VP');
+        let is_validated = contract.validate(author, params.span(), user_params.span());
+        assert(is_validated, 'should have enough VP1');
 
         // setup for voter3
         let author = leaf3.address;
@@ -200,8 +200,8 @@ mod tests {
         let mut user_params = array![];
         used_strategies.serialize(ref user_params);
 
-        let is_validated = contract.validate(author, params.clone(), user_params.clone());
-        assert(is_validated, 'should have enough VP');
+        let is_validated = contract.validate(author, params.span(), user_params.span());
+        assert(is_validated, 'should have enough VP2');
 
         // -- Now let's mix merkle and vanilla voting strategies --
 
@@ -233,8 +233,8 @@ mod tests {
         let mut user_params = array![];
         used_strategies.serialize(ref user_params);
 
-        let is_validated = contract.validate(author, params.clone(), user_params.clone());
-        assert(is_validated, 'should have enough VP');
+        let is_validated = contract.validate(author, params.span(), user_params.span());
+        assert(is_validated, 'should have enough VP2');
 
         // and a random voter that doesn't use the whitelist should not have enough VP
         let author = UserAddress::Starknet(contract_address_const::<0x123456789>());
@@ -242,7 +242,7 @@ mod tests {
         let mut user_params = array![];
         used_strategies.serialize(ref user_params);
 
-        let is_validated = contract.validate(author, params.clone(), user_params.clone());
+        let is_validated = contract.validate(author, params.span(), user_params.span());
         assert(!is_validated, 'should not have enough VP');
     }
 
@@ -313,7 +313,7 @@ mod tests {
 
         let author = UserAddress::Starknet(owner);
 
-        let is_validated = contract.validate(author, params, user_params.clone());
+        let is_validated = contract.validate(author, params.span(), user_params.span());
         assert(is_validated, 'not enough VP');
 
         // Now increase threshold
@@ -322,7 +322,7 @@ mod tests {
         proposal_threshold.serialize(ref params);
         allowed_strategies.serialize(ref params);
 
-        let is_validated = contract.validate(author, params.clone(), user_params);
+        let is_validated = contract.validate(author, params.span(), user_params.span());
         assert(!is_validated, 'Threshold should not be reached');
     }
 }
