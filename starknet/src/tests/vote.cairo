@@ -69,7 +69,7 @@ mod tests {
         let execution_strategy = get_execution_strategy();
 
         let authenticator = IVanillaAuthenticatorDispatcher {
-            contract_address: *config.authenticators.at(0), 
+            contract_address: *config.authenticators.at(0),
         };
 
         create_proposal(authenticator, space, execution_strategy);
@@ -103,7 +103,7 @@ mod tests {
         let execution_strategy = get_execution_strategy();
 
         let authenticator = IVanillaAuthenticatorDispatcher {
-            contract_address: *config.authenticators.at(0), 
+            contract_address: *config.authenticators.at(0),
         };
 
         create_proposal(authenticator, space, execution_strategy);
@@ -137,7 +137,7 @@ mod tests {
         let execution_strategy = get_execution_strategy();
 
         let authenticator = IVanillaAuthenticatorDispatcher {
-            contract_address: *config.authenticators.at(0), 
+            contract_address: *config.authenticators.at(0),
         };
 
         create_proposal(authenticator, space, execution_strategy);
@@ -165,16 +165,14 @@ mod tests {
 
     #[test]
     #[available_gas(10000000000)]
-    #[should_panic(
-        expected: ('Voting period has not started', 'ENTRYPOINT_FAILED', 'ENTRYPOINT_FAILED')
-    )]
+    #[should_panic(expected: ('Voting period has not started', 'ENTRYPOINT_FAILED'))]
     fn vote_too_early() {
         let config = setup();
         let (factory, space) = deploy(@config);
         let execution_strategy = get_execution_strategy();
 
         let authenticator = IVanillaAuthenticatorDispatcher {
-            contract_address: *config.authenticators.at(0), 
+            contract_address: *config.authenticators.at(0),
         };
 
         create_proposal(authenticator, space, execution_strategy);
@@ -198,14 +196,14 @@ mod tests {
 
     #[test]
     #[available_gas(10000000000)]
-    #[should_panic(expected: ('Voting period has ended', 'ENTRYPOINT_FAILED', 'ENTRYPOINT_FAILED'))]
+    #[should_panic(expected: ('Voting period has ended', 'ENTRYPOINT_FAILED'))]
     fn vote_too_late() {
         let config = setup();
         let (factory, space) = deploy(@config);
         let execution_strategy = get_execution_strategy();
 
         let authenticator = IVanillaAuthenticatorDispatcher {
-            contract_address: *config.authenticators.at(0), 
+            contract_address: *config.authenticators.at(0),
         };
 
         create_proposal(authenticator, space, execution_strategy);
@@ -230,16 +228,14 @@ mod tests {
 
     #[test]
     #[available_gas(10000000000)]
-    #[should_panic(
-        expected: ('Proposal has been finalized', 'ENTRYPOINT_FAILED', 'ENTRYPOINT_FAILED')
-    )]
+    #[should_panic(expected: ('Proposal has been finalized', 'ENTRYPOINT_FAILED'))]
     fn vote_finalized_proposal() {
         let config = setup();
         let (factory, space) = deploy(@config);
         let execution_strategy = get_execution_strategy();
 
         let authenticator = IVanillaAuthenticatorDispatcher {
-            contract_address: *config.authenticators.at(0), 
+            contract_address: *config.authenticators.at(0),
         };
 
         create_proposal(authenticator, space, execution_strategy);
@@ -274,7 +270,7 @@ mod tests {
         let execution_strategy = get_execution_strategy();
 
         let authenticator = IVanillaAuthenticatorDispatcher {
-            contract_address: *config.authenticators.at(0), 
+            contract_address: *config.authenticators.at(0),
         };
 
         create_proposal(authenticator, space, execution_strategy);
@@ -294,7 +290,7 @@ mod tests {
 
     #[test]
     #[available_gas(10000000000)]
-    #[should_panic(expected: ('Voter has already voted', 'ENTRYPOINT_FAILED', 'ENTRYPOINT_FAILED'))]
+    #[should_panic(expected: ('Voter has already voted', 'ENTRYPOINT_FAILED'))]
     fn vote_twice() {
         let config = setup();
         let (factory, space) = deploy(@config);
@@ -302,7 +298,7 @@ mod tests {
         let execution_strategy = get_execution_strategy();
 
         let authenticator = IVanillaAuthenticatorDispatcher {
-            contract_address: *config.authenticators.at(0), 
+            contract_address: *config.authenticators.at(0),
         };
 
         create_proposal(authenticator, space, execution_strategy);
@@ -327,9 +323,7 @@ mod tests {
 
     #[test]
     #[available_gas(10000000000)]
-    #[should_panic(
-        expected: ('User has no voting power', 'ENTRYPOINT_FAILED', 'ENTRYPOINT_FAILED')
-    )]
+    #[should_panic(expected: ('User has no voting power', 'ENTRYPOINT_FAILED'))]
     fn vote_no_voting_power() {
         let config = setup();
         let (factory, space) = deploy(@config);
@@ -337,7 +331,7 @@ mod tests {
         let execution_strategy = get_execution_strategy();
 
         let authenticator = IVanillaAuthenticatorDispatcher {
-            contract_address: *config.authenticators.at(0), 
+            contract_address: *config.authenticators.at(0),
         };
 
         let (no_voting_power_contract, _) = deploy_syscall(

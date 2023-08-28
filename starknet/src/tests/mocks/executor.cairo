@@ -31,7 +31,7 @@ mod ExecutorExecutionStrategy {
         ) {
             let mut sp4n = payload.span();
             let tx: Transaction = Serde::<Transaction>::deserialize(ref sp4n).unwrap();
-            call_contract_syscall(tx.target, tx.selector, tx.data.span()).unwrap_syscall();
+            call_contract_syscall(tx.target, tx.selector, tx.data.span()).unwrap();
         }
     }
 

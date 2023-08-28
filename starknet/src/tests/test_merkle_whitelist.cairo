@@ -36,7 +36,7 @@ mod merkle_utils {
             }
 
             if merkle_data.len() % 2 != 0 {
-                let mut cpy = merkle_data.into();
+                let mut cpy: Array<felt252> = merkle_data.into();
                 cpy.append(0_felt252); // append 0 because of odd length
                 merkle_data = cpy.span();
             }
@@ -72,7 +72,7 @@ mod merkle_utils {
         }
 
         if merkle_data.len() % 2 != 0 {
-            let mut cpy = merkle_data.into();
+            let mut cpy: Array<felt252> = merkle_data.into();
             cpy.append(0_felt252); // append 0 because of odd length
             merkle_data = cpy.span();
         }
@@ -246,7 +246,7 @@ mod assert_valid_proof {
 
     #[test]
     #[available_gas(1000000000)]
-    #[should_panic(expected: ('Merkle: Invalid proof', ))]
+    #[should_panic(expected: ('Merkle: Invalid proof',))]
     fn no_leaf() {
         let root = 0;
         let leaf = Leaf {
@@ -258,20 +258,14 @@ mod assert_valid_proof {
 
     #[test]
     #[available_gas(10000000)]
-    #[should_panic(expected: ('Merkle: Invalid proof', ))]
+    #[should_panic(expected: ('Merkle: Invalid proof',))]
     fn invalid_extra_node() {
         let mut members = array![
-            Leaf {
-                address: UserAddress::Starknet(contract_address_const::<5>()), voting_power: 5
-                }, Leaf {
-                address: UserAddress::Starknet(contract_address_const::<4>()), voting_power: 4
-                }, Leaf {
-                address: UserAddress::Starknet(contract_address_const::<3>()), voting_power: 3
-                }, Leaf {
-                address: UserAddress::Starknet(contract_address_const::<2>()), voting_power: 2
-                }, Leaf {
-                address: UserAddress::Starknet(contract_address_const::<1>()), voting_power: 1
-            },
+            Leaf { address: UserAddress::Starknet(contract_address_const::<5>()), voting_power: 5 },
+            Leaf { address: UserAddress::Starknet(contract_address_const::<4>()), voting_power: 4 },
+            Leaf { address: UserAddress::Starknet(contract_address_const::<3>()), voting_power: 3 },
+            Leaf { address: UserAddress::Starknet(contract_address_const::<2>()), voting_power: 2 },
+            Leaf { address: UserAddress::Starknet(contract_address_const::<1>()), voting_power: 1 },
         ];
         let merkle_data = generate_merkle_data(members.span());
 
@@ -285,20 +279,14 @@ mod assert_valid_proof {
 
     #[test]
     #[available_gas(10000000)]
-    #[should_panic(expected: ('Merkle: Invalid proof', ))]
+    #[should_panic(expected: ('Merkle: Invalid proof',))]
     fn invalid_proof() {
         let mut members = array![
-            Leaf {
-                address: UserAddress::Starknet(contract_address_const::<5>()), voting_power: 5
-                }, Leaf {
-                address: UserAddress::Starknet(contract_address_const::<4>()), voting_power: 4
-                }, Leaf {
-                address: UserAddress::Starknet(contract_address_const::<3>()), voting_power: 3
-                }, Leaf {
-                address: UserAddress::Starknet(contract_address_const::<2>()), voting_power: 2
-                }, Leaf {
-                address: UserAddress::Starknet(contract_address_const::<1>()), voting_power: 1
-            },
+            Leaf { address: UserAddress::Starknet(contract_address_const::<5>()), voting_power: 5 },
+            Leaf { address: UserAddress::Starknet(contract_address_const::<4>()), voting_power: 4 },
+            Leaf { address: UserAddress::Starknet(contract_address_const::<3>()), voting_power: 3 },
+            Leaf { address: UserAddress::Starknet(contract_address_const::<2>()), voting_power: 2 },
+            Leaf { address: UserAddress::Starknet(contract_address_const::<1>()), voting_power: 1 },
         ];
         let merkle_data = generate_merkle_data(members.span());
 
@@ -390,7 +378,7 @@ mod merkle_whitelist_voting_power {
 
         let mut user_params = array![];
         let fake_leaf = Leaf {
-            address: leaf.address, voting_power: leaf.voting_power + 1, 
+            address: leaf.address, voting_power: leaf.voting_power + 1,
         }; // lying about voting power here
         fake_leaf.serialize(ref user_params);
         proof.serialize(ref user_params);

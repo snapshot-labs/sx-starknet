@@ -50,8 +50,10 @@ mod EthSigAuthenticator {
     use sx::{
         space::space::{ISpaceDispatcher, ISpaceDispatcherTrait},
         types::{Strategy, IndexedStrategy, Choice, UserAddress},
-        utils::{signatures, legacy_hash::LegacyHashEthAddress}
+        utils::{signatures, legacy_hash::{LegacyHashEthAddress, LegacyHashUsedSalts}}
     };
+    use hash::LegacyHash;
+
 
     #[storage]
     struct Storage {
@@ -86,9 +88,7 @@ mod EthSigAuthenticator {
             );
             self._used_salts.write((author, salt), true);
 
-            ISpaceDispatcher {
-                contract_address: target
-            }
+            ISpaceDispatcher { contract_address: target }
                 .propose(
                     UserAddress::Ethereum(author),
                     execution_strategy,
@@ -123,9 +123,7 @@ mod EthSigAuthenticator {
 
             // No need to check salts here, as double voting is prevented by the space itself.
 
-            ISpaceDispatcher {
-                contract_address: target
-            }
+            ISpaceDispatcher { contract_address: target }
                 .vote(
                     UserAddress::Ethereum(voter),
                     proposal_id,
@@ -160,9 +158,7 @@ mod EthSigAuthenticator {
             );
             self._used_salts.write((author, salt), true);
 
-            ISpaceDispatcher {
-                contract_address: target
-            }
+            ISpaceDispatcher { contract_address: target }
                 .update_proposal(
                     UserAddress::Ethereum(author), proposal_id, execution_strategy, metadata_URI
                 );

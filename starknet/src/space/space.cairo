@@ -98,10 +98,15 @@ mod Space {
         },
         utils::{
             reinitializable::{Reinitializable}, ReinitializableImpl, bits::BitSetter,
-            legacy_hash::LegacyHashChoice, constants::INITIALIZE_SELECTOR
+            legacy_hash::{
+                LegacyHashChoice, LegacyHashUserAddress, LegacyHashVotePower, LegacyHashVoteRegistry
+            },
+            constants::INITIALIZE_SELECTOR
         },
         external::ownable::Ownable
     };
+    use hash::{HashStateTrait, Hash, HashStateExTrait};
+
 
     #[storage]
     struct Storage {
@@ -177,7 +182,7 @@ mod Space {
 
     #[derive(Drop, starknet::Event)]
     struct ProposalExecuted {
-        proposal_id: u256, 
+        proposal_id: u256,
     }
 
     #[derive(Drop, starknet::Event)]
@@ -189,7 +194,7 @@ mod Space {
 
     #[derive(Drop, starknet::Event)]
     struct ProposalCancelled {
-        proposal_id: u256, 
+        proposal_id: u256,
     }
 
     #[derive(Drop, starknet::Event)]
@@ -200,27 +205,27 @@ mod Space {
 
     #[derive(Drop, starknet::Event)]
     struct VotingStrategiesRemoved {
-        voting_strategy_indices: Span<u8>, 
+        voting_strategy_indices: Span<u8>,
     }
 
     #[derive(Drop, starknet::Event)]
     struct AuthenticatorsAdded {
-        authenticators: Span<ContractAddress>, 
+        authenticators: Span<ContractAddress>,
     }
 
     #[derive(Drop, starknet::Event)]
     struct AuthenticatorsRemoved {
-        authenticators: Span<ContractAddress>, 
+        authenticators: Span<ContractAddress>,
     }
 
     #[derive(Drop, starknet::Event)]
     struct MaxVotingDurationUpdated {
-        max_voting_duration: u32, 
+        max_voting_duration: u32,
     }
 
     #[derive(Drop, starknet::Event)]
     struct MinVotingDurationUpdated {
-        min_voting_duration: u32, 
+        min_voting_duration: u32,
     }
 
     #[derive(Drop, starknet::Event)]
@@ -231,7 +236,7 @@ mod Space {
 
     #[derive(Drop, starknet::Event)]
     struct VotingDelayUpdated {
-        voting_delay: u32, 
+        voting_delay: u32,
     }
 
     #[derive(Drop, starknet::Event)]
@@ -242,12 +247,12 @@ mod Space {
 
     #[derive(Drop, starknet::Event)]
     struct MetadataUriUpdated {
-        metadata_URI: Span<felt252>, 
+        metadata_URI: Span<felt252>,
     }
 
     #[derive(Drop, starknet::Event)]
     struct DaoUriUpdated {
-        dao_URI: Span<felt252>, 
+        dao_URI: Span<felt252>,
     }
 
     #[external(v0)]
@@ -366,7 +371,7 @@ mod Space {
                         ProposalCreated {
                             proposal_id: proposal_id,
                             author: author,
-                            proposal: clone_proposal,
+                            proposal: clone_proposal, // TODO: use span, remove clone
                             payload: execution_strategy.params.span(),
                             metadata_URI: metadata_URI.span()
                         }
@@ -443,9 +448,7 @@ mod Space {
                 proposal.finalization_status == FinalizationStatus::Pending(()), 'Already finalized'
             );
 
-            IExecutionStrategyDispatcher {
-                contract_address: proposal.execution_strategy
-            }
+            IExecutionStrategyDispatcher { contract_address: proposal.execution_strategy }
                 .execute(
                     proposal.clone(),
                     self._vote_power.read((proposal_id, Choice::For(()))),
@@ -520,7 +523,7 @@ mod Space {
             Ownable::assert_only_owner(@state);
 
             assert(class_hash.is_non_zero(), 'Class Hash cannot be zero');
-            starknet::replace_class_syscall(class_hash).unwrap_syscall();
+            starknet::replace_class_syscall(class_hash).unwrap();
 
             // Allowing initializer to be called again.
             let mut state: Reinitializable::ContractState =
@@ -531,7 +534,7 @@ mod Space {
             syscalls::call_contract_syscall(
                 info::get_contract_address(), INITIALIZE_SELECTOR, initialize_calldata.span()
             )
-                .unwrap_syscall();
+                .unwrap();
 
             self
                 .emit(
@@ -791,9 +794,8 @@ mod Space {
                         'Invalid strategy index'
                     );
                     let strategy = self._voting_strategies.read(*strategy_index.index);
-                    total_voting_power += IVotingStrategyDispatcher {
-                        contract_address: strategy.address
-                    }
+                    total_voting_power +=
+                        IVotingStrategyDispatcher { contract_address: strategy.address }
                         .get_voting_power(
                             timestamp, voter, strategy.params.span(), strategy_index.params.span()
                         );

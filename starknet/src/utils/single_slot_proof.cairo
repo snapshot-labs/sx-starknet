@@ -80,9 +80,7 @@ mod SingleSlotProof {
             'Invalid Proof'
         );
 
-        let slot_value = IFactsRegistryDispatcher {
-            contract_address: self._facts_registry.read()
-        }
+        let slot_value = IFactsRegistryDispatcher { contract_address: self._facts_registry.read() }
             .get_storage_uint(
                 timestamp.into(),
                 contract_address,
