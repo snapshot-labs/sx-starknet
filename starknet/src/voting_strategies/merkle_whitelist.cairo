@@ -1,11 +1,11 @@
 #[starknet::contract]
 mod MerkleWhitelistVotingStrategy {
-    use sx::interfaces::IVotingStrategy;
+    use sx::{
+        interfaces::IVotingStrategy, types::UserAddress, utils::merkle::{assert_valid_proof, Leaf}
+    };
     use serde::Serde;
-    use sx::types::UserAddress;
     use array::{ArrayTrait, Span, SpanTrait};
     use option::OptionTrait;
-    use sx::utils::merkle::{assert_valid_proof, Leaf};
 
     const LEAF_SIZE: usize = 4; // Serde::<Leaf>::serialize().len()
 

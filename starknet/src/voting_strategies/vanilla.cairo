@@ -1,7 +1,6 @@
 #[starknet::contract]
 mod VanillaVotingStrategy {
-    use sx::interfaces::IVotingStrategy;
-    use sx::types::UserAddress;
+    use sx::{interfaces::IVotingStrategy, types::UserAddress};
     use starknet::ContractAddress;
 
     #[storage]

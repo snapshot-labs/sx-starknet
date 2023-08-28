@@ -34,16 +34,19 @@ trait IEthTxAuthenticator<TContractState> {
 #[starknet::contract]
 mod EthTxAuthenticator {
     use super::IEthTxAuthenticator;
-    use starknet::{ContractAddress, EthAddress, Felt252TryIntoEthAddress, EthAddressIntoFelt252};
-    use starknet::syscalls::call_contract_syscall;
-    use core::serde::Serde;
-    use core::array::{ArrayTrait, SpanTrait};
+    use starknet::{
+        ContractAddress, EthAddress, Felt252TryIntoEthAddress, EthAddressIntoFelt252,
+        syscalls::call_contract_syscall
+    };
+    use core::{serde::Serde, array::{ArrayTrait, SpanTrait}};
     use traits::{PartialEq, TryInto, Into};
     use option::OptionTrait;
     use zeroable::Zeroable;
-    use sx::space::space::{ISpaceDispatcher, ISpaceDispatcherTrait};
-    use sx::types::{UserAddress, Strategy, IndexedStrategy, Choice};
-    use sx::utils::constants::{PROPOSE_SELECTOR, VOTE_SELECTOR, UPDATE_PROPOSAL_SELECTOR};
+    use sx::{
+        space::space::{ISpaceDispatcher, ISpaceDispatcherTrait},
+        types::{UserAddress, Strategy, IndexedStrategy, Choice},
+        utils::constants::{PROPOSE_SELECTOR, VOTE_SELECTOR, UPDATE_PROPOSAL_SELECTOR}
+    };
 
     #[storage]
     struct Storage {

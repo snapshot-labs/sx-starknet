@@ -2,9 +2,10 @@
 mod EthBalanceOfVotingStrategy {
     use traits::Into;
     use starknet::{EthAddress, ContractAddress};
-    use sx::interfaces::IVotingStrategy;
-    use sx::types::{UserAddress, UserAddressTrait};
-    use sx::utils::single_slot_proof::SingleSlotProof;
+    use sx::{
+        interfaces::IVotingStrategy, types::{UserAddress, UserAddressTrait},
+        utils::single_slot_proof::SingleSlotProof
+    };
 
     #[storage]
     struct Storage {}

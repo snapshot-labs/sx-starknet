@@ -1,6 +1,3 @@
-use core::zeroable::Zeroable;
-use array::ArrayTrait;
-
 // Each word is 64 bits
 #[derive(Serde, Option, Drop)]
 struct StorageSlot {

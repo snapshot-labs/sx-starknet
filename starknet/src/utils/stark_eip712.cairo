@@ -4,17 +4,19 @@ use array::{ArrayTrait, SpanTrait};
 use traits::Into;
 use box::BoxTrait;
 use serde::Serde;
-use sx::types::{Strategy, IndexedStrategy, Choice};
-use sx::utils::{
-    struct_hash::StructHash,
-    constants::{
-        STARKNET_MESSAGE, DOMAIN_TYPEHASH, PROPOSE_TYPEHASH, VOTE_TYPEHASH,
-        UPDATE_PROPOSAL_TYPEHASH, ERC165_ACCOUNT_INTERFACE_ID, ERC165_OLD_ACCOUNT_INTERFACE_ID
+use sx::{
+    types::{Strategy, IndexedStrategy, Choice},
+    utils::{
+        struct_hash::StructHash,
+        constants::{
+            STARKNET_MESSAGE, DOMAIN_TYPEHASH, PROPOSE_TYPEHASH, VOTE_TYPEHASH,
+            UPDATE_PROPOSAL_TYPEHASH, ERC165_ACCOUNT_INTERFACE_ID, ERC165_OLD_ACCOUNT_INTERFACE_ID
+        }
+    },
+    interfaces::{
+        AccountABIDispatcher, AccountABIDispatcherTrait, AccountCamelABIDispatcher,
+        AccountCamelABIDispatcherTrait
     }
-};
-use sx::interfaces::{
-    AccountABIDispatcher, AccountABIDispatcherTrait, AccountCamelABIDispatcher,
-    AccountCamelABIDispatcherTrait
 };
 
 fn verify_propose_sig(
