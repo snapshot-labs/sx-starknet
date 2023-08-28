@@ -404,9 +404,7 @@ mod tests {
 
     #[test]
     #[available_gas(10000000000)]
-    #[should_panic(
-        expected: ('Proposal has been finalized', 'ENTRYPOINT_FAILED')
-    )]
+    #[should_panic(expected: ('Proposal has been finalized', 'ENTRYPOINT_FAILED'))]
     fn test__cancel() {
         let relayer = contract_address_const::<0x1234>();
         let config = setup();

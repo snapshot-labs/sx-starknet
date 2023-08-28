@@ -165,9 +165,7 @@ mod tests {
 
     #[test]
     #[available_gas(10000000000)]
-    #[should_panic(
-        expected: ('Voting period has not started', 'ENTRYPOINT_FAILED')
-    )]
+    #[should_panic(expected: ('Voting period has not started', 'ENTRYPOINT_FAILED'))]
     fn vote_too_early() {
         let config = setup();
         let (factory, space) = deploy(@config);
@@ -230,9 +228,7 @@ mod tests {
 
     #[test]
     #[available_gas(10000000000)]
-    #[should_panic(
-        expected: ('Proposal has been finalized', 'ENTRYPOINT_FAILED')
-    )]
+    #[should_panic(expected: ('Proposal has been finalized', 'ENTRYPOINT_FAILED'))]
     fn vote_finalized_proposal() {
         let config = setup();
         let (factory, space) = deploy(@config);
@@ -327,9 +323,7 @@ mod tests {
 
     #[test]
     #[available_gas(10000000000)]
-    #[should_panic(
-        expected: ('User has no voting power', 'ENTRYPOINT_FAILED')
-    )]
+    #[should_panic(expected: ('User has no voting power', 'ENTRYPOINT_FAILED'))]
     fn vote_no_voting_power() {
         let config = setup();
         let (factory, space) = deploy(@config);

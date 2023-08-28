@@ -55,7 +55,6 @@ mod EthSigAuthenticator {
     use hash::LegacyHash;
 
 
-
     #[storage]
     struct Storage {
         _domain_hash: u256,

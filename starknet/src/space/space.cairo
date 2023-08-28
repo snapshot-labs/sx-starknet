@@ -98,7 +98,8 @@ mod Space {
         },
         utils::{
             reinitializable::{Reinitializable}, ReinitializableImpl, bits::BitSetter,
-            legacy_hash::LegacyHashChoice, legacy_hash::LegacyHashUserAddress, constants::INITIALIZE_SELECTOR
+            legacy_hash::LegacyHashChoice, legacy_hash::LegacyHashUserAddress,
+            constants::INITIALIZE_SELECTOR
         },
         external::ownable::Ownable
     };
