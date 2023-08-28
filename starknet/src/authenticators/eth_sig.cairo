@@ -50,7 +50,7 @@ mod EthSigAuthenticator {
     use sx::{
         space::space::{ISpaceDispatcher, ISpaceDispatcherTrait},
         types::{Strategy, IndexedStrategy, Choice, UserAddress},
-        utils::{signatures, legacy_hash::LegacyHashEthAddress}
+        utils::{signatures, legacy_hash::{LegacyHashEthAddress, LegacyHashUsedSalts}}
     };
     use hash::LegacyHash;
 
@@ -59,15 +59,6 @@ mod EthSigAuthenticator {
     struct Storage {
         _domain_hash: u256,
         _used_salts: LegacyMap::<(EthAddress, u256), bool>
-    }
-
-    // SCOTT
-    impl UsedSaltsHash of LegacyHash<(EthAddress, u256)> {
-        fn hash(state: felt252, value: (EthAddress, u256)) -> felt252 {
-            let (addr, salt) = value;
-            let state = LegacyHash::hash(state, addr);
-            LegacyHash::hash(state, salt)
-        }
     }
 
     #[external(v0)]

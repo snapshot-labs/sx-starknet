@@ -98,7 +98,7 @@ mod Space {
         },
         utils::{
             reinitializable::{Reinitializable}, ReinitializableImpl, bits::BitSetter,
-            legacy_hash::LegacyHashChoice, legacy_hash::LegacyHashUserAddress,
+            legacy_hash::{LegacyHashChoice, LegacyHashUserAddress, LegacyHashVotePower, LegacyHashVoteRegistry},
             constants::INITIALIZE_SELECTOR
         },
         external::ownable::Ownable
@@ -120,25 +120,6 @@ mod Space {
         _proposals: LegacyMap::<u256, Proposal>,
         _vote_power: LegacyMap::<(u256, Choice), u256>,
         _vote_registry: LegacyMap::<(u256, UserAddress), bool>,
-    }
-
-
-    // TODO: investigate if we can derive Hash on Choice
-    impl VotePowerHash of LegacyHash<(u256, Choice)> {
-        fn hash(state: felt252, value: (u256, Choice)) -> felt252 {
-            let (proposal_id, choice) = value;
-            let state = LegacyHash::hash(state, proposal_id);
-            LegacyHash::hash(state, choice)
-        }
-    }
-
-    // TODO: investigate if we can derive Hash on UserAddress
-    impl VoteRegistryHash of LegacyHash<(u256, UserAddress)> {
-        fn hash(state: felt252, value: (u256, UserAddress)) -> felt252 {
-            let (proposal_id, user) = value;
-            let state = LegacyHash::hash(state, proposal_id);
-            LegacyHash::hash(state, user)
-        }
     }
 
     #[event]
