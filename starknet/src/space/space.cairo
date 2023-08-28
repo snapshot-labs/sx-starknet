@@ -103,7 +103,6 @@ mod Space {
         external::ownable::Ownable
     };
     use hash::{HashStateTrait, Hash, HashStateExTrait};
-    use debug::PrintTrait;
 
 
     #[storage]
@@ -338,9 +337,7 @@ mod Space {
             metadata_URI: Array<felt252>,
         ) {
             assert_only_authenticator(@self);
-            '1'.print();
             assert(author.is_non_zero(), 'Zero Address');
-            '2'.print();
             let proposal_id = self._next_proposal_id.read();
 
             // Proposal Validation

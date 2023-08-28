@@ -26,7 +26,6 @@ mod tests {
     };
     use sx::tests::utils::strategy_trait::{StrategyImpl};
     use sx::utils::constants::{PROPOSE_SELECTOR, VOTE_SELECTOR, UPDATE_PROPOSAL_SELECTOR};
-    use debug::PrintTrait;
 
     use Space::Space as SpaceImpl;
 
@@ -289,7 +288,7 @@ mod tests {
 
     #[test]
     #[available_gas(10000000000)]
-    #[should_panic(expected: ('Proposal is not valid', 'ENTRYPOINT_FAILED', 'ENTRYPOINT_FAILED'))]
+    #[should_panic(expected: ('Proposal is not valid', 'ENTRYPOINT_FAILED'))]
     fn test__propose_failed_validation() {
         let config = setup();
         let (factory, space) = deploy(@config);
@@ -406,7 +405,7 @@ mod tests {
     #[test]
     #[available_gas(10000000000)]
     #[should_panic(
-        expected: ('Proposal has been finalized', 'ENTRYPOINT_FAILED', 'ENTRYPOINT_FAILED')
+        expected: ('Proposal has been finalized', 'ENTRYPOINT_FAILED')
     )]
     fn test__cancel() {
         let relayer = contract_address_const::<0x1234>();
@@ -469,7 +468,7 @@ mod tests {
 
     #[test]
     #[available_gas(10000000000)]
-    #[should_panic(expected: ('Zero Address', 'ENTRYPOINT_FAILED', 'ENTRYPOINT_FAILED'))]
+    #[should_panic(expected: ('Zero Address', 'ENTRYPOINT_FAILED'))]
     fn test_propose_zero_address() {
         let config = setup();
         let (factory, space) = deploy(@config);
@@ -501,13 +500,12 @@ mod tests {
         ArrayTrait::<felt252>::new().serialize(ref propose_calldata);
 
         // Create Proposal
-        'proposing'.print();
         authenticator.authenticate(space.contract_address, PROPOSE_SELECTOR, propose_calldata);
     }
 
     #[test]
     #[available_gas(10000000000)]
-    #[should_panic(expected: ('Zero Address', 'ENTRYPOINT_FAILED', 'ENTRYPOINT_FAILED'))]
+    #[should_panic(expected: ('Zero Address', 'ENTRYPOINT_FAILED'))]
     fn test_update_zero_address() {
         let config = setup();
         let (factory, space) = deploy(@config);
@@ -561,7 +559,7 @@ mod tests {
 
     #[test]
     #[available_gas(10000000000)]
-    #[should_panic(expected: ('Zero Address', 'ENTRYPOINT_FAILED', 'ENTRYPOINT_FAILED'))]
+    #[should_panic(expected: ('Zero Address', 'ENTRYPOINT_FAILED'))]
     fn test_vote_zero_address() {
         let config = setup();
         let (factory, space) = deploy(@config);

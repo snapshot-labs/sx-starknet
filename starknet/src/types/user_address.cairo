@@ -4,7 +4,6 @@ use zeroable::Zeroable;
 use serde::Serde;
 use array::ArrayTrait;
 use hash::{LegacyHash};
-use debug::PrintTrait;
 
 #[derive(Copy, Drop, Serde, PartialEq, starknet::Store)]
 enum UserAddress {

@@ -208,9 +208,6 @@ mod tests {
         expected: (
             'Votes: future Lookup',
             'ENTRYPOINT_FAILED',
-            'ENTRYPOINT_FAILED',
-            'ENTRYPOINT_FAILED',
-            'ENTRYPOINT_FAILED'
         )
     )]
     fn revert_if_queried_at_vote_start() {
@@ -255,7 +252,7 @@ mod tests {
     #[test]
     #[available_gas(1000000000)]
     #[should_panic(
-        expected: ('User has no voting power', 'ENTRYPOINT_FAILED', 'ENTRYPOINT_FAILED')
+        expected: ('User has no voting power', 'ENTRYPOINT_FAILED')
     )]
     fn no_delegation_means_no_voting_power() {
         let (config, space) = setup_space();

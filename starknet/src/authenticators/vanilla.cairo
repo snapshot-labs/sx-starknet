@@ -25,7 +25,13 @@ mod VanillaAuthenticator {
             selector: felt252,
             data: Array<felt252>
         ) {
-            call_contract_syscall(target, selector, data.span()).unwrap();
+            // TODO: use if let Err(e) once it's supported
+            match call_contract_syscall(target, selector, data.span()) {
+                Result::Ok(a) => {},
+                Result::Err(a) => {
+                    assert(false, *a[0]);
+                },
+            };
         }
     }
 }

@@ -166,7 +166,7 @@ mod tests {
     #[test]
     #[available_gas(10000000000)]
     #[should_panic(
-        expected: ('Voting period has not started', 'ENTRYPOINT_FAILED', 'ENTRYPOINT_FAILED')
+        expected: ('Voting period has not started', 'ENTRYPOINT_FAILED')
     )]
     fn vote_too_early() {
         let config = setup();
@@ -198,7 +198,7 @@ mod tests {
 
     #[test]
     #[available_gas(10000000000)]
-    #[should_panic(expected: ('Voting period has ended', 'ENTRYPOINT_FAILED', 'ENTRYPOINT_FAILED'))]
+    #[should_panic(expected: ('Voting period has ended', 'ENTRYPOINT_FAILED'))]
     fn vote_too_late() {
         let config = setup();
         let (factory, space) = deploy(@config);
@@ -231,7 +231,7 @@ mod tests {
     #[test]
     #[available_gas(10000000000)]
     #[should_panic(
-        expected: ('Proposal has been finalized', 'ENTRYPOINT_FAILED', 'ENTRYPOINT_FAILED')
+        expected: ('Proposal has been finalized', 'ENTRYPOINT_FAILED')
     )]
     fn vote_finalized_proposal() {
         let config = setup();
@@ -294,7 +294,7 @@ mod tests {
 
     #[test]
     #[available_gas(10000000000)]
-    #[should_panic(expected: ('Voter has already voted', 'ENTRYPOINT_FAILED', 'ENTRYPOINT_FAILED'))]
+    #[should_panic(expected: ('Voter has already voted', 'ENTRYPOINT_FAILED'))]
     fn vote_twice() {
         let config = setup();
         let (factory, space) = deploy(@config);
@@ -328,7 +328,7 @@ mod tests {
     #[test]
     #[available_gas(10000000000)]
     #[should_panic(
-        expected: ('User has no voting power', 'ENTRYPOINT_FAILED', 'ENTRYPOINT_FAILED')
+        expected: ('User has no voting power', 'ENTRYPOINT_FAILED')
     )]
     fn vote_no_voting_power() {
         let config = setup();

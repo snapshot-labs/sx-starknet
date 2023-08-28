@@ -36,7 +36,6 @@ mod EthTxAuthenticator {
     use super::IEthTxAuthenticator;
     use starknet::{
         ContractAddress, EthAddress, Felt252TryIntoEthAddress, EthAddressIntoFelt252,
-        syscalls::call_contract_syscall
     };
     use core::{serde::Serde, array::{ArrayTrait, SpanTrait}};
     use traits::{PartialEq, TryInto, Into};
