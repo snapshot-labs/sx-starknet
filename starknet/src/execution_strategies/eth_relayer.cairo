@@ -4,9 +4,10 @@ mod EthRelayerExecutionStrategy {
     use option::OptionTrait;
     use traits::{Into, TryInto};
     use serde::Serde;
-    use starknet::EthAddress;
+    use clone::Clone;
+    use starknet::{EthAddress, contract_address_const};
     use starknet::syscalls::send_message_to_l1_syscall;
-    use starknet::info::get_caller_address;
+    use starknet::info;
     use sx::interfaces::IExecutionStrategy;
     use sx::types::{Proposal};
 
@@ -23,15 +24,24 @@ mod EthRelayerExecutionStrategy {
             votes_abstain: u256,
             payload: Array<felt252>
         ) {
-            let space = get_caller_address();
+            // We cannot have early proposal execution with this strategy because we determine the proposal status 
+            // on L1 in a separate tx and therefore cannot ensure that the proposal is not still in the voting period 
+            // when it is executed. 
+            assert(
+                info::get_block_timestamp() > proposal.max_end_timestamp.into(),
+                'Before max end timestamp'
+            );
 
-            // Decode payload into L1 destination and L1 keccak execution hash
+            let space = info::get_caller_address();
+
+            // Decode payload into L1 execution strategy and L1 (keccak) execution hash
             let mut payload = payload.span();
-            let (l1_destination, l1_execution_hash) = Serde::<(
+            let (l1_execution_strategy, l1_execution_hash) = Serde::<(
                 EthAddress, u256
             )>::deserialize(ref payload)
                 .unwrap();
 
+            // Serialize the payload to be sent to the L1 execution strategy
             let mut l1_payload = array![];
             space.serialize(ref l1_payload);
             proposal.serialize(ref l1_payload);
@@ -40,7 +50,7 @@ mod EthRelayerExecutionStrategy {
             votes_abstain.serialize(ref l1_payload);
             l1_execution_hash.serialize(ref l1_payload);
 
-            send_message_to_l1_syscall(l1_destination.into(), l1_payload.span());
+            send_message_to_l1_syscall(l1_execution_strategy.into(), l1_payload.span());
         }
     }
 }
