@@ -83,9 +83,7 @@ mod StarkSigAuthenticator {
             );
 
             self._used_salts.write((author, salt), true);
-            ISpaceDispatcher {
-                contract_address: target
-            }
+            ISpaceDispatcher { contract_address: target }
                 .propose(
                     UserAddress::Starknet(author),
                     execution_strategy,
@@ -119,9 +117,7 @@ mod StarkSigAuthenticator {
                 account_type
             );
 
-            ISpaceDispatcher {
-                contract_address: target
-            }
+            ISpaceDispatcher { contract_address: target }
                 .vote(
                     UserAddress::Starknet(voter),
                     proposal_id,
@@ -157,9 +153,7 @@ mod StarkSigAuthenticator {
             );
 
             self._used_salts.write((author, salt), true);
-            ISpaceDispatcher {
-                contract_address: target
-            }
+            ISpaceDispatcher { contract_address: target }
                 .update_proposal(
                     UserAddress::Starknet(author), proposal_id, execution_strategy, metadata_URI
                 );

@@ -203,7 +203,7 @@ mod tests {
         let (factory, space) = deploy(@config);
 
         let authenticator = IVanillaAuthenticatorDispatcher {
-            contract_address: *config.authenticators.at(0), 
+            contract_address: *config.authenticators.at(0),
         };
 
         let quorum = u256_from_felt252(1);
@@ -348,7 +348,7 @@ mod tests {
         let (factory, space) = deploy(@config);
 
         let authenticator = IVanillaAuthenticatorDispatcher {
-            contract_address: *config.authenticators.at(0), 
+            contract_address: *config.authenticators.at(0),
         };
 
         let quorum = u256_from_felt252(1);
@@ -474,7 +474,7 @@ mod tests {
         let (factory, space) = deploy(@config);
 
         let authenticator = IVanillaAuthenticatorDispatcher {
-            contract_address: *config.authenticators.at(0), 
+            contract_address: *config.authenticators.at(0),
         };
 
         let quorum = u256_from_felt252(1);
@@ -511,7 +511,7 @@ mod tests {
         let (factory, space) = deploy(@config);
 
         let authenticator = IVanillaAuthenticatorDispatcher {
-            contract_address: *config.authenticators.at(0), 
+            contract_address: *config.authenticators.at(0),
         };
 
         let quorum = u256_from_felt252(1);
@@ -565,7 +565,7 @@ mod tests {
         let (factory, space) = deploy(@config);
 
         let authenticator = IVanillaAuthenticatorDispatcher {
-            contract_address: *config.authenticators.at(0), 
+            contract_address: *config.authenticators.at(0),
         };
 
         let quorum = u256_from_felt252(1);

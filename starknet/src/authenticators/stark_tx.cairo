@@ -55,9 +55,7 @@ mod StarkTxAuthenticator {
         ) {
             assert(info::get_caller_address() == author, 'Invalid Caller');
 
-            ISpaceDispatcher {
-                contract_address: space
-            }
+            ISpaceDispatcher { contract_address: space }
                 .propose(
                     UserAddress::Starknet(author),
                     execution_strategy,
@@ -77,9 +75,7 @@ mod StarkTxAuthenticator {
         ) {
             assert(info::get_caller_address() == voter, 'Invalid Caller');
 
-            ISpaceDispatcher {
-                contract_address: space
-            }
+            ISpaceDispatcher { contract_address: space }
                 .vote(
                     UserAddress::Starknet(voter),
                     proposal_id,
@@ -99,9 +95,7 @@ mod StarkTxAuthenticator {
         ) {
             assert(info::get_caller_address() == author, 'Invalid Caller');
 
-            ISpaceDispatcher {
-                contract_address: space
-            }
+            ISpaceDispatcher { contract_address: space }
                 .update_proposal(
                     UserAddress::Starknet(author), proposal_id, execution_strategy, metadata_URI
                 );

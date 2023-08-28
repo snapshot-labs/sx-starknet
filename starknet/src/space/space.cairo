@@ -179,7 +179,7 @@ mod Space {
 
     #[derive(Drop, starknet::Event)]
     struct ProposalExecuted {
-        proposal_id: u256, 
+        proposal_id: u256,
     }
 
     #[derive(Drop, starknet::Event)]
@@ -191,7 +191,7 @@ mod Space {
 
     #[derive(Drop, starknet::Event)]
     struct ProposalCancelled {
-        proposal_id: u256, 
+        proposal_id: u256,
     }
 
     #[derive(Drop, starknet::Event)]
@@ -202,27 +202,27 @@ mod Space {
 
     #[derive(Drop, starknet::Event)]
     struct VotingStrategiesRemoved {
-        voting_strategy_indices: Span<u8>, 
+        voting_strategy_indices: Span<u8>,
     }
 
     #[derive(Drop, starknet::Event)]
     struct AuthenticatorsAdded {
-        authenticators: Span<ContractAddress>, 
+        authenticators: Span<ContractAddress>,
     }
 
     #[derive(Drop, starknet::Event)]
     struct AuthenticatorsRemoved {
-        authenticators: Span<ContractAddress>, 
+        authenticators: Span<ContractAddress>,
     }
 
     #[derive(Drop, starknet::Event)]
     struct MaxVotingDurationUpdated {
-        max_voting_duration: u32, 
+        max_voting_duration: u32,
     }
 
     #[derive(Drop, starknet::Event)]
     struct MinVotingDurationUpdated {
-        min_voting_duration: u32, 
+        min_voting_duration: u32,
     }
 
     #[derive(Drop, starknet::Event)]
@@ -233,7 +233,7 @@ mod Space {
 
     #[derive(Drop, starknet::Event)]
     struct VotingDelayUpdated {
-        voting_delay: u32, 
+        voting_delay: u32,
     }
 
     #[derive(Drop, starknet::Event)]
@@ -244,12 +244,12 @@ mod Space {
 
     #[derive(Drop, starknet::Event)]
     struct MetadataUriUpdated {
-        metadata_URI: Span<felt252>, 
+        metadata_URI: Span<felt252>,
     }
 
     #[derive(Drop, starknet::Event)]
     struct DaoUriUpdated {
-        dao_URI: Span<felt252>, 
+        dao_URI: Span<felt252>,
     }
 
     #[external(v0)]
@@ -445,9 +445,7 @@ mod Space {
                 proposal.finalization_status == FinalizationStatus::Pending(()), 'Already finalized'
             );
 
-            IExecutionStrategyDispatcher {
-                contract_address: proposal.execution_strategy
-            }
+            IExecutionStrategyDispatcher { contract_address: proposal.execution_strategy }
                 .execute(
                     proposal.clone(),
                     self._vote_power.read((proposal_id, Choice::For(()))),
@@ -793,9 +791,8 @@ mod Space {
                         'Invalid strategy index'
                     );
                     let strategy = self._voting_strategies.read(*strategy_index.index);
-                    total_voting_power += IVotingStrategyDispatcher {
-                        contract_address: strategy.address
-                    }
+                    total_voting_power +=
+                        IVotingStrategyDispatcher { contract_address: strategy.address }
                         .get_voting_power(
                             timestamp, voter, strategy.params.span(), strategy_index.params.span()
                         );

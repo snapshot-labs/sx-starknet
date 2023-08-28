@@ -69,7 +69,7 @@ mod tests {
         let execution_strategy = get_execution_strategy();
 
         let authenticator = IVanillaAuthenticatorDispatcher {
-            contract_address: *config.authenticators.at(0), 
+            contract_address: *config.authenticators.at(0),
         };
 
         create_proposal(authenticator, space, execution_strategy);
@@ -103,7 +103,7 @@ mod tests {
         let execution_strategy = get_execution_strategy();
 
         let authenticator = IVanillaAuthenticatorDispatcher {
-            contract_address: *config.authenticators.at(0), 
+            contract_address: *config.authenticators.at(0),
         };
 
         create_proposal(authenticator, space, execution_strategy);
@@ -137,7 +137,7 @@ mod tests {
         let execution_strategy = get_execution_strategy();
 
         let authenticator = IVanillaAuthenticatorDispatcher {
-            contract_address: *config.authenticators.at(0), 
+            contract_address: *config.authenticators.at(0),
         };
 
         create_proposal(authenticator, space, execution_strategy);
@@ -174,7 +174,7 @@ mod tests {
         let execution_strategy = get_execution_strategy();
 
         let authenticator = IVanillaAuthenticatorDispatcher {
-            contract_address: *config.authenticators.at(0), 
+            contract_address: *config.authenticators.at(0),
         };
 
         create_proposal(authenticator, space, execution_strategy);
@@ -205,7 +205,7 @@ mod tests {
         let execution_strategy = get_execution_strategy();
 
         let authenticator = IVanillaAuthenticatorDispatcher {
-            contract_address: *config.authenticators.at(0), 
+            contract_address: *config.authenticators.at(0),
         };
 
         create_proposal(authenticator, space, execution_strategy);
@@ -239,7 +239,7 @@ mod tests {
         let execution_strategy = get_execution_strategy();
 
         let authenticator = IVanillaAuthenticatorDispatcher {
-            contract_address: *config.authenticators.at(0), 
+            contract_address: *config.authenticators.at(0),
         };
 
         create_proposal(authenticator, space, execution_strategy);
@@ -274,7 +274,7 @@ mod tests {
         let execution_strategy = get_execution_strategy();
 
         let authenticator = IVanillaAuthenticatorDispatcher {
-            contract_address: *config.authenticators.at(0), 
+            contract_address: *config.authenticators.at(0),
         };
 
         create_proposal(authenticator, space, execution_strategy);
@@ -302,7 +302,7 @@ mod tests {
         let execution_strategy = get_execution_strategy();
 
         let authenticator = IVanillaAuthenticatorDispatcher {
-            contract_address: *config.authenticators.at(0), 
+            contract_address: *config.authenticators.at(0),
         };
 
         create_proposal(authenticator, space, execution_strategy);
@@ -337,7 +337,7 @@ mod tests {
         let execution_strategy = get_execution_strategy();
 
         let authenticator = IVanillaAuthenticatorDispatcher {
-            contract_address: *config.authenticators.at(0), 
+            contract_address: *config.authenticators.at(0),
         };
 
         let (no_voting_power_contract, _) = deploy_syscall(

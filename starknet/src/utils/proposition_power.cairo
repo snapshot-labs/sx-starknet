@@ -27,9 +27,8 @@ fn _get_cumulative_power(
                 match allowed_strategies.get((*indexed_strategy.index).into()) {
                     Option::Some(strategy) => {
                         let strategy: Strategy = strategy.unbox().clone();
-                        total_voting_power += IVotingStrategyDispatcher {
-                            contract_address: strategy.address
-                        }
+                        total_voting_power +=
+                            IVotingStrategyDispatcher { contract_address: strategy.address }
                             .get_voting_power(
                                 timestamp,
                                 voter,
