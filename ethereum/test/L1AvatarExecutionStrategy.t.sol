@@ -135,7 +135,7 @@ abstract contract L1AvatarExecutionStrategySettersTest is Test {
     }
 }
 
-contract AvatarExecutionStrategyTestDirect is L1AvatarExecutionStrategyTest {
+contract AvatarExecutionStrategyTestDirect is L1AvatarExecutionStrategySettersTest {
     function setUp() public override {
         super.setUp();
 
@@ -149,7 +149,7 @@ contract AvatarExecutionStrategyTestDirect is L1AvatarExecutionStrategyTest {
     }
 }
 
-contract AvatarExecutionStrategyTestProxy is L1AvatarExecutionStrategyTest {
+contract AvatarExecutionStrategyTestProxy is L1AvatarExecutionStrategySettersTest {
     function setUp() public override {
         super.setUp();
 
