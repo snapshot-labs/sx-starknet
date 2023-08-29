@@ -25,13 +25,13 @@ mod Factory {
     #[event]
     #[derive(Drop, starknet::Event)]
     enum Event {
-        SpaceDeployed: SpaceDeployed
+        NewContractDeployed: NewContractDeployed
     }
 
     #[derive(Drop, starknet::Event)]
-    struct SpaceDeployed {
+    struct NewContractDeployed {
         class_hash: ClassHash,
-        space_address: ContractAddress
+        contract_address: ContractAddress
     }
 
     #[storage]
@@ -53,7 +53,12 @@ mod Factory {
             // Call initializer. 
             call_contract_syscall(space_address, INITIALIZE_SELECTOR, initialize_calldata).unwrap();
 
-            self.emit(Event::SpaceDeployed(SpaceDeployed { class_hash, space_address }));
+            self
+                .emit(
+                    Event::NewContractDeployed(
+                        NewContractDeployed { class_hash, contract_address: space_address }
+                    )
+                );
 
             space_address
         }

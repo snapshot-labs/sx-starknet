@@ -179,7 +179,7 @@ mod tests {
 
         // Advance to vote start + 1
         let current = info::get_block_timestamp();
-        testing::set_block_timestamp(current + config.voting_delay + 1);
+        testing::set_block_timestamp(current + config.voting_delay.into() + 1);
 
         let mut vote_calldata = array::ArrayTrait::<felt252>::new();
         let voter = *accounts.at(0);
@@ -196,7 +196,7 @@ mod tests {
         // Vote on proposal
         authenticator.authenticate(space.contract_address, VOTE_SELECTOR, vote_calldata);
 
-        testing::set_block_timestamp(current + config.max_voting_duration);
+        testing::set_block_timestamp(current + config.max_voting_duration.into());
 
         // Execute proposal
         space.execute(1_u256, vanilla_execution_strategy.params);
@@ -226,7 +226,7 @@ mod tests {
 
         // Move to the exact voting period start so the strategy will revert.
         let current = info::get_block_timestamp();
-        testing::set_block_timestamp(current + config.voting_delay);
+        testing::set_block_timestamp(current + config.voting_delay.into());
 
         let mut vote_calldata = array::ArrayTrait::<felt252>::new();
         let voter = *accounts.at(0);
@@ -276,7 +276,7 @@ mod tests {
 
         // Move to the exact voting period start + 1
         let current = info::get_block_timestamp();
-        testing::set_block_timestamp(current + config.voting_delay + 1);
+        testing::set_block_timestamp(current + config.voting_delay.into() + 1);
 
         let mut vote_calldata = array::ArrayTrait::<felt252>::new();
         let voter = *accounts.at(0);
