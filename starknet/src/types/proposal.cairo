@@ -102,7 +102,7 @@ mod tests {
     use clone::Clone;
 
     #[test]
-    fn test_pack_zero() {
+    fn pack_zero() {
         let proposal = Proposal {
             start_timestamp: 0,
             min_end_timestamp: 0,
@@ -122,7 +122,7 @@ mod tests {
 
 
     #[test]
-    fn test_pack_start_timestamp() {
+    fn pack_start_timestamp() {
         let proposal = Proposal {
             start_timestamp: 42,
             min_end_timestamp: 0,
@@ -141,7 +141,7 @@ mod tests {
     }
 
     #[test]
-    fn test_pack_min_timestamp() {
+    fn pack_min_timestamp() {
         let proposal = Proposal {
             start_timestamp: 0,
             min_end_timestamp: 42,
@@ -161,7 +161,7 @@ mod tests {
 
 
     #[test]
-    fn test_pack_max_timestamp() {
+    fn pack_max_timestamp() {
         let proposal = Proposal {
             start_timestamp: 0,
             min_end_timestamp: 0,
@@ -182,7 +182,7 @@ mod tests {
     }
 
     #[test]
-    fn test_pack_finalization_status() {
+    fn pack_finalization_status() {
         let proposal = Proposal {
             start_timestamp: 0,
             min_end_timestamp: 0,
@@ -204,7 +204,7 @@ mod tests {
     }
 
     #[test]
-    fn test_pack_full() {
+    fn pack_full() {
         let proposal = Proposal {
             start_timestamp: 0xffffffff,
             min_end_timestamp: 0xffffffff,

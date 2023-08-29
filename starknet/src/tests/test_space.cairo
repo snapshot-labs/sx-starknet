@@ -31,7 +31,7 @@ mod tests {
 
     #[test]
     #[available_gas(100000000)]
-    fn test_initialize() {
+    fn initialize() {
         let deployer = contract_address_const::<0xdead>();
 
         testing::set_caller_address(deployer);
@@ -106,7 +106,7 @@ mod tests {
     #[test]
     #[available_gas(100000000)]
     #[should_panic(expected: ('Already Initialized', 'ENTRYPOINT_FAILED'))]
-    fn test_reinitialize() {
+    fn reinitialize() {
         let deployer = contract_address_const::<0xdead>();
 
         testing::set_caller_address(deployer);
@@ -198,7 +198,7 @@ mod tests {
 
     #[test]
     #[available_gas(10000000000)]
-    fn test__propose_update_vote_execute() {
+    fn propose_update_vote_execute() {
         let config = setup();
         let (factory, space) = deploy(@config);
 
@@ -291,7 +291,7 @@ mod tests {
     #[test]
     #[available_gas(10000000000)]
     #[should_panic(expected: ('Proposal is not valid', 'ENTRYPOINT_FAILED'))]
-    fn test__propose_failed_validation() {
+    fn propose_failed_validation() {
         let config = setup();
         let (factory, space) = deploy(@config);
         let authenticator = IVanillaAuthenticatorDispatcher {
@@ -409,7 +409,7 @@ mod tests {
     #[test]
     #[available_gas(10000000000)]
     #[should_panic(expected: ('Proposal has been finalized', 'ENTRYPOINT_FAILED'))]
-    fn test__cancel() {
+    fn cancel() {
         let relayer = contract_address_const::<0x1234>();
         let config = setup();
         let (factory, space) = deploy(@config);
@@ -471,7 +471,7 @@ mod tests {
     #[test]
     #[available_gas(10000000000)]
     #[should_panic(expected: ('Zero Address', 'ENTRYPOINT_FAILED'))]
-    fn test_propose_zero_address() {
+    fn propose_zero_address() {
         let config = setup();
         let (factory, space) = deploy(@config);
 
@@ -508,7 +508,7 @@ mod tests {
     #[test]
     #[available_gas(10000000000)]
     #[should_panic(expected: ('Zero Address', 'ENTRYPOINT_FAILED'))]
-    fn test_update_zero_address() {
+    fn update_zero_address() {
         let config = setup();
         let (factory, space) = deploy(@config);
 
@@ -562,7 +562,7 @@ mod tests {
     #[test]
     #[available_gas(10000000000)]
     #[should_panic(expected: ('Zero Address', 'ENTRYPOINT_FAILED'))]
-    fn test_vote_zero_address() {
+    fn vote_zero_address() {
         let config = setup();
         let (factory, space) = deploy(@config);
 

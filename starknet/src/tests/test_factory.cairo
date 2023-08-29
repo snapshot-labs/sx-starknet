@@ -58,7 +58,7 @@ mod tests {
 
     #[test]
     #[available_gas(10000000000)]
-    fn test_deploy() {
+    fn deploy_test() {
         // Deploy Space 
         let config = setup();
 
@@ -78,7 +78,7 @@ mod tests {
 
     #[test]
     #[available_gas(10000000000)]
-    fn test_deploy_reuse_salt() {
+    fn deploy_reuse_salt() {
         let mut constructor_calldata = array![];
 
         let (factory_address, _) = deploy_syscall(
