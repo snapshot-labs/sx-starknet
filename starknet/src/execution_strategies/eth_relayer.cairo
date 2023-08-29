@@ -4,10 +4,9 @@ mod EthRelayerExecutionStrategy {
     use option::OptionTrait;
     use traits::{Into, TryInto};
     use serde::Serde;
-    use starknet::syscalls::send_message_to_l1_syscall;
-    use starknet::info;
+    use starknet::{info, syscalls, EthAddress};
     use sx::interfaces::IExecutionStrategy;
-    use sx::types::{Proposal};
+    use sx::types::Proposal;
 
     #[storage]
     struct Storage {}
@@ -48,7 +47,7 @@ mod EthRelayerExecutionStrategy {
             votes_abstain.serialize(ref l1_payload);
             l1_execution_hash.serialize(ref l1_payload);
 
-            send_message_to_l1_syscall(l1_execution_strategy.into(), l1_payload.span());
+            syscalls::send_message_to_l1_syscall(l1_execution_strategy.into(), l1_payload.span());
         }
     }
 }
