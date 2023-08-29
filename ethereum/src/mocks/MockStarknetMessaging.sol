@@ -4,7 +4,7 @@ pragma solidity ^0.8.19;
 import "./StarknetMessaging.sol";
 
 contract MockStarknetMessaging is StarknetMessaging {
-    constructor(uint256 MessageCancellationDelay) public {
+    constructor(uint256 MessageCancellationDelay) {
         messageCancellationDelay(MessageCancellationDelay);
     }
 

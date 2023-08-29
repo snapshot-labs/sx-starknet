@@ -33,7 +33,7 @@ contract L1AvatarExecutionStrategyMockMessaging is SimpleQuorumExecutionStrategy
     /// @param _executionRelayer Address of the StarkNet contract that will send execution details to this contract in a L2 -> L1 message
     /// @param _starknetSpaces Array of whitelisted space contracts.
     /// @param _quorum The quorum required to execute a proposal.
-    event AvatarExecutionStrategySetUp(
+    event L1AvatarExecutionStrategySetUp(
         address indexed _owner,
         address _target,
         address _starknetCore,
@@ -80,7 +80,7 @@ contract L1AvatarExecutionStrategyMockMessaging is SimpleQuorumExecutionStrategy
         target = _target;
         starknetCore = _starknetCore;
         executionRelayer = _executionRelayer;
-        emit AvatarExecutionStrategySetUp(_owner, _target, _starknetCore, _executionRelayer, _starknetSpaces, _quorum);
+        emit L1AvatarExecutionStrategySetUp(_owner, _target, _starknetCore, _executionRelayer, _starknetSpaces, _quorum);
     }
 
     /// @notice Sets the Starknet execution relayer contract

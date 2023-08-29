@@ -9,6 +9,7 @@ import '@nomiclabs/hardhat-waffle';
 import 'hardhat-gas-reporter';
 import '@nomiclabs/hardhat-etherscan';
 import '@nomicfoundation/hardhat-network-helpers';
+import "@nomicfoundation/hardhat-foundry";
 
 task('accounts', 'Prints the list of accounts', async (args, hre) => {
   const accounts = await hre.ethers.getSigners();
@@ -42,15 +43,6 @@ const config: HardhatUserConfig = {
     ],
   },
   networks: {
-    ropsten: {
-      url: process.env.ROPSTEN_URL || '',
-      accounts: process.env.PRIVATE_KEY !== undefined ? [process.env.PRIVATE_KEY] : [],
-    },
-    goerli: {
-      url: 'https://eth-goerli.g.alchemy.com/v2/0wkBfjpc150LmkMBN7fcsXXlgqHx-GjP',
-      accounts:
-        process.env.ETHEREUM_PRIVATE_KEY !== undefined ? [process.env.ETHEREUM_PRIVATE_KEY] : [],
-    },
     starknetGoerli: {
       url: 'https://external.integration.starknet.io',
     },

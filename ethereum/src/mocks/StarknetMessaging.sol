@@ -59,7 +59,7 @@ contract StarknetMessaging is IStarknetMessaging {
     /**
      * Returns the timestamp at the time cancelL1ToL2Message was called with a message
      *   matching 'msgHash'.
-     * 
+     *
      *   The function returns 0 if cancelL1ToL2Message was never called.
      */
     function l1ToL2MessageCancellations(bytes32 msgHash) external view returns (uint256) {
@@ -105,7 +105,7 @@ contract StarknetMessaging is IStarknetMessaging {
 
     /**
      * Consumes a message that was sent from an L2 contract.
-     * 
+     *
      *   Returns the hash of the message.
      */
     function consumeMessageFromL2(uint256 fromAddress, uint256[] calldata payload)
