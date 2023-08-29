@@ -11,7 +11,10 @@ mod tests {
     use clone::Clone;
     use serde::{Serde};
 
-    use sx::space::space::{Space, ISpaceDispatcher, ISpaceDispatcherTrait};
+    use sx::space::space::{
+        Space, Space::{ProposalCreated, VoteCast, ProposalUpdated}, ISpaceDispatcher,
+        ISpaceDispatcherTrait
+    };
     use sx::authenticators::vanilla::{
         VanillaAuthenticator, IVanillaAuthenticatorDispatcher, IVanillaAuthenticatorDispatcherTrait
     };
@@ -26,8 +29,27 @@ mod tests {
     };
     use sx::tests::utils::strategy_trait::{StrategyImpl};
     use sx::utils::constants::{PROPOSE_SELECTOR, VOTE_SELECTOR, UPDATE_PROPOSAL_SELECTOR};
+    use openzeppelin::tests::utils;
+    use debug::PrintTrait;
 
     use Space::Space as SpaceImpl;
+
+    fn assert_correct_proposal_event(
+        space_address: ContractAddress,
+        proposal_id: u256,
+        author: UserAddress,
+        proposal: Proposal,
+        payload: Span<felt252>,
+        metadata_uri: Span<felt252>,
+    ) {
+        let event = utils::pop_log::<ProposalCreated>(space_address).unwrap();
+
+        assert(event.proposal_id == proposal_id, 'proposal_id incorrect');
+        assert(event.author == author, 'voter incorrect');
+        assert(event.proposal == proposal, 'proposal incorrect');
+        assert(event.payload == payload, 'payload incorrect');
+        assert(event.metadata_URI == metadata_uri, 'metadata_uri incorrect');
+    }
 
     #[test]
     #[available_gas(100000000)]
@@ -202,6 +224,8 @@ mod tests {
         let config = setup();
         let (factory, space) = deploy(@config);
 
+        utils::drop_events(space.contract_address, 2);
+
         let authenticator = IVanillaAuthenticatorDispatcher {
             contract_address: *config.authenticators.at(0),
         };
@@ -224,35 +248,44 @@ mod tests {
         let mut propose_calldata = array![];
         author.serialize(ref propose_calldata);
         vanilla_execution_strategy.serialize(ref propose_calldata);
-        ArrayTrait::<felt252>::new().serialize(ref propose_calldata);
-        ArrayTrait::<felt252>::new().serialize(ref propose_calldata);
+        let user_proposal_validation_params: Array<felt252> = array![];
+        user_proposal_validation_params.serialize(ref propose_calldata);
+        let metadata_uri: Array<felt252> = array![];
+        metadata_uri.serialize(ref propose_calldata);
 
         // Create Proposal
         authenticator.authenticate(space.contract_address, PROPOSE_SELECTOR, propose_calldata);
 
-        assert(space.next_proposal_id() == 2_u256, 'next_proposal_id should be 2');
-
-        let proposal = space.proposals(u256_from_felt252(1));
         let timestamp = info::get_block_timestamp().try_into().unwrap();
+        let start_timestamp = timestamp + config.voting_delay.into();
         let expected_proposal = Proposal {
-            start_timestamp: timestamp + 1_u32,
-            min_end_timestamp: timestamp + 2_u32,
-            max_end_timestamp: timestamp + 3_u32,
+            start_timestamp: start_timestamp,
+            min_end_timestamp: start_timestamp + config.min_voting_duration.into(),
+            max_end_timestamp: start_timestamp + config.max_voting_duration.into(),
             execution_payload_hash: poseidon::poseidon_hash_span(
                 vanilla_execution_strategy.params.span()
             ),
             execution_strategy: vanilla_execution_strategy.address,
             author: author,
             finalization_status: FinalizationStatus::Pending(()),
-            active_voting_strategies: u256_from_felt252(1)
+            active_voting_strategies: 1_u256,
         };
-        assert(proposal == expected_proposal, 'proposal state');
+        let proposal = space.proposals(1_u256);
+
+        let payload = vanilla_execution_strategy.params.span();
+
+        assert_correct_proposal_event(
+            space.contract_address, 1_u256, author, expected_proposal, payload, metadata_uri.span()
+        );
+
+        assert(space.next_proposal_id() == 2_u256, 'next_proposal_id should be 2');
 
         // Update Proposal
         let mut update_calldata = array![];
         author.serialize(ref update_calldata);
         let proposal_id = u256_from_felt252(1);
         proposal_id.serialize(ref update_calldata);
+
         // Keeping the same execution strategy contract but changing the payload
         let mut new_payload = array![1];
         let execution_strategy = Strategy {
@@ -263,6 +296,7 @@ mod tests {
 
         authenticator
             .authenticate(space.contract_address, UPDATE_PROPOSAL_SELECTOR, update_calldata);
+        // assert_correct_update_proposal_event();
 
         testing::set_block_timestamp(config.voting_delay.into());
 
@@ -279,6 +313,7 @@ mod tests {
 
         // Vote on Proposal
         authenticator.authenticate(space.contract_address, VOTE_SELECTOR, vote_calldata);
+        // assert_correct_vote_event(space.contract_address, voter, proposal_id, choice);
 
         testing::set_block_timestamp(
             config.voting_delay.into() + config.max_voting_duration.into()
