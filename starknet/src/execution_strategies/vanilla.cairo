@@ -33,6 +33,10 @@ mod VanillaExecutionStrategy {
             );
             self._num_executed.write(self._num_executed.read() + 1);
         }
+
+        fn get_strategy_type(self: @ContractState) -> felt252 {
+            'SimpleQuorumVanilla'
+        }
     }
 
     #[constructor]
