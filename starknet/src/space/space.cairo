@@ -343,7 +343,7 @@ mod Space {
             let max_end_timestamp = start_timestamp + self._max_voting_duration.read();
 
             // TODO: we use a felt252 for the hash despite felts being discouraged 
-            // a new field would just replace the hash. Might be worth casting to a Uint256 though? 
+            // a new field would just replace the hash. Might be worth casting to a u256 though? 
             let execution_payload_hash = poseidon::poseidon_hash_span(
                 execution_strategy.params.span()
             );
@@ -360,7 +360,6 @@ mod Space {
             };
             let clone_proposal = proposal.clone();
 
-            // TODO: Lots of copying, maybe figure out how to pass snapshots to events/storage writers. 
             self._proposals.write(proposal_id, proposal);
 
             self._next_proposal_id.write(proposal_id + 1_u256);
