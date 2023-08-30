@@ -69,7 +69,7 @@ mod tests {
 
         let params: Array<felt252> = array![token_contract.into()];
 
-        Strategy { address: contract, params,  }
+        Strategy { address: contract, params, }
     }
 
     fn setup_space() -> (Config, ISpaceDispatcher) {
@@ -113,7 +113,7 @@ mod tests {
         let mut params = voting_strategy.params.span();
         let contract = Serde::<ContractAddress>::deserialize(ref params).unwrap();
 
-        let token_contract = IERC20Dispatcher { contract_address: contract,  };
+        let token_contract = IERC20Dispatcher { contract_address: contract, };
         // Create accounts
         let account0 = contract_address_const::<0x1234>();
         let account1 = contract_address_const::<0x2345>();
@@ -130,7 +130,7 @@ mod tests {
         token_contract.transfer(account3, 5_u256);
         token_contract.transfer(account4, 5_u256);
 
-        let token_contract = IVotesDispatcher { contract_address: contract,  };
+        let token_contract = IVotesDispatcher { contract_address: contract, };
 
         // Make them self delegate
         testing::set_contract_address(account0);
@@ -164,7 +164,7 @@ mod tests {
         let accounts = setup_accounts(space.voting_strategies(1));
 
         let authenticator = IVanillaAuthenticatorDispatcher {
-            contract_address: *config.authenticators.at(0), 
+            contract_address: *config.authenticators.at(0),
         };
 
         let author = UserAddress::Starknet(contract_address_const::<0x5678>());
@@ -204,22 +204,14 @@ mod tests {
 
     #[test]
     #[available_gas(1000000000)]
-    #[should_panic(
-        expected: (
-            'Votes: future Lookup',
-            'ENTRYPOINT_FAILED',
-            'ENTRYPOINT_FAILED',
-            'ENTRYPOINT_FAILED',
-            'ENTRYPOINT_FAILED'
-        )
-    )]
+    #[should_panic(expected: ('Votes: future Lookup', 'ENTRYPOINT_FAILED',))]
     fn revert_if_queried_at_vote_start() {
         let (config, space) = setup_space();
         let vanilla_execution_strategy = get_vanilla_execution_strategy();
         let accounts = setup_accounts(space.voting_strategies(1));
 
         let authenticator = IVanillaAuthenticatorDispatcher {
-            contract_address: *config.authenticators.at(0), 
+            contract_address: *config.authenticators.at(0),
         };
 
         let author = UserAddress::Starknet(contract_address_const::<0x5678>());
@@ -254,23 +246,21 @@ mod tests {
 
     #[test]
     #[available_gas(1000000000)]
-    #[should_panic(
-        expected: ('User has no voting power', 'ENTRYPOINT_FAILED', 'ENTRYPOINT_FAILED')
-    )]
+    #[should_panic(expected: ('User has no voting power', 'ENTRYPOINT_FAILED'))]
     fn no_delegation_means_no_voting_power() {
         let (config, space) = setup_space();
         let vanilla_execution_strategy = get_vanilla_execution_strategy();
         let accounts = setup_accounts(space.voting_strategies(1));
 
         let authenticator = IVanillaAuthenticatorDispatcher {
-            contract_address: *config.authenticators.at(0), 
+            contract_address: *config.authenticators.at(0),
         };
 
         // Account0 will delegate to another account, so he should not have any voting power
         let mut encoded_token_contract = space.voting_strategies(1).params.span();
         let token_contract = Serde::<ContractAddress>::deserialize(ref encoded_token_contract)
             .unwrap();
-        let token_contract = IVotesDispatcher { contract_address: token_contract,  };
+        let token_contract = IVotesDispatcher { contract_address: token_contract, };
         testing::set_contract_address((*accounts.at(0)).to_starknet_address());
         token_contract.delegate((contract_address_const::<0xdeadbeef>()));
 

@@ -2,8 +2,7 @@
 // Migrated lib to v2
 #[starknet::contract]
 mod Ownable {
-    use starknet::ContractAddress;
-    use starknet::get_caller_address;
+    use starknet::{ContractAddress, get_caller_address};
     use zeroable::Zeroable;
 
     #[storage]

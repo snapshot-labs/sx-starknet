@@ -22,18 +22,17 @@ mod ERC20VotesVotingStrategy {
             self: @ContractState,
             timestamp: u32,
             voter: UserAddress,
-            params: Array<felt252>,
-            user_params: Array<felt252>,
+            mut params: Span<felt252>,
+            user_params: Span<felt252>,
         ) -> u256 {
             // Cast voter address to a Starknet address
             // Will revert if the address is not a Starknet address
             let voter = voter.to_starknet_address();
 
             // Get the ERC20 contract address from the params array
-            let mut params = params.span();
             let erc20_contract_address = Serde::<ContractAddress>::deserialize(ref params).unwrap();
 
-            let erc20 = IVotesDispatcher { contract_address: erc20_contract_address,  };
+            let erc20 = IVotesDispatcher { contract_address: erc20_contract_address, };
 
             erc20.get_past_votes(voter, timestamp.into())
         }

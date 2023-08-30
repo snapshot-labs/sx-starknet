@@ -34,16 +34,16 @@ trait IEthTxAuthenticator<TContractState> {
 #[starknet::contract]
 mod EthTxAuthenticator {
     use super::IEthTxAuthenticator;
-    use starknet::{ContractAddress, EthAddress, Felt252TryIntoEthAddress, EthAddressIntoFelt252};
-    use starknet::syscalls::call_contract_syscall;
-    use core::serde::Serde;
-    use core::array::{ArrayTrait, SpanTrait};
+    use starknet::{ContractAddress, EthAddress, Felt252TryIntoEthAddress, EthAddressIntoFelt252,};
+    use core::{serde::Serde, array::{ArrayTrait, SpanTrait}};
     use traits::{PartialEq, TryInto, Into};
     use option::OptionTrait;
     use zeroable::Zeroable;
-    use sx::space::space::{ISpaceDispatcher, ISpaceDispatcherTrait};
-    use sx::types::{UserAddress, Strategy, IndexedStrategy, Choice};
-    use sx::utils::constants::{PROPOSE_SELECTOR, VOTE_SELECTOR, UPDATE_PROPOSAL_SELECTOR};
+    use sx::{
+        space::space::{ISpaceDispatcher, ISpaceDispatcherTrait},
+        types::{UserAddress, Strategy, IndexedStrategy, Choice},
+        utils::constants::{PROPOSE_SELECTOR, VOTE_SELECTOR, UPDATE_PROPOSAL_SELECTOR}
+    };
 
     #[storage]
     struct Storage {
@@ -72,9 +72,7 @@ mod EthTxAuthenticator {
 
             consume_commit(ref self, payload_hash, author);
 
-            ISpaceDispatcher {
-                contract_address: target
-            }
+            ISpaceDispatcher { contract_address: target }
                 .propose(
                     UserAddress::Ethereum(author),
                     execution_strategy,
@@ -104,9 +102,7 @@ mod EthTxAuthenticator {
 
             consume_commit(ref self, payload_hash, voter);
 
-            ISpaceDispatcher {
-                contract_address: target
-            }
+            ISpaceDispatcher { contract_address: target }
                 .vote(
                     UserAddress::Ethereum(voter),
                     proposal_id,
@@ -135,9 +131,7 @@ mod EthTxAuthenticator {
 
             consume_commit(ref self, payload_hash, author);
 
-            ISpaceDispatcher {
-                contract_address: target
-            }
+            ISpaceDispatcher { contract_address: target }
                 .update_proposal(
                     UserAddress::Ethereum(author), proposal_id, execution_strategy, metadata_URI
                 );

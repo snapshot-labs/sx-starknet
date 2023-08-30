@@ -33,13 +33,16 @@ mod VanillaExecutionStrategy {
             );
             self._num_executed.write(self._num_executed.read() + 1);
         }
+
+        fn get_strategy_type(self: @ContractState) -> felt252 {
+            'SimpleQuorumVanilla'
+        }
     }
 
     #[constructor]
     fn constructor(ref self: ContractState, quorum: u256) {
         // TODO: temporary until components are released
-        let mut state: SimpleQuorumExecutionStrategy::ContractState =
-            SimpleQuorumExecutionStrategy::unsafe_new_contract_state();
+        let mut state = SimpleQuorumExecutionStrategy::unsafe_new_contract_state();
         SimpleQuorumExecutionStrategy::initializer(ref state, quorum);
     }
 

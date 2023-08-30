@@ -4,14 +4,17 @@ use traits::Into;
 use clone::Clone;
 use core::keccak;
 use integer::u256_from_felt252;
-use sx::types::{Strategy, IndexedStrategy, Choice};
-use sx::utils::Felt252ArrayIntoU256Array;
-use sx::utils::math::pow;
-use sx::utils::constants::{
-    DOMAIN_TYPEHASH_LOW, DOMAIN_TYPEHASH_HIGH, ETHEREUM_PREFIX, STRATEGY_TYPEHASH_LOW,
-    STRATEGY_TYPEHASH_HIGH, INDEXED_STRATEGY_TYPEHASH_LOW, INDEXED_STRATEGY_TYPEHASH_HIGH,
-    PROPOSE_TYPEHASH_LOW, PROPOSE_TYPEHASH_HIGH, VOTE_TYPEHASH_LOW, VOTE_TYPEHASH_HIGH,
-    UPDATE_PROPOSAL_TYPEHASH_LOW, UPDATE_PROPOSAL_TYPEHASH_HIGH
+use sx::{
+    types::{Strategy, IndexedStrategy, Choice},
+    utils::{
+        Felt252ArrayIntoU256Array, math::pow,
+        constants::{
+            DOMAIN_TYPEHASH_LOW, DOMAIN_TYPEHASH_HIGH, ETHEREUM_PREFIX, STRATEGY_TYPEHASH_LOW,
+            STRATEGY_TYPEHASH_HIGH, INDEXED_STRATEGY_TYPEHASH_LOW, INDEXED_STRATEGY_TYPEHASH_HIGH,
+            PROPOSE_TYPEHASH_LOW, PROPOSE_TYPEHASH_HIGH, VOTE_TYPEHASH_LOW, VOTE_TYPEHASH_HIGH,
+            UPDATE_PROPOSAL_TYPEHASH_LOW, UPDATE_PROPOSAL_TYPEHASH_HIGH
+        }
+    }
 };
 
 impl ContractAddressIntoU256 of Into<ContractAddress, u256> {
@@ -33,9 +36,9 @@ trait KeccakTypeHash<T> {
 impl KeccakTypeHashStrategy of KeccakTypeHash<Strategy> {
     fn hash(self: Strategy) -> u256 {
         let mut encoded_data = array![
-            u256 {
-                low: STRATEGY_TYPEHASH_LOW, high: STRATEGY_TYPEHASH_HIGH
-            }, self.address.into(), self.params.hash(),
+            u256 { low: STRATEGY_TYPEHASH_LOW, high: STRATEGY_TYPEHASH_HIGH },
+            self.address.into(),
+            self.params.hash(),
         ];
         keccak::keccak_u256s_le_inputs(encoded_data.span())
     }
@@ -54,9 +57,9 @@ impl KeccakTypeHashIndexedStrategy of KeccakTypeHash<IndexedStrategy> {
     fn hash(self: IndexedStrategy) -> u256 {
         let index_felt: felt252 = self.index.into();
         let mut encoded_data = array![
-            u256 {
-                low: INDEXED_STRATEGY_TYPEHASH_LOW, high: INDEXED_STRATEGY_TYPEHASH_HIGH
-            }, index_felt.into(), self.params.hash(),
+            u256 { low: INDEXED_STRATEGY_TYPEHASH_LOW, high: INDEXED_STRATEGY_TYPEHASH_HIGH },
+            index_felt.into(),
+            self.params.hash(),
         ];
         keccak::keccak_u256s_le_inputs(encoded_data.span())
     }
@@ -143,9 +146,7 @@ fn get_propose_digest(
     salt: u256
 ) -> u256 {
     let mut encoded_data = array![
-        u256 {
-            low: PROPOSE_TYPEHASH_LOW, high: PROPOSE_TYPEHASH_HIGH
-        },
+        u256 { low: PROPOSE_TYPEHASH_LOW, high: PROPOSE_TYPEHASH_HIGH },
         space.into(),
         author.into(),
         execution_strategy.hash(),
@@ -165,9 +166,12 @@ fn get_vote_digest(
     user_voting_strategies: Array<IndexedStrategy>
 ) -> u256 {
     let mut encoded_data = array![
-        u256 {
-            low: VOTE_TYPEHASH_LOW, high: VOTE_TYPEHASH_HIGH
-        }, space.into(), voter.into(), proposal_id, choice.into(), user_voting_strategies.hash(),
+        u256 { low: VOTE_TYPEHASH_LOW, high: VOTE_TYPEHASH_HIGH },
+        space.into(),
+        voter.into(),
+        proposal_id,
+        choice.into(),
+        user_voting_strategies.hash(),
     ];
     let message_hash = keccak::keccak_u256s_le_inputs(encoded_data.span());
     hash_typed_data(domain_hash, message_hash)
@@ -182,9 +186,12 @@ fn get_update_proposal_digest(
     salt: u256
 ) -> u256 {
     let mut encoded_data = array![
-        u256 {
-            low: UPDATE_PROPOSAL_TYPEHASH_LOW, high: UPDATE_PROPOSAL_TYPEHASH_HIGH
-        }, space.into(), author.into(), proposal_id, execution_strategy.hash(), salt,
+        u256 { low: UPDATE_PROPOSAL_TYPEHASH_LOW, high: UPDATE_PROPOSAL_TYPEHASH_HIGH },
+        space.into(),
+        author.into(),
+        proposal_id,
+        execution_strategy.hash(),
+        salt,
     ];
     let message_hash = keccak::keccak_u256s_le_inputs(encoded_data.span());
     hash_typed_data(domain_hash, message_hash)
@@ -192,21 +199,18 @@ fn get_update_proposal_digest(
 
 fn get_domain_hash(name: felt252, version: felt252) -> u256 {
     let mut encoded_data = array![
-        u256 {
-            low: DOMAIN_TYPEHASH_LOW, high: DOMAIN_TYPEHASH_HIGH
-            },
-            name.into(),
-            version
-                .into(), // TODO: chain id doesnt seem like its exposed atm, so just dummy value for now
-            u256 {
-            low: 'dummy', high: 0
-        }, starknet::get_contract_address().into(),
+        u256 { low: DOMAIN_TYPEHASH_LOW, high: DOMAIN_TYPEHASH_HIGH },
+        name.into(),
+        version
+            .into(), // TODO: chain id doesnt seem like its exposed atm, so just dummy value for now
+        u256 { low: 'dummy', high: 0 },
+        starknet::get_contract_address().into(),
     ];
     keccak::keccak_u256s_le_inputs(encoded_data.span())
 }
 
 fn hash_typed_data(domain_hash: u256, message_hash: u256) -> u256 {
-    let mut encoded_data = array![domain_hash, message_hash, ];
+    let mut encoded_data = array![domain_hash, message_hash,];
     let encoded_data = _add_prefix_array(encoded_data, ETHEREUM_PREFIX);
     keccak::keccak_u256s_le_inputs(encoded_data.span())
 }

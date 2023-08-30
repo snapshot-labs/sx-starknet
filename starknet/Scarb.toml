@@ -10,7 +10,7 @@ casm = true
 
 [dependencies]
 openzeppelin = { git = "https://github.com/ericnordelo/cairo-contracts", branch = "feat/erc20votes-#631" }
-starknet = ">=2.1.0-rc1"
+starknet = ">=2.2.0"
 
 [scripts]
 run-lib = "cairo-run src/lib.cairo"
