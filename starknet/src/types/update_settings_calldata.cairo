@@ -79,6 +79,21 @@ impl NoUpdateStrategy of NoUpdateTrait<Strategy> {
     }
 }
 
+impl NoUpdateString of NoUpdateTrait<Array<felt252>> {
+    fn no_update() -> Array<felt252> {
+        array!['No update']
+    }
+
+    fn should_update(self: @Array<felt252>) -> bool {
+        match self.get(0) {
+            Option::Some(e) => {
+                *e.unbox() == 'No update'
+            },
+            Option::None => false,
+        }
+    }
+}
+
 // TODO: find a way for "Strings"
 impl NoUpdateArray<T> of NoUpdateTrait<Array<T>> {
     fn no_update() -> Array<T> {

@@ -94,7 +94,7 @@ mod Space {
         types::{
             UserAddress, Choice, FinalizationStatus, Strategy, IndexedStrategy, Proposal,
             PackedProposal, IndexedStrategyTrait, IndexedStrategyImpl, UpdateSettingsCalldata,
-            NoUpdateTrait,
+            NoUpdateTrait, NoUpdateString,
         },
         utils::{
             reinitializable::{Reinitializable}, ReinitializableImpl, bits::BitSetter,
@@ -660,19 +660,6 @@ mod Space {
                     );
             }
 
-            if input.metadata_URI.should_update() {
-                self
-                    .emit(
-                        Event::MetadataUriUpdated(
-                            MetadataUriUpdated { metadata_URI: input.metadata_URI.span() }
-                        )
-                    );
-            }
-
-            if input.dao_URI.should_update() {
-                self.emit(Event::DaoUriUpdated(DaoUriUpdated { dao_URI: input.dao_URI.span() }));
-            }
-
             if input.proposal_validation_strategy.should_update() {
                 _set_proposal_validation_strategy(
                     ref self, input.proposal_validation_strategy.clone()
@@ -741,6 +728,21 @@ mod Space {
                             }
                         )
                     );
+            }
+
+            // TODO: test once #506 is merged
+            if NoUpdateString::should_update((@input).metadata_URI) {
+                self
+                    .emit(
+                        Event::MetadataUriUpdated(
+                            MetadataUriUpdated { metadata_URI: input.metadata_URI.span() }
+                        )
+                    );
+            }
+
+            // TODO: test once #506 is merged
+            if NoUpdateString::should_update((@input).dao_URI) {
+                self.emit(Event::DaoUriUpdated(DaoUriUpdated { dao_URI: input.dao_URI.span() }));
             }
         }
 
