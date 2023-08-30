@@ -306,8 +306,8 @@ mod Space {
                 ref self, max_voting_duration
             ); // Need to set max before min, or else `max == 0` and set_min will revert
             _set_min_voting_duration(ref self, min_voting_duration);
-            _set_voting_delay(ref self, voting_delay);
             _set_proposal_validation_strategy(ref self, proposal_validation_strategy);
+            _set_voting_delay(ref self, voting_delay);
             _add_voting_strategies(ref self, voting_strategies.span());
             _add_authenticators(ref self, authenticators.span());
             self._next_proposal_id.write(1_u256);
