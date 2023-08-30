@@ -1,4 +1,4 @@
-use starknet::{ContractAddress, ClassHash};
+use starknet::{ContractAddress, ClassHash, SyscallResult};
 
 #[starknet::interface]
 trait IFactory<TContractState> {
@@ -7,7 +7,7 @@ trait IFactory<TContractState> {
         class_hash: ClassHash,
         contract_address_salt: felt252,
         initialize_calldata: Span<felt252>
-    ) -> ContractAddress;
+    ) -> SyscallResult<ContractAddress>;
 }
 
 
@@ -16,7 +16,7 @@ mod Factory {
     use super::IFactory;
     use starknet::{
         ContractAddress, ClassHash, contract_address_const,
-        syscalls::{deploy_syscall, call_contract_syscall}
+        syscalls::{deploy_syscall, call_contract_syscall}, SyscallResult
     };
     use result::ResultTrait;
     use array::{ArrayTrait, SpanTrait};
@@ -44,18 +44,17 @@ mod Factory {
             class_hash: ClassHash,
             contract_address_salt: felt252,
             initialize_calldata: Span<felt252>
-        ) -> ContractAddress {
+        ) -> SyscallResult<ContractAddress> {
             let (space_address, _) = deploy_syscall(
                 class_hash, contract_address_salt, array![].span(), false
-            )
-                .unwrap();
+            )?;
 
             // Call initializer. 
-            call_contract_syscall(space_address, INITIALIZE_SELECTOR, initialize_calldata).unwrap();
+            call_contract_syscall(space_address, INITIALIZE_SELECTOR, initialize_calldata)?;
 
             self.emit(Event::SpaceDeployed(SpaceDeployed { class_hash, space_address }));
 
-            space_address
+            Result::Ok(space_address)
         }
     }
 }

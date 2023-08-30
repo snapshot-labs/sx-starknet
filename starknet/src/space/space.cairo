@@ -294,6 +294,10 @@ mod Space {
                 Reinitializable::unsafe_new_contract_state();
             ReinitializableImpl::initialize(ref state);
 
+            assert(voting_strategies.len() != 0, 'empty voting strategies');
+            assert(authenticators.len() != 0, 'empty authenticators');
+            assert(voting_strategies.len() == voting_strategy_metadata_URIs.len(), 'len mismatch');
+
             //TODO: temporary component syntax
             let mut state = Ownable::unsafe_new_contract_state();
             Ownable::initializer(ref state);

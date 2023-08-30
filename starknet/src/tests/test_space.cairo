@@ -87,7 +87,7 @@ mod tests {
                 vanilla_proposal_validation_strategy.clone(),
                 array![],
                 voting_strategies,
-                array![],
+                array![array![]],
                 authenticators,
                 array![],
                 array![]
@@ -101,6 +101,105 @@ mod tests {
             space.proposal_validation_strategy() == vanilla_proposal_validation_strategy,
             'proposal validation incorrect'
         );
+    }
+
+    #[test]
+    #[available_gas(10000000)]
+    #[should_panic(expected: ('empty voting strategies',))]
+    fn empty_voting_strategies() {
+        let mut state = Space::unsafe_new_contract_state();
+        let owner = contract_address_const::<0x123456789>();
+        let min_voting_duration = 1_u32;
+        let max_voting_duration = 2_u32;
+        let voting_delay = 1_u32;
+        let proposal_validation_strategy = StrategyImpl::test_value();
+        let proposal_validation_strategy_metadata_uri = array![];
+        let voting_strategies = array![];
+        let voting_strategies_metadata_uris = array![];
+        let authenticators = array![contract_address_const::<0>()];
+        let metadata_uri = array![];
+        let dao_uri = array![];
+
+        Space::Space::initialize(
+            ref state,
+            owner,
+            min_voting_duration,
+            max_voting_duration,
+            voting_delay,
+            proposal_validation_strategy,
+            proposal_validation_strategy_metadata_uri,
+            voting_strategies,
+            voting_strategies_metadata_uris,
+            authenticators,
+            metadata_uri,
+            dao_uri,
+        )
+    }
+
+    #[test]
+    #[available_gas(10000000)]
+    #[should_panic(expected: ('empty authenticators',))]
+    fn empty_authenticators() {
+        let mut state = Space::unsafe_new_contract_state();
+        let owner = contract_address_const::<0x123456789>();
+        let min_voting_duration = 1_u32;
+        let max_voting_duration = 2_u32;
+        let voting_delay = 1_u32;
+        let proposal_validation_strategy = StrategyImpl::test_value();
+        let proposal_validation_strategy_metadata_uri = array![];
+        let voting_strategies = array![StrategyImpl::test_value()];
+        let voting_strategies_metadata_uris = array![array![]];
+        let authenticators = array![];
+        let metadata_uri = array![];
+        let dao_uri = array![];
+
+        Space::Space::initialize(
+            ref state,
+            owner,
+            min_voting_duration,
+            max_voting_duration,
+            voting_delay,
+            proposal_validation_strategy,
+            proposal_validation_strategy_metadata_uri,
+            voting_strategies,
+            voting_strategies_metadata_uris,
+            authenticators,
+            metadata_uri,
+            dao_uri,
+        )
+    }
+
+    #[test]
+    #[available_gas(10000000)]
+    #[should_panic(expected: ('len mismatch',))]
+    fn voting_strategies_and_metadata_uris_mismatch() {
+        let mut state = Space::unsafe_new_contract_state();
+        let owner = contract_address_const::<0x123456789>();
+        let min_voting_duration = 1_u32;
+        let max_voting_duration = 2_u32;
+        let voting_delay = 1_u32;
+        let proposal_validation_strategy = StrategyImpl::test_value();
+        let proposal_validation_strategy_metadata_uri = array![];
+        let voting_strategies = array![StrategyImpl::test_value()];
+        let voting_strategies_metadata_uris = array![array![], array![]];
+        let authenticators = array![contract_address_const::<0>()];
+        let metadata_uri = array![];
+        let dao_uri = array![];
+
+        Space::Space::initialize(
+            ref state,
+            owner,
+            min_voting_duration,
+            max_voting_duration,
+            voting_delay,
+            proposal_validation_strategy,
+            proposal_validation_strategy_metadata_uri,
+            voting_strategies,
+            voting_strategies_metadata_uris,
+            authenticators,
+            metadata_uri,
+            dao_uri,
+        )
     }
 
     #[test]
@@ -173,7 +272,7 @@ mod tests {
                 vanilla_proposal_validation_strategy.clone(),
                 array![],
                 voting_strategies.clone(),
-                array![],
+                array![array![]],
                 authenticators.clone(),
                 array![],
                 array![]

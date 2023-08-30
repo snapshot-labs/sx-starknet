@@ -9,6 +9,7 @@ mod tests {
     use sx::space::space::Space;
     use sx::types::Strategy;
     use starknet::ClassHash;
+    use debug::PrintTrait;
 
     use sx::tests::setup::setup::setup::{setup, get_initialize_calldata, deploy};
 
@@ -28,10 +29,17 @@ mod tests {
     fn test_deploy_reuse_salt() {
         let mut constructor_calldata = array![];
 
-        let (factory_address, _) = deploy_syscall(
-            Factory::TEST_CLASS_HASH.try_into().unwrap(), 0, constructor_calldata.span(), false
-        )
-            .unwrap();
+        let factory_address =
+            match deploy_syscall(
+                Factory::TEST_CLASS_HASH.try_into().unwrap(), 0, constructor_calldata.span(), false
+            ) {
+            Result::Ok((address, _)) => address,
+            Result::Err(e) => {
+                e.print();
+                panic_with_felt252('deploy failed');
+                contract_address_const::<0>()
+            },
+        };
 
         let factory = IFactoryDispatcher { contract_address: factory_address };
 

@@ -18,6 +18,7 @@ mod setup {
     use sx::factory::factory::{Factory, IFactoryDispatcher, IFactoryDispatcherTrait};
     use starknet::ClassHash;
     use sx::space::space::{Space, ISpaceDispatcher, ISpaceDispatcherTrait};
+    use debug::PrintTrait;
 
     #[derive(Drop)]
     struct Config {
@@ -114,7 +115,18 @@ mod setup {
         proposal_validation_strategy.serialize(ref initializer_calldata);
         ArrayTrait::<felt252>::new().serialize(ref initializer_calldata);
         voting_strategies.serialize(ref initializer_calldata);
-        ArrayTrait::<felt252>::new().serialize(ref initializer_calldata);
+        let mut voting_strategies_metadata_uris: Array<Array<felt252>> = array![];
+
+        let mut i = 0;
+        loop {
+            if i >= voting_strategies.len() {
+                break;
+            }
+            voting_strategies_metadata_uris.append(array![]);
+            i += 1;
+        };
+
+        voting_strategies_metadata_uris.serialize(ref initializer_calldata);
         authenticators.serialize(ref initializer_calldata);
         ArrayTrait::<felt252>::new().serialize(ref initializer_calldata);
         ArrayTrait::<felt252>::new().serialize(ref initializer_calldata);
@@ -126,10 +138,17 @@ mod setup {
         let space_class_hash: ClassHash = Space::TEST_CLASS_HASH.try_into().unwrap();
         let contract_address_salt = 0;
 
-        let (factory_address, _) = deploy_syscall(
-            Factory::TEST_CLASS_HASH.try_into().unwrap(), 0, array![].span(), false
-        )
-            .unwrap();
+        let factory_address =
+            match deploy_syscall(
+                Factory::TEST_CLASS_HASH.try_into().unwrap(), 0, array![].span(), false
+            ) {
+            Result::Ok((address, _)) => address,
+            Result::Err(e) => {
+                e.print();
+                panic_with_felt252('deploy failed');
+                contract_address_const::<0>()
+            }
+        };
 
         let factory = IFactoryDispatcher { contract_address: factory_address };
 
@@ -142,8 +161,16 @@ mod setup {
             config.voting_strategies,
             config.authenticators
         );
-        let space_address = factory
-            .deploy(space_class_hash, contract_address_salt, initializer_calldata.span());
+        let space_address =
+            match factory
+                .deploy(space_class_hash, contract_address_salt, initializer_calldata.span()) {
+            Result::Ok(address) => address,
+            Result::Err(e) => {
+                e.print();
+                panic_with_felt252('deploy failed');
+                contract_address_const::<0>()
+            },
+        };
 
         let space = ISpaceDispatcher { contract_address: space_address };
 
