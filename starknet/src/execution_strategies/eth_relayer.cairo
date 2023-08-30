@@ -30,5 +30,16 @@ mod EthRelayerExecutionStrategy {
 
             send_message_to_l1_syscall(l1_destination, message_payload);
         }
+
+        fn get_proposal_status(
+            self: @TContractState,
+            proposal: Proposal,
+            votes_for: u256,
+            votes_against: u256,
+            votes_abstain: u256,
+        ) -> ProposalStatus {
+            panic_with_felt252('unimplemented');
+            ProposalStatus::Cancelled(())
+        }
     }
 }

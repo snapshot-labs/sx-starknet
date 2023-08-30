@@ -34,6 +34,17 @@ mod ExecutorExecutionStrategy {
             call_contract_syscall(tx.target, tx.selector, tx.data.span()).unwrap();
         }
 
+        fn get_proposal_status(
+            self: @ContractState,
+            proposal: Proposal,
+            votes_for: u256,
+            votes_against: u256,
+            votes_abstain: u256,
+        ) -> ProposalStatus {
+            panic_with_felt252('unimplemented');
+            ProposalStatus::Cancelled(())
+        }
+
         fn get_strategy_type(self: @ContractState) -> felt252 {
             'Executor'
         }
@@ -64,6 +75,17 @@ mod ExecutorWithoutTxExecutionStrategy {
             votes_abstain: u256,
             payload: Array<felt252>
         ) {}
+
+        fn get_proposal_status(
+            self: @ContractState,
+            proposal: Proposal,
+            votes_for: u256,
+            votes_against: u256,
+            votes_abstain: u256,
+        ) -> ProposalStatus {
+            panic_with_felt252('unimplemented');
+            ProposalStatus::Cancelled(())
+        }
 
         fn get_strategy_type(self: @ContractState) -> felt252 {
             'ExecutorWithoutTx'

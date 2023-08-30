@@ -25,7 +25,7 @@ mod SimpleQuorumExecutionStrategy {
         proposal: @Proposal,
         votes_for: u256,
         votes_against: u256,
-        votes_abstain: u256
+        votes_abstain: u256,
     ) -> ProposalStatus {
         let accepted = _quorum_reached(self._quorum.read(), votes_for, votes_against, votes_abstain)
             & _supported(votes_for, votes_against);
