@@ -50,7 +50,7 @@ mod tests {
 
     #[test]
     #[available_gas(10000000000)]
-    // #[should_panic(expected: ('Invalid duration', 'ENTRYPOINT_FAILED'))] // TODO: uncomment once PR is merged
+    #[should_panic(expected: ('Invalid duration', 'ENTRYPOINT_FAILED'))]
     fn update_min_voting_duration_too_big() {
         let (config, space) = setup_update_settings();
         let mut input = UpdateSettingsCalldataImpl::default();
@@ -78,7 +78,7 @@ mod tests {
 
     #[test]
     #[available_gas(10000000000)]
-    // #[should_panic(expected: ('Invalid duration', 'ENTRYPOINT_FAILED'))] // TODO: uncomment once PR is merged
+    #[should_panic(expected: ('Invalid duration', 'ENTRYPOINT_FAILED'))]
     fn update_max_voting_duration_too_small() {
         let (config, space) = setup_update_settings();
         let mut input = UpdateSettingsCalldataImpl::default();
@@ -110,7 +110,7 @@ mod tests {
 
     #[test]
     #[available_gas(10000000000)]
-    // #[should_panic(expected: ('Invalid duration', 'ENTRYPOINT_FAILED'))] // TODO: uncomment once PR is merged
+    #[should_panic(expected: ('Invalid duration', 'ENTRYPOINT_FAILED'))]
     fn update_min_max_voting_duration_at_once_invalid() {
         let (config, space) = setup_update_settings();
         let mut input = UpdateSettingsCalldataImpl::default();
