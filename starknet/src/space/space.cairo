@@ -16,13 +16,9 @@ trait ISpace<TContractState> {
     fn active_voting_strategies(self: @TContractState) -> u256;
     fn next_voting_strategy_index(self: @TContractState) -> u8;
     fn proposal_validation_strategy(self: @TContractState) -> Strategy;
-    // #[view]
     fn vote_power(self: @TContractState, proposal_id: u256, choice: Choice) -> u256;
-    // #[view]
-    // fn vote_registry(proposal_id: u256, voter: ContractAddress) -> bool;
+    fn vote_registry(self: @TContractState, proposal_id: u256, voter: UserAddress) -> bool;
     fn proposals(self: @TContractState, proposal_id: u256) -> Proposal;
-    // #[view]
-    // fn get_proposal_status(proposal_id: u256) -> u8;
 
     // Owner Actions 
     fn update_settings(ref self: TContractState, input: UpdateSettingsCalldata);
@@ -743,6 +739,10 @@ mod Space {
                         )
                     );
             }
+        }
+
+        fn vote_registry(self: @ContractState, proposal_id: u256, voter: UserAddress) -> bool {
+            self._vote_registry.read((proposal_id, voter))
         }
 
         fn vote_power(self: @ContractState, proposal_id: u256, choice: Choice) -> u256 {

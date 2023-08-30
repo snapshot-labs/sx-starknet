@@ -89,6 +89,7 @@ mod tests {
         ArrayTrait::<felt252>::new().serialize(ref vote_calldata);
 
         authenticator.authenticate(space.contract_address, VOTE_SELECTOR, vote_calldata);
+        assert(space.vote_registry(proposal_id, voter) == true, 'vote registry incorrect');
         assert(space.vote_power(proposal_id, Choice::For(())) == 1, 'Vote power should be 1');
         assert(space.vote_power(proposal_id, Choice::Against(())) == 0, 'Vote power should be 0');
         assert(space.vote_power(proposal_id, Choice::Abstain(())) == 0, 'Vote power should be 0');
@@ -123,6 +124,7 @@ mod tests {
         ArrayTrait::<felt252>::new().serialize(ref vote_calldata);
 
         authenticator.authenticate(space.contract_address, VOTE_SELECTOR, vote_calldata);
+        assert(space.vote_registry(proposal_id, voter) == true, 'vote registry incorrect');
         assert(space.vote_power(proposal_id, Choice::For(())) == 0, 'Vote power should be 0');
         assert(space.vote_power(proposal_id, Choice::Against(())) == 1, 'Vote power should be 1');
         assert(space.vote_power(proposal_id, Choice::Abstain(())) == 0, 'Vote power should be 0');
@@ -157,6 +159,7 @@ mod tests {
         ArrayTrait::<felt252>::new().serialize(ref vote_calldata);
 
         authenticator.authenticate(space.contract_address, VOTE_SELECTOR, vote_calldata);
+        assert(space.vote_registry(proposal_id, voter) == true, 'vote registry incorrect');
         assert(space.vote_power(proposal_id, Choice::For(())) == 0, 'Vote power should be 0');
         assert(space.vote_power(proposal_id, Choice::Against(())) == 0, 'Vote power should be 0');
         assert(space.vote_power(proposal_id, Choice::Abstain(())) == 1, 'Vote power should be 1');
