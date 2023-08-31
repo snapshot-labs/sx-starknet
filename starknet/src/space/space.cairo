@@ -386,9 +386,9 @@ mod Space {
             metadata_URI: Array<felt252>
         ) {
             assert_only_authenticator(@self);
-            assert(voter.is_non_zero(), 'Zero Address');
+            assert(voter.is_non_zero(), 'Zero Address'); // TODO: test this branch 
             let proposal = self._proposals.read(proposal_id);
-            assert_proposal_exists(@proposal);
+            assert_proposal_exists(@proposal); // TODO: test this branch
 
             let timestamp = info::get_block_timestamp().try_into().unwrap();
 
@@ -402,6 +402,9 @@ mod Space {
                 self._vote_registry.read((proposal_id, voter)) == false, 'Voter has already voted'
             );
 
+            // Written here to prevent re-entrency attacks via malicious voting strategies
+            self._vote_registry.write((proposal_id, voter), true);
+
             let voting_power = _get_cumulative_power(
                 @self,
                 voter,
@@ -409,16 +412,17 @@ mod Space {
                 user_voting_strategies.span(),
                 proposal.active_voting_strategies
             );
+            assert(voting_power > 0, 'User has no voting power');
 
-            assert(voting_power > 0_u256, 'User has no voting power');
             self
                 ._vote_power
                 .write(
                     (proposal_id, choice),
                     self._vote_power.read((proposal_id, choice)) + voting_power
                 );
-            self._vote_registry.write((proposal_id, voter), true);
 
+            // Contrary to the SX-EVM implementation, we don't differentiate between `VoteCast` and `VoteCastWithMetadata`
+            // because calldata is free.
             self
                 .emit(
                     Event::VoteCast(
