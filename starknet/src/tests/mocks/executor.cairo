@@ -33,6 +33,10 @@ mod ExecutorExecutionStrategy {
             let tx: Transaction = Serde::<Transaction>::deserialize(ref sp4n).unwrap();
             call_contract_syscall(tx.target, tx.selector, tx.data.span()).unwrap();
         }
+
+        fn get_strategy_type(self: @ContractState) -> felt252 {
+            'Executor'
+        }
     }
 
     #[constructor]
@@ -60,6 +64,10 @@ mod ExecutorWithoutTxExecutionStrategy {
             votes_abstain: u256,
             payload: Array<felt252>
         ) {}
+
+        fn get_strategy_type(self: @ContractState) -> felt252 {
+            'ExecutorWithoutTx'
+        }
     }
 
     #[constructor]
