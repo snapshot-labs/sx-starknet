@@ -504,6 +504,41 @@ mod tests {
 
     #[test]
     #[available_gas(10000000000)]
+    #[should_panic(expected: ('Invalid payload hash', 'ENTRYPOINT_FAILED'))]
+    fn execute_invalid_payload() {
+        let config = setup();
+        let (factory, space) = deploy(@config);
+
+        let authenticator = IVanillaAuthenticatorDispatcher {
+            contract_address: *config.authenticators.at(0),
+        };
+
+        let (executor_address, _) = deploy_syscall(
+            ExecutorWithoutTxExecutionStrategy::TEST_CLASS_HASH.try_into().unwrap(),
+            0,
+            array![].span(),
+            false
+        )
+            .unwrap();
+        let execution_strategy = StrategyImpl::from_address(executor_address);
+        let author = UserAddress::Starknet(contract_address_const::<0x5678>());
+        let mut propose_calldata = array![];
+        author.serialize(ref propose_calldata);
+        ArrayTrait::<felt252>::new().serialize(ref propose_calldata);
+        execution_strategy.serialize(ref propose_calldata);
+        ArrayTrait::<felt252>::new().serialize(ref propose_calldata);
+
+        // Create Proposal
+        authenticator.authenticate(space.contract_address, PROPOSE_SELECTOR, propose_calldata);
+
+        testing::set_block_timestamp(config.voting_delay + config.max_voting_duration);
+
+        // Execute Proposal
+        space.execute(1, array!['random', 'stuff']);
+    }
+
+    #[test]
+    #[available_gas(10000000000)]
     #[should_panic(expected: ('Proposal has been finalized', 'ENTRYPOINT_FAILED'))]
     fn test__cancel() {
         let relayer = contract_address_const::<0x1234>();
@@ -514,25 +549,19 @@ mod tests {
             contract_address: *config.authenticators.at(0)
         };
 
-        let quorum = u256_from_felt252(1);
-        let mut constructor_calldata = array![];
-        quorum.serialize(ref constructor_calldata);
-
-        let (vanilla_execution_strategy_address, _) = deploy_syscall(
-            VanillaExecutionStrategy::TEST_CLASS_HASH.try_into().unwrap(),
+        let (executor_address, _) = deploy_syscall(
+            ExecutorWithoutTxExecutionStrategy::TEST_CLASS_HASH.try_into().unwrap(),
             0,
-            constructor_calldata.span(),
+            array![].span(),
             false
         )
             .unwrap();
-        let vanilla_execution_strategy = StrategyImpl::from_address(
-            vanilla_execution_strategy_address
-        );
+        let execution_strategy = StrategyImpl::from_address(executor_address);
         let mut propose_calldata = array![];
         let author = UserAddress::Starknet(contract_address_const::<0x5678>());
         author.serialize(ref propose_calldata);
         ArrayTrait::<felt252>::new().serialize(ref propose_calldata);
-        vanilla_execution_strategy.serialize(ref propose_calldata);
+        execution_strategy.serialize(ref propose_calldata);
         ArrayTrait::<felt252>::new().serialize(ref propose_calldata);
 
         // Create Proposal
