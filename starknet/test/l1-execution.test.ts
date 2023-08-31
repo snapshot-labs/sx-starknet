@@ -60,12 +60,6 @@ describe('L1 Avatar Execution', function () {
     const ethRelayerFactory = await starknet.getContractFactory('sx_EthRelayerExecutionStrategy');
     const spaceFactory = await starknet.getContractFactory('sx_Space');
 
-    // await accountSH.declare(starkTxAuthenticatorFactory);
-    // await accountSH.declare(vanillaVotingStrategyFactory);
-    // await accountSH.declare(vanillaProposalValidationStrategyFactory);
-    // await accountSH.declare(ethRelayerFactory);
-    // await accountSH.declare(spaceFactory);
-
     try {
       // If the contracts are already declared, this will be skipped
       await accountSH.declare(starkTxAuthenticatorFactory);
@@ -119,18 +113,15 @@ describe('L1 Avatar Execution', function () {
       ethRelayer.address,
       quorum,
     ));
-
+    // Dumping the Starknet state so it can be loaded at the same point for each test
     await starknet.devnet.dump('dump.pkl');
-    console.log('Dumped Starknet Devnet State');
   }, 10000000);
 
-  // Recommended to use a big value if interacting with Alpha Goerli
   it('should execute a proposal via the Avatar Execution Strategy connected to a Safe', async function () {
     // // Resetting Starknet Devnet Timestamp
     // await starknet.devnet.setTime(Date.now()/1000);
     await starknet.devnet.restart();
     await starknet.devnet.load('./dump.pkl');
-    console.log('Loaded Starknet Devnet State');
     await starknet.devnet.loadL1MessagingContract(eth_network, mockStarknetMessaging.address);
 
     const proposalTx = {
@@ -234,8 +225,6 @@ describe('L1 Avatar Execution', function () {
       high: message_payload[16],
     });
 
-    console.log('done');
-
     await l1AvatarExecutionStrategy.execute(
       space_message,
       proposal,
@@ -251,7 +240,6 @@ describe('L1 Avatar Execution', function () {
     await starknet.devnet.restart();
     await starknet.devnet.load('./dump.pkl');
     await starknet.devnet.increaseTime(10);
-    console.log('Loaded Starknet Devnet State second time');
     await starknet.devnet.loadL1MessagingContract(eth_network, mockStarknetMessaging.address);
 
     const proposalTx = {
@@ -325,7 +313,6 @@ describe('L1 Avatar Execution', function () {
     // Propogating message to L1
     const flushL2Response = await starknet.devnet.flush();
     const message_payload = flushL2Response.consumed_messages.from_l2[0].payload;
-    console.log(flushL2Response.consumed_messages.from_l2);
     // Proposal data can either be extracted from the message sent to L1 (as done here) or from the pulled from the contract directly
     const space_message = message_payload[0];
     const proposal = {
@@ -355,8 +342,7 @@ describe('L1 Avatar Execution', function () {
       high: message_payload[16],
     });
 
-    console.log('done');
-
+    // Couldnt figure out how to handle custom revert message. Manually checked this failed for the correct reason though.
     await expect(
       l1AvatarExecutionStrategy.execute(
         space_message,
@@ -374,7 +360,7 @@ describe('L1 Avatar Execution', function () {
     await starknet.devnet.restart();
     await starknet.devnet.load('./dump.pkl');
     await starknet.devnet.increaseTime(10);
-    console.log('Loaded Starknet Devnet State second time');
+
     await starknet.devnet.loadL1MessagingContract(eth_network, mockStarknetMessaging.address);
 
     const proposalTx = {
