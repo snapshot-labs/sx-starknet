@@ -2,5 +2,5 @@
 
 pragma solidity ^0.8.19;
 
-import "ethereum/lib/safe-contracts/contracts/SafeL2.sol";
-import "ethereum/lib/safe-contracts/contracts/proxies/SafeProxyFactory.sol";
+import "@safe-global/safe-contracts/contracts/SafeL2.sol";
+import "@safe-global/safe-contracts/contracts/proxies/SafeProxyFactory.sol";
