@@ -10,16 +10,17 @@ export async function safeWithL1AvatarExecutionStrategySetup(
   quorum: number,
 ) {
   const GnosisSafeL2 = await ethers.getContractFactory(
-    '@gnosis.pm/safe-contracts/contracts/GnosisSafeL2.sol:GnosisSafeL2',
+    '@safe-global/safe-contracts/contracts/SafeL2.sol:SafeL2',
   );
   const FactoryContract = await ethers.getContractFactory(
-    '@gnosis.pm/safe-contracts/contracts/proxies/GnosisSafeProxyFactory.sol:GnosisSafeProxyFactory',
+    '@safe-global/safe-contracts/contracts/proxies/SafeProxyFactory.sol:SafeProxyFactory',
   );
   const singleton = await GnosisSafeL2.deploy();
   const factory = await FactoryContract.deploy();
 
-  const template = await factory.callStatic.createProxy(singleton.address, '0x');
-  await factory.createProxy(singleton.address, '0x');
+  const template = await factory.callStatic.createProxyWithNonce(singleton.address, '0x', 0);
+  await factory.createProxyWithNonce(singleton.address, '0x', 0);
+  console.log('factory deployed');
 
   const safe = GnosisSafeL2.attach(template);
   await safe.setup(
