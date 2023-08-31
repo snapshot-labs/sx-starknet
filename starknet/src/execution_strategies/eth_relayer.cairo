@@ -49,5 +49,9 @@ mod EthRelayerExecutionStrategy {
 
             syscalls::send_message_to_l1_syscall(l1_execution_strategy.into(), l1_payload.span());
         }
+
+        fn get_strategy_type(self: @ContractState) -> felt252 {
+            'EthRelayer'
+        }
     }
 }
