@@ -1,6 +1,6 @@
 use core::traits::TryInto;
 use core::traits::Destruct;
-use starknet::{ClassHash, ContractAddress};
+use starknet::{ClassHash, ContractAddress, SyscallResult};
 use sx::types::{UserAddress, Strategy, Proposal, IndexedStrategy, Choice, UpdateSettingsCalldata};
 
 #[starknet::interface]
@@ -65,7 +65,7 @@ trait ISpace<TContractState> {
     fn cancel(ref self: TContractState, proposal_id: u256);
     fn upgrade(
         ref self: TContractState, class_hash: ClassHash, initialize_calldata: Array<felt252>
-    );
+    ) -> SyscallResult<()>;
 }
 
 #[starknet::contract]
@@ -73,7 +73,7 @@ mod Space {
     use super::ISpace;
     use starknet::{
         storage_access::{StorePacking, StoreUsingPacking}, ClassHash, ContractAddress, info, Store,
-        syscalls
+        syscalls, SyscallResult,
     };
     use zeroable::Zeroable;
     use array::{ArrayTrait, SpanTrait};
@@ -527,12 +527,12 @@ mod Space {
 
         fn upgrade(
             ref self: ContractState, class_hash: ClassHash, initialize_calldata: Array<felt252>
-        ) {
+        ) -> SyscallResult<()> {
             let state: Ownable::ContractState = Ownable::unsafe_new_contract_state();
             Ownable::assert_only_owner(@state);
 
             assert(class_hash.is_non_zero(), 'Class Hash cannot be zero');
-            starknet::replace_class_syscall(class_hash).unwrap();
+            starknet::replace_class_syscall(class_hash)?;
 
             // Allowing initializer to be called again.
             let mut state: Reinitializable::ContractState =
@@ -542,8 +542,7 @@ mod Space {
             // Call initializer on the new version.
             syscalls::call_contract_syscall(
                 info::get_contract_address(), INITIALIZE_SELECTOR, initialize_calldata.span()
-            )
-                .unwrap();
+            )?;
 
             self
                 .emit(
@@ -553,6 +552,7 @@ mod Space {
                         }
                     )
                 );
+            SyscallResult::Ok(())
         }
 
         fn owner(self: @ContractState) -> ContractAddress {
