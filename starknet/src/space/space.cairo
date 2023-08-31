@@ -493,21 +493,23 @@ mod Space {
             execution_strategy: Strategy,
             metadata_URI: Array<felt252>,
         ) {
-            assert_only_authenticator(@self);
-            assert(author.is_non_zero(), 'Zero Address');
+            assert_only_authenticator(@self); // TODO: test this branch
+            assert(author.is_non_zero(), 'Zero Address'); // TODO: test this branch ?
             let mut proposal = self._proposals.read(proposal_id);
-            assert_proposal_exists(@proposal);
-            assert(proposal.author == author, 'Only Author');
+            assert_proposal_exists(@proposal); // TODO: test this branch
+            assert(
+                proposal.finalization_status == FinalizationStatus::Pending(()), 'Already finalized'
+            );
+            assert(proposal.author == author, 'Invalid caller'); // TODO: test this branch
             assert(
                 info::get_block_timestamp() < proposal.start_timestamp.into(),
                 'Voting period started'
-            );
-
-            proposal.execution_strategy = execution_strategy.address;
+            ); // TODO: test this branch
 
             proposal
                 .execution_payload_hash =
                     poseidon::poseidon_hash_span(execution_strategy.params.span());
+            proposal.execution_strategy = execution_strategy.address;
 
             self._proposals.write(proposal_id, proposal);
 
