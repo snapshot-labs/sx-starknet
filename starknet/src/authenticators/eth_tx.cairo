@@ -65,9 +65,9 @@ mod EthTxAuthenticator {
             target.serialize(ref payload);
             PROPOSE_SELECTOR.serialize(ref payload);
             author.serialize(ref payload);
+            metadata_URI.serialize(ref payload);
             execution_strategy.serialize(ref payload);
             user_proposal_validation_params.serialize(ref payload);
-            metadata_URI.serialize(ref payload);
             let payload_hash = poseidon::poseidon_hash_span(payload.span());
 
             consume_commit(ref self, payload_hash, author);
@@ -75,9 +75,9 @@ mod EthTxAuthenticator {
             ISpaceDispatcher { contract_address: target }
                 .propose(
                     UserAddress::Ethereum(author),
+                    metadata_URI,
                     execution_strategy,
                     user_proposal_validation_params,
-                    metadata_URI
                 );
         }
 
@@ -108,7 +108,7 @@ mod EthTxAuthenticator {
                     proposal_id,
                     choice,
                     user_voting_strategies,
-                    metadata_URI
+                    metadata_URI,
                 );
         }
 

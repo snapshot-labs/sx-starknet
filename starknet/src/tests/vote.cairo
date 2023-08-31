@@ -52,8 +52,8 @@ mod tests {
         let author = UserAddress::Starknet(contract_address_const::<0x5678>());
         let mut propose_calldata = array![];
         author.serialize(ref propose_calldata);
-        execution_strategy.serialize(ref propose_calldata);
         ArrayTrait::<felt252>::new().serialize(ref propose_calldata);
+        execution_strategy.serialize(ref propose_calldata);
         ArrayTrait::<felt252>::new().serialize(ref propose_calldata);
 
         // Create Proposal

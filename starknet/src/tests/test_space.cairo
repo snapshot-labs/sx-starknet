@@ -322,8 +322,8 @@ mod tests {
         let author = UserAddress::Starknet(contract_address_const::<0x5678>());
         let mut propose_calldata = array![];
         author.serialize(ref propose_calldata);
-        vanilla_execution_strategy.serialize(ref propose_calldata);
         ArrayTrait::<felt252>::new().serialize(ref propose_calldata);
+        vanilla_execution_strategy.serialize(ref propose_calldata);
         ArrayTrait::<felt252>::new().serialize(ref propose_calldata);
 
         // Create Proposal
@@ -431,8 +431,8 @@ mod tests {
         let author = UserAddress::Starknet(contract_address_const::<0x5678>());
         let mut propose_calldata = array![];
         author.serialize(ref propose_calldata);
-        vanilla_execution_strategy.serialize(ref propose_calldata);
         ArrayTrait::<felt252>::new().serialize(ref propose_calldata);
+        vanilla_execution_strategy.serialize(ref propose_calldata);
         ArrayTrait::<felt252>::new().serialize(ref propose_calldata);
 
         // Try to create Proposal
@@ -467,8 +467,8 @@ mod tests {
         let author = UserAddress::Starknet(contract_address_const::<0x5678>());
         let mut propose_calldata = array![];
         author.serialize(ref propose_calldata);
-        vanilla_execution_strategy.serialize(ref propose_calldata);
         ArrayTrait::<felt252>::new().serialize(ref propose_calldata);
+        vanilla_execution_strategy.serialize(ref propose_calldata);
         ArrayTrait::<felt252>::new().serialize(ref propose_calldata);
 
         // Create Proposal
@@ -530,8 +530,8 @@ mod tests {
         let mut propose_calldata = array![];
         let author = UserAddress::Starknet(contract_address_const::<0x5678>());
         author.serialize(ref propose_calldata);
-        vanilla_execution_strategy.serialize(ref propose_calldata);
         ArrayTrait::<felt252>::new().serialize(ref propose_calldata);
+        vanilla_execution_strategy.serialize(ref propose_calldata);
         ArrayTrait::<felt252>::new().serialize(ref propose_calldata);
 
         // Create Proposal
@@ -592,8 +592,8 @@ mod tests {
         let author = UserAddress::Starknet(contract_address_const::<0x0>());
         let mut propose_calldata = array::ArrayTrait::<felt252>::new();
         author.serialize(ref propose_calldata);
-        vanilla_execution_strategy.serialize(ref propose_calldata);
         ArrayTrait::<felt252>::new().serialize(ref propose_calldata);
+        vanilla_execution_strategy.serialize(ref propose_calldata);
         ArrayTrait::<felt252>::new().serialize(ref propose_calldata);
 
         // Create Proposal
@@ -629,8 +629,8 @@ mod tests {
         let author = UserAddress::Starknet(contract_address_const::<0x0>());
         let mut propose_calldata = array::ArrayTrait::<felt252>::new();
         author.serialize(ref propose_calldata);
-        vanilla_execution_strategy.serialize(ref propose_calldata);
         ArrayTrait::<felt252>::new().serialize(ref propose_calldata);
+        vanilla_execution_strategy.serialize(ref propose_calldata);
         ArrayTrait::<felt252>::new().serialize(ref propose_calldata);
 
         // Create Proposal
@@ -682,8 +682,8 @@ mod tests {
         let author = UserAddress::Starknet(contract_address_const::<0x5678>());
         let mut propose_calldata = array::ArrayTrait::<felt252>::new();
         author.serialize(ref propose_calldata);
-        vanilla_execution_strategy.serialize(ref propose_calldata);
         ArrayTrait::<felt252>::new().serialize(ref propose_calldata);
+        vanilla_execution_strategy.serialize(ref propose_calldata);
         ArrayTrait::<felt252>::new().serialize(ref propose_calldata);
 
         // Create Proposal

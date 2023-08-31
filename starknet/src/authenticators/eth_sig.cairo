@@ -91,9 +91,9 @@ mod EthSigAuthenticator {
             ISpaceDispatcher { contract_address: target }
                 .propose(
                     UserAddress::Ethereum(author),
+                    metadata_URI,
                     execution_strategy,
                     user_proposal_validation_params,
-                    metadata_URI
                 );
         }
 
@@ -129,7 +129,7 @@ mod EthSigAuthenticator {
                     proposal_id,
                     choice,
                     user_voting_strategies,
-                    metadata_URI
+                    metadata_URI,
                 );
         }
 

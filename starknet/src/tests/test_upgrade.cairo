@@ -94,8 +94,8 @@ mod tests {
 
         let mut propose_calldata = array![];
         UserAddress::Starknet(contract_address_const::<0x7676>()).serialize(ref propose_calldata);
-        execution_strategy.serialize(ref propose_calldata);
         ArrayTrait::<felt252>::new().serialize(ref propose_calldata);
+        execution_strategy.serialize(ref propose_calldata);
         ArrayTrait::<felt252>::new().serialize(ref propose_calldata);
 
         let authenticator = IVanillaAuthenticatorDispatcher {

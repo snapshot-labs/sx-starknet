@@ -42,9 +42,9 @@ trait ISpace<TContractState> {
     fn propose(
         ref self: TContractState,
         author: UserAddress,
+        metadata_URI: Array<felt252>,
         execution_strategy: Strategy,
         user_proposal_validation_params: Array<felt252>,
-        metadata_URI: Array<felt252>,
     );
     fn vote(
         ref self: TContractState,
@@ -316,9 +316,9 @@ mod Space {
         fn propose(
             ref self: ContractState,
             author: UserAddress,
+            metadata_URI: Array<felt252>,
             execution_strategy: Strategy,
             user_proposal_validation_params: Array<felt252>,
-            metadata_URI: Array<felt252>,
         ) {
             assert_only_authenticator(@self);
             assert(author.is_non_zero(), 'Zero Address');

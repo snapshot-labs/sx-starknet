@@ -58,9 +58,9 @@ mod StarkTxAuthenticator {
             ISpaceDispatcher { contract_address: space }
                 .propose(
                     UserAddress::Starknet(author),
+                    metadata_URI,
                     execution_strategy,
                     user_proposal_validation_params,
-                    metadata_URI
                 );
         }
 
@@ -81,7 +81,7 @@ mod StarkTxAuthenticator {
                     proposal_id,
                     choice,
                     user_voting_strategies,
-                    metadata_URI
+                    metadata_URI,
                 );
         }
 
