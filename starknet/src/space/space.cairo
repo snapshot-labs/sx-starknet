@@ -437,6 +437,7 @@ mod Space {
                 );
         }
 
+        // TODO: missing `nonReentrant` modifier
         fn execute(ref self: ContractState, proposal_id: u256, execution_payload: Array<felt252>) {
             let mut proposal = self._proposals.read(proposal_id);
             assert_proposal_exists(@proposal);
@@ -450,18 +451,21 @@ mod Space {
                 proposal.finalization_status == FinalizationStatus::Pending(()), 'Already finalized'
             );
 
-            IExecutionStrategyDispatcher { contract_address: proposal.execution_strategy }
+            // We cache the proposal to prevent re-entrency attacks by setting
+            // the finalization status to `Executed` before calling the `execute` function.
+            let cached_proposal = proposal.clone();
+            proposal.finalization_status = FinalizationStatus::Executed(());
+
+            self._proposals.write(proposal_id, proposal);
+
+            IExecutionStrategyDispatcher { contract_address: cached_proposal.execution_strategy }
                 .execute(
-                    proposal.clone(),
+                    cached_proposal,
                     self._vote_power.read((proposal_id, Choice::For(()))),
                     self._vote_power.read((proposal_id, Choice::Against(()))),
                     self._vote_power.read((proposal_id, Choice::Abstain(()))),
                     execution_payload
                 );
-
-            proposal.finalization_status = FinalizationStatus::Executed(());
-
-            self._proposals.write(proposal_id, proposal);
 
             self.emit(Event::ProposalExecuted(ProposalExecuted { proposal_id: proposal_id }));
         }
