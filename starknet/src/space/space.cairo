@@ -1,7 +1,9 @@
 use core::traits::TryInto;
 use core::traits::Destruct;
 use starknet::{ClassHash, ContractAddress};
-use sx::types::{UserAddress, Strategy, Proposal, IndexedStrategy, Choice, UpdateSettingsCalldata};
+use sx::types::{
+    UserAddress, Strategy, Proposal, IndexedStrategy, Choice, UpdateSettingsCalldata, ProposalStatus
+};
 
 #[starknet::interface]
 trait ISpace<TContractState> {
@@ -21,8 +23,7 @@ trait ISpace<TContractState> {
     // #[view]
     // fn vote_registry(proposal_id: u256, voter: ContractAddress) -> bool;
     fn proposals(self: @TContractState, proposal_id: u256) -> Proposal;
-    // #[view]
-    // fn get_proposal_status(proposal_id: u256) -> u8;
+    fn get_proposal_status(self: @TContractState, proposal_id: u256) -> ProposalStatus;
 
     // Owner Actions 
     fn update_settings(ref self: TContractState, input: UpdateSettingsCalldata);
@@ -93,8 +94,8 @@ mod Space {
         },
         types::{
             UserAddress, Choice, FinalizationStatus, Strategy, IndexedStrategy, Proposal,
-            PackedProposal, IndexedStrategyTrait, IndexedStrategyImpl, UpdateSettingsCalldata,
-            NoUpdateU32, NoUpdateStrategy, NoUpdateArray
+            ProposalStatus, PackedProposal, IndexedStrategyTrait, IndexedStrategyImpl,
+            UpdateSettingsCalldata, NoUpdateU32, NoUpdateStrategy, NoUpdateArray
         },
         utils::{
             reinitializable::{Reinitializable}, ReinitializableImpl, bits::BitSetter,
@@ -106,6 +107,7 @@ mod Space {
         external::ownable::Ownable
     };
     use hash::{HashStateTrait, Hash, HashStateExTrait};
+    use traits::Default;
 
 
     #[storage]
@@ -590,6 +592,18 @@ mod Space {
 
         fn proposals(self: @ContractState, proposal_id: u256) -> Proposal {
             self._proposals.read(proposal_id)
+        }
+
+        fn get_proposal_status(self: @ContractState, proposal_id: u256) -> ProposalStatus {
+            let proposal = self._proposals.read(proposal_id);
+            assert_proposal_exists(@proposal);
+
+            let votes_for = self._vote_power.read((proposal_id, Choice::For(())));
+            let votes_against = self._vote_power.read((proposal_id, Choice::Against(())));
+            let votes_abstain = self._vote_power.read((proposal_id, Choice::Abstain(())));
+
+            IExecutionStrategyDispatcher { contract_address: proposal.execution_strategy }
+                .get_proposal_status(proposal, votes_for, votes_against, votes_abstain)
         }
 
         fn update_settings(ref self: ContractState, input: UpdateSettingsCalldata) {

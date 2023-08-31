@@ -1,7 +1,9 @@
 use serde::Serde;
+use traits::Default;
 
-#[derive(Copy, Drop, Serde, PartialEq)]
+#[derive(Copy, Drop, Default, Serde, PartialEq)]
 enum ProposalStatus {
+    #[default]
     VotingDelay: (),
     VotingPeriod: (),
     VotingPeriodAccepted: (),
