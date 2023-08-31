@@ -689,23 +689,6 @@ mod tests {
         // Create Proposal
         authenticator.authenticate(space.contract_address, PROPOSE_SELECTOR, propose_calldata);
 
-        // Update Proposal
-        let mut update_calldata = array::ArrayTrait::<felt252>::new();
-        author.serialize(ref update_calldata);
-        let proposal_id = u256_from_felt252(1);
-        proposal_id.serialize(ref update_calldata);
-        // Keeping the same execution strategy contract but changing the payload
-        let mut new_payload = ArrayTrait::<felt252>::new();
-        new_payload.append(1);
-        let execution_strategy = Strategy {
-            address: vanilla_execution_strategy.address, params: new_payload
-        };
-        execution_strategy.serialize(ref update_calldata);
-        ArrayTrait::<felt252>::new().serialize(ref update_calldata);
-
-        authenticator
-            .authenticate(space.contract_address, UPDATE_PROPOSAL_SELECTOR, update_calldata);
-
         // Increasing block block_number by 1 to pass voting delay
         testing::set_block_number(1_u64);
 
@@ -717,9 +700,9 @@ mod tests {
         proposal_id.serialize(ref vote_calldata);
         let choice = Choice::For(());
         choice.serialize(ref vote_calldata);
-        let mut user_voting_strategies = ArrayTrait::<IndexedStrategy>::new();
-        user_voting_strategies
-            .append(IndexedStrategy { index: 0_u8, params: ArrayTrait::<felt252>::new() });
+        let mut user_voting_strategies = array![
+            IndexedStrategy { index: 0_u8, params: ArrayTrait::<felt252>::new() }
+        ];
         user_voting_strategies.serialize(ref vote_calldata);
         ArrayTrait::<felt252>::new().serialize(ref vote_calldata);
 
