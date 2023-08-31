@@ -322,7 +322,6 @@ mod Space {
         ) {
             assert_only_authenticator(@self);
             assert(author.is_non_zero(), 'Zero Address');
-            let proposal_id = self._next_proposal_id.read();
 
             // Proposal Validation
             let proposal_validation_strategy = self._proposal_validation_strategy.read();
@@ -358,10 +357,9 @@ mod Space {
                 finalization_status: FinalizationStatus::Pending(()),
                 active_voting_strategies: self._active_voting_strategies.read()
             };
-            let clone_proposal = proposal.clone();
 
-            // TODO: Lots of copying, maybe figure out how to pass snapshots to events/storage writers. 
-            self._proposals.write(proposal_id, proposal);
+            let proposal_id = self._next_proposal_id.read();
+            self._proposals.write(proposal_id, proposal.clone());
 
             self._next_proposal_id.write(proposal_id + 1_u256);
 
@@ -371,7 +369,7 @@ mod Space {
                         ProposalCreated {
                             proposal_id: proposal_id,
                             author: author,
-                            proposal: clone_proposal, // TODO: use span, remove clone
+                            proposal,
                             payload: execution_strategy.params.span(),
                             metadata_URI: metadata_URI.span()
                         }
