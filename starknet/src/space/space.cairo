@@ -493,18 +493,18 @@ mod Space {
             execution_strategy: Strategy,
             metadata_URI: Array<felt252>,
         ) {
-            assert_only_authenticator(@self); // TODO: test this branch
-            assert(author.is_non_zero(), 'Zero Address'); // TODO: test this branch ?
+            assert_only_authenticator(@self);
+            assert(author.is_non_zero(), 'Zero Address');
             let mut proposal = self._proposals.read(proposal_id);
-            assert_proposal_exists(@proposal); // TODO: test this branch
+            assert_proposal_exists(@proposal);
             assert(
                 proposal.finalization_status == FinalizationStatus::Pending(()), 'Already finalized'
             );
-            assert(proposal.author == author, 'Invalid caller'); // TODO: test this branch
+            assert(proposal.author == author, 'Invalid caller');
             assert(
                 info::get_block_timestamp() < proposal.start_timestamp.into(),
                 'Voting period started'
-            ); // TODO: test this branch
+            );
 
             proposal
                 .execution_payload_hash =
