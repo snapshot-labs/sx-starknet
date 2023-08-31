@@ -62,7 +62,7 @@ trait ISpace<TContractState> {
         execution_strategy: Strategy,
         metadata_URI: Array<felt252>,
     );
-    fn cancel_proposal(ref self: TContractState, proposal_id: u256);
+    fn cancel(ref self: TContractState, proposal_id: u256);
     fn upgrade(
         ref self: TContractState, class_hash: ClassHash, initialize_calldata: Array<felt252>
     );
@@ -470,6 +470,21 @@ mod Space {
             self.emit(Event::ProposalExecuted(ProposalExecuted { proposal_id: proposal_id }));
         }
 
+        fn cancel(ref self: ContractState, proposal_id: u256) {
+            //TODO: temporary component syntax
+            let state = Ownable::unsafe_new_contract_state();
+            Ownable::assert_only_owner(@state);
+            let mut proposal = self._proposals.read(proposal_id);
+            assert_proposal_exists(@proposal);
+            assert(
+                proposal.finalization_status == FinalizationStatus::Pending(()), 'Already Finalized'
+            );
+            proposal.finalization_status = FinalizationStatus::Cancelled(());
+            self._proposals.write(proposal_id, proposal);
+
+            self.emit(Event::ProposalCancelled(ProposalCancelled { proposal_id: proposal_id }));
+        }
+
         fn update_proposal(
             ref self: ContractState,
             author: UserAddress,
@@ -505,21 +520,6 @@ mod Space {
                         }
                     )
                 );
-        }
-
-        fn cancel_proposal(ref self: ContractState, proposal_id: u256) {
-            //TODO: temporary component syntax
-            let state = Ownable::unsafe_new_contract_state();
-            Ownable::assert_only_owner(@state);
-            let mut proposal = self._proposals.read(proposal_id);
-            assert_proposal_exists(@proposal);
-            assert(
-                proposal.finalization_status == FinalizationStatus::Pending(()), 'Already Finalized'
-            );
-            proposal.finalization_status = FinalizationStatus::Cancelled(());
-            self._proposals.write(proposal_id, proposal);
-
-            self.emit(Event::ProposalCancelled(ProposalCancelled { proposal_id: proposal_id }));
         }
 
         fn upgrade(

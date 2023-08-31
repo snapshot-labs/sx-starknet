@@ -545,7 +545,7 @@ mod tests {
         // Cancel Proposal
         testing::set_caller_address(config.owner);
         testing::set_contract_address(config.owner);
-        space.cancel_proposal(proposal_id);
+        space.cancel(proposal_id);
 
         let proposal = space.proposals(proposal_id);
         assert(proposal.finalization_status == FinalizationStatus::Cancelled(()), 'cancelled');
