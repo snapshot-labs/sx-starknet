@@ -163,8 +163,8 @@ mod Space {
         proposal_id: u256,
         author: UserAddress,
         proposal: Proposal,
-        payload: Span<felt252>,
         metadata_URI: Span<felt252>,
+        payload: Span<felt252>,
     }
 
     #[derive(Drop, starknet::Event)]
@@ -361,7 +361,7 @@ mod Space {
             let proposal_id = self._next_proposal_id.read();
             self._proposals.write(proposal_id, proposal.clone());
 
-            self._next_proposal_id.write(proposal_id + 1_u256);
+            self._next_proposal_id.write(proposal_id + 1);
 
             self
                 .emit(
@@ -370,8 +370,8 @@ mod Space {
                             proposal_id: proposal_id,
                             author: author,
                             proposal,
+                            metadata_URI: metadata_URI.span(),
                             payload: execution_strategy.params.span(),
-                            metadata_URI: metadata_URI.span()
                         }
                     )
                 );
