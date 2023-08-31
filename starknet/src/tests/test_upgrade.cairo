@@ -24,7 +24,7 @@ mod tests {
         UserAddress, Strategy, IndexedStrategy, Choice, FinalizationStatus, Proposal,
         UpdateSettingsCalldataImpl
     };
-    use sx::utils::constants::{PROPOSE_SELECTOR, VOTE_SELECTOR, UPDATE_PROPOSAL_SELECTOR};
+    use sx::utils::constants::{PROPOSE_SELECTOR};
     use sx::tests::setup::setup::setup::{setup, deploy};
     use sx::interfaces::{
         IProposalValidationStrategyDispatcher, IProposalValidationStrategyDispatcherTrait
