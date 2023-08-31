@@ -9,7 +9,7 @@ import '@nomiclabs/hardhat-waffle';
 import 'hardhat-gas-reporter';
 import '@nomiclabs/hardhat-etherscan';
 import '@nomicfoundation/hardhat-network-helpers';
-import "@nomicfoundation/hardhat-foundry";
+import '@nomicfoundation/hardhat-foundry';
 
 task('accounts', 'Prints the list of accounts', async (args, hre) => {
   const accounts = await hre.ethers.getSigners();
@@ -43,9 +43,6 @@ const config: HardhatUserConfig = {
     ],
   },
   networks: {
-    starknetGoerli: {
-      url: 'https://external.integration.starknet.io',
-    },
     ethereumLocal: {
       url: 'http://localhost:8545',
       chainId: 31337,
@@ -65,6 +62,7 @@ const config: HardhatUserConfig = {
     scarbCommand: 'scarb',
     network: 'starknetLocal',
     recompile: false,
+    venv: 'active',
   },
   paths: {
     starknetSources: './starknet',
