@@ -26,6 +26,7 @@ mod tests {
     };
     use sx::tests::utils::strategy_trait::{StrategyImpl};
     use sx::utils::constants::{PROPOSE_SELECTOR, VOTE_SELECTOR, UPDATE_PROPOSAL_SELECTOR};
+    use sx::tests::mocks::executor::ExecutorWithoutTxExecutionStrategy;
 
     use Space::Space as SpaceImpl;
 
@@ -564,6 +565,71 @@ mod tests {
     }
 
     #[test]
+    #[available_gas(1000000000)]
+    #[should_panic(expected: ('Caller is not the owner',))]
+    fn cancel_unauthorized() {
+        let mut state = Space::unsafe_new_contract_state();
+
+        testing::set_caller_address(contract_address_const::<'random'>());
+        Space::Space::cancel(ref state, 0);
+    }
+
+    #[test]
+    #[available_gas(1000000000)]
+    #[should_panic(
+        expected: ('Unknown enum indicator:', 0, 'ENTRYPOINT_FAILED')
+    )] // TODO: replace once `default` works on Proposal
+    // #[should_panic(expected: ('Proposal does not exist', 'ENTRYPOINT_FAILED'))]
+    fn cancel_inexistent_proposal() {
+        let config = setup();
+        let (factory, space) = deploy(@config);
+
+        testing::set_contract_address(config.owner);
+        space.cancel(0);
+    }
+
+    #[test]
+    #[available_gas(1000000000)]
+    #[should_panic(expected: ('Already finalized', 'ENTRYPOINT_FAILED'))]
+    fn cancel_already_finalized() {
+        let config = setup();
+        let (factory, space) = deploy(@config);
+
+        let authenticator = IVanillaAuthenticatorDispatcher {
+            contract_address: *config.authenticators.at(0),
+        };
+
+        let (executor_address, _) = deploy_syscall(
+            ExecutorWithoutTxExecutionStrategy::TEST_CLASS_HASH.try_into().unwrap(),
+            0,
+            array![].span(),
+            false
+        )
+            .unwrap();
+
+        let execution_strategy = StrategyImpl::from_address(executor_address);
+        let author = UserAddress::Starknet(contract_address_const::<'author'>());
+        let mut propose_calldata = array![];
+        author.serialize(ref propose_calldata);
+        ArrayTrait::<felt252>::new().serialize(ref propose_calldata);
+        execution_strategy.serialize(ref propose_calldata);
+        ArrayTrait::<felt252>::new().serialize(ref propose_calldata);
+
+        // Create Proposal
+        authenticator.authenticate(space.contract_address, PROPOSE_SELECTOR, propose_calldata);
+
+        testing::set_block_timestamp(config.voting_delay + config.max_voting_duration);
+
+        // Execute Proposal
+        space.execute(1, array![]);
+
+        testing::set_contract_address(config.owner);
+        // Cancel the proposal
+        space.cancel(1);
+    }
+
+
+    #[test]
     #[available_gas(10000000000)]
     #[should_panic(expected: ('Zero Address', 'ENTRYPOINT_FAILED'))]
     fn test_propose_zero_address() {
@@ -669,17 +735,8 @@ mod tests {
         let mut constructor_calldata = ArrayTrait::<felt252>::new();
         quorum.serialize(ref constructor_calldata);
 
-        let (vanilla_execution_strategy_address, _) = deploy_syscall(
-            VanillaExecutionStrategy::TEST_CLASS_HASH.try_into().unwrap(),
-            0,
-            constructor_calldata.span(),
-            false
-        )
-            .unwrap();
-        let vanilla_execution_strategy = StrategyImpl::from_address(
-            vanilla_execution_strategy_address
-        );
-        let author = UserAddress::Starknet(contract_address_const::<0x5678>());
+        let vanilla_execution_strategy = StrategyImpl::test_value();
+        let author = UserAddress::Starknet(contract_address_const::<'author'>());
         let mut propose_calldata = array::ArrayTrait::<felt252>::new();
         author.serialize(ref propose_calldata);
         ArrayTrait::<felt252>::new().serialize(ref propose_calldata);
@@ -696,7 +753,7 @@ mod tests {
         // Voter is the zero address
         let voter = UserAddress::Starknet(contract_address_const::<0x0>());
         voter.serialize(ref vote_calldata);
-        let proposal_id = u256_from_felt252(1);
+        let proposal_id = 1_u256;
         proposal_id.serialize(ref vote_calldata);
         let choice = Choice::For(());
         choice.serialize(ref vote_calldata);

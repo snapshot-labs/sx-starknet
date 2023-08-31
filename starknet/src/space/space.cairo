@@ -474,10 +474,11 @@ mod Space {
             //TODO: temporary component syntax
             let state = Ownable::unsafe_new_contract_state();
             Ownable::assert_only_owner(@state);
+
             let mut proposal = self._proposals.read(proposal_id);
             assert_proposal_exists(@proposal);
             assert(
-                proposal.finalization_status == FinalizationStatus::Pending(()), 'Already Finalized'
+                proposal.finalization_status == FinalizationStatus::Pending(()), 'Already finalized'
             );
             proposal.finalization_status = FinalizationStatus::Cancelled(());
             self._proposals.write(proposal_id, proposal);
