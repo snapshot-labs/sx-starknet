@@ -364,7 +364,7 @@ mod tests {
         authenticator
             .authenticate(space.contract_address, UPDATE_PROPOSAL_SELECTOR, update_calldata);
 
-        testing::set_block_timestamp(config.voting_delay);
+        testing::set_block_timestamp(config.voting_delay.into());
 
         let mut vote_calldata = array![];
         let voter = UserAddress::Starknet(contract_address_const::<0x8765>());
@@ -380,7 +380,9 @@ mod tests {
         // Vote on Proposal
         authenticator.authenticate(space.contract_address, VOTE_SELECTOR, vote_calldata);
 
-        testing::set_block_timestamp(config.voting_delay + config.max_voting_duration);
+        testing::set_block_timestamp(
+            config.voting_delay.into() + config.max_voting_duration.into()
+        );
 
         // Execute Proposal
         space.execute(u256_from_felt252(1), new_payload);
@@ -477,7 +479,7 @@ mod tests {
 
         assert(space.next_proposal_id() == 2_u256, 'next_proposal_id should be 2');
 
-        testing::set_block_timestamp(config.voting_delay);
+        testing::set_block_timestamp(config.voting_delay.into());
 
         let mut vote_calldata = array![];
         let voter = UserAddress::Starknet(contract_address_const::<0x8765>());
@@ -493,7 +495,9 @@ mod tests {
         // Vote on Proposal
         authenticator.authenticate(space.contract_address, VOTE_SELECTOR, vote_calldata);
 
-        testing::set_block_timestamp(config.voting_delay + config.max_voting_duration);
+        testing::set_block_timestamp(
+            config.voting_delay.into() + config.max_voting_duration.into()
+        );
 
         // Execute Proposal
         space.execute(u256_from_felt252(1), vanilla_execution_strategy.params.clone());
@@ -531,7 +535,9 @@ mod tests {
         // Create Proposal
         authenticator.authenticate(space.contract_address, PROPOSE_SELECTOR, propose_calldata);
 
-        testing::set_block_timestamp(config.voting_delay + config.max_voting_duration);
+        testing::set_block_timestamp(
+            config.voting_delay.into() + config.max_voting_duration.into()
+        );
 
         // Execute Proposal
         space.execute(1, array!['random', 'stuff']);
@@ -568,7 +574,7 @@ mod tests {
         authenticator.authenticate(space.contract_address, PROPOSE_SELECTOR, propose_calldata);
         let proposal_id = u256_from_felt252(1);
 
-        testing::set_block_timestamp(config.voting_delay);
+        testing::set_block_timestamp(config.voting_delay.into());
         let proposal = space.proposals(proposal_id);
         assert(proposal.finalization_status == FinalizationStatus::Pending(()), 'pending');
 
@@ -647,7 +653,9 @@ mod tests {
         // Create Proposal
         authenticator.authenticate(space.contract_address, PROPOSE_SELECTOR, propose_calldata);
 
-        testing::set_block_timestamp(config.voting_delay + config.max_voting_duration);
+        testing::set_block_timestamp(
+            config.voting_delay.into() + config.max_voting_duration.into()
+        );
 
         // Execute Proposal
         space.execute(1, array![]);
@@ -845,7 +853,7 @@ mod tests {
         authenticator.authenticate(space.contract_address, PROPOSE_SELECTOR, propose_calldata);
 
         // Skip voting delay
-        testing::set_block_timestamp(config.voting_delay);
+        testing::set_block_timestamp(config.voting_delay.into());
 
         // Try to update Proposal
         let mut update_calldata = array::ArrayTrait::<felt252>::new();

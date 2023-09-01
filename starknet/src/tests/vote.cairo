@@ -75,7 +75,7 @@ mod tests {
         create_proposal(authenticator, space, execution_strategy);
 
         // Increasing block timestamp pass voting delay
-        testing::set_block_timestamp(config.voting_delay);
+        testing::set_block_timestamp(config.voting_delay.into());
 
         let mut vote_calldata = array![];
         let voter = UserAddress::Starknet(contract_address_const::<0x8765>());
@@ -110,7 +110,7 @@ mod tests {
         create_proposal(authenticator, space, execution_strategy);
 
         // Increasing block timestamp pass voting delay
-        testing::set_block_timestamp(config.voting_delay);
+        testing::set_block_timestamp(config.voting_delay.into());
 
         let mut vote_calldata = array![];
         let voter = UserAddress::Starknet(contract_address_const::<0x8765>());
@@ -145,7 +145,7 @@ mod tests {
         create_proposal(authenticator, space, execution_strategy);
 
         // Increasing block timestamp by voting delay
-        testing::set_block_timestamp(config.voting_delay);
+        testing::set_block_timestamp(config.voting_delay.into());
 
         let mut vote_calldata = array![];
         let voter = UserAddress::Starknet(contract_address_const::<0x8765>());
@@ -212,7 +212,9 @@ mod tests {
         create_proposal(authenticator, space, execution_strategy);
 
         // Fast forward to end of voting period
-        testing::set_block_timestamp(config.voting_delay + config.max_voting_duration);
+        testing::set_block_timestamp(
+            config.voting_delay.into() + config.max_voting_duration.into()
+        );
 
         let mut vote_calldata = array![];
         let voter = UserAddress::Starknet(contract_address_const::<0x8765>());
@@ -243,7 +245,7 @@ mod tests {
 
         create_proposal(authenticator, space, execution_strategy);
 
-        testing::set_block_timestamp(config.voting_delay);
+        testing::set_block_timestamp(config.voting_delay.into());
 
         space
             .execute(
@@ -279,7 +281,9 @@ mod tests {
         create_proposal(authenticator, space, execution_strategy);
 
         // Fast forward to end of voting period
-        testing::set_block_timestamp(config.voting_delay + config.max_voting_duration);
+        testing::set_block_timestamp(
+            config.voting_delay.into() + config.max_voting_duration.into()
+        );
 
         let voter = UserAddress::Starknet(contract_address_const::<0x8765>());
         let proposal_id = 1_u256;
@@ -307,7 +311,7 @@ mod tests {
         create_proposal(authenticator, space, execution_strategy);
 
         // Increasing block timestamp pass voting delay
-        testing::set_block_timestamp(config.voting_delay);
+        testing::set_block_timestamp(config.voting_delay.into());
 
         let mut vote_calldata = array![];
         let voter = UserAddress::Starknet(contract_address_const::<0x8765>());
@@ -355,7 +359,7 @@ mod tests {
         create_proposal(authenticator, space, execution_strategy);
 
         // Increasing block timestamp pass voting delay
-        testing::set_block_timestamp(config.voting_delay);
+        testing::set_block_timestamp(config.voting_delay.into());
 
         let mut vote_calldata = array![];
         let voter = UserAddress::Starknet(contract_address_const::<0x8765>());

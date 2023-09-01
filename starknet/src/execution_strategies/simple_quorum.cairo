@@ -20,6 +20,11 @@ mod SimpleQuorumExecutionStrategy {
     }
 
     #[internal]
+    fn quorum(self: @ContractState) -> u256 {
+        self._quorum.read()
+    }
+
+    #[internal]
     fn get_proposal_status(
         self: @ContractState,
         proposal: @Proposal,
