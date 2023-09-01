@@ -1,4 +1,3 @@
-use array::ArrayTrait;
 use sx::types::Proposal;
 
 #[starknet::interface]
