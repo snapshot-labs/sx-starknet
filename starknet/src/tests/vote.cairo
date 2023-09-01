@@ -352,6 +352,7 @@ mod tests {
 
         let mut input = UpdateSettingsCalldataImpl::default();
         input.voting_strategies_to_add = array![no_voting_power_strategy];
+        input.voting_strategies_metadata_URIs_to_add = array![array![]];
 
         testing::set_contract_address(config.owner);
         space.update_settings(input);

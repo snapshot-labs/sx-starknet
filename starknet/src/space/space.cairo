@@ -9,6 +9,7 @@ trait ISpace<TContractState> {
     fn owner(self: @TContractState) -> ContractAddress;
     fn max_voting_duration(self: @TContractState) -> u32;
     fn min_voting_duration(self: @TContractState) -> u32;
+    fn dao_uri(self: @TContractState) -> Array<felt252>;
     fn next_proposal_id(self: @TContractState) -> u256;
     fn voting_delay(self: @TContractState) -> u32;
     fn authenticators(self: @TContractState, account: ContractAddress) -> bool;
@@ -90,7 +91,7 @@ mod Space {
         types::{
             UserAddress, Choice, FinalizationStatus, Strategy, IndexedStrategy, Proposal,
             PackedProposal, IndexedStrategyTrait, IndexedStrategyImpl, UpdateSettingsCalldata,
-            NoUpdateTrait, NoUpdateString,
+            NoUpdateTrait, NoUpdateString, strategy::StoreFelt252Array,
         },
         utils::{
             reinitializable::{Reinitializable}, ReinitializableImpl, bits::BitSetter,
@@ -103,13 +104,13 @@ mod Space {
     };
     use hash::{HashStateTrait, Hash, HashStateExTrait};
 
-
     #[storage]
     struct Storage {
         _min_voting_duration: u32,
         _max_voting_duration: u32,
         _next_proposal_id: u256,
         _voting_delay: u32,
+        _dao_uri: Array<felt252>,
         _active_voting_strategies: u256,
         _voting_strategies: LegacyMap::<u8, Strategy>,
         _next_voting_strategy_index: u8,
@@ -302,6 +303,7 @@ mod Space {
             let mut state = Ownable::unsafe_new_contract_state();
             Ownable::initializer(ref state);
             Ownable::transfer_ownership(ref state, owner);
+            _set_dao_uri(ref self, dao_URI);
             _set_max_voting_duration(
                 ref self, max_voting_duration
             ); // Need to set max before min, or else `max == 0` and set_min will revert
@@ -577,6 +579,10 @@ mod Space {
             self._voting_delay.read()
         }
 
+        fn dao_uri(self: @ContractState) -> Array<felt252> {
+            self._dao_uri.read()
+        }
+
         fn authenticators(self: @ContractState, account: ContractAddress) -> bool {
             self._authenticators.read(account)
         }
@@ -669,6 +675,20 @@ mod Space {
                     );
             }
 
+            if NoUpdateString::should_update((@input).metadata_URI) {
+                self
+                    .emit(
+                        Event::MetadataUriUpdated(
+                            MetadataUriUpdated { metadata_URI: input.metadata_URI.span() }
+                        )
+                    );
+            }
+
+            if NoUpdateString::should_update((@input).dao_URI) {
+                _set_dao_uri(ref self, input.dao_URI.clone());
+                self.emit(Event::DaoUriUpdated(DaoUriUpdated { dao_URI: input.dao_URI.span() }));
+            }
+
             if input.proposal_validation_strategy.should_update() {
                 _set_proposal_validation_strategy(
                     ref self, input.proposal_validation_strategy.clone()
@@ -713,6 +733,14 @@ mod Space {
             }
 
             if input.voting_strategies_to_add.should_update() {
+                assert(
+                    input
+                        .voting_strategies_to_add
+                        .len() == input
+                        .voting_strategies_metadata_URIs_to_add
+                        .len(),
+                    'len mismatch'
+                ); // TODO :test this branch
                 _add_voting_strategies(ref self, input.voting_strategies_to_add.span());
                 self
                     .emit(
@@ -737,21 +765,6 @@ mod Space {
                             }
                         )
                     );
-            }
-
-            // TODO: test once #506 is merged
-            if NoUpdateString::should_update((@input).metadata_URI) {
-                self
-                    .emit(
-                        Event::MetadataUriUpdated(
-                            MetadataUriUpdated { metadata_URI: input.metadata_URI.span() }
-                        )
-                    );
-            }
-
-            // TODO: test once #506 is merged
-            if NoUpdateString::should_update((@input).dao_URI) {
-                self.emit(Event::DaoUriUpdated(DaoUriUpdated { dao_URI: input.dao_URI.span() }));
             }
         }
 
@@ -836,6 +849,10 @@ mod Space {
 
     fn _set_voting_delay(ref self: ContractState, _voting_delay: u32) {
         self._voting_delay.write(_voting_delay);
+    }
+
+    fn _set_dao_uri(ref self: ContractState, _dao_uri: Array<felt252>) {
+        self._dao_uri.write(_dao_uri);
     }
 
     fn _set_proposal_validation_strategy(

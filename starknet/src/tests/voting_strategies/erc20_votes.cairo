@@ -82,6 +82,7 @@ mod tests {
         let to_add = array![erc20_voting_strategy];
         let mut settings = UpdateSettingsCalldataImpl::default();
         settings.voting_strategies_to_add = to_add;
+        settings.voting_strategies_metadata_URIs_to_add = array![array![]];
         settings.voting_strategies_to_remove = to_remove;
 
         testing::set_contract_address(config.owner);

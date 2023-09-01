@@ -154,11 +154,10 @@ mod tests {
     fn dao_uri() {
         let (config, space) = setup_update_settings();
         let mut input = UpdateSettingsCalldataImpl::default();
-        let mut arr = array![];
-        'hello!'.serialize(ref arr);
-        input.dao_URI = arr;
+        input.dao_URI = array!['hello!'];
 
         space.update_settings(input.clone());
+        assert(space.dao_uri() == input.dao_URI, 'dao uri not updated');
     // TODO: check event once it's been added
     }
 
@@ -228,6 +227,7 @@ mod tests {
 
         let mut arr = array![vs1.clone(), vs2.clone()];
         input.voting_strategies_to_add = arr;
+        input.voting_strategies_metadata_URIs_to_add = array![array![], array![]];
 
         space.update_settings(input);
 
@@ -235,7 +235,6 @@ mod tests {
         assert(space.voting_strategies(2) == vs2, 'Voting strategy 2 not added');
         assert(space.active_voting_strategies() == 0b111, 'Voting strategies not active');
     // TODO: check event once it's been added
-    // voting_strategies_metadata_URIs_to_add: Array<Array<felt252>>,
     }
 
 
@@ -249,6 +248,7 @@ mod tests {
         let vs1 = StrategyImpl::from_address(contract_address_const::<'votingStrategy1'>());
         let mut arr = array![vs1.clone()];
         input.voting_strategies_to_add = arr;
+        input.voting_strategies_metadata_URIs_to_add = array![array![]];
         space.update_settings(input);
         assert(space.voting_strategies(1) == vs1, 'Voting strategy 1 not added');
         assert(space.active_voting_strategies() == 0b11, 'Voting strategy not active');
