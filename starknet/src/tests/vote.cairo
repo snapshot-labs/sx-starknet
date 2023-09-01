@@ -377,4 +377,38 @@ mod tests {
 
         authenticator.authenticate(space.contract_address, VOTE_SELECTOR, vote_calldata);
     }
+
+    #[test]
+    #[available_gas(10000000000)]
+    #[should_panic(
+        expected: ('Unknown enum indicator:', 'ENTRYPOINT_FAILED')
+    )] // TODO: replace once `default` works on Proposal
+    fn vote_inexistant_proposal() {
+        let config = setup();
+        let (factory, space) = deploy(@config);
+
+        let execution_strategy = get_execution_strategy();
+
+        let authenticator = IVanillaAuthenticatorDispatcher {
+            contract_address: *config.authenticators.at(0),
+        };
+
+        create_proposal(authenticator, space, execution_strategy);
+
+        // Increasing block timestamp pass voting delay
+        testing::set_block_timestamp(config.voting_delay.into());
+
+        let mut vote_calldata = array![];
+        let voter = UserAddress::Starknet(contract_address_const::<0x8765>());
+        voter.serialize(ref vote_calldata);
+        let proposal_id = 42_u256; // inexistent proposal
+        proposal_id.serialize(ref vote_calldata);
+        let choice = Choice::For(());
+        choice.serialize(ref vote_calldata);
+        let mut user_voting_strategies = array![IndexedStrategy { index: 0_u8, params: array![] }];
+        user_voting_strategies.serialize(ref vote_calldata);
+        ArrayTrait::<felt252>::new().serialize(ref vote_calldata);
+
+        authenticator.authenticate(space.contract_address, VOTE_SELECTOR, vote_calldata);
+    }
 }

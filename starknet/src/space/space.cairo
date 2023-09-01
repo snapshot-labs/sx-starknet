@@ -388,9 +388,9 @@ mod Space {
             metadata_URI: Array<felt252>
         ) {
             assert_only_authenticator(@self);
-            assert(voter.is_non_zero(), 'Zero Address'); // TODO: test this branch 
+            assert(voter.is_non_zero(), 'Zero Address');
             let proposal = self._proposals.read(proposal_id);
-            assert_proposal_exists(@proposal); // TODO: test this branch
+            assert_proposal_exists(@proposal);
 
             let timestamp = info::get_block_timestamp().try_into().unwrap();
 
@@ -740,7 +740,7 @@ mod Space {
                         .voting_strategies_metadata_URIs_to_add
                         .len(),
                     'len mismatch'
-                ); // TODO :test this branch
+                );
                 _add_voting_strategies(ref self, input.voting_strategies_to_add.span());
                 self
                     .emit(
