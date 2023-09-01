@@ -1,7 +1,3 @@
-use serde::Serde;
-use traits::Into;
-use hash::LegacyHash;
-
 #[derive(Copy, Drop, Serde)]
 enum Choice {
     Against: (),

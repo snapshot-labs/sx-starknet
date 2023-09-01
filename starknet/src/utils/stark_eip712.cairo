@@ -1,9 +1,5 @@
 use core::starknet::SyscallResultTrait;
 use starknet::{ContractAddress, get_tx_info, get_contract_address};
-use array::{ArrayTrait, SpanTrait};
-use traits::Into;
-use box::BoxTrait;
-use serde::Serde;
 use sx::{
     types::{Strategy, IndexedStrategy, Choice},
     utils::{

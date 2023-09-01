@@ -5,13 +5,6 @@ use sx::{
     types::{UserAddress, IndexedStrategy, IndexedStrategyTrait, Strategy}, utils::bits::BitSetter
 };
 use starknet::{ContractAddress, info};
-use traits::{Into, TryInto};
-use option::OptionTrait;
-use result::ResultTrait;
-use array::{ArrayTrait, SpanTrait};
-use serde::Serde;
-use box::BoxTrait;
-use clone::Clone;
 
 fn _get_cumulative_power(
     voter: UserAddress,

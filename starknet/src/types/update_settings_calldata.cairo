@@ -1,5 +1,3 @@
-use array::ArrayTrait;
-use clone::Clone;
 use starknet::{ContractAddress, contract_address_const};
 use sx::types::Strategy;
 

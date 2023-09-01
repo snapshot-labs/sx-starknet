@@ -4,7 +4,6 @@ mod VanillaExecutionStrategy {
     use sx::types::{Proposal, ProposalStatus};
     use sx::execution_strategies::simple_quorum::SimpleQuorumExecutionStrategy;
 
-
     #[storage]
     struct Storage {
         _num_executed: felt252

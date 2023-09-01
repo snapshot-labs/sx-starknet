@@ -1,5 +1,3 @@
-use core::traits::TryInto;
-use core::traits::Destruct;
 use starknet::{ClassHash, ContractAddress};
 use sx::types::{UserAddress, Strategy, Proposal, IndexedStrategy, Choice, UpdateSettingsCalldata};
 
@@ -79,12 +77,6 @@ mod Space {
         storage_access::{StorePacking, StoreUsingPacking}, ClassHash, ContractAddress, info, Store,
         syscalls
     };
-    use zeroable::Zeroable;
-    use array::{ArrayTrait, SpanTrait};
-    use clone::Clone;
-    use option::OptionTrait;
-    use hash::LegacyHash;
-    use traits::{Into, TryInto};
     use sx::{
         interfaces::{
             IProposalValidationStrategyDispatcher, IProposalValidationStrategyDispatcherTrait,
@@ -105,7 +97,6 @@ mod Space {
         },
         external::ownable::Ownable
     };
-    use hash::{HashStateTrait, Hash, HashStateExTrait};
 
 
     #[storage]
