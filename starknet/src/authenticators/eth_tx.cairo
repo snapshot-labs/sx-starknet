@@ -35,10 +35,6 @@ trait IEthTxAuthenticator<TContractState> {
 mod EthTxAuthenticator {
     use super::IEthTxAuthenticator;
     use starknet::{ContractAddress, EthAddress, Felt252TryIntoEthAddress, EthAddressIntoFelt252,};
-    use core::{serde::Serde, array::{ArrayTrait, SpanTrait}};
-    use traits::{PartialEq, TryInto, Into};
-    use option::OptionTrait;
-    use zeroable::Zeroable;
     use sx::{
         space::space::{ISpaceDispatcher, ISpaceDispatcherTrait},
         types::{UserAddress, Strategy, IndexedStrategy, Choice},

@@ -18,8 +18,6 @@ mod Factory {
         ContractAddress, ClassHash, contract_address_const,
         syscalls::{deploy_syscall, call_contract_syscall}, SyscallResult
     };
-    use result::ResultTrait;
-    use array::{ArrayTrait, SpanTrait};
     use sx::utils::constants::INITIALIZE_SELECTOR;
 
     #[event]

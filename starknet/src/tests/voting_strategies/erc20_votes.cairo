@@ -13,10 +13,6 @@ mod tests {
     use sx::tests::setup::setup::setup::{setup as _setup, deploy, Config};
     use starknet::syscalls::deploy_syscall;
     use starknet::SyscallResult;
-    use result::ResultTrait;
-    use option::OptionTrait;
-    use traits::{Into, TryInto};
-    use array::{ArrayTrait, SpanTrait};
     use sx::interfaces::{
         IVotingStrategy, IVotingStrategyDispatcher, IVotingStrategyDispatcherTrait
     };
@@ -31,7 +27,6 @@ mod tests {
     use sx::tests::utils::strategy_trait::StrategyImpl;
     use sx::utils::constants::{PROPOSE_SELECTOR, VOTE_SELECTOR};
     use sx::execution_strategies::vanilla::VanillaExecutionStrategy;
-    use serde::Serde;
 
     const NAME: felt252 = 'TEST';
     const SYMBOL: felt252 = 'TST';

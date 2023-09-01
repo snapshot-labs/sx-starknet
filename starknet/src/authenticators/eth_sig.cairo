@@ -45,14 +45,11 @@ trait IEthSigAuthenticator<TContractState> {
 mod EthSigAuthenticator {
     use super::IEthSigAuthenticator;
     use starknet::{ContractAddress, EthAddress, syscalls::call_contract_syscall};
-    use core::array::{ArrayTrait, SpanTrait};
-    use clone::Clone;
     use sx::{
         space::space::{ISpaceDispatcher, ISpaceDispatcherTrait},
         types::{Strategy, IndexedStrategy, Choice, UserAddress},
         utils::{signatures, legacy_hash::{LegacyHashEthAddress, LegacyHashUsedSalts}}
     };
-    use hash::LegacyHash;
 
 
     #[storage]
