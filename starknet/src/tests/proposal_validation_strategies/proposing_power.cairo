@@ -6,27 +6,23 @@ mod tests {
     use starknet::ContractAddress;
     use sx::{
         voting_strategies::{
-            vanilla::VanillaVotingStrategy,
-            merkle_whitelist::MerkleWhitelistVotingStrategy,
+            vanilla::VanillaVotingStrategy, merkle_whitelist::MerkleWhitelistVotingStrategy,
             erc20_votes::ERC20VotesVotingStrategy
         },
-        utils::{
-            merkle::Leaf
-        },
-        proposal_validation_strategies::proposing_power::{
-            ProposingPowerProposalValidationStrategy
-        },
+        utils::{merkle::Leaf},
+        proposal_validation_strategies::proposing_power::{ProposingPowerProposalValidationStrategy},
         interfaces::{
-        IProposalValidationStrategy, IProposalValidationStrategyDispatcher,
-        IProposalValidationStrategyDispatcherTrait
-    },
-    types::{IndexedStrategy, Strategy, UserAddress},
-    tests::{
-        test_merkle_whitelist::merkle_utils::{
-            generate_merkle_data, generate_merkle_root, generate_proof
+            IProposalValidationStrategy, IProposalValidationStrategyDispatcher,
+            IProposalValidationStrategyDispatcherTrait
         },
-        mocks::erc20_votes_preset::ERC20VotesPreset
-    }};
+        types::{IndexedStrategy, Strategy, UserAddress},
+        tests::{
+            test_merkle_whitelist::merkle_utils::{
+                generate_merkle_data, generate_merkle_root, generate_proof
+            },
+            mocks::erc20_votes_preset::ERC20VotesPreset
+        }
+    };
     use openzeppelin::token::erc20::interface::{IERC20Dispatcher, IERC20DispatcherTrait};
     use openzeppelin::governance::utils::interfaces::votes::{
         IVotes, IVotesDispatcher, IVotesDispatcherTrait
