@@ -1,11 +1,6 @@
 #[cfg(test)]
 mod setup {
-    use array::ArrayTrait;
     use starknet::{ContractAddress, contract_address_const};
-    use traits::{Into, TryInto};
-    use serde::{Serde};
-    use result::ResultTrait;
-    use option::OptionTrait;
     use sx::types::Strategy;
     use sx::authenticators::vanilla::{VanillaAuthenticator};
     use sx::execution_strategies::vanilla::VanillaExecutionStrategy;
