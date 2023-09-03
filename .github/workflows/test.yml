@@ -99,15 +99,15 @@ jobs:
         with: 
           scarb-version: 0.7.0
 
-      - name: Step 3 - Check Cairo formatting
+      - name: Check Cairo formatting
         working-directory: ./starknet
         run: scarb fmt --check
 
-      - name: Step 4 - Build Cairo contracts
+      - name: Build Cairo contracts
         working-directory: ./starknet
         run: scarb build --verbose      
 
-      - name: Step 4 - Run Cairo tests
+      - name: Run Cairo tests
         working-directory: ./starknet
         run: scarb test --verbose
 
