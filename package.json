@@ -5,9 +5,14 @@
   "repository": "https://github.com/snapshot-labs/sx-starknet-2.git",
   "author": "Snapshot Labs",
   "license": "MIT",
+  "main": "index.js",
   "scripts": {
     "format:ts": "eslint . --ext .ts --fix",
-    "test:stark-sig-auth": "jest -c jest.config.ts"
+    "chain:l1": "hardhat node",
+    "chain:l2": "bash './scripts/chain-l2.sh'",
+    "chain": "yarn chain:l1 & yarn chain:l2",
+    "test:stark-sig-auth": "jest -c jest.config.ts",
+    "test:l1-execution": "bash './scripts/l1-execution.sh'"
   },
   "devDependencies": {
     "@gnosis.pm/zodiac": "^3.3.7",
@@ -27,8 +32,9 @@
     "@types/sinon-chai": "^3.2.9",
     "@typescript-eslint/eslint-plugin": "^6.2.1",
     "@typescript-eslint/parser": "^6.2.1",
+    "axios": "^1.5.0",
     "chai": "^4.3.7",
-    "concurrently": "^8.2.1",
+    "concurrently": "^7.0.0",
     "dotenv": "^16.3.1",
     "eslint": "^8.46.0",
     "eslint-plugin-prettier": "^5.0.0",

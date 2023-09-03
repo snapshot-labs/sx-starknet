@@ -1,21 +1,27 @@
 import dotenv from 'dotenv';
+import axios from 'axios';
 import { expect } from 'chai';
-import { starknet, ethers } from 'hardhat';
-import { Provider, Account, CallData, Uint256, uint256 } from 'starknet';
+import { starknet, ethers, network } from 'hardhat';
+import { HttpNetworkConfig } from 'hardhat/types';
+import { CallData, Uint256, uint256 } from 'starknet';
 import { safeWithL1AvatarExecutionStrategySetup } from './utils';
 
 dotenv.config();
 
-const eth_network = process.env.ETH_NETWORK_URL || '';
-const stark_network = process.env.STARKNET_NETWORK_URL || '';
+const eth_network: string = (network.config as HttpNetworkConfig).url;
 const account_address = process.env.ADDRESS || '';
 const account_pk = process.env.PK || '';
 
-function sleep(ms: number) {
-  return new Promise((resolve) => setTimeout(resolve, ms));
+async function increaseEthBlockchainTime(seconds: number) {
+  await axios({
+    method: 'post',
+    url: eth_network,
+    data: { id: 1337, jsonrpc: '2.0', method: 'evm_increaseTime', params: [seconds] },
+  });
 }
 
 describe('L1 Avatar Execution', function () {
+  console.log(eth_network);
   this.timeout(1000000);
 
   let signer: ethers.Wallet;
@@ -23,10 +29,7 @@ describe('L1 Avatar Execution', function () {
   let mockStarknetMessaging: ethers.Contract;
   let l1AvatarExecutionStrategy: ethers.Contract;
 
-  // Using both a starknet hardhat and sn.js account wrapper as hardhat has cleaner deployment flow
-  // but sn.js has cleaner contract interactions. Syntax is being integrated soon.
-  let account: Account;
-  let accountSH: starknet.starknetAccount;
+  let account: starknet.starknetAccount;
   let starkTxAuthenticator: starknet.StarknetContract;
   let vanillaVotingStrategy: starknet.StarknetContract;
   let vanillaProposalValidationStrategy: starknet.StarknetContract;
@@ -34,19 +37,10 @@ describe('L1 Avatar Execution', function () {
   let ethRelayer: starknet.StarknetContract;
 
   before(async function () {
-    accountSH = await starknet.OpenZeppelinAccount.getAccountFromAddress(
-      account_address,
-      account_pk,
-    );
-
-    account = new Account(
-      new Provider({ sequencer: { baseUrl: stark_network } }),
-      account_address,
-      account_pk,
-    );
-
     const signers = await ethers.getSigners();
     signer = signers[0];
+
+    account = await starknet.OpenZeppelinAccount.getAccountFromAddress(account_address, account_pk);
 
     const starkTxAuthenticatorFactory = await starknet.getContractFactory(
       'sx_StarkTxAuthenticator',
@@ -62,20 +56,20 @@ describe('L1 Avatar Execution', function () {
 
     try {
       // If the contracts are already declared, this will be skipped
-      await accountSH.declare(starkTxAuthenticatorFactory);
-      await accountSH.declare(vanillaVotingStrategyFactory);
-      await accountSH.declare(vanillaProposalValidationStrategyFactory);
-      await accountSH.declare(ethRelayerFactory);
-      await accountSH.declare(spaceFactory);
+      await account.declare(starkTxAuthenticatorFactory);
+      await account.declare(vanillaVotingStrategyFactory);
+      await account.declare(vanillaProposalValidationStrategyFactory);
+      await account.declare(ethRelayerFactory);
+      await account.declare(spaceFactory);
     } catch {}
 
-    starkTxAuthenticator = await accountSH.deploy(starkTxAuthenticatorFactory);
-    vanillaVotingStrategy = await accountSH.deploy(vanillaVotingStrategyFactory);
-    vanillaProposalValidationStrategy = await accountSH.deploy(
+    starkTxAuthenticator = await account.deploy(starkTxAuthenticatorFactory);
+    vanillaVotingStrategy = await account.deploy(vanillaVotingStrategyFactory);
+    vanillaProposalValidationStrategy = await account.deploy(
       vanillaProposalValidationStrategyFactory,
     );
-    ethRelayer = await accountSH.deploy(ethRelayerFactory);
-    space = await accountSH.deploy(spaceFactory);
+    ethRelayer = await account.deploy(ethRelayerFactory);
+    space = await account.deploy(spaceFactory);
 
     // Initializing the space
     const initializeCalldata = CallData.compile({
@@ -94,11 +88,8 @@ describe('L1 Avatar Execution', function () {
       _metadata_URI: [],
       _dao_URI: [],
     });
-    await account.execute({
-      contractAddress: space.address,
-      entrypoint: 'initialize',
-      calldata: initializeCalldata,
-    });
+
+    await account.invoke(space, 'initialize', initializeCalldata, { rawInput: true });
 
     const quorum = 1;
 
@@ -113,13 +104,12 @@ describe('L1 Avatar Execution', function () {
       ethRelayer.address,
       quorum,
     ));
+
     // Dumping the Starknet state so it can be loaded at the same point for each test
     await starknet.devnet.dump('dump.pkl');
   }, 10000000);
 
   it('should execute a proposal via the Avatar Execution Strategy connected to a Safe', async function () {
-    // // Resetting Starknet Devnet Timestamp
-    // await starknet.devnet.setTime(Date.now()/1000);
     await starknet.devnet.restart();
     await starknet.devnet.load('./dump.pkl');
     await starknet.devnet.loadL1MessagingContract(eth_network, mockStarknetMessaging.address);
@@ -149,10 +139,10 @@ describe('L1 Avatar Execution', function () {
     ];
 
     // Propose
-    await account.execute({
-      contractAddress: starkTxAuthenticator.address,
-      entrypoint: 'authenticate_propose',
-      calldata: CallData.compile({
+    await account.invoke(
+      starkTxAuthenticator,
+      'authenticate_propose',
+      CallData.compile({
         space: space.address,
         author: account.address,
         executionStrategy: {
@@ -162,13 +152,14 @@ describe('L1 Avatar Execution', function () {
         userProposalValidationParams: [],
         metadataURI: [],
       }),
-    });
+      { rawInput: true },
+    );
 
     // Vote
-    await account.execute({
-      contractAddress: starkTxAuthenticator.address,
-      entrypoint: 'authenticate_vote',
-      calldata: CallData.compile({
+    await account.invoke(
+      starkTxAuthenticator,
+      'authenticate_vote',
+      CallData.compile({
         space: space.address,
         voter: account.address,
         proposalId: { low: '0x1', high: '0x0' },
@@ -176,21 +167,23 @@ describe('L1 Avatar Execution', function () {
         userVotingStrategies: [{ index: '0x0', params: [] }],
         metadataURI: [],
       }),
-    });
+      { rawInput: true },
+    );
 
-    // TODO: Advance time so that the maxVotingTimestamp is exceeded
+    // Advance time so that the maxVotingTimestamp is exceeded
     await starknet.devnet.increaseTime(10);
-    await sleep(10000);
+    await increaseEthBlockchainTime(10);
 
     // Execute
-    await account.execute({
-      contractAddress: space.address,
-      entrypoint: 'execute',
-      calldata: CallData.compile({
+    await account.invoke(
+      space,
+      'execute',
+      CallData.compile({
         proposalId: { low: '0x1', high: '0x0' },
         executionPayload: executionPayload,
       }),
-    });
+      { rawInput: true },
+    );
 
     // Propogating message to L1
     const flushL2Response = await starknet.devnet.flush();
@@ -236,7 +229,7 @@ describe('L1 Avatar Execution', function () {
     );
   }, 10000000);
 
-  it('should revert execution if quorum is not met', async function () {
+  it('should revert execution if quorum is not met (abstain votes only)', async function () {
     await starknet.devnet.restart();
     await starknet.devnet.load('./dump.pkl');
     await starknet.devnet.increaseTime(10);
@@ -267,10 +260,10 @@ describe('L1 Avatar Execution', function () {
     ];
 
     // Propose
-    await account.execute({
-      contractAddress: starkTxAuthenticator.address,
-      entrypoint: 'authenticate_propose',
-      calldata: CallData.compile({
+    await account.invoke(
+      starkTxAuthenticator,
+      'authenticate_propose',
+      CallData.compile({
         space: space.address,
         author: account.address,
         executionStrategy: {
@@ -280,13 +273,14 @@ describe('L1 Avatar Execution', function () {
         userProposalValidationParams: [],
         metadataURI: [],
       }),
-    });
+      { rawInput: true },
+    );
 
     // Vote
-    await account.execute({
-      contractAddress: starkTxAuthenticator.address,
-      entrypoint: 'authenticate_vote',
-      calldata: CallData.compile({
+    await account.invoke(
+      starkTxAuthenticator,
+      'authenticate_vote',
+      CallData.compile({
         space: space.address,
         voter: account.address,
         proposalId: { low: '0x1', high: '0x0' },
@@ -294,21 +288,143 @@ describe('L1 Avatar Execution', function () {
         userVotingStrategies: [{ index: '0x0', params: [] }],
         metadataURI: [],
       }),
-    });
+      { rawInput: true },
+    );
 
-    // TODO: Advance time so that the maxVotingTimestamp is exceeded
-    await starknet.devnet.increaseTime(20);
-    await sleep(20000);
+    // Advance time so that the maxVotingTimestamp is exceeded
+    await starknet.devnet.increaseTime(10);
+    await increaseEthBlockchainTime(10);
 
     // Execute
-    await account.execute({
-      contractAddress: space.address,
-      entrypoint: 'execute',
-      calldata: CallData.compile({
+    await account.invoke(
+      space,
+      'execute',
+      CallData.compile({
         proposalId: { low: '0x1', high: '0x0' },
         executionPayload: executionPayload,
       }),
+      { rawInput: true },
+    );
+
+    // Propogating message to L1
+    const flushL2Response = await starknet.devnet.flush();
+    const message_payload = flushL2Response.consumed_messages.from_l2[0].payload;
+    // Proposal data can either be extracted from the message sent to L1 (as done here) or from the pulled from the contract directly
+    const space_message = message_payload[0];
+    const proposal = {
+      startTimestamp: message_payload[1],
+      minEndTimestamp: message_payload[2],
+      maxEndTimestamp: message_payload[3],
+      finalizationStatus: message_payload[4],
+      executionPayloadHash: message_payload[5],
+      executionStrategy: message_payload[6],
+      authorAddressType: message_payload[7],
+      author: message_payload[8],
+      activeVotingStrategies: uint256.uint256ToBN({
+        low: message_payload[9],
+        high: message_payload[10],
+      }),
+    };
+    // Sending an invalid forVotes value
+    const forVotes = 10;
+    const againstVotes = uint256.uint256ToBN({
+      low: message_payload[13],
+      high: message_payload[14],
     });
+    const abstainVotes = uint256.uint256ToBN({
+      low: message_payload[15],
+      high: message_payload[16],
+    });
+
+    await expect(
+      l1AvatarExecutionStrategy.execute(
+        space_message,
+        proposal,
+        forVotes,
+        againstVotes,
+        abstainVotes,
+        executionHash,
+        [proposalTx],
+      ),
+    ).to.be.revertedWith('INVALID_MESSAGE_TO_CONSUME');
+  }, 10000000);
+
+  it('should revert execution if quorum is not met (abstain votes only)', async function () {
+    await starknet.devnet.restart();
+    await starknet.devnet.load('./dump.pkl');
+    await starknet.devnet.increaseTime(10);
+    await starknet.devnet.loadL1MessagingContract(eth_network, mockStarknetMessaging.address);
+
+    const proposalTx = {
+      to: signer.address,
+      value: 0,
+      data: '0x22',
+      operation: 0,
+      salt: 1,
+    };
+
+    const abiCoder = new ethers.utils.AbiCoder();
+    const executionHash = ethers.utils.keccak256(
+      abiCoder.encode(
+        ['tuple(address to, uint256 value, bytes data, uint8 operation, uint256 salt)[]'],
+        [[proposalTx]],
+      ),
+    );
+    // Represent the execution hash as a Cairo Uint256
+    const executionHashUint256: Uint256 = uint256.bnToUint256(executionHash);
+
+    const executionPayload = [
+      l1AvatarExecutionStrategy.address,
+      executionHashUint256.low,
+      executionHashUint256.high,
+    ];
+
+    // Propose
+    await account.invoke(
+      starkTxAuthenticator,
+      'authenticate_propose',
+      CallData.compile({
+        space: space.address,
+        author: account.address,
+        executionStrategy: {
+          address: ethRelayer.address,
+          params: executionPayload,
+        },
+        userProposalValidationParams: [],
+        metadataURI: [],
+      }),
+      { rawInput: true },
+    );
+
+    // Vote
+    await account.invoke(
+      starkTxAuthenticator,
+      'authenticate_vote',
+      CallData.compile({
+        space: space.address,
+        voter: account.address,
+        proposalId: { low: '0x1', high: '0x0' },
+        choice: '0x2',
+        userVotingStrategies: [{ index: '0x0', params: [] }],
+        metadataURI: [],
+      }),
+      { rawInput: true },
+    );
+
+    // Advance time so that the maxVotingTimestamp is exceeded
+    await starknet.devnet.increaseTime(10);
+    await increaseEthBlockchainTime(10);
+
+    // Execute
+    await account.invoke(
+      space,
+      'execute',
+      CallData.compile({
+        proposalId: { low: '0x1', high: '0x0' },
+        executionPayload: executionPayload,
+      }),
+      { rawInput: true },
+    );
 
     // Propogating message to L1
     const flushL2Response = await starknet.devnet.flush();
@@ -342,7 +458,240 @@ describe('L1 Avatar Execution', function () {
       high: message_payload[16],
     });
 
-    // Couldnt figure out how to handle custom revert message. Manually checked this failed for the correct reason though.
+    // For some reason CI fails with revertedWith('InvalidProposalStatus') but works locally.
+    await expect(
+      l1AvatarExecutionStrategy.execute(
+        space_message,
+        proposal,
+        forVotes,
+        againstVotes,
+        abstainVotes,
+        executionHash,
+        [proposalTx],
+      ),
+    ).to.be.reverted;
+  }, 10000000);
+
+  it('should revert execution if quorum is not met (against votes only)', async function () {
+    await starknet.devnet.restart();
+    await starknet.devnet.load('./dump.pkl');
+    await starknet.devnet.increaseTime(10);
+    await starknet.devnet.loadL1MessagingContract(eth_network, mockStarknetMessaging.address);
+
+    const proposalTx = {
+      to: signer.address,
+      value: 0,
+      data: '0x22',
+      operation: 0,
+      salt: 1,
+    };
+
+    const abiCoder = new ethers.utils.AbiCoder();
+    const executionHash = ethers.utils.keccak256(
+      abiCoder.encode(
+        ['tuple(address to, uint256 value, bytes data, uint8 operation, uint256 salt)[]'],
+        [[proposalTx]],
+      ),
+    );
+    // Represent the execution hash as a Cairo Uint256
+    const executionHashUint256: Uint256 = uint256.bnToUint256(executionHash);
+
+    const executionPayload = [
+      l1AvatarExecutionStrategy.address,
+      executionHashUint256.low,
+      executionHashUint256.high,
+    ];
+
+    // Propose
+    await account.invoke(
+      starkTxAuthenticator,
+      'authenticate_propose',
+      CallData.compile({
+        space: space.address,
+        author: account.address,
+        executionStrategy: {
+          address: ethRelayer.address,
+          params: executionPayload,
+        },
+        userProposalValidationParams: [],
+        metadataURI: [],
+      }),
+      { rawInput: true },
+    );
+
+    // Vote
+    await account.invoke(
+      starkTxAuthenticator,
+      'authenticate_vote',
+      CallData.compile({
+        space: space.address,
+        voter: account.address,
+        proposalId: { low: '0x1', high: '0x0' },
+        choice: '0x0',
+        userVotingStrategies: [{ index: '0x0', params: [] }],
+        metadataURI: [],
+      }),
+      { rawInput: true },
+    );
+
+    // Advance time so that the maxVotingTimestamp is exceeded
+    await starknet.devnet.increaseTime(10);
+    await increaseEthBlockchainTime(10);
+
+    // Execute
+    await account.invoke(
+      space,
+      'execute',
+      CallData.compile({
+        proposalId: { low: '0x1', high: '0x0' },
+        executionPayload: executionPayload,
+      }),
+      { rawInput: true },
+    );
+
+    // Propogating message to L1
+    const flushL2Response = await starknet.devnet.flush();
+    const message_payload = flushL2Response.consumed_messages.from_l2[0].payload;
+    // Proposal data can either be extracted from the message sent to L1 (as done here) or from the pulled from the contract directly
+    const space_message = message_payload[0];
+    const proposal = {
+      startTimestamp: message_payload[1],
+      minEndTimestamp: message_payload[2],
+      maxEndTimestamp: message_payload[3],
+      finalizationStatus: message_payload[4],
+      executionPayloadHash: message_payload[5],
+      executionStrategy: message_payload[6],
+      authorAddressType: message_payload[7],
+      author: message_payload[8],
+      activeVotingStrategies: uint256.uint256ToBN({
+        low: message_payload[9],
+        high: message_payload[10],
+      }),
+    };
+    const forVotes = uint256.uint256ToBN({
+      low: message_payload[11],
+      high: message_payload[12],
+    });
+    const againstVotes = uint256.uint256ToBN({
+      low: message_payload[13],
+      high: message_payload[14],
+    });
+    const abstainVotes = uint256.uint256ToBN({
+      low: message_payload[15],
+      high: message_payload[16],
+    });
+
+    // For some reason CI fails with revertedWith('InvalidProposalStatus') but works locally.
+    await expect(
+      l1AvatarExecutionStrategy.execute(
+        space_message,
+        proposal,
+        forVotes,
+        againstVotes,
+        abstainVotes,
+        executionHash,
+        [proposalTx],
+      ),
+    ).to.be.reverted;
+  }, 10000000);
+
+  it('should revert execution if quorum is not met (no votes)', async function () {
+    await starknet.devnet.restart();
+    await starknet.devnet.load('./dump.pkl');
+    await starknet.devnet.increaseTime(10);
+    await starknet.devnet.loadL1MessagingContract(eth_network, mockStarknetMessaging.address);
+
+    const proposalTx = {
+      to: signer.address,
+      value: 0,
+      data: '0x22',
+      operation: 0,
+      salt: 1,
+    };
+
+    const abiCoder = new ethers.utils.AbiCoder();
+    const executionHash = ethers.utils.keccak256(
+      abiCoder.encode(
+        ['tuple(address to, uint256 value, bytes data, uint8 operation, uint256 salt)[]'],
+        [[proposalTx]],
+      ),
+    );
+    // Represent the execution hash as a Cairo Uint256
+    const executionHashUint256: Uint256 = uint256.bnToUint256(executionHash);
+
+    const executionPayload = [
+      l1AvatarExecutionStrategy.address,
+      executionHashUint256.low,
+      executionHashUint256.high,
+    ];
+
+    // Propose
+    await account.invoke(
+      starkTxAuthenticator,
+      'authenticate_propose',
+      CallData.compile({
+        space: space.address,
+        author: account.address,
+        executionStrategy: {
+          address: ethRelayer.address,
+          params: executionPayload,
+        },
+        userProposalValidationParams: [],
+        metadataURI: [],
+      }),
+      { rawInput: true },
+    );
+
+    // No Vote Cast
+
+    // Advance time so that the maxVotingTimestamp is exceeded
+    await starknet.devnet.increaseTime(10);
+    await increaseEthBlockchainTime(10);
+
+    // Execute
+    await account.invoke(
+      space,
+      'execute',
+      CallData.compile({
+        proposalId: { low: '0x1', high: '0x0' },
+        executionPayload: executionPayload,
+      }),
+      { rawInput: true },
+    );
+
+    // Propogating message to L1
+    const flushL2Response = await starknet.devnet.flush();
+    const message_payload = flushL2Response.consumed_messages.from_l2[0].payload;
+    // Proposal data can either be extracted from the message sent to L1 (as done here) or from the pulled from the contract directly
+    const space_message = message_payload[0];
+    const proposal = {
+      startTimestamp: message_payload[1],
+      minEndTimestamp: message_payload[2],
+      maxEndTimestamp: message_payload[3],
+      finalizationStatus: message_payload[4],
+      executionPayloadHash: message_payload[5],
+      executionStrategy: message_payload[6],
+      authorAddressType: message_payload[7],
+      author: message_payload[8],
+      activeVotingStrategies: uint256.uint256ToBN({
+        low: message_payload[9],
+        high: message_payload[10],
+      }),
+    };
+    const forVotes = uint256.uint256ToBN({
+      low: message_payload[11],
+      high: message_payload[12],
+    });
+    const againstVotes = uint256.uint256ToBN({
+      low: message_payload[13],
+      high: message_payload[14],
+    });
+    const abstainVotes = uint256.uint256ToBN({
+      low: message_payload[15],
+      high: message_payload[16],
+    });
+
+    // For some reason CI fails with revertedWith('InvalidProposalStatus') but works locally.
     await expect(
       l1AvatarExecutionStrategy.execute(
         space_message,
@@ -388,10 +737,10 @@ describe('L1 Avatar Execution', function () {
     ];
 
     // Propose
-    await account.execute({
-      contractAddress: starkTxAuthenticator.address,
-      entrypoint: 'authenticate_propose',
-      calldata: CallData.compile({
+    await account.invoke(
+      starkTxAuthenticator,
+      'authenticate_propose',
+      CallData.compile({
         space: space.address,
         author: account.address,
         executionStrategy: {
@@ -401,13 +750,14 @@ describe('L1 Avatar Execution', function () {
         userProposalValidationParams: [],
         metadataURI: [],
       }),
-    });
+      { rawInput: true },
+    );
 
     // Vote
-    await account.execute({
-      contractAddress: starkTxAuthenticator.address,
-      entrypoint: 'authenticate_vote',
-      calldata: CallData.compile({
+    await account.invoke(
+      starkTxAuthenticator,
+      'authenticate_vote',
+      CallData.compile({
         space: space.address,
         voter: account.address,
         proposalId: { low: '0x1', high: '0x0' },
@@ -415,18 +765,20 @@ describe('L1 Avatar Execution', function () {
         userVotingStrategies: [{ index: '0x0', params: [] }],
         metadataURI: [],
       }),
-    });
+      { rawInput: true },
+    );
 
     try {
       // Execute before maxVotingTimestamp is exceeded
-      await account.execute({
-        contractAddress: space.address,
-        entrypoint: 'execute',
-        calldata: CallData.compile({
+      await account.invoke(
+        space,
+        'execute',
+        CallData.compile({
           proposalId: { low: '0x1', high: '0x0' },
           executionPayload: executionPayload,
         }),
-      });
+        { rawInput: true },
+      );
     } catch (err: any) {
       // 'Before max end timestamp' error message
       expect(err.message).to.contain('0x4265666f7265206d617820656e642074696d657374616d70');

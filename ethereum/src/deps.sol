@@ -4,3 +4,4 @@ pragma solidity ^0.8.19;
 
 import "@safe-global/safe-contracts/contracts/SafeL2.sol";
 import "@safe-global/safe-contracts/contracts/proxies/SafeProxyFactory.sol";
+import "@gnosis.pm/zodiac/contracts/factory/ModuleProxyFactory.sol";

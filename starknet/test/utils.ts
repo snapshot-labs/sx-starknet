@@ -20,7 +20,6 @@ export async function safeWithL1AvatarExecutionStrategySetup(
 
   const template = await factory.callStatic.createProxyWithNonce(singleton.address, '0x', 0);
   await factory.createProxyWithNonce(singleton.address, '0x', 0);
-  console.log('factory deployed');
 
   const safe = GnosisSafeL2.attach(template);
   await safe.setup(

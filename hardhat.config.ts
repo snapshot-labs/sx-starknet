@@ -44,11 +44,11 @@ const config: HardhatUserConfig = {
   },
   networks: {
     ethereumLocal: {
-      url: 'http://localhost:8545',
+      url: 'http://127.0.0.1:8545/',
       chainId: 31337,
     },
     starknetLocal: {
-      url: 'http://localhost:5050',
+      url: 'http://127.0.0.1:5050',
     },
   },
   gasReporter: {
@@ -63,6 +63,7 @@ const config: HardhatUserConfig = {
     network: 'starknetLocal',
     recompile: false,
     venv: 'active',
+    requestTimeout: 90_000,
   },
   paths: {
     starknetSources: './starknet',
