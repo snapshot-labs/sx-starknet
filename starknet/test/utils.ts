@@ -53,7 +53,14 @@ export async function safeWithL1AvatarExecutionStrategySetup(
   );
   const encodedInitParams = ethers.utils.defaultAbiCoder.encode(
     ['address', 'address', 'address', 'uint256', 'uint256[]', 'uint256'],
-    [safe.address, safe.address, starknetCoreAddress, ethRelayerAddress, [spaceAddress], quorum],
+    [
+      safeSigner.address,
+      safe.address,
+      starknetCoreAddress,
+      ethRelayerAddress,
+      [spaceAddress],
+      quorum,
+    ],
   );
 
   const initData = masterL1AvatarExecutionStrategy.interface.encodeFunctionData('setUp', [
