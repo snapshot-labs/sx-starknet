@@ -92,7 +92,6 @@ impl NoUpdateString of NoUpdateTrait<Array<felt252>> {
     }
 }
 
-// TODO: find a way for "Strings"
 impl NoUpdateArray<T> of NoUpdateTrait<Array<T>> {
     fn no_update() -> Array<T> {
         array![]
@@ -112,7 +111,7 @@ impl UpdateSettingsCalldataImpl of UpdateSettingsCalldataTrait {
             metadata_URI: NoUpdateString::no_update(),
             dao_URI: NoUpdateString::no_update(),
             proposal_validation_strategy: NoUpdateStrategy::no_update(),
-            proposal_validation_strategy_metadata_URI: NoUpdateString::no_update(), // TODO: string
+            proposal_validation_strategy_metadata_URI: NoUpdateString::no_update(),
             authenticators_to_add: NoUpdateArray::no_update(),
             authenticators_to_remove: NoUpdateArray::no_update(),
             voting_strategies_to_add: NoUpdateArray::no_update(),
