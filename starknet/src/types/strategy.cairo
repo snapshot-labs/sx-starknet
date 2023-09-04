@@ -1,10 +1,4 @@
 use starknet::ContractAddress;
-use array::ArrayTrait;
-use serde::Serde;
-use option::OptionTrait;
-use clone::Clone;
-use result::ResultTrait;
-use traits::TryInto;
 use starknet::{StorageBaseAddress, Store, SyscallResult};
 
 #[derive(Clone, Drop, Option, Serde, starknet::Store)]
@@ -78,7 +72,12 @@ impl StoreFelt252Array of Store<Array<felt252>> {
         loop {
             match value.pop_front() {
                 Option::Some(element) => {
-                    Store::<felt252>::write_at_offset(address_domain, base, offset, element)?;
+                    match Store::<felt252>::write_at_offset(address_domain, base, offset, element) {
+                        Result::Ok(()) => {},
+                        Result::Err(e) => {
+                            break Result::Err(e);
+                        }
+                    }
                     offset += Store::<felt252>::size();
                 },
                 Option::None(_) => {

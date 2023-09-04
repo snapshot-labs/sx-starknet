@@ -1,8 +1,4 @@
 use starknet::{ContractAddress, EthAddress};
-use traits::{PartialEq, TryInto, Into};
-use serde::Serde;
-use array::ArrayTrait;
-use sx::utils::legacy_hash::LegacyHashUserAddress;
 
 #[derive(Copy, Drop, Serde, PartialEq, starknet::Store)]
 enum UserAddress {
@@ -55,5 +51,69 @@ impl UserAddressImpl of UserAddressTrait {
             },
             UserAddress::Custom(address) => address,
         }
+    }
+}
+
+impl UserAddressZeroable of Zeroable<UserAddress> {
+    fn zero() -> UserAddress {
+        panic_with_felt252('Undefined')
+    }
+
+    fn is_zero(self: UserAddress) -> bool {
+        match self {
+            UserAddress::Starknet(address) => address.is_zero(),
+            UserAddress::Ethereum(address) => address.is_zero(),
+            UserAddress::Custom(address) => address.is_zero(),
+        }
+    }
+
+    fn is_non_zero(self: UserAddress) -> bool {
+        !self.is_zero()
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::{UserAddress, UserAddressZeroable};
+    use starknet::{EthAddress, contract_address_const};
+
+    #[test]
+    fn test_is_zero() {
+        assert(UserAddress::Starknet(contract_address_const::<0>()).is_zero(), 'is not zero');
+        assert(UserAddress::Ethereum(EthAddress { address: 0 }).is_zero(), 'is not zero');
+        assert(UserAddress::Custom(0_u256).is_zero(), 'is not zero');
+    }
+
+    #[test]
+    fn test_is_zero_false_positive() {
+        assert(
+            UserAddress::Starknet(contract_address_const::<1>()).is_zero() == false,
+            'false positive not zero'
+        );
+        assert(
+            UserAddress::Ethereum(EthAddress { address: 1 }).is_zero() == false,
+            'false positive not zero'
+        );
+        assert(UserAddress::Custom(1_u256).is_zero() == false, 'false positive not zero');
+    }
+
+    #[test]
+    fn test_is_non_zero() {
+        assert(UserAddress::Starknet(contract_address_const::<1>()).is_non_zero(), 'is zero');
+        assert(UserAddress::Ethereum(EthAddress { address: 1 }).is_non_zero(), 'is zero');
+        assert(UserAddress::Custom(1_u256).is_non_zero(), 'is zero');
+    }
+
+    #[test]
+    fn test_is_non_zero_false_positive() {
+        assert(
+            UserAddress::Starknet(contract_address_const::<0>()).is_non_zero() == false,
+            'false positive is zero'
+        );
+        assert(
+            UserAddress::Ethereum(EthAddress { address: 0 }).is_non_zero() == false,
+            'false positive is zero'
+        );
+        assert(UserAddress::Custom(0_u256).is_non_zero() == false, 'false positve not zero');
     }
 }

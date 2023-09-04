@@ -34,7 +34,7 @@ mod tests {
             .unwrap();
 
         let authenticator = IStarkTxAuthenticatorDispatcher {
-            contract_address: stark_tx_authenticator_address, 
+            contract_address: stark_tx_authenticator_address,
         };
         let mut updateSettingsCalldata: UpdateSettingsCalldata =
             UpdateSettingsCalldataImpl::default();

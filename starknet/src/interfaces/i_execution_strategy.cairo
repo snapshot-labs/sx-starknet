@@ -1,4 +1,3 @@
-use array::ArrayTrait;
 use sx::types::Proposal;
 
 #[starknet::interface]
@@ -11,4 +10,6 @@ trait IExecutionStrategy<TContractState> {
         votes_abstain: u256,
         payload: Array<felt252>
     );
+
+    fn get_strategy_type(self: @TContractState) -> felt252;
 }

@@ -1,5 +1,3 @@
-use array::ArrayTrait;
-use clone::Clone;
 use starknet::{ContractAddress, contract_address_const};
 use sx::types::Strategy;
 
@@ -76,6 +74,21 @@ impl NoUpdateStrategy of NoUpdateTrait<Strategy> {
     fn should_update(self: @Strategy) -> bool {
         *self
             .address != contract_address_const::<0xf2cda9b13ed04e585461605c0d6e804933ca828111bd94d4e6a96c75e8b048>()
+    }
+}
+
+impl NoUpdateString of NoUpdateTrait<Array<felt252>> {
+    fn no_update() -> Array<felt252> {
+        array!['No update']
+    }
+
+    fn should_update(self: @Array<felt252>) -> bool {
+        match self.get(0) {
+            Option::Some(e) => {
+                *e.unbox() == 'No update'
+            },
+            Option::None => false,
+        }
     }
 }
 

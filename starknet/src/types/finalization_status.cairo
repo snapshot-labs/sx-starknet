@@ -1,6 +1,3 @@
-use serde::Serde;
-use array::ArrayTrait;
-
 #[derive(Drop, Serde, PartialEq, Copy, starknet::Store)]
 enum FinalizationStatus {
     Pending: (),

@@ -1,5 +1,3 @@
-use array::ArrayTrait;
-use array::SpanTrait;
 use starknet::account::Call;
 use starknet::ContractAddress;
 

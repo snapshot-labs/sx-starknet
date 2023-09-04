@@ -1,12 +1,22 @@
 #[starknet::contract]
 mod VanillaExecutionStrategy {
-    use sx::interfaces::IExecutionStrategy;
+    use sx::interfaces::{IExecutionStrategy, IQuorum};
     use sx::types::{Proposal, ProposalStatus};
     use sx::execution_strategies::simple_quorum::SimpleQuorumExecutionStrategy;
 
     #[storage]
     struct Storage {
         _num_executed: felt252
+    }
+
+    #[external(v0)]
+    impl QuorumImpl of IQuorum<ContractState> {
+        fn quorum(self: @ContractState) -> u256 {
+            let mut state: SimpleQuorumExecutionStrategy::ContractState =
+                SimpleQuorumExecutionStrategy::unsafe_new_contract_state();
+
+            SimpleQuorumExecutionStrategy::quorum(@state)
+        }
     }
 
     #[external(v0)]
@@ -33,13 +43,16 @@ mod VanillaExecutionStrategy {
             );
             self._num_executed.write(self._num_executed.read() + 1);
         }
+
+        fn get_strategy_type(self: @ContractState) -> felt252 {
+            'SimpleQuorumVanilla'
+        }
     }
 
     #[constructor]
     fn constructor(ref self: ContractState, quorum: u256) {
         // TODO: temporary until components are released
-        let mut state: SimpleQuorumExecutionStrategy::ContractState =
-            SimpleQuorumExecutionStrategy::unsafe_new_contract_state();
+        let mut state = SimpleQuorumExecutionStrategy::unsafe_new_contract_state();
         SimpleQuorumExecutionStrategy::initializer(ref state, quorum);
     }
 

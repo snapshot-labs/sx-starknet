@@ -1,39 +1,45 @@
 #[cfg(test)]
 mod tests {
     use starknet::syscalls::deploy_syscall;
-    use traits::{TryInto};
     use starknet::SyscallResult;
-    use array::{ArrayTrait, SpanTrait};
-    use result::ResultTrait;
-    use option::OptionTrait;
-    use sx::voting_strategies::vanilla::{VanillaVotingStrategy};
-    use sx::voting_strategies::merkle_whitelist::{MerkleWhitelistVotingStrategy};
-    use sx::utils::merkle::Leaf;
-    use sx::proposal_validation_strategies::proposing_power::{
-        ProposingPowerProposalValidationStrategy
-    };
-    use sx::interfaces::{
-        IProposalValidationStrategy, IProposalValidationStrategyDispatcher,
-        IProposalValidationStrategyDispatcherTrait
-    };
-    use sx::types::{IndexedStrategy, Strategy, UserAddress};
-    use serde::Serde;
     use starknet::contract_address_const;
-    use clone::Clone;
-    use sx::tests::test_merkle_whitelist::merkle_utils::{
-        generate_merkle_data, generate_merkle_root, generate_proof
+    use starknet::ContractAddress;
+    use sx::{
+        voting_strategies::{
+            vanilla::VanillaVotingStrategy, merkle_whitelist::MerkleWhitelistVotingStrategy,
+            erc20_votes::ERC20VotesVotingStrategy
+        },
+        utils::{merkle::Leaf},
+        proposal_validation_strategies::proposing_power::{ProposingPowerProposalValidationStrategy},
+        interfaces::{
+            IProposalValidationStrategy, IProposalValidationStrategyDispatcher,
+            IProposalValidationStrategyDispatcherTrait
+        },
+        types::{IndexedStrategy, Strategy, UserAddress},
+        tests::{
+            test_merkle_whitelist::merkle_utils::{
+                generate_merkle_data, generate_merkle_root, generate_proof
+            },
+            mocks::erc20_votes_preset::ERC20VotesPreset
+        }
+    };
+    use openzeppelin::token::erc20::interface::{IERC20Dispatcher, IERC20DispatcherTrait};
+    use openzeppelin::governance::utils::interfaces::votes::{
+        IVotes, IVotesDispatcher, IVotesDispatcherTrait
     };
 
-    // #[test]
-    // #[available_gas(10000000000)]
+    #[test]
+    #[available_gas(10000000000)]
     fn test_vanilla_works() {
+        starknet::testing::set_block_timestamp(1);
+
         // deploy vanilla voting strategy
         let (vanilla_contract, _) = deploy_syscall(
             VanillaVotingStrategy::TEST_CLASS_HASH.try_into().unwrap(), 0, array![].span(), false
         )
             .unwrap();
 
-        let vanilla_strategy = Strategy { address: vanilla_contract, params: array![],  };
+        let vanilla_strategy = Strategy { address: vanilla_contract, params: array![], };
 
         // create a proposal validation strategy
         let (proposal_validation_contract, _) = deploy_syscall(
@@ -51,19 +57,19 @@ mod tests {
         allowed_strategies.serialize(ref params);
 
         // used strategies
-        let used_strategy = IndexedStrategy { index: 0, params: array![],  };
+        let used_strategy = IndexedStrategy { index: 0, params: array![], };
         let used_strategies = array![used_strategy.clone()];
         let mut user_params = array![];
         used_strategies.serialize(ref user_params);
 
         let contract = IProposalValidationStrategyDispatcher {
-            contract_address: proposal_validation_contract, 
+            contract_address: proposal_validation_contract,
         };
 
         let author = UserAddress::Starknet(contract_address_const::<0x123456789>());
 
         // Vanilla should return 1 so it should be fine
-        let is_validated = contract.validate(author, params, user_params.clone());
+        let is_validated = contract.validate(author, params.span(), user_params.span());
         assert(is_validated, 'not enough VP');
 
         // Now increase threshold
@@ -73,7 +79,7 @@ mod tests {
         allowed_strategies.serialize(ref params);
 
         // Threshold is 2 but VP should be 1
-        let is_validated = contract.validate(author, params.clone(), user_params);
+        let is_validated = contract.validate(author, params.span(), user_params.span());
         assert(!is_validated, 'Threshold should not be reached');
 
         // But now if we add the vanilla voting strategy twice then it should be fine
@@ -86,18 +92,20 @@ mod tests {
         allowed_strategies.serialize(ref params);
 
         let used_strategy1 = used_strategy;
-        let used_strategy2 = IndexedStrategy { index: 1, params: array![],  };
+        let used_strategy2 = IndexedStrategy { index: 1, params: array![], };
         let used_strategies = array![used_strategy1, used_strategy2];
         let mut user_params = array![];
         used_strategies.serialize(ref user_params);
 
-        let is_validated = contract.validate(author, params, user_params);
+        let is_validated = contract.validate(author, params.span(), user_params.span());
         assert(is_validated, 'should have 2 VP');
     }
 
     #[test]
     #[available_gas(10000000000)]
     fn test_merkle_whitelist_works() {
+        starknet::testing::set_block_timestamp(1);
+
         // deploy merkle whitelist contract
         let (merkle_contract, _) = deploy_syscall(
             MerkleWhitelistVotingStrategy::TEST_CLASS_HASH.try_into().unwrap(),
@@ -117,7 +125,7 @@ mod tests {
             .unwrap();
 
         let contract = IProposalValidationStrategyDispatcher {
-            contract_address: proposal_validation_contract, 
+            contract_address: proposal_validation_contract,
         };
 
         // Generate leaves
@@ -142,7 +150,7 @@ mod tests {
 
         let root = generate_merkle_root(merkle_data.span());
         let merkle_whitelist_strategy = Strategy {
-            address: merkle_contract, params: array![root], 
+            address: merkle_contract, params: array![root],
         };
         let allowed_strategies = array![merkle_whitelist_strategy.clone()];
         let proposal_threshold =
@@ -157,12 +165,12 @@ mod tests {
         let mut indexed_params = array![];
         leaf1.serialize(ref indexed_params);
         proof1.serialize(ref indexed_params);
-        let used_strategy = IndexedStrategy { index: 0, params: indexed_params,  };
+        let used_strategy = IndexedStrategy { index: 0, params: indexed_params, };
         let used_strategies = array![used_strategy.clone()];
         let mut user_params = array![];
         used_strategies.serialize(ref user_params);
 
-        let is_validated = contract.validate(author, params.clone(), user_params.clone());
+        let is_validated = contract.validate(author, params.span(), user_params.span());
         assert(!is_validated, 'should not have enough VP');
 
         // setup for voter2
@@ -170,26 +178,26 @@ mod tests {
         let mut indexed_params = array![];
         leaf2.serialize(ref indexed_params);
         proof2.serialize(ref indexed_params);
-        let used_strategy = IndexedStrategy { index: 0, params: indexed_params,  };
+        let used_strategy = IndexedStrategy { index: 0, params: indexed_params, };
         let used_strategies = array![used_strategy.clone()];
         let mut user_params = array![];
         used_strategies.serialize(ref user_params);
 
-        let is_validated = contract.validate(author, params.clone(), user_params.clone());
-        assert(is_validated, 'should have enough VP');
+        let is_validated = contract.validate(author, params.span(), user_params.span());
+        assert(is_validated, 'should have enough VP1');
 
         // setup for voter3
         let author = leaf3.address;
         let mut indexed_params = array![];
         leaf3.serialize(ref indexed_params);
         proof3.serialize(ref indexed_params);
-        let used_strategy = IndexedStrategy { index: 0, params: indexed_params,  };
+        let used_strategy = IndexedStrategy { index: 0, params: indexed_params, };
         let used_strategies = array![used_strategy.clone()];
         let mut user_params = array![];
         used_strategies.serialize(ref user_params);
 
-        let is_validated = contract.validate(author, params.clone(), user_params.clone());
-        assert(is_validated, 'should have enough VP');
+        let is_validated = contract.validate(author, params.span(), user_params.span());
+        assert(is_validated, 'should have enough VP2');
 
         // -- Now let's mix merkle and vanilla voting strategies --
 
@@ -199,7 +207,7 @@ mod tests {
         )
             .unwrap();
 
-        let vanilla_strategy = Strategy { address: vanilla_contract, params: array![],  };
+        let vanilla_strategy = Strategy { address: vanilla_contract, params: array![], };
 
         let allowed_strategies = array![
             merkle_whitelist_strategy.clone(), vanilla_strategy.clone()
@@ -211,18 +219,18 @@ mod tests {
 
         // voter 1 should now have enough voting power!
         let author = leaf1.address;
-        let vanilla = IndexedStrategy { index: 1, params: array![],  };
+        let vanilla = IndexedStrategy { index: 1, params: array![], };
         let mut indexed_params = array![];
         leaf1.serialize(ref indexed_params);
         proof1.serialize(ref indexed_params);
-        let merkle = IndexedStrategy { index: 0, params: indexed_params,  };
+        let merkle = IndexedStrategy { index: 0, params: indexed_params, };
 
         let used_strategies = array![vanilla.clone(), merkle.clone()];
         let mut user_params = array![];
         used_strategies.serialize(ref user_params);
 
-        let is_validated = contract.validate(author, params.clone(), user_params.clone());
-        assert(is_validated, 'should have enough VP');
+        let is_validated = contract.validate(author, params.span(), user_params.span());
+        assert(is_validated, 'should have enough VP2');
 
         // and a random voter that doesn't use the whitelist should not have enough VP
         let author = UserAddress::Starknet(contract_address_const::<0x123456789>());
@@ -230,7 +238,87 @@ mod tests {
         let mut user_params = array![];
         used_strategies.serialize(ref user_params);
 
-        let is_validated = contract.validate(author, params.clone(), user_params.clone());
+        let is_validated = contract.validate(author, params.span(), user_params.span());
         assert(!is_validated, 'should not have enough VP');
+    }
+
+    fn strategy_from_contract(token_contract: ContractAddress) -> Strategy {
+        let (contract, _) = deploy_syscall(
+            ERC20VotesVotingStrategy::TEST_CLASS_HASH.try_into().unwrap(),
+            0,
+            array![].span(),
+            false,
+        )
+            .unwrap();
+
+        let params: Array<felt252> = array![token_contract.into()];
+
+        Strategy { address: contract, params, }
+    }
+
+    #[test]
+    #[available_gas(10000000000)]
+    fn test_erc20votes_works() {
+        let SUPPLY = 100_u256;
+
+        // deploy erc20 voting strategy
+        let owner = contract_address_const::<'owner'>();
+        let mut constructor = array!['TEST', 'TST'];
+        SUPPLY.serialize(ref constructor);
+        owner.serialize(ref constructor);
+
+        let (erc20_contract, _) = deploy_syscall(
+            ERC20VotesPreset::TEST_CLASS_HASH.try_into().unwrap(), 0, constructor.span(), false
+        )
+            .unwrap();
+
+        let erc20 = IVotesDispatcher { contract_address: erc20_contract, };
+
+        let erc20_strategy = strategy_from_contract(erc20_contract);
+
+        starknet::testing::set_contract_address(owner);
+        erc20.delegate(owner);
+
+        // advance block timestamp
+        starknet::testing::set_block_timestamp(1);
+
+        // create a proposal validation strategy
+        let (proposal_validation_contract, _) = deploy_syscall(
+            ProposingPowerProposalValidationStrategy::TEST_CLASS_HASH.try_into().unwrap(),
+            0,
+            array![].span(),
+            false
+        )
+            .unwrap();
+
+        let allowed_strategies = array![erc20_strategy.clone()];
+        let mut params = array![];
+        let proposal_threshold = SUPPLY;
+        proposal_threshold.serialize(ref params);
+        allowed_strategies.serialize(ref params);
+
+        // used strategies
+        let used_strategy = IndexedStrategy { index: 0, params: array![], };
+        let used_strategies = array![used_strategy.clone()];
+        let mut user_params = array![];
+        used_strategies.serialize(ref user_params);
+
+        let contract = IProposalValidationStrategyDispatcher {
+            contract_address: proposal_validation_contract,
+        };
+
+        let author = UserAddress::Starknet(owner);
+
+        let is_validated = contract.validate(author, params.span(), user_params.span());
+        assert(is_validated, 'not enough VP');
+
+        // Now increase threshold
+        let proposal_threshold = SUPPLY + 1;
+        let mut params = array![];
+        proposal_threshold.serialize(ref params);
+        allowed_strategies.serialize(ref params);
+
+        let is_validated = contract.validate(author, params.span(), user_params.span());
+        assert(!is_validated, 'Threshold should not be reached');
     }
 }
