@@ -9,7 +9,7 @@ trait IEthTxAuthenticator<TContractState> {
         author: EthAddress,
         execution_strategy: Strategy,
         user_proposal_validation_params: Array<felt252>,
-        metadata_URI: Array<felt252>
+        metadata_uri: Array<felt252>
     );
     fn authenticate_vote(
         ref self: TContractState,
@@ -18,7 +18,7 @@ trait IEthTxAuthenticator<TContractState> {
         proposal_id: u256,
         choice: Choice,
         user_voting_strategies: Array<IndexedStrategy>,
-        metadata_URI: Array<felt252>
+        metadata_uri: Array<felt252>
     );
     fn authenticate_update_proposal(
         ref self: TContractState,
@@ -26,7 +26,7 @@ trait IEthTxAuthenticator<TContractState> {
         author: EthAddress,
         proposal_id: u256,
         execution_strategy: Strategy,
-        metadata_URI: Array<felt252>
+        metadata_uri: Array<felt252>
     );
 // TODO: Should L1 handlers be part of the interface?
 }
@@ -35,10 +35,6 @@ trait IEthTxAuthenticator<TContractState> {
 mod EthTxAuthenticator {
     use super::IEthTxAuthenticator;
     use starknet::{ContractAddress, EthAddress, Felt252TryIntoEthAddress, EthAddressIntoFelt252,};
-    use core::{serde::Serde, array::{ArrayTrait, SpanTrait}};
-    use traits::{PartialEq, TryInto, Into};
-    use option::OptionTrait;
-    use zeroable::Zeroable;
     use sx::{
         space::space::{ISpaceDispatcher, ISpaceDispatcherTrait},
         types::{UserAddress, Strategy, IndexedStrategy, Choice},
@@ -59,7 +55,7 @@ mod EthTxAuthenticator {
             author: EthAddress,
             execution_strategy: Strategy,
             user_proposal_validation_params: Array<felt252>,
-            metadata_URI: Array<felt252>
+            metadata_uri: Array<felt252>
         ) {
             let mut payload = array![];
             target.serialize(ref payload);
@@ -67,7 +63,7 @@ mod EthTxAuthenticator {
             author.serialize(ref payload);
             execution_strategy.serialize(ref payload);
             user_proposal_validation_params.serialize(ref payload);
-            metadata_URI.serialize(ref payload);
+            metadata_uri.serialize(ref payload);
             let payload_hash = poseidon::poseidon_hash_span(payload.span());
 
             consume_commit(ref self, payload_hash, author);
@@ -77,7 +73,7 @@ mod EthTxAuthenticator {
                     UserAddress::Ethereum(author),
                     execution_strategy,
                     user_proposal_validation_params,
-                    metadata_URI
+                    metadata_uri
                 );
         }
 
@@ -88,7 +84,7 @@ mod EthTxAuthenticator {
             proposal_id: u256,
             choice: Choice,
             user_voting_strategies: Array<IndexedStrategy>,
-            metadata_URI: Array<felt252>
+            metadata_uri: Array<felt252>
         ) {
             let mut payload = array![];
             target.serialize(ref payload);
@@ -97,7 +93,7 @@ mod EthTxAuthenticator {
             proposal_id.serialize(ref payload);
             choice.serialize(ref payload);
             user_voting_strategies.serialize(ref payload);
-            metadata_URI.serialize(ref payload);
+            metadata_uri.serialize(ref payload);
             let payload_hash = poseidon::poseidon_hash_span(payload.span());
 
             consume_commit(ref self, payload_hash, voter);
@@ -108,7 +104,7 @@ mod EthTxAuthenticator {
                     proposal_id,
                     choice,
                     user_voting_strategies,
-                    metadata_URI
+                    metadata_uri
                 );
         }
 
@@ -118,7 +114,7 @@ mod EthTxAuthenticator {
             author: EthAddress,
             proposal_id: u256,
             execution_strategy: Strategy,
-            metadata_URI: Array<felt252>
+            metadata_uri: Array<felt252>
         ) {
             let mut payload = array![];
             target.serialize(ref payload);
@@ -126,14 +122,14 @@ mod EthTxAuthenticator {
             author.serialize(ref payload);
             proposal_id.serialize(ref payload);
             execution_strategy.serialize(ref payload);
-            metadata_URI.serialize(ref payload);
+            metadata_uri.serialize(ref payload);
             let payload_hash = poseidon::poseidon_hash_span(payload.span());
 
             consume_commit(ref self, payload_hash, author);
 
             ISpaceDispatcher { contract_address: target }
                 .update_proposal(
-                    UserAddress::Ethereum(author), proposal_id, execution_strategy, metadata_URI
+                    UserAddress::Ethereum(author), proposal_id, execution_strategy, metadata_uri
                 );
         }
     }

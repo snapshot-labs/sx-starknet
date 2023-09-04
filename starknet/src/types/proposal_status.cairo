@@ -1,5 +1,3 @@
-use serde::Serde;
-
 #[derive(Copy, Drop, Serde, PartialEq)]
 enum ProposalStatus {
     VotingDelay: (),

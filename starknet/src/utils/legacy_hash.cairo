@@ -1,6 +1,4 @@
 use hash::LegacyHash;
-use traits::Into;
-use array::SpanTrait;
 use starknet::EthAddress;
 use sx::types::{Choice, UserAddress};
 

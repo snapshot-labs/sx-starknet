@@ -1,8 +1,4 @@
 use starknet::{EthAddress, ContractAddress, secp256_trait, contract_address_to_felt252};
-use array::{ArrayTrait, SpanTrait};
-use traits::Into;
-use clone::Clone;
-use core::keccak;
 use integer::u256_from_felt252;
 use sx::{
     types::{Strategy, IndexedStrategy, Choice},
