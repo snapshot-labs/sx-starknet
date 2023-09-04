@@ -1,10 +1,13 @@
 import dotenv from 'dotenv';
-import axios from 'axios';
 import { expect } from 'chai';
 import { starknet, ethers, network } from 'hardhat';
 import { HttpNetworkConfig } from 'hardhat/types';
 import { CallData, Uint256, uint256 } from 'starknet';
-import { safeWithL1AvatarExecutionStrategySetup } from './utils';
+import {
+  safeWithL1AvatarExecutionStrategySetup,
+  increaseEthBlockchainTime,
+  extractMessagePayload,
+} from './utils';
 
 dotenv.config();
 
@@ -12,16 +15,7 @@ const eth_network: string = (network.config as HttpNetworkConfig).url;
 const account_address = process.env.ADDRESS || '';
 const account_pk = process.env.PK || '';
 
-async function increaseEthBlockchainTime(seconds: number) {
-  await axios({
-    method: 'post',
-    url: eth_network,
-    data: { id: 1337, jsonrpc: '2.0', method: 'evm_increaseTime', params: [seconds] },
-  });
-}
-
 describe('L1 Avatar Execution', function () {
-  console.log(eth_network);
   this.timeout(1000000);
 
   let signer: ethers.Wallet;
@@ -112,6 +106,7 @@ describe('L1 Avatar Execution', function () {
   it('should execute a proposal via the Avatar Execution Strategy connected to a Safe', async function () {
     await starknet.devnet.restart();
     await starknet.devnet.load('./dump.pkl');
+    await starknet.devnet.increaseTime(10);
     await starknet.devnet.loadL1MessagingContract(eth_network, mockStarknetMessaging.address);
 
     const proposalTx = {
@@ -172,7 +167,7 @@ describe('L1 Avatar Execution', function () {
 
     // Advance time so that the maxVotingTimestamp is exceeded
     await starknet.devnet.increaseTime(10);
-    await increaseEthBlockchainTime(10);
+    await increaseEthBlockchainTime(eth_network, 10);
 
     // Execute
     await account.invoke(
@@ -190,36 +185,10 @@ describe('L1 Avatar Execution', function () {
     const message_payload = flushL2Response.consumed_messages.from_l2[0].payload;
 
     // Proposal data can either be extracted from the message sent to L1 (as done here) or pulled from the contract directly
-    const space_message = message_payload[0];
-    const proposal = {
-      startTimestamp: message_payload[1],
-      minEndTimestamp: message_payload[2],
-      maxEndTimestamp: message_payload[3],
-      finalizationStatus: message_payload[4],
-      executionPayloadHash: message_payload[5],
-      executionStrategy: message_payload[6],
-      authorAddressType: message_payload[7],
-      author: message_payload[8],
-      activeVotingStrategies: uint256.uint256ToBN({
-        low: message_payload[9],
-        high: message_payload[10],
-      }),
-    };
-    const forVotes = uint256.uint256ToBN({
-      low: message_payload[11],
-      high: message_payload[12],
-    });
-    const againstVotes = uint256.uint256ToBN({
-      low: message_payload[13],
-      high: message_payload[14],
-    });
-    const abstainVotes = uint256.uint256ToBN({
-      low: message_payload[15],
-      high: message_payload[16],
-    });
+    const [proposal, forVotes, againstVotes, abstainVotes] = extractMessagePayload(message_payload);
 
     await l1AvatarExecutionStrategy.execute(
-      space_message,
+      space.address,
       proposal,
       forVotes,
       againstVotes,
@@ -229,7 +198,110 @@ describe('L1 Avatar Execution', function () {
     );
   }, 10000000);
 
-  it('should revert execution if quorum is not met (abstain votes only)', async function () {
+  it('should execute a proposal with multiple txs via the Avatar Execution Strategy connected to a Safe', async function () {
+    await starknet.devnet.restart();
+    await starknet.devnet.load('./dump.pkl');
+    await starknet.devnet.increaseTime(10);
+    await starknet.devnet.loadL1MessagingContract(eth_network, mockStarknetMessaging.address);
+
+    const proposalTx = {
+      to: signer.address,
+      value: 0,
+      data: '0x11',
+      operation: 0,
+      salt: 1,
+    };
+
+    const proposalTx2 = {
+      to: signer.address,
+      value: 0,
+      data: '0x22',
+      operation: 0,
+      salt: 1,
+    };
+
+    const abiCoder = new ethers.utils.AbiCoder();
+    const executionHash = ethers.utils.keccak256(
+      abiCoder.encode(
+        ['tuple(address to, uint256 value, bytes data, uint8 operation, uint256 salt)[]'],
+        [[proposalTx, proposalTx2]],
+      ),
+    );
+    // Represent the execution hash as a Cairo Uint256
+    const executionHashUint256: Uint256 = uint256.bnToUint256(executionHash);
+
+    const executionPayload = [
+      l1AvatarExecutionStrategy.address,
+      executionHashUint256.low,
+      executionHashUint256.high,
+    ];
+
+    // Propose
+    await account.invoke(
+      starkTxAuthenticator,
+      'authenticate_propose',
+      CallData.compile({
+        space: space.address,
+        author: account.address,
+        executionStrategy: {
+          address: ethRelayer.address,
+          params: executionPayload,
+        },
+        userProposalValidationParams: [],
+        metadataURI: [],
+      }),
+      { rawInput: true },
+    );
+
+    // Vote
+    await account.invoke(
+      starkTxAuthenticator,
+      'authenticate_vote',
+      CallData.compile({
+        space: space.address,
+        voter: account.address,
+        proposalId: { low: '0x1', high: '0x0' },
+        choice: '0x1',
+        userVotingStrategies: [{ index: '0x0', params: [] }],
+        metadataURI: [],
+      }),
+      { rawInput: true },
+    );
+
+    // Advance time so that the maxVotingTimestamp is exceeded
+    await starknet.devnet.increaseTime(10);
+    await increaseEthBlockchainTime(eth_network, 10);
+
+    // Execute
+    await account.invoke(
+      space,
+      'execute',
+      CallData.compile({
+        proposalId: { low: '0x1', high: '0x0' },
+        executionPayload: executionPayload,
+      }),
+      { rawInput: true },
+    );
+
+    // Propagating message to L1
+    const flushL2Response = await starknet.devnet.flush();
+    const message_payload = flushL2Response.consumed_messages.from_l2[0].payload;
+
+    // Proposal data can either be extracted from the message sent to L1 (as done here) or pulled from the contract directly
+    const [proposal, forVotes, againstVotes, abstainVotes] = extractMessagePayload(message_payload);
+
+    await l1AvatarExecutionStrategy.execute(
+      space.address,
+      proposal,
+      forVotes,
+      againstVotes,
+      abstainVotes,
+      executionHash,
+      [proposalTx, proposalTx2],
+    );
+  }, 10000000);
+
+  it('should revert execution if an invalid payload is sent to L1', async function () {
     await starknet.devnet.restart();
     await starknet.devnet.load('./dump.pkl');
     await starknet.devnet.increaseTime(10);
@@ -284,7 +356,7 @@ describe('L1 Avatar Execution', function () {
         space: space.address,
         voter: account.address,
         proposalId: { low: '0x1', high: '0x0' },
-        choice: '0x2',
+        choice: '0x1',
         userVotingStrategies: [{ index: '0x0', params: [] }],
         metadataURI: [],
       }),
@@ -293,7 +365,7 @@ describe('L1 Avatar Execution', function () {
 
     // Advance time so that the maxVotingTimestamp is exceeded
     await starknet.devnet.increaseTime(10);
-    await increaseEthBlockchainTime(10);
+    await increaseEthBlockchainTime(eth_network, 10);
 
     // Execute
     await account.invoke(
@@ -310,43 +382,126 @@ describe('L1 Avatar Execution', function () {
     const flushL2Response = await starknet.devnet.flush();
     const message_payload = flushL2Response.consumed_messages.from_l2[0].payload;
     // Proposal data can either be extracted from the message sent to L1 (as done here) or pulled from the contract directly
-    const space_message = message_payload[0];
-    const proposal = {
-      startTimestamp: message_payload[1],
-      minEndTimestamp: message_payload[2],
-      maxEndTimestamp: message_payload[3],
-      finalizationStatus: message_payload[4],
-      executionPayloadHash: message_payload[5],
-      executionStrategy: message_payload[6],
-      authorAddressType: message_payload[7],
-      author: message_payload[8],
-      activeVotingStrategies: uint256.uint256ToBN({
-        low: message_payload[9],
-        high: message_payload[10],
-      }),
-    };
-    // Sending an invalid forVotes value
-    const forVotes = 10;
-    const againstVotes = uint256.uint256ToBN({
-      low: message_payload[13],
-      high: message_payload[14],
-    });
-    const abstainVotes = uint256.uint256ToBN({
-      low: message_payload[15],
-      high: message_payload[16],
-    });
+    const [proposal, forVotes, againstVotes, abstainVotes] = extractMessagePayload(message_payload);
 
+    // Incorrect forVotes value was supplied
     await expect(
       l1AvatarExecutionStrategy.execute(
-        space_message,
+        space.address,
         proposal,
-        forVotes,
+        10,
         againstVotes,
         abstainVotes,
         executionHash,
         [proposalTx],
       ),
     ).to.be.revertedWith('INVALID_MESSAGE_TO_CONSUME');
+  }, 10000000);
+
+  it('should revert execution if an invalid proposal tx is sent to the execution strategy', async function () {
+    await starknet.devnet.restart();
+    await starknet.devnet.load('./dump.pkl');
+    await starknet.devnet.increaseTime(10);
+    await starknet.devnet.loadL1MessagingContract(eth_network, mockStarknetMessaging.address);
+
+    const proposalTx = {
+      to: signer.address,
+      value: 0,
+      data: '0x22',
+      operation: 0,
+      salt: 1,
+    };
+
+    const abiCoder = new ethers.utils.AbiCoder();
+    const executionHash = ethers.utils.keccak256(
+      abiCoder.encode(
+        ['tuple(address to, uint256 value, bytes data, uint8 operation, uint256 salt)[]'],
+        [[proposalTx]],
+      ),
+    );
+    // Represent the execution hash as a Cairo Uint256
+    const executionHashUint256: Uint256 = uint256.bnToUint256(executionHash);
+
+    const executionPayload = [
+      l1AvatarExecutionStrategy.address,
+      executionHashUint256.low,
+      executionHashUint256.high,
+    ];
+
+    // Propose
+    await account.invoke(
+      starkTxAuthenticator,
+      'authenticate_propose',
+      CallData.compile({
+        space: space.address,
+        author: account.address,
+        executionStrategy: {
+          address: ethRelayer.address,
+          params: executionPayload,
+        },
+        userProposalValidationParams: [],
+        metadataURI: [],
+      }),
+      { rawInput: true },
+    );
+
+    // Vote
+    await account.invoke(
+      starkTxAuthenticator,
+      'authenticate_vote',
+      CallData.compile({
+        space: space.address,
+        voter: account.address,
+        proposalId: { low: '0x1', high: '0x0' },
+        choice: '0x1',
+        userVotingStrategies: [{ index: '0x0', params: [] }],
+        metadataURI: [],
+      }),
+      { rawInput: true },
+    );
+
+    // Advance time so that the maxVotingTimestamp is exceeded
+    await starknet.devnet.increaseTime(10);
+    await increaseEthBlockchainTime(eth_network, 10);
+
+    // Execute
+    await account.invoke(
+      space,
+      'execute',
+      CallData.compile({
+        proposalId: { low: '0x1', high: '0x0' },
+        executionPayload: executionPayload,
+      }),
+      { rawInput: true },
+    );
+
+    // Propagating message to L1
+    const flushL2Response = await starknet.devnet.flush();
+    const message_payload = flushL2Response.consumed_messages.from_l2[0].payload;
+    // Proposal data can either be extracted from the message sent to L1 (as done here) or pulled from the contract directly
+    const [proposal, forVotes, againstVotes, abstainVotes] = extractMessagePayload(message_payload);
+
+
+    const fakeProposalTx = {
+      to: signer.address,
+      value: 10,
+      data: '0x22',
+      operation: 0,
+      salt: 1,
+    };
+
+    // Incorrect forVotes value was supplied
+    await expect(
+      l1AvatarExecutionStrategy.execute(
+        space.address,
+        proposal,
+        forVotes,
+        againstVotes,
+        abstainVotes,
+        executionHash,
+        [fakeProposalTx],
+      ),
+    ).to.be.revertedWith('InvalidPayload');
   }, 10000000);
 
   it('should revert execution if quorum is not met (abstain votes only)', async function () {
@@ -413,7 +568,7 @@ describe('L1 Avatar Execution', function () {
 
     // Advance time so that the maxVotingTimestamp is exceeded
     await starknet.devnet.increaseTime(10);
-    await increaseEthBlockchainTime(10);
+    await increaseEthBlockchainTime(eth_network, 10);
 
     // Execute
     await account.invoke(
@@ -430,38 +585,12 @@ describe('L1 Avatar Execution', function () {
     const flushL2Response = await starknet.devnet.flush();
     const message_payload = flushL2Response.consumed_messages.from_l2[0].payload;
     // Proposal data can either be extracted from the message sent to L1 (as done here) or pulled from the contract directly
-    const space_message = message_payload[0];
-    const proposal = {
-      startTimestamp: message_payload[1],
-      minEndTimestamp: message_payload[2],
-      maxEndTimestamp: message_payload[3],
-      finalizationStatus: message_payload[4],
-      executionPayloadHash: message_payload[5],
-      executionStrategy: message_payload[6],
-      authorAddressType: message_payload[7],
-      author: message_payload[8],
-      activeVotingStrategies: uint256.uint256ToBN({
-        low: message_payload[9],
-        high: message_payload[10],
-      }),
-    };
-    const forVotes = uint256.uint256ToBN({
-      low: message_payload[11],
-      high: message_payload[12],
-    });
-    const againstVotes = uint256.uint256ToBN({
-      low: message_payload[13],
-      high: message_payload[14],
-    });
-    const abstainVotes = uint256.uint256ToBN({
-      low: message_payload[15],
-      high: message_payload[16],
-    });
+    const [proposal, forVotes, againstVotes, abstainVotes] = extractMessagePayload(message_payload);
 
     // For some reason CI fails with revertedWith('InvalidProposalStatus') but works locally.
     await expect(
       l1AvatarExecutionStrategy.execute(
-        space_message,
+        space.address,
         proposal,
         forVotes,
         againstVotes,
@@ -536,7 +665,7 @@ describe('L1 Avatar Execution', function () {
 
     // Advance time so that the maxVotingTimestamp is exceeded
     await starknet.devnet.increaseTime(10);
-    await increaseEthBlockchainTime(10);
+    await increaseEthBlockchainTime(eth_network, 10);
 
     // Execute
     await account.invoke(
@@ -553,38 +682,12 @@ describe('L1 Avatar Execution', function () {
     const flushL2Response = await starknet.devnet.flush();
     const message_payload = flushL2Response.consumed_messages.from_l2[0].payload;
     // Proposal data can either be extracted from the message sent to L1 (as done here) or pulled from the contract directly
-    const space_message = message_payload[0];
-    const proposal = {
-      startTimestamp: message_payload[1],
-      minEndTimestamp: message_payload[2],
-      maxEndTimestamp: message_payload[3],
-      finalizationStatus: message_payload[4],
-      executionPayloadHash: message_payload[5],
-      executionStrategy: message_payload[6],
-      authorAddressType: message_payload[7],
-      author: message_payload[8],
-      activeVotingStrategies: uint256.uint256ToBN({
-        low: message_payload[9],
-        high: message_payload[10],
-      }),
-    };
-    const forVotes = uint256.uint256ToBN({
-      low: message_payload[11],
-      high: message_payload[12],
-    });
-    const againstVotes = uint256.uint256ToBN({
-      low: message_payload[13],
-      high: message_payload[14],
-    });
-    const abstainVotes = uint256.uint256ToBN({
-      low: message_payload[15],
-      high: message_payload[16],
-    });
+    const [proposal, forVotes, againstVotes, abstainVotes] = extractMessagePayload(message_payload);
 
     // For some reason CI fails with revertedWith('InvalidProposalStatus') but works locally.
     await expect(
       l1AvatarExecutionStrategy.execute(
-        space_message,
+        space.address,
         proposal,
         forVotes,
         againstVotes,
@@ -646,7 +749,7 @@ describe('L1 Avatar Execution', function () {
 
     // Advance time so that the maxVotingTimestamp is exceeded
     await starknet.devnet.increaseTime(10);
-    await increaseEthBlockchainTime(10);
+    await increaseEthBlockchainTime(eth_network, 10);
 
     // Execute
     await account.invoke(
@@ -663,38 +766,12 @@ describe('L1 Avatar Execution', function () {
     const flushL2Response = await starknet.devnet.flush();
     const message_payload = flushL2Response.consumed_messages.from_l2[0].payload;
     // Proposal data can either be extracted from the message sent to L1 (as done here) or pulled from the contract directly
-    const space_message = message_payload[0];
-    const proposal = {
-      startTimestamp: message_payload[1],
-      minEndTimestamp: message_payload[2],
-      maxEndTimestamp: message_payload[3],
-      finalizationStatus: message_payload[4],
-      executionPayloadHash: message_payload[5],
-      executionStrategy: message_payload[6],
-      authorAddressType: message_payload[7],
-      author: message_payload[8],
-      activeVotingStrategies: uint256.uint256ToBN({
-        low: message_payload[9],
-        high: message_payload[10],
-      }),
-    };
-    const forVotes = uint256.uint256ToBN({
-      low: message_payload[11],
-      high: message_payload[12],
-    });
-    const againstVotes = uint256.uint256ToBN({
-      low: message_payload[13],
-      high: message_payload[14],
-    });
-    const abstainVotes = uint256.uint256ToBN({
-      low: message_payload[15],
-      high: message_payload[16],
-    });
+    const [proposal, forVotes, againstVotes, abstainVotes] = extractMessagePayload(message_payload);
 
     // For some reason CI fails with revertedWith('InvalidProposalStatus') but works locally.
     await expect(
       l1AvatarExecutionStrategy.execute(
-        space_message,
+        space.address,
         proposal,
         forVotes,
         againstVotes,

@@ -1,5 +1,7 @@
 import { expect } from 'chai';
+import axios from 'axios';
 import { ethers } from 'hardhat';
+import { uint256 } from 'starknet';
 import { executeContractCallWithSigners } from './safeUtils';
 
 export async function safeWithL1AvatarExecutionStrategySetup(
@@ -97,4 +99,44 @@ export async function safeWithL1AvatarExecutionStrategySetup(
     l1AvatarExecutionStrategy: L1AvatarExecutionStrategy as ethers.Contract,
     safe: safe as ethers.Contract,
   };
+}
+
+export async function increaseEthBlockchainTime(networkUrl: string, seconds: number) {
+  await axios({
+    method: 'post',
+    url: networkUrl,
+    data: { id: 1337, jsonrpc: '2.0', method: 'evm_increaseTime', params: [seconds] },
+  });
+}
+
+export function extractMessagePayload(
+  message_payload: any,
+): [proposal: any, forVotes: bigint, againstVotes: bigint, abstainVotes: bigint] {
+  const proposal = {
+    startTimestamp: message_payload[1],
+    minEndTimestamp: message_payload[2],
+    maxEndTimestamp: message_payload[3],
+    finalizationStatus: message_payload[4],
+    executionPayloadHash: message_payload[5],
+    executionStrategy: message_payload[6],
+    authorAddressType: message_payload[7],
+    author: message_payload[8],
+    activeVotingStrategies: uint256.uint256ToBN({
+      low: message_payload[9],
+      high: message_payload[10],
+    }),
+  };
+  const forVotes = uint256.uint256ToBN({
+    low: message_payload[11],
+    high: message_payload[12],
+  });
+  const againstVotes = uint256.uint256ToBN({
+    low: message_payload[13],
+    high: message_payload[14],
+  });
+  const abstainVotes = uint256.uint256ToBN({
+    low: message_payload[15],
+    high: message_payload[16],
+  });
+  return [proposal, forVotes, againstVotes, abstainVotes];
 }
