@@ -2,7 +2,7 @@ import { expect } from 'chai';
 import axios from 'axios';
 import { ethers } from 'hardhat';
 import { uint256 } from 'starknet';
-import { executeContractCallWithSigners } from './safeUtils';
+import { executeContractCallWithSigners } from './external/safeUtils';
 
 export async function safeWithL1AvatarExecutionStrategySetup(
   safeSigner: ethers.SignerWithAddress,
