@@ -1,36 +1,32 @@
 #[cfg(test)]
 mod tests {
     use starknet::syscalls::deploy_syscall;
-    use traits::{TryInto};
     use starknet::SyscallResult;
-    use array::{ArrayTrait, SpanTrait};
-    use result::ResultTrait;
-    use option::OptionTrait;
-    use sx::voting_strategies::vanilla::{VanillaVotingStrategy};
-    use sx::voting_strategies::merkle_whitelist::{MerkleWhitelistVotingStrategy};
-    use sx::utils::merkle::Leaf;
-    use sx::proposal_validation_strategies::proposing_power::{
-        ProposingPowerProposalValidationStrategy
-    };
-    use sx::interfaces::{
-        IProposalValidationStrategy, IProposalValidationStrategyDispatcher,
-        IProposalValidationStrategyDispatcherTrait
-    };
-    use sx::types::{IndexedStrategy, Strategy, UserAddress};
-    use serde::Serde;
     use starknet::contract_address_const;
-    use clone::Clone;
-    use sx::tests::test_merkle_whitelist::merkle_utils::{
-        generate_merkle_data, generate_merkle_root, generate_proof
+    use starknet::ContractAddress;
+    use sx::{
+        voting_strategies::{
+            vanilla::VanillaVotingStrategy, merkle_whitelist::MerkleWhitelistVotingStrategy,
+            erc20_votes::ERC20VotesVotingStrategy
+        },
+        utils::{merkle::Leaf},
+        proposal_validation_strategies::proposing_power::{ProposingPowerProposalValidationStrategy},
+        interfaces::{
+            IProposalValidationStrategy, IProposalValidationStrategyDispatcher,
+            IProposalValidationStrategyDispatcherTrait
+        },
+        types::{IndexedStrategy, Strategy, UserAddress},
+        tests::{
+            test_merkle_whitelist::merkle_utils::{
+                generate_merkle_data, generate_merkle_root, generate_proof
+            },
+            mocks::erc20_votes_preset::ERC20VotesPreset
+        }
     };
-    use sx::tests::mocks::erc20_votes_preset::{ERC20VotesPreset};
     use openzeppelin::token::erc20::interface::{IERC20Dispatcher, IERC20DispatcherTrait};
     use openzeppelin::governance::utils::interfaces::votes::{
         IVotes, IVotesDispatcher, IVotesDispatcherTrait
     };
-    use traits::Into;
-    use sx::voting_strategies::erc20_votes::ERC20VotesVotingStrategy;
-    use starknet::ContractAddress;
 
     #[test]
     #[available_gas(10000000000)]

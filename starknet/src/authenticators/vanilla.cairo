@@ -12,7 +12,6 @@ mod VanillaAuthenticator {
     use super::IVanillaAuthenticator;
     use starknet::ContractAddress;
     use starknet::syscalls::call_contract_syscall;
-    use core::array::{ArrayTrait, SpanTrait};
 
     #[storage]
     struct Storage {}

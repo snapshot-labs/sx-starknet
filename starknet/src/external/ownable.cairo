@@ -3,7 +3,6 @@
 #[starknet::contract]
 mod Ownable {
     use starknet::{ContractAddress, get_caller_address};
-    use zeroable::Zeroable;
 
     #[storage]
     struct Storage {

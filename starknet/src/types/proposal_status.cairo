@@ -1,6 +1,3 @@
-use serde::Serde;
-use traits::Default;
-
 #[derive(Copy, Drop, Default, Serde, PartialEq)]
 enum ProposalStatus {
     #[default]

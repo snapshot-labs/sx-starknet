@@ -1,6 +1,4 @@
-use array::ArrayTrait;
 use sx::types::{Proposal, ProposalStatus};
-use serde::Serde;
 
 #[starknet::interface]
 trait IExecutionStrategy<TContractState> {

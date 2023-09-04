@@ -8,13 +8,6 @@ mod ProposingPowerProposalValidationStrategy {
         utils::{bits::BitSetter, proposition_power::_validate}
     };
     use starknet::{ContractAddress, info};
-    use traits::{Into, TryInto};
-    use option::OptionTrait;
-    use result::ResultTrait;
-    use array::{ArrayTrait, SpanTrait};
-    use serde::Serde;
-    use box::BoxTrait;
-    use clone::Clone;
 
     #[storage]
     struct Storage {}

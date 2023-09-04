@@ -1,6 +1,5 @@
 #[starknet::contract]
 mod EthBalanceOfVotingStrategy {
-    use traits::Into;
     use starknet::{EthAddress, ContractAddress};
     use sx::{
         interfaces::IVotingStrategy, types::{UserAddress, UserAddressTrait},

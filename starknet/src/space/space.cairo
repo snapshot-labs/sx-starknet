@@ -1,5 +1,3 @@
-use core::traits::TryInto;
-use core::traits::Destruct;
 use starknet::{ClassHash, ContractAddress};
 use sx::types::{
     UserAddress, Strategy, Proposal, IndexedStrategy, Choice, UpdateSettingsCalldata, ProposalStatus
@@ -80,12 +78,6 @@ mod Space {
         storage_access::{StorePacking, StoreUsingPacking}, ClassHash, ContractAddress, info, Store,
         syscalls
     };
-    use zeroable::Zeroable;
-    use array::{ArrayTrait, SpanTrait};
-    use clone::Clone;
-    use option::OptionTrait;
-    use hash::LegacyHash;
-    use traits::{Into, TryInto};
     use sx::{
         interfaces::{
             IProposalValidationStrategyDispatcher, IProposalValidationStrategyDispatcherTrait,
@@ -95,7 +87,7 @@ mod Space {
         types::{
             UserAddress, Choice, FinalizationStatus, Strategy, IndexedStrategy, Proposal,
             ProposalStatus, PackedProposal, IndexedStrategyTrait, IndexedStrategyImpl,
-            UpdateSettingsCalldata, NoUpdateU32, NoUpdateStrategy, NoUpdateArray
+            UpdateSettingsCalldata, NoUpdateTrait, NoUpdateString,
         },
         utils::{
             reinitializable::{Reinitializable}, ReinitializableImpl, bits::BitSetter,
@@ -106,9 +98,6 @@ mod Space {
         },
         external::ownable::Ownable
     };
-    use hash::{HashStateTrait, Hash, HashStateExTrait};
-    use traits::Default;
-
 
     #[storage]
     struct Storage {
@@ -615,8 +604,7 @@ mod Space {
             let _min_voting_duration = input.min_voting_duration;
             let _max_voting_duration = input.max_voting_duration;
 
-            if NoUpdateU32::should_update(@_max_voting_duration)
-                && NoUpdateU32::should_update(@_min_voting_duration) {
+            if _max_voting_duration.should_update() && _min_voting_duration.should_update() {
                 // Check that min and max voting durations are valid
                 // We don't use the internal `_set_min_voting_duration` and `_set_max_voting_duration` functions because
                 // it would revert when `_min_voting_duration > max_voting_duration` (when the new `_min` is
@@ -642,7 +630,7 @@ mod Space {
                             }
                         )
                     );
-            } else if NoUpdateU32::should_update(@_min_voting_duration) {
+            } else if _min_voting_duration.should_update() {
                 _set_min_voting_duration(ref self, input.min_voting_duration);
                 self
                     .emit(
@@ -652,7 +640,7 @@ mod Space {
                             }
                         )
                     );
-            } else if NoUpdateU32::should_update(@_max_voting_duration) {
+            } else if _max_voting_duration.should_update() {
                 _set_max_voting_duration(ref self, input.max_voting_duration);
                 self
                     .emit(
@@ -664,7 +652,7 @@ mod Space {
                     );
             }
 
-            if NoUpdateU32::should_update(@input.voting_delay) {
+            if input.voting_delay.should_update() {
                 _set_voting_delay(ref self, input.voting_delay);
 
                 self
@@ -675,20 +663,7 @@ mod Space {
                     );
             }
 
-            if NoUpdateArray::should_update((@input).metadata_URI) {
-                self
-                    .emit(
-                        Event::MetadataUriUpdated(
-                            MetadataUriUpdated { metadata_URI: input.metadata_URI.span() }
-                        )
-                    );
-            }
-
-            if NoUpdateArray::should_update((@input).dao_URI) {
-                self.emit(Event::DaoUriUpdated(DaoUriUpdated { dao_URI: input.dao_URI.span() }));
-            }
-
-            if NoUpdateStrategy::should_update((@input).proposal_validation_strategy) {
+            if input.proposal_validation_strategy.should_update() {
                 _set_proposal_validation_strategy(
                     ref self, input.proposal_validation_strategy.clone()
                 );
@@ -707,7 +682,7 @@ mod Space {
                     );
             }
 
-            if NoUpdateArray::should_update((@input).authenticators_to_add) {
+            if input.authenticators_to_add.should_update() {
                 _add_authenticators(ref self, input.authenticators_to_add.span());
                 self
                     .emit(
@@ -719,7 +694,7 @@ mod Space {
                     );
             }
 
-            if NoUpdateArray::should_update((@input).authenticators_to_remove) {
+            if input.authenticators_to_remove.should_update() {
                 _remove_authenticators(ref self, input.authenticators_to_remove.span());
                 self
                     .emit(
@@ -731,7 +706,7 @@ mod Space {
                     );
             }
 
-            if NoUpdateArray::should_update((@input).voting_strategies_to_add) {
+            if input.voting_strategies_to_add.should_update() {
                 _add_voting_strategies(ref self, input.voting_strategies_to_add.span());
                 self
                     .emit(
@@ -746,7 +721,7 @@ mod Space {
                     );
             }
 
-            if NoUpdateArray::should_update((@input).voting_strategies_to_remove) {
+            if input.voting_strategies_to_remove.should_update() {
                 _remove_voting_strategies(ref self, input.voting_strategies_to_remove.span());
                 self
                     .emit(
@@ -756,6 +731,21 @@ mod Space {
                             }
                         )
                     );
+            }
+
+            // TODO: test once #506 is merged
+            if NoUpdateString::should_update((@input).metadata_URI) {
+                self
+                    .emit(
+                        Event::MetadataUriUpdated(
+                            MetadataUriUpdated { metadata_URI: input.metadata_URI.span() }
+                        )
+                    );
+            }
+
+            // TODO: test once #506 is merged
+            if NoUpdateString::should_update((@input).dao_URI) {
+                self.emit(Event::DaoUriUpdated(DaoUriUpdated { dao_URI: input.dao_URI.span() }));
             }
         }
 

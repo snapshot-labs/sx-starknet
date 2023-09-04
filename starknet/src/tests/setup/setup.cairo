@@ -1,11 +1,6 @@
 #[cfg(test)]
 mod setup {
-    use array::ArrayTrait;
     use starknet::{ContractAddress, contract_address_const};
-    use traits::{Into, TryInto};
-    use serde::{Serde};
-    use result::ResultTrait;
-    use option::OptionTrait;
     use sx::types::Strategy;
     use sx::authenticators::vanilla::{VanillaAuthenticator};
     use sx::execution_strategies::vanilla::VanillaExecutionStrategy;
@@ -22,9 +17,9 @@ mod setup {
     #[derive(Drop)]
     struct Config {
         owner: ContractAddress,
-        min_voting_duration: u64,
-        max_voting_duration: u64,
-        voting_delay: u64,
+        min_voting_duration: u32,
+        max_voting_duration: u32,
+        voting_delay: u32,
         proposal_validation_strategy: Strategy,
         voting_strategies: Array<Strategy>,
         authenticators: Array<ContractAddress>,
@@ -37,9 +32,9 @@ mod setup {
 
         // Space Settings
         let owner = contract_address_const::<0x123456789>();
-        let max_voting_duration = 2_u64;
-        let min_voting_duration = 1_u64;
-        let voting_delay = 1_u64;
+        let max_voting_duration = 2_u32;
+        let min_voting_duration = 1_u32;
+        let voting_delay = 1_u32;
         let quorum = u256_from_felt252(1);
 
         // Deploy Vanilla Authenticator 
@@ -98,9 +93,9 @@ mod setup {
 
     fn get_initialize_calldata(
         owner: @ContractAddress,
-        min_voting_duration: @u64,
-        max_voting_duration: @u64,
-        voting_delay: @u64,
+        min_voting_duration: @u32,
+        max_voting_duration: @u32,
+        voting_delay: @u32,
         proposal_validation_strategy: @Strategy,
         voting_strategies: @Array<Strategy>,
         authenticators: @Array<ContractAddress>

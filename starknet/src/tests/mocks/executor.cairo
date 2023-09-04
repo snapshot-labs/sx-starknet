@@ -3,9 +3,6 @@ mod ExecutorExecutionStrategy {
     use sx::interfaces::IExecutionStrategy;
     use sx::types::{Proposal, ProposalStatus};
     use starknet::ContractAddress;
-    use core::serde::Serde;
-    use core::array::ArrayTrait;
-    use option::OptionTrait;
     use starknet::syscalls::call_contract_syscall;
 
     #[storage]
