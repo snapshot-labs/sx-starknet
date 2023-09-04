@@ -54,19 +54,18 @@ const STARKNET_MESSAGE: felt252 = 'StarkNet Message';
 // H('StarkNetDomain(name:felt252,version:felt252,chainId:felt252,verifyingContract:ContractAddress)')
 const DOMAIN_TYPEHASH: felt252 = 0xa9974a36dee531bbc36aad5eeab4ade4df5ad388a296bb14d28ad4e9bf2164;
 
-// H('Propose(space:ContractAddress,author:ContractAddress,executionStrategy:Strategy,
-//    userProposalValidationParams:felt*,metadataURI:felt*,salt:felt252)Strategy(address:felt252,params:felt*)')
-const PROPOSE_TYPEHASH: felt252 = 0x248246f9067bb8dd7f7661e894ff088ed3e08cb0957df6cf9c9044cc71fffcb;
+// H('Propose(space:ContractAddress,author:ContractAddress,executionStrategy:Strategy, userProposalValidationParams:felt*,
+//    metadataUri:felt*,salt:felt252)Strategy(address:felt252,params:felt*)')
+const PROPOSE_TYPEHASH: felt252 = 0x1c363469fe163e6c76a850cf019c9c91740adbff5962889db4147507d7e1eb7;
 
-// H('Vote(space:ContractAddress,voter:ContractAddress,proposalId:u256,choice:felt252,
-//    userVotingStrategies:IndexedStrategy*,metadataURI:felt*)IndexedStrategy(index:felt252,params:felt*)
-//    u256(low:felt252,high:felt252)')
-const VOTE_TYPEHASH: felt252 = 0x3ef46c9599d94309c080fa67cc9f79a94483b2a3ac938a28bba717aca5e1983;
+// H('Vote(space:ContractAddress,voter:ContractAddress,proposalId:u256,choice:felt252,userVotingStrategies:IndexedStrategy*,
+//    metadataUri:felt*)IndexedStrategy(index:felt252,params:felt*)u256(low:felt252,high:felt252)')
+const VOTE_TYPEHASH: felt252 = 0x1d9763f87aaaeb271287d4b9c84053d3f201ad61efc2c32a0abfb8cd42347bf;
 
 // H('UpdateProposal(space:ContractAddress,author:ContractAddress,proposalId:u256,executionStrategy:Strategy,
-//    metadataURI:felt*,salt:felt252)Strategy(address:felt252,params:felt*)u256(low:felt252,high:felt252)')
+//    metadataUri:felt*,salt:felt252)Strategy(address:felt252,params:felt*)u256(low:felt252,high:felt252)')
 const UPDATE_PROPOSAL_TYPEHASH: felt252 =
-    0x2dc58602de2862bc8c8dfae763fd5d754f9f4d0b5e6268a403783b7d9164c67;
+    0x34f1b3fe98891caddfc18d9b8d3bee36be34145a6e9f7a7bb76a45038dda780;
 
 // H('Strategy(address:felt252,params:felt*)')
 const STRATEGY_TYPEHASH: felt252 =

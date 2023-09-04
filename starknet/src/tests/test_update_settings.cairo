@@ -173,10 +173,10 @@ mod tests {
         let mut input = UpdateSettingsCalldataImpl::default();
         let mut arr = array![];
         'hello!'.serialize(ref arr);
-        input.metadata_URI = arr;
+        input.metadata_uri = arr;
 
         space.update_settings(input.clone());
-        let expected = MetadataUriUpdated { metadata_URI: input.metadata_URI.span() };
+        let expected = MetadataUriUpdated { metadata_uri: input.metadata_uri.span() };
         assert_correct_event::<MetadataUriUpdated>(space.contract_address, expected);
     }
 
@@ -187,10 +187,10 @@ mod tests {
         let mut input = UpdateSettingsCalldataImpl::default();
         let mut arr = array![];
         'hello!'.serialize(ref arr);
-        input.dao_URI = arr;
+        input.dao_uri = arr;
 
         space.update_settings(input.clone());
-        let expected = DaoUriUpdated { dao_URI: input.dao_URI.span() };
+        let expected = DaoUriUpdated { dao_uri: input.dao_uri.span() };
         assert_correct_event::<DaoUriUpdated>(space.contract_address, expected);
     }
 
@@ -205,7 +205,7 @@ mod tests {
         input.proposal_validation_strategy = randomStrategy;
         let mut arr = array![];
         'hello!'.serialize(ref arr);
-        input.proposal_validation_strategy_metadata_URI = arr;
+        input.proposal_validation_strategy_metadata_uri = arr;
 
         space.update_settings(input.clone());
 
@@ -215,8 +215,8 @@ mod tests {
         );
         let expected = ProposalValidationStrategyUpdated {
             proposal_validation_strategy: input.proposal_validation_strategy,
-            proposal_validation_strategy_metadata_URI: input
-                .proposal_validation_strategy_metadata_URI
+            proposal_validation_strategy_metadata_uri: input
+                .proposal_validation_strategy_metadata_uri
                 .span()
         };
         assert_correct_event::<ProposalValidationStrategyUpdated>(space.contract_address, expected);
@@ -276,10 +276,9 @@ mod tests {
         assert(space.voting_strategies(1) == vs1, 'Voting strategy 1 not added');
         assert(space.voting_strategies(2) == vs2, 'Voting strategy 2 not added');
         assert(space.active_voting_strategies() == 0b111, 'Voting strategies not active');
-
         let expected = VotingStrategiesAdded {
             voting_strategies: input.voting_strategies_to_add.span(),
-            voting_strategy_metadata_URIs: array![].span()
+            voting_strategy_metadata_uris: array![].span()
         };
         assert_correct_event::<VotingStrategiesAdded>(space.contract_address, expected);
     }

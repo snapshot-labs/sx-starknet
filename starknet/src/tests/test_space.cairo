@@ -48,7 +48,7 @@ mod tests {
         assert(event.author == author, 'voter incorrect');
         assert(event.proposal == proposal, 'proposal incorrect');
         assert(event.payload == payload, 'payload incorrect');
-        assert(event.metadata_URI == metadata_uri, 'metadata_uri incorrect');
+        assert(event.metadata_uri == metadata_uri, 'metadata_uri incorrect');
     }
 
     fn assert_correct_update_proposal_event(
@@ -61,7 +61,7 @@ mod tests {
 
         assert(event.proposal_id == proposal_id, 'proposal_id incorrect');
         assert(event.execution_strategy == execution_strategy, 'execution_strategy incorrect');
-        assert(event.metadata_URI == metadata_uri, 'metadata_uri incorrect');
+        assert(event.metadata_uri == metadata_uri, 'metadata_uri incorrect');
     }
 
     fn assert_correct_vote_cast_event(
@@ -70,7 +70,7 @@ mod tests {
         voter: UserAddress,
         choice: Choice,
         voting_power: u256,
-        metadata_URI: Span<felt252>,
+        metadata_uri: Span<felt252>,
     ) {
         let event = utils::pop_log::<VoteCast>(space_address).unwrap();
 
@@ -78,7 +78,7 @@ mod tests {
         assert(event.voter == voter, 'Voter should be correct');
         assert(event.choice == choice, 'Choice should be correct');
         assert(event.voting_power == voting_power, 'Voting power should be correct');
-        assert(event.metadata_URI == metadata_URI, 'Metadata URI should be correct');
+        assert(event.metadata_uri == metadata_uri, 'Metadata URI should be correct');
     }
 
     #[test]

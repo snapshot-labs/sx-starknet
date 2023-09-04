@@ -31,19 +31,19 @@ mod tests {
         );
         assert(
             event
-                .proposal_validation_strategy_metadata_URI == config
+                .proposal_validation_strategy_metadata_uri == config
                 .proposal_validation_strategy_metadata_uri
                 .span(),
             'prop_val_strat_metadata'
         );
         assert(event.voting_strategies == config.voting_strategies.span(), 'voting_strategies');
         assert(
-            event.voting_strategy_metadata_URIs == config.voting_strategies_metadata_uris.span(),
+            event.voting_strategy_metadata_uris == config.voting_strategies_metadata_uris.span(),
             'voting_strat_metadata'
         );
         assert(event.authenticators == config.authenticators.span(), 'authenticators');
-        assert(event.metadata_URI == config.metadata_uri.span(), 'metadata_URI');
-        assert(event.dao_URI == config.dao_uri.span(), 'dao_URI');
+        assert(event.metadata_uri == config.metadata_uri.span(), 'metadata_uri');
+        assert(event.dao_uri == config.dao_uri.span(), 'dao_uri');
     }
 
     fn assert_factory_event_is_correct(

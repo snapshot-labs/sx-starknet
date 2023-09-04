@@ -67,14 +67,14 @@ mod tests {
         voter: UserAddress,
         choice: Choice,
         voting_power: u256,
-        metadata_URI: Span<felt252>,
+        metadata_uri: Span<felt252>,
     ) {
         let event = utils::pop_log::<VoteCast>(space_address).unwrap();
         assert(event.proposal_id == proposal_id, 'Proposal ID should be correct');
         assert(event.voter == voter, 'Voter should be correct');
         assert(event.choice == choice, 'Choice should be correct');
         assert(event.voting_power == voting_power, 'Voting power should be correct');
-        assert(event.metadata_URI == metadata_URI, 'Metadata URI should be correct');
+        assert(event.metadata_uri == metadata_uri, 'Metadata URI should be correct');
     }
 
     #[test]
