@@ -51,6 +51,36 @@ mod tests {
         assert(event.metadata_URI == metadata_uri, 'metadata_uri incorrect');
     }
 
+    fn assert_correct_update_proposal_event(
+        space_address: ContractAddress,
+        proposal_id: u256,
+        execution_strategy: Strategy,
+        metadata_uri: Span<felt252>,
+    ) {
+        let event = utils::pop_log::<ProposalUpdated>(space_address).unwrap();
+
+        assert(event.proposal_id == proposal_id, 'proposal_id incorrect');
+        assert(event.execution_strategy == execution_strategy, 'execution_strategy incorrect');
+        assert(event.metadata_URI == metadata_uri, 'metadata_uri incorrect');
+    }
+
+    fn assert_correct_vote_cast_event(
+        space_address: ContractAddress,
+        proposal_id: u256,
+        voter: UserAddress,
+        choice: Choice,
+        voting_power: u256,
+        metadata_URI: Span<felt252>,
+    ) {
+        let event = utils::pop_log::<VoteCast>(space_address).unwrap();
+
+        assert(event.proposal_id == proposal_id, 'Proposal ID should be correct');
+        assert(event.voter == voter, 'Voter should be correct');
+        assert(event.choice == choice, 'Choice should be correct');
+        assert(event.voting_power == voting_power, 'Voting power should be correct');
+        assert(event.metadata_URI == metadata_URI, 'Metadata URI should be correct');
+    }
+
     #[test]
     #[available_gas(100000000)]
     fn initialize() {
@@ -223,8 +253,9 @@ mod tests {
     fn propose_update_vote_execute() {
         let config = setup();
         let (factory, space) = deploy(@config);
+        let sx::space::space::ISpaceDispatcher{contract_address: space_contract_address } = space;
 
-        utils::drop_events(space.contract_address, 2);
+        utils::drop_events(space_contract_address, 3);
 
         let authenticator = IVanillaAuthenticatorDispatcher {
             contract_address: *config.authenticators.at(0),
@@ -254,7 +285,7 @@ mod tests {
         metadata_uri.serialize(ref propose_calldata);
 
         // Create Proposal
-        authenticator.authenticate(space.contract_address, PROPOSE_SELECTOR, propose_calldata);
+        authenticator.authenticate(space_contract_address, PROPOSE_SELECTOR, propose_calldata);
 
         let timestamp = info::get_block_timestamp().try_into().unwrap();
         let start_timestamp = timestamp + config.voting_delay.into();
@@ -270,15 +301,20 @@ mod tests {
             finalization_status: FinalizationStatus::Pending(()),
             active_voting_strategies: 1_u256,
         };
-        let proposal = space.proposals(1_u256);
+        let proposal = ISpaceDispatcher { contract_address: space_contract_address }
+            .proposals(1_u256);
 
         let payload = vanilla_execution_strategy.params.span();
 
         assert_correct_proposal_event(
-            space.contract_address, 1_u256, author, expected_proposal, payload, metadata_uri.span()
+            space_contract_address, 1_u256, author, expected_proposal, payload, metadata_uri.span()
         );
 
-        assert(space.next_proposal_id() == 2_u256, 'next_proposal_id should be 2');
+        assert(
+            ISpaceDispatcher { contract_address: space_contract_address }
+                .next_proposal_id() == 2_u256,
+            'next_proposal_id should be 2'
+        );
 
         // Update Proposal
         let mut update_calldata = array![];
@@ -292,11 +328,14 @@ mod tests {
             address: vanilla_execution_strategy.address, params: new_payload.clone()
         };
         execution_strategy.serialize(ref update_calldata);
-        ArrayTrait::<felt252>::new().serialize(ref update_calldata);
+        let new_metadata_uri = array![];
+        new_metadata_uri.serialize(ref update_calldata);
 
         authenticator
-            .authenticate(space.contract_address, UPDATE_PROPOSAL_SELECTOR, update_calldata);
-        // assert_correct_update_proposal_event();
+            .authenticate(space_contract_address, UPDATE_PROPOSAL_SELECTOR, update_calldata);
+        assert_correct_update_proposal_event(
+            space_contract_address, 1_u256, execution_strategy, new_metadata_uri.span()
+        );
 
         testing::set_block_timestamp(config.voting_delay.into());
 
@@ -309,18 +348,22 @@ mod tests {
         choice.serialize(ref vote_calldata);
         let mut user_voting_strategies = array![IndexedStrategy { index: 0_u8, params: array![] }];
         user_voting_strategies.serialize(ref vote_calldata);
-        ArrayTrait::<felt252>::new().serialize(ref vote_calldata);
+        let vote_metadata_uri = array![];
+        vote_metadata_uri.serialize(ref vote_calldata);
 
         // Vote on Proposal
-        authenticator.authenticate(space.contract_address, VOTE_SELECTOR, vote_calldata);
-        // assert_correct_vote_event(space.contract_address, voter, proposal_id, choice);
+        authenticator.authenticate(space_contract_address, VOTE_SELECTOR, vote_calldata);
+        assert_correct_vote_cast_event(
+            space_contract_address, 1_u256, voter, choice, 1_u256, vote_metadata_uri.span()
+        );
 
         testing::set_block_timestamp(
             config.voting_delay.into() + config.max_voting_duration.into()
         );
 
         // Execute Proposal
-        space.execute(u256_from_felt252(1), new_payload);
+        ISpaceDispatcher { contract_address: space_contract_address }
+            .execute(u256_from_felt252(1), new_payload);
     }
 
     #[test]
