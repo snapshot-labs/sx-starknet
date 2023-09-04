@@ -143,7 +143,7 @@ mod tests {
         let mut input = UpdateSettingsCalldataImpl::default();
         let mut arr = array![];
         'hello!'.serialize(ref arr);
-        input.metadata_URI = arr;
+        input.metadata_uri = arr;
 
         space.update_settings(input.clone());
     // TODO: check event once it's been added
@@ -156,7 +156,7 @@ mod tests {
         let mut input = UpdateSettingsCalldataImpl::default();
         let mut arr = array![];
         'hello!'.serialize(ref arr);
-        input.dao_URI = arr;
+        input.dao_uri = arr;
 
         space.update_settings(input.clone());
     // TODO: check event once it's been added
@@ -173,7 +173,7 @@ mod tests {
         input.proposal_validation_strategy = randomStrategy;
         let mut arr = array![];
         'hello!'.serialize(ref arr);
-        input.proposal_validation_strategy_metadata_URI = arr;
+        input.proposal_validation_strategy_metadata_uri = arr;
 
         space.update_settings(input.clone());
 
@@ -235,7 +235,7 @@ mod tests {
         assert(space.voting_strategies(2) == vs2, 'Voting strategy 2 not added');
         assert(space.active_voting_strategies() == 0b111, 'Voting strategies not active');
     // TODO: check event once it's been added
-    // voting_strategies_metadata_URIs_to_add: Array<Array<felt252>>,
+    // voting_strategies_metadata_uris_to_add: Array<Array<felt252>>,
     }
 
 
