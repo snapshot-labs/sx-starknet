@@ -143,7 +143,7 @@ mod tests {
         let mut input = UpdateSettingsCalldataImpl::default();
         let mut arr = array![];
         'hello!'.serialize(ref arr);
-        input.metadata_URI = arr;
+        input.metadata_uri = arr;
 
         space.update_settings(input.clone());
     // TODO: check event once it's been added
@@ -154,10 +154,10 @@ mod tests {
     fn dao_uri() {
         let (config, space) = setup_update_settings();
         let mut input = UpdateSettingsCalldataImpl::default();
-        input.dao_URI = array!['hello!'];
+        input.dao_uri = array!['hello!'];
 
         space.update_settings(input.clone());
-        assert(space.dao_uri() == input.dao_URI, 'dao uri not updated');
+        assert(space.dao_uri() == input.dao_uri, 'dao uri not updated');
     // TODO: check event once it's been added
     }
 
@@ -172,7 +172,7 @@ mod tests {
         input.proposal_validation_strategy = randomStrategy;
         let mut arr = array![];
         'hello!'.serialize(ref arr);
-        input.proposal_validation_strategy_metadata_URI = arr;
+        input.proposal_validation_strategy_metadata_uri = arr;
 
         space.update_settings(input.clone());
 
@@ -227,7 +227,7 @@ mod tests {
 
         let mut arr = array![vs1.clone(), vs2.clone()];
         input.voting_strategies_to_add = arr;
-        input.voting_strategies_metadata_URIs_to_add = array![array![], array![]];
+        input.voting_strategies_metadata_uris_to_add = array![array![], array![]];
 
         space.update_settings(input);
 
@@ -249,7 +249,7 @@ mod tests {
 
         let mut arr = array![vs1.clone(), vs2.clone()];
         input.voting_strategies_to_add = arr;
-        input.voting_strategies_metadata_URIs_to_add = array![array![]]; // missing one uri!
+        input.voting_strategies_metadata_uris_to_add = array![array![]]; // missing one uri!
 
         space.update_settings(input);
 
@@ -270,7 +270,7 @@ mod tests {
         let vs1 = StrategyImpl::from_address(contract_address_const::<'votingStrategy1'>());
         let mut arr = array![vs1.clone()];
         input.voting_strategies_to_add = arr;
-        input.voting_strategies_metadata_URIs_to_add = array![array![]];
+        input.voting_strategies_metadata_uris_to_add = array![array![]];
         space.update_settings(input);
         assert(space.voting_strategies(1) == vs1, 'Voting strategy 1 not added');
         assert(space.active_voting_strategies() == 0b11, 'Voting strategy not active');

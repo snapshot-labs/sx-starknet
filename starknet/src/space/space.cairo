@@ -31,17 +31,17 @@ trait ISpace<TContractState> {
         max_voting_duration: u32,
         voting_delay: u32,
         proposal_validation_strategy: Strategy,
-        proposal_validation_strategy_metadata_URI: Array<felt252>,
+        proposal_validation_strategy_metadata_uri: Array<felt252>,
         voting_strategies: Array<Strategy>,
-        voting_strategy_metadata_URIs: Array<Array<felt252>>,
+        voting_strategy_metadata_uris: Array<Array<felt252>>,
         authenticators: Array<ContractAddress>,
-        metadata_URI: Array<felt252>,
-        dao_URI: Array<felt252>,
+        metadata_uri: Array<felt252>,
+        dao_uri: Array<felt252>,
     );
     fn propose(
         ref self: TContractState,
         author: UserAddress,
-        metadata_URI: Array<felt252>,
+        metadata_uri: Array<felt252>,
         execution_strategy: Strategy,
         user_proposal_validation_params: Array<felt252>,
     );
@@ -51,7 +51,7 @@ trait ISpace<TContractState> {
         proposal_id: u256,
         choice: Choice,
         user_voting_strategies: Array<IndexedStrategy>,
-        metadata_URI: Array<felt252>,
+        metadata_uri: Array<felt252>,
     );
     fn execute(ref self: TContractState, proposal_id: u256, execution_payload: Array<felt252>);
     fn update_proposal(
@@ -59,7 +59,7 @@ trait ISpace<TContractState> {
         author: UserAddress,
         proposal_id: u256,
         execution_strategy: Strategy,
-        metadata_URI: Array<felt252>,
+        metadata_uri: Array<felt252>,
     );
     fn cancel(ref self: TContractState, proposal_id: u256);
     fn upgrade(
@@ -142,12 +142,12 @@ mod Space {
         max_voting_duration: u32,
         voting_delay: u32,
         proposal_validation_strategy: Strategy,
-        proposal_validation_strategy_metadata_URI: Span<felt252>,
+        proposal_validation_strategy_metadata_uri: Span<felt252>,
         voting_strategies: Span<Strategy>,
-        voting_strategy_metadata_URIs: Span<Array<felt252>>,
+        voting_strategy_metadata_uris: Span<Array<felt252>>,
         authenticators: Span<ContractAddress>,
-        metadata_URI: Span<felt252>,
-        dao_URI: Span<felt252>,
+        metadata_uri: Span<felt252>,
+        dao_uri: Span<felt252>,
     }
 
     #[derive(Drop, starknet::Event)]
@@ -155,7 +155,7 @@ mod Space {
         proposal_id: u256,
         author: UserAddress,
         proposal: Proposal,
-        metadata_URI: Span<felt252>,
+        metadata_uri: Span<felt252>,
         payload: Span<felt252>,
     }
 
@@ -165,7 +165,7 @@ mod Space {
         voter: UserAddress,
         choice: Choice,
         voting_power: u256,
-        metadata_URI: Span<felt252>,
+        metadata_uri: Span<felt252>,
     }
 
     #[derive(Drop, starknet::Event)]
@@ -177,7 +177,7 @@ mod Space {
     struct ProposalUpdated {
         proposal_id: u256,
         execution_strategy: Strategy,
-        metadata_URI: Span<felt252>,
+        metadata_uri: Span<felt252>,
     }
 
     #[derive(Drop, starknet::Event)]
@@ -188,7 +188,7 @@ mod Space {
     #[derive(Drop, starknet::Event)]
     struct VotingStrategiesAdded {
         voting_strategies: Span<Strategy>,
-        voting_strategy_metadata_URIs: Span<Array<felt252>>,
+        voting_strategy_metadata_uris: Span<Array<felt252>>,
     }
 
     #[derive(Drop, starknet::Event)]
@@ -219,7 +219,7 @@ mod Space {
     #[derive(Drop, starknet::Event)]
     struct ProposalValidationStrategyUpdated {
         proposal_validation_strategy: Strategy,
-        proposal_validation_strategy_metadata_URI: Span<felt252>,
+        proposal_validation_strategy_metadata_uri: Span<felt252>,
     }
 
     #[derive(Drop, starknet::Event)]
@@ -235,12 +235,12 @@ mod Space {
 
     #[derive(Drop, starknet::Event)]
     struct MetadataUriUpdated {
-        metadata_URI: Span<felt252>,
+        metadata_uri: Span<felt252>,
     }
 
     #[derive(Drop, starknet::Event)]
     struct DaoUriUpdated {
-        dao_URI: Span<felt252>,
+        dao_uri: Span<felt252>,
     }
 
     #[external(v0)]
@@ -252,12 +252,12 @@ mod Space {
             max_voting_duration: u32,
             voting_delay: u32,
             proposal_validation_strategy: Strategy,
-            proposal_validation_strategy_metadata_URI: Array<felt252>,
+            proposal_validation_strategy_metadata_uri: Array<felt252>,
             voting_strategies: Array<Strategy>,
-            voting_strategy_metadata_URIs: Array<Array<felt252>>,
+            voting_strategy_metadata_uris: Array<Array<felt252>>,
             authenticators: Array<ContractAddress>,
-            metadata_URI: Array<felt252>,
-            dao_URI: Array<felt252>,
+            metadata_uri: Array<felt252>,
+            dao_uri: Array<felt252>,
         ) {
             self
                 .emit(
@@ -269,13 +269,13 @@ mod Space {
                             max_voting_duration: max_voting_duration,
                             voting_delay: voting_delay,
                             proposal_validation_strategy: proposal_validation_strategy.clone(),
-                            proposal_validation_strategy_metadata_URI: proposal_validation_strategy_metadata_URI
+                            proposal_validation_strategy_metadata_uri: proposal_validation_strategy_metadata_uri
                                 .span(),
                             voting_strategies: voting_strategies.span(),
-                            voting_strategy_metadata_URIs: voting_strategy_metadata_URIs.span(),
+                            voting_strategy_metadata_uris: voting_strategy_metadata_uris.span(),
                             authenticators: authenticators.span(),
-                            metadata_URI: metadata_URI.span(),
-                            dao_URI: dao_URI.span()
+                            metadata_uri: metadata_uri.span(),
+                            dao_uri: dao_uri.span()
                         }
                     )
                 );
@@ -288,13 +288,13 @@ mod Space {
 
             assert(voting_strategies.len() != 0, 'empty voting strategies');
             assert(authenticators.len() != 0, 'empty authenticators');
-            assert(voting_strategies.len() == voting_strategy_metadata_URIs.len(), 'len mismatch');
+            assert(voting_strategies.len() == voting_strategy_metadata_uris.len(), 'len mismatch');
 
             //TODO: temporary component syntax
             let mut state = Ownable::unsafe_new_contract_state();
             Ownable::initializer(ref state);
             Ownable::transfer_ownership(ref state, owner);
-            _set_dao_uri(ref self, dao_URI);
+            _set_dao_uri(ref self, dao_uri);
             _set_max_voting_duration(
                 ref self, max_voting_duration
             ); // Need to set max before min, or else `max == 0` and set_min will revert
@@ -309,7 +309,7 @@ mod Space {
         fn propose(
             ref self: ContractState,
             author: UserAddress,
-            metadata_URI: Array<felt252>,
+            metadata_uri: Array<felt252>,
             execution_strategy: Strategy,
             user_proposal_validation_params: Array<felt252>,
         ) {
@@ -363,7 +363,7 @@ mod Space {
                             proposal_id: proposal_id,
                             author: author,
                             proposal,
-                            metadata_URI: metadata_URI.span(),
+                            metadata_uri: metadata_uri.span(),
                             payload: execution_strategy.params.span(),
                         }
                     )
@@ -376,7 +376,7 @@ mod Space {
             proposal_id: u256,
             choice: Choice,
             user_voting_strategies: Array<IndexedStrategy>,
-            metadata_URI: Array<felt252>
+            metadata_uri: Array<felt252>
         ) {
             assert_only_authenticator(@self);
             assert(voter.is_non_zero(), 'Zero Address');
@@ -424,7 +424,7 @@ mod Space {
                             voter: voter,
                             choice: choice,
                             voting_power: voting_power,
-                            metadata_URI: metadata_URI.span()
+                            metadata_uri: metadata_uri.span()
                         }
                     )
                 );
@@ -484,7 +484,7 @@ mod Space {
             author: UserAddress,
             proposal_id: u256,
             execution_strategy: Strategy,
-            metadata_URI: Array<felt252>,
+            metadata_uri: Array<felt252>,
         ) {
             assert_only_authenticator(@self);
             assert(author.is_non_zero(), 'Zero Address');
@@ -512,7 +512,7 @@ mod Space {
                         ProposalUpdated {
                             proposal_id: proposal_id,
                             execution_strategy: execution_strategy,
-                            metadata_URI: metadata_URI.span()
+                            metadata_uri: metadata_uri.span()
                         }
                     )
                 );
@@ -666,18 +666,18 @@ mod Space {
                     );
             }
 
-            if NoUpdateString::should_update((@input).metadata_URI) {
+            if NoUpdateString::should_update((@input).metadata_uri) {
                 self
                     .emit(
                         Event::MetadataUriUpdated(
-                            MetadataUriUpdated { metadata_URI: input.metadata_URI.span() }
+                            MetadataUriUpdated { metadata_uri: input.metadata_uri.span() }
                         )
                     );
             }
 
-            if NoUpdateString::should_update((@input).dao_URI) {
-                _set_dao_uri(ref self, input.dao_URI.clone());
-                self.emit(Event::DaoUriUpdated(DaoUriUpdated { dao_URI: input.dao_URI.span() }));
+            if NoUpdateString::should_update((@input).dao_uri) {
+                _set_dao_uri(ref self, input.dao_uri.clone());
+                self.emit(Event::DaoUriUpdated(DaoUriUpdated { dao_uri: input.dao_uri.span() }));
             }
 
             if input.proposal_validation_strategy.should_update() {
@@ -691,8 +691,8 @@ mod Space {
                                 proposal_validation_strategy: input
                                     .proposal_validation_strategy
                                     .clone(),
-                                proposal_validation_strategy_metadata_URI: input
-                                    .proposal_validation_strategy_metadata_URI
+                                proposal_validation_strategy_metadata_uri: input
+                                    .proposal_validation_strategy_metadata_uri
                                     .span()
                             }
                         )
@@ -728,7 +728,7 @@ mod Space {
                     input
                         .voting_strategies_to_add
                         .len() == input
-                        .voting_strategies_metadata_URIs_to_add
+                        .voting_strategies_metadata_uris_to_add
                         .len(),
                     'len mismatch'
                 );
@@ -738,8 +738,8 @@ mod Space {
                         Event::VotingStrategiesAdded(
                             VotingStrategiesAdded {
                                 voting_strategies: input.voting_strategies_to_add.span(),
-                                voting_strategy_metadata_URIs: input
-                                    .voting_strategies_metadata_URIs_to_add
+                                voting_strategy_metadata_uris: input
+                                    .voting_strategies_metadata_uris_to_add
                                     .span()
                             }
                         )

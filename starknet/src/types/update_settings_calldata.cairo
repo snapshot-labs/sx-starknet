@@ -6,14 +6,14 @@ struct UpdateSettingsCalldata {
     min_voting_duration: u32,
     max_voting_duration: u32,
     voting_delay: u32,
-    metadata_URI: Array<felt252>,
-    dao_URI: Array<felt252>,
+    metadata_uri: Array<felt252>,
+    dao_uri: Array<felt252>,
     proposal_validation_strategy: Strategy,
-    proposal_validation_strategy_metadata_URI: Array<felt252>,
+    proposal_validation_strategy_metadata_uri: Array<felt252>,
     authenticators_to_add: Array<ContractAddress>,
     authenticators_to_remove: Array<ContractAddress>,
     voting_strategies_to_add: Array<Strategy>,
-    voting_strategies_metadata_URIs_to_add: Array<Array<felt252>>,
+    voting_strategies_metadata_uris_to_add: Array<Array<felt252>>,
     voting_strategies_to_remove: Array<u8>,
 }
 
@@ -87,7 +87,7 @@ impl NoUpdateString of NoUpdateTrait<Array<felt252>> {
             Option::Some(e) => {
                 *e.unbox() != 'No update'
             },
-            Option::None => false,
+            Option::None => true,
         }
     }
 }
@@ -108,14 +108,14 @@ impl UpdateSettingsCalldataImpl of UpdateSettingsCalldataTrait {
             min_voting_duration: NoUpdateU32::no_update(),
             max_voting_duration: NoUpdateU32::no_update(),
             voting_delay: NoUpdateU32::no_update(),
-            metadata_URI: NoUpdateString::no_update(),
-            dao_URI: NoUpdateString::no_update(),
+            metadata_uri: NoUpdateString::no_update(),
+            dao_uri: NoUpdateString::no_update(),
             proposal_validation_strategy: NoUpdateStrategy::no_update(),
-            proposal_validation_strategy_metadata_URI: NoUpdateString::no_update(),
+            proposal_validation_strategy_metadata_uri: NoUpdateString::no_update(),
             authenticators_to_add: NoUpdateArray::no_update(),
             authenticators_to_remove: NoUpdateArray::no_update(),
             voting_strategies_to_add: NoUpdateArray::no_update(),
-            voting_strategies_metadata_URIs_to_add: NoUpdateArray::no_update(),
+            voting_strategies_metadata_uris_to_add: NoUpdateArray::no_update(),
             voting_strategies_to_remove: NoUpdateArray::no_update(),
         }
     }
