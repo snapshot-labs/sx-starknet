@@ -85,7 +85,7 @@ impl NoUpdateString of NoUpdateTrait<Array<felt252>> {
     fn should_update(self: @Array<felt252>) -> bool {
         match self.get(0) {
             Option::Some(e) => {
-                *e.unbox() == 'No update'
+                *e.unbox() != 'No update'
             },
             Option::None => false,
         }
