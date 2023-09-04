@@ -11,7 +11,6 @@ mod tests {
     use starknet::ClassHash;
     use sx::tests::setup::setup::setup::{setup, Config, ConfigTrait, deploy};
     use openzeppelin::tests::utils;
-    use openzeppelin::tests::utils::constants::ZERO;
     use sx::space::space::Space::SpaceCreated;
     use sx::factory::factory::Factory::NewContractDeployed;
 

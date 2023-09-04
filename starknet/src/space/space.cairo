@@ -137,7 +137,7 @@ mod Space {
         Upgraded: Upgraded,
     }
 
-    #[derive(Drop, starknet::Event)]
+    #[derive(Drop, PartialEq, starknet::Event)]
     struct SpaceCreated {
         space: ContractAddress,
         owner: ContractAddress,
@@ -153,7 +153,7 @@ mod Space {
         dao_URI: Span<felt252>,
     }
 
-    #[derive(Drop, starknet::Event)]
+    #[derive(Drop, PartialEq, starknet::Event)]
     struct ProposalCreated {
         proposal_id: u256,
         author: UserAddress,
@@ -162,7 +162,7 @@ mod Space {
         metadata_URI: Span<felt252>,
     }
 
-    #[derive(Drop, starknet::Event)]
+    #[derive(Drop, PartialEq, starknet::Event)]
     struct VoteCast {
         proposal_id: u256,
         voter: UserAddress,
@@ -171,77 +171,77 @@ mod Space {
         metadata_URI: Span<felt252>,
     }
 
-    #[derive(Drop, starknet::Event)]
+    #[derive(Drop, PartialEq, starknet::Event)]
     struct ProposalExecuted {
         proposal_id: u256,
     }
 
-    #[derive(Drop, starknet::Event)]
+    #[derive(Drop, PartialEq, starknet::Event)]
     struct ProposalUpdated {
         proposal_id: u256,
         execution_strategy: Strategy,
         metadata_URI: Span<felt252>,
     }
 
-    #[derive(Drop, starknet::Event)]
+    #[derive(Drop, PartialEq, starknet::Event)]
     struct ProposalCancelled {
         proposal_id: u256,
     }
 
-    #[derive(Drop, starknet::Event)]
+    #[derive(Drop, PartialEq, starknet::Event)]
     struct VotingStrategiesAdded {
         voting_strategies: Span<Strategy>,
         voting_strategy_metadata_URIs: Span<Array<felt252>>,
     }
 
-    #[derive(Drop, starknet::Event)]
+    #[derive(Drop, PartialEq, starknet::Event)]
     struct VotingStrategiesRemoved {
         voting_strategy_indices: Span<u8>,
     }
 
-    #[derive(Drop, starknet::Event)]
+    #[derive(Drop, PartialEq, starknet::Event)]
     struct AuthenticatorsAdded {
         authenticators: Span<ContractAddress>,
     }
 
-    #[derive(Drop, starknet::Event)]
+    #[derive(Drop, PartialEq, starknet::Event)]
     struct AuthenticatorsRemoved {
         authenticators: Span<ContractAddress>,
     }
 
-    #[derive(Drop, starknet::Event)]
+    #[derive(Drop, PartialEq, starknet::Event)]
     struct MaxVotingDurationUpdated {
         max_voting_duration: u32,
     }
 
-    #[derive(Drop, starknet::Event)]
+    #[derive(Drop, PartialEq, starknet::Event)]
     struct MinVotingDurationUpdated {
         min_voting_duration: u32,
     }
 
-    #[derive(Drop, starknet::Event)]
+    #[derive(Drop, PartialEq, starknet::Event)]
     struct ProposalValidationStrategyUpdated {
         proposal_validation_strategy: Strategy,
         proposal_validation_strategy_metadata_URI: Span<felt252>,
     }
 
-    #[derive(Drop, starknet::Event)]
+    #[derive(Drop, PartialEq, starknet::Event)]
     struct VotingDelayUpdated {
         voting_delay: u32,
     }
 
-    #[derive(Drop, starknet::Event)]
+    #[derive(Drop, PartialEq, starknet::Event)]
     struct Upgraded {
         class_hash: ClassHash,
         initialize_calldata: Span<felt252>,
     }
 
-    #[derive(Drop, starknet::Event)]
+    #[derive(Drop, PartialEq, starknet::Event)]
     struct MetadataUriUpdated {
         metadata_URI: Span<felt252>,
     }
 
-    #[derive(Drop, starknet::Event)]
+    #[derive(Drop, PartialEq, starknet::Event)]
     struct DaoUriUpdated {
         dao_URI: Span<felt252>,
     }
