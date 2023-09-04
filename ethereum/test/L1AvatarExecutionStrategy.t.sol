@@ -21,8 +21,9 @@ abstract contract L1AvatarExecutionStrategySettersTest is Test {
         uint256 _quorum
     );
     event TargetSet(address indexed newTarget);
-    event QuorumUpdated(uint256 newQuorum);
+    event StarknetCoreSet(address indexed newStarknetCore);
     event ExecutionRelayerSet(uint256 indexed newExecutionRelayer);
+    event QuorumUpdated(uint256 newQuorum);
     event SpaceEnabled(uint256 space);
     event SpaceDisabled(uint256 space);
 
@@ -56,6 +57,38 @@ abstract contract L1AvatarExecutionStrategySettersTest is Test {
         vm.prank(unauthorized);
         vm.expectRevert("Ownable: caller is not the owner");
         avatarExecutionStrategy.setTarget(newTarget);
+    }
+
+    function testSetStarknetCore() public {
+        address newStarknetCore = address(0xbeef);
+        vm.prank(owner);
+        vm.expectEmit(true, true, true, true);
+        emit StarknetCoreSet(newStarknetCore);
+        avatarExecutionStrategy.setStarknetCore(newStarknetCore);
+        assertEq(address(avatarExecutionStrategy.starknetCore()), newStarknetCore);
+    }
+
+    function testUnauthorizedSetStarknetCore() public {
+        address newStarknetCore = address(0xbeef);
+        vm.prank(unauthorized);
+        vm.expectRevert("Ownable: caller is not the owner");
+        avatarExecutionStrategy.setStarknetCore(newStarknetCore);
+    }
+
+    function testSetExecutionRelayer() public {
+        uint256 newExecutionRelayer = 3;
+        vm.prank(owner);
+        vm.expectEmit(true, true, true, true);
+        emit ExecutionRelayerSet(newExecutionRelayer);
+        avatarExecutionStrategy.setExecutionRelayer(newExecutionRelayer);
+        assertEq(avatarExecutionStrategy.executionRelayer(), newExecutionRelayer);
+    }
+
+    function testUnauthorizedSetExecutionRelayer() public {
+        uint256 newExecutionRelayer = 3;
+        vm.prank(unauthorized);
+        vm.expectRevert("Ownable: caller is not the owner");
+        avatarExecutionStrategy.setExecutionRelayer(newExecutionRelayer);
     }
 
     function testSetQuorum() public {

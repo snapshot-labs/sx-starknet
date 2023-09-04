@@ -11,17 +11,20 @@ import "../types.sol";
 /// @notice Used to execute SX Starknet proposal transactions from an Avatar contract on Ethereum.
 /// @dev An Avatar contract is any contract that implements the IAvatar interface, eg a Gnosis Safe.
 contract L1AvatarExecutionStrategy is SimpleQuorumExecutionStrategy {
-    /// @dev Address of the avatar that this module will pass transactions to.
+    /// @notice Address of the avatar that this module will pass transactions to.
     address public target;
 
-    /// The Starknet Core contract.
+    /// @notice Address of the Starknet Core contract.
     address public starknetCore;
 
-    /// Address of the StarkNet contract that will send execution details to this contract in a L2 -> L1 message
+    /// Address of the Starknet contract that will send execution details to this contract in a L2 -> L1 message.
     uint256 public executionRelayer;
 
     /// @dev Emitted each time the Target is set.
     event TargetSet(address indexed newTarget);
+
+    /// @dev Emitted each time the Starknet Core is set.
+    event StarknetCoreSet(address indexed newStarknetCore);
 
     /// @dev Emitted each time the Execution Relayer is set.
     event ExecutionRelayerSet(uint256 indexed newExecutionRelayer);
@@ -83,18 +86,25 @@ contract L1AvatarExecutionStrategy is SimpleQuorumExecutionStrategy {
         emit L1AvatarExecutionStrategySetUp(_owner, _target, _starknetCore, _executionRelayer, _starknetSpaces, _quorum);
     }
 
-    /// @notice Sets the Starknet execution relayer contract
-    /// @param _executionRelayer Address of the new execution relayer contract
-    function setExecutionRelayer(uint256 _executionRelayer) external onlyOwner {
-        executionRelayer = _executionRelayer;
-        emit ExecutionRelayerSet(_executionRelayer);
-    }
-
     /// @notice Sets the target address
     /// @param _target Address of the avatar that this module will pass transactions to.
     function setTarget(address _target) external onlyOwner {
         target = _target;
         emit TargetSet(_target);
+    }
+
+    /// @notice Sets the Starknet Core contract
+    /// @param _starknetCore Address of the new Starknet Core contract.
+    function setStarknetCore(address _starknetCore) external onlyOwner {
+        starknetCore = _starknetCore;
+        emit StarknetCoreSet(_starknetCore);
+    }
+
+    /// @notice Sets the Starknet execution relayer contract
+    /// @param _executionRelayer Address of the new execution relayer contract
+    function setExecutionRelayer(uint256 _executionRelayer) external onlyOwner {
+        executionRelayer = _executionRelayer;
+        emit ExecutionRelayerSet(_executionRelayer);
     }
 
     /// @notice Executes a proposal
