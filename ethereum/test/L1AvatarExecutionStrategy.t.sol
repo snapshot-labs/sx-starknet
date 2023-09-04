@@ -21,6 +21,7 @@ abstract contract L1AvatarExecutionStrategySettersTest is Test {
         uint256 _quorum
     );
     event TargetSet(address indexed newTarget);
+    event QuorumUpdated(uint256 newQuorum);
     event ExecutionRelayerSet(uint256 indexed newExecutionRelayer);
     event SpaceEnabled(uint256 space);
     event SpaceDisabled(uint256 space);
@@ -55,6 +56,22 @@ abstract contract L1AvatarExecutionStrategySettersTest is Test {
         vm.prank(unauthorized);
         vm.expectRevert("Ownable: caller is not the owner");
         avatarExecutionStrategy.setTarget(newTarget);
+    }
+
+    function testSetQuorum() public {
+        uint256 newQuorum = 3;
+        vm.prank(owner);
+        vm.expectEmit(true, true, true, true);
+        emit QuorumUpdated(newQuorum);
+        avatarExecutionStrategy.setQuorum(newQuorum);
+        assertEq(avatarExecutionStrategy.quorum(), newQuorum);
+    }
+
+    function testUnauthorizedSetQuorum() public {
+        uint256 newQuorum = 3;
+        vm.prank(unauthorized);
+        vm.expectRevert("Ownable: caller is not the owner");
+        avatarExecutionStrategy.setQuorum(newQuorum);
     }
 
     function testTransferOwnership() public {

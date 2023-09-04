@@ -19,6 +19,13 @@ abstract contract SimpleQuorumExecutionStrategy is IExecutionStrategy, StarknetS
         quorum = _quorum;
     }
 
+    /// @notice Sets the quorum required to execute a proposal using this strategy.
+    /// @param _quorum The new quorum.x
+    function setQuorum(uint256 _quorum) external onlyOwner {
+        quorum = _quorum;
+        emit QuorumUpdated(_quorum);
+    }
+
     /// @notice Returns the status of a proposal that uses a simple quorum.
     ///        A proposal is accepted if the for votes exceeds the against votes
     ///        and a quorum of total votes (for + against + abstain) is reached.
