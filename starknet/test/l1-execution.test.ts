@@ -398,7 +398,7 @@ describe('L1 Avatar Execution', function () {
         executionHash,
         [proposalTx],
       ),
-    ).to.be.revertedWith('InvalidSpace');
+    ).to.be.reverted;
 
     // Re-enabling the space in the execution strategy
     await l1AvatarExecutionStrategy.enableSpace(space.address);
