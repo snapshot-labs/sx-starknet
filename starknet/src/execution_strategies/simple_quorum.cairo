@@ -67,6 +67,231 @@ mod SimpleQuorumExecutionStrategy {
         votes_for > votes_against
     }
 }
-// TODO: add unit tests for get_proposal_status
 
+#[cfg(test)]
+mod tests {
+    use super::SimpleQuorumExecutionStrategy;
+    use super::SimpleQuorumExecutionStrategy::{get_proposal_status, initializer};
+    use sx::types::{Proposal, proposal::ProposalDefault, FinalizationStatus, ProposalStatus};
 
+    #[test]
+    #[available_gas(10000000)]
+    fn cancelled() {
+        let mut state = SimpleQuorumExecutionStrategy::unsafe_new_contract_state();
+
+        let mut proposal = ProposalDefault::default();
+        proposal.finalization_status = FinalizationStatus::Cancelled(());
+        let votes_for = 0;
+        let votes_against = 0;
+        let votes_abstain = 0;
+        let result = get_proposal_status(
+            @state, @proposal, votes_for, votes_against, votes_abstain
+        );
+        assert(result == ProposalStatus::Cancelled(()), 'failed cancelled');
+    }
+
+    #[test]
+    #[available_gas(10000000)]
+    fn executed() {
+        let mut state = SimpleQuorumExecutionStrategy::unsafe_new_contract_state();
+
+        let mut proposal = ProposalDefault::default();
+        proposal.finalization_status = FinalizationStatus::Executed(());
+        let votes_for = 0;
+        let votes_against = 0;
+        let votes_abstain = 0;
+        let result = get_proposal_status(
+            @state, @proposal, votes_for, votes_against, votes_abstain
+        );
+        assert(result == ProposalStatus::Executed(()), 'failed executed');
+    }
+
+    #[test]
+    #[available_gas(10000000)]
+    fn voting_delay() {
+        let mut state = SimpleQuorumExecutionStrategy::unsafe_new_contract_state();
+
+        let mut proposal = ProposalDefault::default();
+        proposal.start_timestamp = 42424242;
+        let votes_for = 0;
+        let votes_against = 0;
+        let votes_abstain = 0;
+        let result = get_proposal_status(
+            @state, @proposal, votes_for, votes_against, votes_abstain
+        );
+        assert(result == ProposalStatus::VotingDelay(()), 'failed voting_delay');
+    }
+
+    #[test]
+    #[available_gas(10000000)]
+    fn voting_period() {
+        let mut state = SimpleQuorumExecutionStrategy::unsafe_new_contract_state();
+
+        let mut proposal = ProposalDefault::default();
+        proposal.min_end_timestamp = 42424242;
+        let votes_for = 0;
+        let votes_against = 0;
+        let votes_abstain = 0;
+        let result = get_proposal_status(
+            @state, @proposal, votes_for, votes_against, votes_abstain
+        );
+        assert(result == ProposalStatus::VotingPeriod(()), 'failed min_end_timestamp');
+    }
+
+    #[test]
+    #[available_gas(10000000)]
+    fn shortcut_accepted() {
+        let mut state = SimpleQuorumExecutionStrategy::unsafe_new_contract_state();
+        let quorum = 2;
+        initializer(ref state, quorum);
+
+        let mut proposal = ProposalDefault::default();
+        proposal.max_end_timestamp = 10;
+        let votes_for = quorum;
+        let votes_against = 0;
+        let votes_abstain = 0;
+        let result = get_proposal_status(
+            @state, @proposal, votes_for, votes_against, votes_abstain
+        );
+        assert(result == ProposalStatus::VotingPeriodAccepted(()), 'failed shortcut_accepted');
+    }
+
+    #[test]
+    #[available_gas(10000000)]
+    fn shortcut_only_abstains() {
+        let mut state = SimpleQuorumExecutionStrategy::unsafe_new_contract_state();
+        let quorum = 2;
+        initializer(ref state, quorum);
+
+        let mut proposal = ProposalDefault::default();
+        proposal.max_end_timestamp = 10;
+        let votes_for = 0;
+        let votes_against = 0;
+        let votes_abstain = quorum;
+        let result = get_proposal_status(
+            @state, @proposal, votes_for, votes_against, votes_abstain
+        );
+        assert(result == ProposalStatus::VotingPeriod(()), 'failed shortcut_only_abstains');
+    }
+
+    #[test]
+    #[available_gas(10000000)]
+    fn shortcut_only_againsts() {
+        let mut state = SimpleQuorumExecutionStrategy::unsafe_new_contract_state();
+        let quorum = 2;
+        initializer(ref state, quorum);
+
+        let mut proposal = ProposalDefault::default();
+        proposal.max_end_timestamp = 10;
+        let votes_for = 0;
+        let votes_against = quorum;
+        let votes_abstain = 0;
+        let result = get_proposal_status(
+            @state, @proposal, votes_for, votes_against, votes_abstain
+        );
+        assert(result == ProposalStatus::VotingPeriod(()), 'failed shortcut_only_againsts');
+    }
+
+    #[test]
+    #[available_gas(10000000)]
+    fn shortcut_balanced() {
+        let mut state = SimpleQuorumExecutionStrategy::unsafe_new_contract_state();
+        let quorum = 2;
+        initializer(ref state, quorum);
+
+        let mut proposal = ProposalDefault::default();
+        proposal.max_end_timestamp = 10;
+        let votes_for = quorum;
+        let votes_against = quorum;
+        let votes_abstain = 0;
+        let result = get_proposal_status(
+            @state, @proposal, votes_for, votes_against, votes_abstain
+        );
+        assert(result == ProposalStatus::VotingPeriod(()), 'failed shortcut_balanced');
+    }
+
+    #[test]
+    #[available_gas(10000000)]
+    fn balanced() {
+        let mut state = SimpleQuorumExecutionStrategy::unsafe_new_contract_state();
+        let quorum = 2;
+        initializer(ref state, quorum);
+
+        let mut proposal = ProposalDefault::default();
+        let votes_for = quorum;
+        let votes_against = quorum;
+        let votes_abstain = 0;
+        let result = get_proposal_status(
+            @state, @proposal, votes_for, votes_against, votes_abstain
+        );
+        assert(result == ProposalStatus::Rejected(()), 'failed balanced');
+    }
+
+    #[test]
+    #[available_gas(10000000)]
+    fn accepted() {
+        let mut state = SimpleQuorumExecutionStrategy::unsafe_new_contract_state();
+        let quorum = 2;
+        initializer(ref state, quorum);
+
+        let mut proposal = ProposalDefault::default();
+        let votes_for = quorum;
+        let votes_against = quorum - 1;
+        let votes_abstain = 0;
+        let result = get_proposal_status(
+            @state, @proposal, votes_for, votes_against, votes_abstain
+        );
+        assert(result == ProposalStatus::Accepted(()), 'failed accepted');
+    }
+
+    #[test]
+    #[available_gas(10000000)]
+    fn accepted_with_abstains() {
+        let mut state = SimpleQuorumExecutionStrategy::unsafe_new_contract_state();
+        let quorum = 5;
+        initializer(ref state, quorum);
+
+        let mut proposal = ProposalDefault::default();
+        let votes_for = 2;
+        let votes_against = 1;
+        let votes_abstain = 10;
+        let result = get_proposal_status(
+            @state, @proposal, votes_for, votes_against, votes_abstain
+        );
+        assert(result == ProposalStatus::Accepted(()), 'failed accepted abstains');
+    }
+
+    #[test]
+    #[available_gas(10000000)]
+    fn rejected_only_againsts() {
+        let mut state = SimpleQuorumExecutionStrategy::unsafe_new_contract_state();
+        let quorum = 0;
+        initializer(ref state, quorum);
+
+        let mut proposal = ProposalDefault::default();
+        let votes_for = 0;
+        let votes_against = 1;
+        let votes_abstain = 0;
+        let result = get_proposal_status(
+            @state, @proposal, votes_for, votes_against, votes_abstain
+        );
+        assert(result == ProposalStatus::Rejected(()), 'failed rejected');
+    }
+
+    #[test]
+    #[available_gas(10000000)]
+    fn quorum_not_reached() {
+        let mut state = SimpleQuorumExecutionStrategy::unsafe_new_contract_state();
+        let quorum = 3;
+        initializer(ref state, quorum);
+
+        let mut proposal = ProposalDefault::default();
+        let votes_for = 2;
+        let votes_against = 0;
+        let votes_abstain = 0;
+        let result = get_proposal_status(
+            @state, @proposal, votes_for, votes_against, votes_abstain
+        );
+        assert(result == ProposalStatus::Rejected(()), 'failed quorum_not_reached');
+    }
+}
