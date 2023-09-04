@@ -1,9 +1,4 @@
 use starknet::{ContractAddress, EthAddress};
-use traits::{PartialEq, TryInto, Into};
-use zeroable::Zeroable;
-use serde::Serde;
-use array::ArrayTrait;
-use hash::{LegacyHash};
 
 #[derive(Copy, Drop, Serde, PartialEq, starknet::Store)]
 enum UserAddress {
@@ -79,7 +74,6 @@ impl UserAddressZeroable of Zeroable<UserAddress> {
 
 #[cfg(test)]
 mod tests {
-    use zeroable::Zeroable;
     use super::{UserAddress, UserAddressZeroable};
     use starknet::{EthAddress, contract_address_const};
 

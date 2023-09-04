@@ -42,8 +42,6 @@ trait IStarkSigAuthenticator<TContractState> {
 mod StarkSigAuthenticator {
     use super::IStarkSigAuthenticator;
     use starknet::{ContractAddress, info};
-    use core::array::{ArrayTrait, SpanTrait};
-    use serde::Serde;
     use sx::{
         space::space::{ISpaceDispatcher, ISpaceDispatcherTrait},
         types::{Strategy, IndexedStrategy, UserAddress, Choice}, utils::stark_eip712

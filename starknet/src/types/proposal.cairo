@@ -1,11 +1,7 @@
-use clone::Clone;
-use serde::Serde;
 use starknet::{ContractAddress, storage_access::StorePacking, Store};
 use sx::{
     utils::math::pow, types::{FinalizationStatus, UserAddress, user_address::UserAddressTrait}
 };
-use traits::{Into, TryInto};
-use option::OptionTrait;
 
 const BITMASK_32: u128 = 0xffffffff;
 const BITMASK_64: u128 = 0xffffffffffffffff;

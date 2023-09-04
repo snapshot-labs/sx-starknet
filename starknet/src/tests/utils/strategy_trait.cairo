@@ -1,4 +1,3 @@
-use array::ArrayTrait;
 use sx::types::Strategy;
 use starknet::{ContractAddress, contract_address_const};
 

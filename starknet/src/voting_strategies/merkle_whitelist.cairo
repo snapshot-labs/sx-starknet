@@ -3,9 +3,6 @@ mod MerkleWhitelistVotingStrategy {
     use sx::{
         interfaces::IVotingStrategy, types::UserAddress, utils::merkle::{assert_valid_proof, Leaf}
     };
-    use serde::Serde;
-    use array::{ArrayTrait, Span, SpanTrait};
-    use option::OptionTrait;
 
     const LEAF_SIZE: usize = 4; // Serde::<Leaf>::serialize().len()
 

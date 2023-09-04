@@ -3,9 +3,6 @@ mod ExecutorExecutionStrategy {
     use sx::interfaces::IExecutionStrategy;
     use sx::types::{Proposal, ProposalStatus};
     use starknet::ContractAddress;
-    use core::serde::Serde;
-    use core::array::ArrayTrait;
-    use option::OptionTrait;
     use starknet::syscalls::call_contract_syscall;
 
     #[storage]
@@ -32,6 +29,10 @@ mod ExecutorExecutionStrategy {
             let mut sp4n = payload.span();
             let tx: Transaction = Serde::<Transaction>::deserialize(ref sp4n).unwrap();
             call_contract_syscall(tx.target, tx.selector, tx.data.span()).unwrap();
+        }
+
+        fn get_strategy_type(self: @ContractState) -> felt252 {
+            'Executor'
         }
     }
 
@@ -60,6 +61,10 @@ mod ExecutorWithoutTxExecutionStrategy {
             votes_abstain: u256,
             payload: Array<felt252>
         ) {}
+
+        fn get_strategy_type(self: @ContractState) -> felt252 {
+            'ExecutorWithoutTx'
+        }
     }
 
     #[constructor]

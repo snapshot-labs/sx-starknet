@@ -1,6 +1,4 @@
-use array::{ArrayTrait, SpanTrait};
 use hash::LegacyHash;
-use serde::Serde;
 use sx::{
     types::{Strategy, IndexedStrategy},
     utils::{

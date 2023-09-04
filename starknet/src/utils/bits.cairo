@@ -1,5 +1,3 @@
-use traits::{Into};
-use zeroable::Zeroable;
 use integer::{Bitwise, U256BitOr, U256BitNot, U128IntoFelt252, Felt252IntoU256, BoundedInt};
 use sx::utils::math::pow;
 
