@@ -301,6 +301,109 @@ describe('L1 Avatar Execution', function () {
     );
   }, 10000000);
 
+  it('should revert if the space is not whitelisted in the Avatar execution strategy', async function () {
+    await starknet.devnet.restart();
+    await starknet.devnet.load('./dump.pkl');
+    await starknet.devnet.increaseTime(10);
+    await starknet.devnet.loadL1MessagingContract(eth_network, mockStarknetMessaging.address);
+
+    // Disabling the space in the execution strategy
+    await l1AvatarExecutionStrategy.disableSpace(space.address);
+
+    const proposalTx = {
+      to: signer.address,
+      value: 0,
+      data: '0x11',
+      operation: 0,
+      salt: 1,
+    };
+
+    const abiCoder = new ethers.utils.AbiCoder();
+    const executionHash = ethers.utils.keccak256(
+      abiCoder.encode(
+        ['tuple(address to, uint256 value, bytes data, uint8 operation, uint256 salt)[]'],
+        [[proposalTx]],
+      ),
+    );
+    // Represent the execution hash as a Cairo Uint256
+    const executionHashUint256: Uint256 = uint256.bnToUint256(executionHash);
+
+    const executionPayload = [
+      l1AvatarExecutionStrategy.address,
+      executionHashUint256.low,
+      executionHashUint256.high,
+    ];
+
+    // Propose
+    await account.invoke(
+      starkTxAuthenticator,
+      'authenticate_propose',
+      CallData.compile({
+        space: space.address,
+        author: account.address,
+        executionStrategy: {
+          address: ethRelayer.address,
+          params: executionPayload,
+        },
+        userProposalValidationParams: [],
+        metadataURI: [],
+      }),
+      { rawInput: true },
+    );
+
+    // Vote
+    await account.invoke(
+      starkTxAuthenticator,
+      'authenticate_vote',
+      CallData.compile({
+        space: space.address,
+        voter: account.address,
+        proposalId: { low: '0x1', high: '0x0' },
+        choice: '0x1',
+        userVotingStrategies: [{ index: '0x0', params: [] }],
+        metadataURI: [],
+      }),
+      { rawInput: true },
+    );
+
+    // Advance time so that the maxVotingTimestamp is exceeded
+    await starknet.devnet.increaseTime(10);
+    await increaseEthBlockchainTime(eth_network, 10);
+
+    // Execute
+    await account.invoke(
+      space,
+      'execute',
+      CallData.compile({
+        proposalId: { low: '0x1', high: '0x0' },
+        executionPayload: executionPayload,
+      }),
+      { rawInput: true },
+    );
+
+    // Propagating message to L1
+    const flushL2Response = await starknet.devnet.flush();
+    const message_payload = flushL2Response.consumed_messages.from_l2[0].payload;
+
+    // Proposal data can either be extracted from the message sent to L1 (as done here) or pulled from the contract directly
+    const [proposal, forVotes, againstVotes, abstainVotes] = extractMessagePayload(message_payload);
+
+    await expect(
+      l1AvatarExecutionStrategy.execute(
+        space.address,
+        proposal,
+        forVotes,
+        againstVotes,
+        abstainVotes,
+        executionHash,
+        [proposalTx],
+      ),
+    ).to.be.revertedWith('InvalidSpace');
+
+    // Re-enabling the space in the execution strategy
+    await l1AvatarExecutionStrategy.enableSpace(space.address);
+  }, 10000000);
+
   it('should revert execution if an invalid payload is sent to L1', async function () {
     await starknet.devnet.restart();
     await starknet.devnet.load('./dump.pkl');
