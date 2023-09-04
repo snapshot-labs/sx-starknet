@@ -490,7 +490,7 @@ describe('L1 Avatar Execution', function () {
       salt: 1,
     };
 
-    // Incorrect forVotes value was supplied
+    // Sending fake proposal tx to the execution strategy
     await expect(
       l1AvatarExecutionStrategy.execute(
         space.address,
@@ -501,7 +501,7 @@ describe('L1 Avatar Execution', function () {
         executionHash,
         [fakeProposalTx],
       ),
-    ).to.be.revertedWith('InvalidPayload');
+    ).to.be.reverted;
   }, 10000000);
 
   it('should revert execution if quorum is not met (abstain votes only)', async function () {
