@@ -192,7 +192,9 @@ mod tests {
         assert(space.vote_power(proposal_id, Choice::For(())) == 0, 'Vote power should be 0');
         assert(space.vote_power(proposal_id, Choice::Against(())) == 0, 'Vote power should be 0');
         assert(space.vote_power(proposal_id, Choice::Abstain(())) == 1, 'Vote power should be 1');
-    // TODO : check event
+        assert_vote_emitted_and_correct(
+            space.contract_address, proposal_id, voter, choice, 1, metadata_uri.span()
+        );
     }
 
     #[test]
