@@ -31,7 +31,7 @@ contract StarknetSpaceManager is OwnableUpgradeable {
 
     /// @notice Enable a space.
     /// @param space Address of the space.
-    function enableSpace(uint256 space) public onlyOwner {
+    function enableSpace(uint256 space) external onlyOwner {
         if (space == 0 || (spaces[space] != FALSE)) revert InvalidSpace();
         spaces[space] = TRUE;
         emit SpaceEnabled(space);

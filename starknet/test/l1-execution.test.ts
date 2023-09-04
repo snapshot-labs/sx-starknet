@@ -185,11 +185,11 @@ describe('L1 Avatar Execution', function () {
       { rawInput: true },
     );
 
-    // Propogating message to L1
+    // Propagating message to L1
     const flushL2Response = await starknet.devnet.flush();
     const message_payload = flushL2Response.consumed_messages.from_l2[0].payload;
 
-    // Proposal data can either be extracted from the message sent to L1 (as done here) or from the pulled from the contract directly
+    // Proposal data can either be extracted from the message sent to L1 (as done here) or pulled from the contract directly
     const space_message = message_payload[0];
     const proposal = {
       startTimestamp: message_payload[1],
@@ -306,10 +306,10 @@ describe('L1 Avatar Execution', function () {
       { rawInput: true },
     );
 
-    // Propogating message to L1
+    // Propagating message to L1
     const flushL2Response = await starknet.devnet.flush();
     const message_payload = flushL2Response.consumed_messages.from_l2[0].payload;
-    // Proposal data can either be extracted from the message sent to L1 (as done here) or from the pulled from the contract directly
+    // Proposal data can either be extracted from the message sent to L1 (as done here) or pulled from the contract directly
     const space_message = message_payload[0];
     const proposal = {
       startTimestamp: message_payload[1],
@@ -426,10 +426,10 @@ describe('L1 Avatar Execution', function () {
       { rawInput: true },
     );
 
-    // Propogating message to L1
+    // Propagating message to L1
     const flushL2Response = await starknet.devnet.flush();
     const message_payload = flushL2Response.consumed_messages.from_l2[0].payload;
-    // Proposal data can either be extracted from the message sent to L1 (as done here) or from the pulled from the contract directly
+    // Proposal data can either be extracted from the message sent to L1 (as done here) or pulled from the contract directly
     const space_message = message_payload[0];
     const proposal = {
       startTimestamp: message_payload[1],
@@ -549,10 +549,10 @@ describe('L1 Avatar Execution', function () {
       { rawInput: true },
     );
 
-    // Propogating message to L1
+    // Propagating message to L1
     const flushL2Response = await starknet.devnet.flush();
     const message_payload = flushL2Response.consumed_messages.from_l2[0].payload;
-    // Proposal data can either be extracted from the message sent to L1 (as done here) or from the pulled from the contract directly
+    // Proposal data can either be extracted from the message sent to L1 (as done here) or pulled from the contract directly
     const space_message = message_payload[0];
     const proposal = {
       startTimestamp: message_payload[1],
@@ -659,10 +659,10 @@ describe('L1 Avatar Execution', function () {
       { rawInput: true },
     );
 
-    // Propogating message to L1
+    // Propagating message to L1
     const flushL2Response = await starknet.devnet.flush();
     const message_payload = flushL2Response.consumed_messages.from_l2[0].payload;
-    // Proposal data can either be extracted from the message sent to L1 (as done here) or from the pulled from the contract directly
+    // Proposal data can either be extracted from the message sent to L1 (as done here) or pulled from the contract directly
     const space_message = message_payload[0];
     const proposal = {
       startTimestamp: message_payload[1],

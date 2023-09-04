@@ -25,7 +25,7 @@ mod EthRelayerExecutionStrategy {
             // on L1 in a separate tx and therefore cannot ensure that the proposal is not still in the voting period 
             // when it is executed. 
             assert(
-                info::get_block_timestamp() > proposal.max_end_timestamp.into(),
+                info::get_block_timestamp() >= proposal.max_end_timestamp.into(),
                 'Before max end timestamp'
             );
 
