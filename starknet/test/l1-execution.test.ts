@@ -481,7 +481,6 @@ describe('L1 Avatar Execution', function () {
     // Proposal data can either be extracted from the message sent to L1 (as done here) or pulled from the contract directly
     const [proposal, forVotes, againstVotes, abstainVotes] = extractMessagePayload(message_payload);
 
-
     const fakeProposalTx = {
       to: signer.address,
       value: 10,
