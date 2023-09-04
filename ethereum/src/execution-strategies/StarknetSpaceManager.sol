@@ -25,6 +25,7 @@ contract StarknetSpaceManager is OwnableUpgradeable {
     /// @param _spaces List of spaces.
     function __SpaceManager_init(uint256[] memory _spaces) internal onlyInitializing {
         for (uint256 i = 0; i < _spaces.length; i++) {
+            if (_spaces[i] == 0 || (spaces[_spaces[i]] != FALSE)) revert InvalidSpace();
             spaces[_spaces[i]] = TRUE;
         }
     }
