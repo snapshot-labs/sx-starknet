@@ -2,7 +2,7 @@
 
 kill -9 $(lsof -t -i:5050)
 yarn chain:l2 &
-yarn wait-on tcp:5050 &&
+sleep 10 &&
 yarn hardhat test starknet/test/eth-sig-auth.test.ts
 if [ $? -eq 0 ]
 then

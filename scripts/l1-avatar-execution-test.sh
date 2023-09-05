@@ -3,8 +3,7 @@
 kill -9 $(lsof -t -i:8545)
 kill -9 $(lsof -t -i:5050)
 yarn chain &
-yarn wait-on tcp:8545 && 
-wait-on tcp:5050 && 
+sleep 10 &&
 yarn hardhat test starknet/test/l1-avatar-execution.test.ts --network 'ethereumLocal' --starknet-network 'starknetLocal'
 if [ $? -eq 0 ]
 then
