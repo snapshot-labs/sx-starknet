@@ -140,12 +140,12 @@ describe('L1 Avatar Execution', function () {
       CallData.compile({
         space: space.address,
         author: account.address,
+        metadataURI: [],
         executionStrategy: {
           address: ethRelayer.address,
           params: executionPayload,
         },
         userProposalValidationParams: [],
-        metadataURI: [],
       }),
       { rawInput: true },
     );
@@ -243,12 +243,12 @@ describe('L1 Avatar Execution', function () {
       CallData.compile({
         space: space.address,
         author: account.address,
+        metadataURI: [],
         executionStrategy: {
           address: ethRelayer.address,
           params: executionPayload,
         },
         userProposalValidationParams: [],
-        metadataURI: [],
       }),
       { rawInput: true },
     );
@@ -341,12 +341,12 @@ describe('L1 Avatar Execution', function () {
       CallData.compile({
         space: space.address,
         author: account.address,
+        metadataURI: [],
         executionStrategy: {
           address: ethRelayer.address,
           params: executionPayload,
         },
         userProposalValidationParams: [],
-        metadataURI: [],
       }),
       { rawInput: true },
     );
@@ -441,12 +441,12 @@ describe('L1 Avatar Execution', function () {
       CallData.compile({
         space: space.address,
         author: account.address,
+        metadataURI: [],
         executionStrategy: {
           address: ethRelayer.address,
           params: executionPayload,
         },
         userProposalValidationParams: [],
-        metadataURI: [],
       }),
       { rawInput: true },
     );
@@ -538,12 +538,12 @@ describe('L1 Avatar Execution', function () {
       CallData.compile({
         space: space.address,
         author: account.address,
+        metadataURI: [],
         executionStrategy: {
           address: ethRelayer.address,
           params: executionPayload,
         },
         userProposalValidationParams: [],
-        metadataURI: [],
       }),
       { rawInput: true },
     );
@@ -643,12 +643,12 @@ describe('L1 Avatar Execution', function () {
       CallData.compile({
         space: space.address,
         author: account.address,
+        metadataURI: [],
         executionStrategy: {
           address: ethRelayer.address,
           params: executionPayload,
         },
         userProposalValidationParams: [],
-        metadataURI: [],
       }),
       { rawInput: true },
     );
@@ -740,12 +740,12 @@ describe('L1 Avatar Execution', function () {
       CallData.compile({
         space: space.address,
         author: account.address,
+        metadataURI: [],
         executionStrategy: {
           address: ethRelayer.address,
           params: executionPayload,
         },
         userProposalValidationParams: [],
-        metadataURI: [],
       }),
       { rawInput: true },
     );
@@ -837,12 +837,12 @@ describe('L1 Avatar Execution', function () {
       CallData.compile({
         space: space.address,
         author: account.address,
+        metadataURI: [],
         executionStrategy: {
           address: ethRelayer.address,
           params: executionPayload,
         },
         userProposalValidationParams: [],
-        metadataURI: [],
       }),
       { rawInput: true },
     );
@@ -922,12 +922,12 @@ describe('L1 Avatar Execution', function () {
       CallData.compile({
         space: space.address,
         author: account.address,
+        metadataURI: [],
         executionStrategy: {
           address: ethRelayer.address,
           params: executionPayload,
         },
         userProposalValidationParams: [],
-        metadataURI: [],
       }),
       { rawInput: true },
     );

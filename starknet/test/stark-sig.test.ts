@@ -105,7 +105,7 @@ describe('Starknet Signature Authenticator', () => {
         },
         _proposal_validation_strategy_metadata_URI: [],
         _voting_strategies: [{ address: vanillaVotingStrategyAddress, params: [] }],
-        _voting_strategies_metadata_URI: [],
+        _voting_strategies_metadata_URI: [[]],
         _authenticators: [starkSigAuthAddress],
         _metadata_URI: [],
         _dao_URI: [],
