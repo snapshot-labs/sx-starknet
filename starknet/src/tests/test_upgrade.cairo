@@ -39,7 +39,7 @@ mod tests {
 
     #[test]
     #[available_gas(10000000000)]
-    fn test_upgrade() {
+    fn upgrade() {
         let config = setup();
         let (factory, space) = deploy(@config);
 
@@ -58,7 +58,7 @@ mod tests {
 
     #[test]
     #[available_gas(10000000000)]
-    fn test_upgrade_via_execution_strategy() {
+    fn upgrade_via_execution_strategy() {
         let config = setup();
         let (factory, space) = deploy(@config);
         let proposal_id = space.next_proposal_id();
@@ -116,7 +116,7 @@ mod tests {
     #[test]
     #[available_gas(10000000000)]
     #[should_panic(expected: ('Caller is not the owner', 'ENTRYPOINT_FAILED'))]
-    fn test_upgrade_unauthorized() {
+    fn upgrade_unauthorized() {
         let config = setup();
         let (factory, space) = deploy(@config);
 

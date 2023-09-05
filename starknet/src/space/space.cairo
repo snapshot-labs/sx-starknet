@@ -137,7 +137,7 @@ mod Space {
         Upgraded: Upgraded,
     }
 
-    #[derive(Drop, starknet::Event)]
+    #[derive(Drop, PartialEq, starknet::Event)]
     struct SpaceCreated {
         space: ContractAddress,
         owner: ContractAddress,
@@ -153,7 +153,7 @@ mod Space {
         dao_uri: Span<felt252>,
     }
 
-    #[derive(Drop, starknet::Event)]
+    #[derive(Drop, PartialEq, starknet::Event)]
     struct ProposalCreated {
         proposal_id: u256,
         author: UserAddress,
@@ -162,7 +162,7 @@ mod Space {
         metadata_uri: Span<felt252>,
     }
 
-    #[derive(Drop, starknet::Event)]
+    #[derive(Drop, PartialEq, starknet::Event)]
     struct VoteCast {
         proposal_id: u256,
         voter: UserAddress,
@@ -171,77 +171,77 @@ mod Space {
         metadata_uri: Span<felt252>,
     }
 
-    #[derive(Drop, starknet::Event)]
+    #[derive(Drop, PartialEq, starknet::Event)]
     struct ProposalExecuted {
         proposal_id: u256,
     }
 
-    #[derive(Drop, starknet::Event)]
+    #[derive(Drop, PartialEq, starknet::Event)]
     struct ProposalUpdated {
         proposal_id: u256,
         execution_strategy: Strategy,
         metadata_uri: Span<felt252>,
     }
 
-    #[derive(Drop, starknet::Event)]
+    #[derive(Drop, PartialEq, starknet::Event)]
     struct ProposalCancelled {
         proposal_id: u256,
     }
 
-    #[derive(Drop, starknet::Event)]
+    #[derive(Drop, PartialEq, starknet::Event)]
     struct VotingStrategiesAdded {
         voting_strategies: Span<Strategy>,
         voting_strategy_metadata_uris: Span<Array<felt252>>,
     }
 
-    #[derive(Drop, starknet::Event)]
+    #[derive(Drop, PartialEq, starknet::Event)]
     struct VotingStrategiesRemoved {
         voting_strategy_indices: Span<u8>,
     }
 
-    #[derive(Drop, starknet::Event)]
+    #[derive(Drop, PartialEq, starknet::Event)]
     struct AuthenticatorsAdded {
         authenticators: Span<ContractAddress>,
     }
 
-    #[derive(Drop, starknet::Event)]
+    #[derive(Drop, PartialEq, starknet::Event)]
     struct AuthenticatorsRemoved {
         authenticators: Span<ContractAddress>,
     }
 
-    #[derive(Drop, starknet::Event)]
+    #[derive(Drop, PartialEq, starknet::Event)]
     struct MaxVotingDurationUpdated {
         max_voting_duration: u32,
     }
 
-    #[derive(Drop, starknet::Event)]
+    #[derive(Drop, PartialEq, starknet::Event)]
     struct MinVotingDurationUpdated {
         min_voting_duration: u32,
     }
 
-    #[derive(Drop, starknet::Event)]
+    #[derive(Drop, PartialEq, starknet::Event)]
     struct ProposalValidationStrategyUpdated {
         proposal_validation_strategy: Strategy,
         proposal_validation_strategy_metadata_uri: Span<felt252>,
     }
 
-    #[derive(Drop, starknet::Event)]
+    #[derive(Drop, PartialEq, starknet::Event)]
     struct VotingDelayUpdated {
         voting_delay: u32,
     }
 
-    #[derive(Drop, starknet::Event)]
+    #[derive(Drop, PartialEq, starknet::Event)]
     struct Upgraded {
         class_hash: ClassHash,
         initialize_calldata: Span<felt252>,
     }
 
-    #[derive(Drop, starknet::Event)]
+    #[derive(Drop, PartialEq, starknet::Event)]
     struct MetadataUriUpdated {
         metadata_uri: Span<felt252>,
     }
 
-    #[derive(Drop, starknet::Event)]
+    #[derive(Drop, PartialEq, starknet::Event)]
     struct DaoUriUpdated {
         dao_uri: Span<felt252>,
     }
@@ -334,7 +334,7 @@ mod Space {
             let max_end_timestamp = start_timestamp + self._max_voting_duration.read();
 
             // TODO: we use a felt252 for the hash despite felts being discouraged 
-            // a new field would just replace the hash. Might be worth casting to a Uint256 though? 
+            // a new field would just replace the hash. Might be worth casting to a u256 though? 
             let execution_payload_hash = poseidon::poseidon_hash_span(
                 execution_strategy.params.span()
             );
@@ -351,7 +351,6 @@ mod Space {
             };
             let clone_proposal = proposal.clone();
 
-            // TODO: Lots of copying, maybe figure out how to pass snapshots to events/storage writers. 
             self._proposals.write(proposal_id, proposal);
 
             self._next_proposal_id.write(proposal_id + 1_u256);
