@@ -33,7 +33,7 @@ describe('L1 Avatar Execution', function () {
   before(async function () {
     const signers = await ethers.getSigners();
     signer = signers[0];
-    
+
     account = await starknet.OpenZeppelinAccount.getAccountFromAddress(account_address, account_pk);
 
     const starkTxAuthenticatorFactory =
