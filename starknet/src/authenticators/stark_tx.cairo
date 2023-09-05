@@ -7,9 +7,9 @@ trait IStarkTxAuthenticator<TContractState> {
         ref self: TContractState,
         space: ContractAddress,
         author: ContractAddress,
+        metadata_uri: Array<felt252>,
         execution_strategy: Strategy,
         user_proposal_validation_params: Array<felt252>,
-        metadata_uri: Array<felt252>
     );
     fn authenticate_vote(
         ref self: TContractState,
@@ -48,9 +48,9 @@ mod StarkTxAuthenticator {
             ref self: ContractState,
             space: ContractAddress,
             author: ContractAddress,
+            metadata_uri: Array<felt252>,
             execution_strategy: Strategy,
             user_proposal_validation_params: Array<felt252>,
-            metadata_uri: Array<felt252>
         ) {
             assert(info::get_caller_address() == author, 'Invalid Caller');
 

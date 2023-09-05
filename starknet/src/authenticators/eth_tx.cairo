@@ -7,9 +7,9 @@ trait IEthTxAuthenticator<TContractState> {
         ref self: TContractState,
         target: ContractAddress,
         author: EthAddress,
+        metadata_uri: Array<felt252>,
         execution_strategy: Strategy,
         user_proposal_validation_params: Array<felt252>,
-        metadata_uri: Array<felt252>
     );
     fn authenticate_vote(
         ref self: TContractState,
@@ -53,9 +53,9 @@ mod EthTxAuthenticator {
             ref self: ContractState,
             target: ContractAddress,
             author: EthAddress,
+            metadata_uri: Array<felt252>,
             execution_strategy: Strategy,
             user_proposal_validation_params: Array<felt252>,
-            metadata_uri: Array<felt252>
         ) {
             let mut payload = array![];
             target.serialize(ref payload);

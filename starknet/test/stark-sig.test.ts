@@ -125,12 +125,12 @@ describe('Starknet Signature Authenticator', () => {
     const proposeMsg: Propose = {
       space: spaceAddress,
       author: address0,
+      metadataURI: ['0x1', '0x2', '0x3', '0x4'],
       executionStrategy: {
         address: '0x0000000000000000000000000000000000001234',
         params: ['0x5', '0x6', '0x7', '0x8'],
       },
       userProposalValidationParams: ['0x1', '0x2', '0x3', '0x4'],
-      metadataURI: ['0x1', '0x2', '0x3', '0x4'],
       salt: '0x0',
     };
 

@@ -8,9 +8,9 @@ trait IStarkSigAuthenticator<TContractState> {
         signature: Array<felt252>,
         target: ContractAddress,
         author: ContractAddress,
+        metadata_uri: Array<felt252>,
         execution_strategy: Strategy,
         user_proposal_validation_params: Array<felt252>,
-        metadata_uri: Array<felt252>,
         salt: felt252,
         account_type: felt252
     );
@@ -60,9 +60,9 @@ mod StarkSigAuthenticator {
             signature: Array<felt252>,
             target: ContractAddress,
             author: ContractAddress,
+            metadata_uri: Array<felt252>,
             execution_strategy: Strategy,
             user_proposal_validation_params: Array<felt252>,
-            metadata_uri: Array<felt252>,
             salt: felt252,
             account_type: felt252
         ) {
