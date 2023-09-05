@@ -18,9 +18,9 @@ trait KeccakStructHash<T> {
 impl KeccakStructHashStrategy of KeccakStructHash<Strategy> {
     fn keccak_struct_hash(self: @Strategy) -> u256 {
         let encoded_data = array![
-            u256 {
-                low: STRATEGY_TYPEHASH_LOW, high: STRATEGY_TYPEHASH_HIGH
-            }, (*self.address).into(), self.params.span().keccak_struct_hash()
+            u256 { low: STRATEGY_TYPEHASH_LOW, high: STRATEGY_TYPEHASH_HIGH },
+            (*self.address).into(),
+            self.params.span().keccak_struct_hash()
         ];
         keccak::keccak_u256s_be_inputs(encoded_data.span()).byte_reverse()
     }
@@ -36,9 +36,9 @@ impl KeccakStructHashArray of KeccakStructHash<Span<felt252>> {
 impl KeccakStructHashIndexedStrategy of KeccakStructHash<IndexedStrategy> {
     fn keccak_struct_hash(self: @IndexedStrategy) -> u256 {
         let encoded_data = array![
-            u256 {
-                low: INDEXED_STRATEGY_TYPEHASH_LOW, high: INDEXED_STRATEGY_TYPEHASH_HIGH
-            }, U8IntoU256::into(*self.index), self.params.span().keccak_struct_hash()
+            u256 { low: INDEXED_STRATEGY_TYPEHASH_LOW, high: INDEXED_STRATEGY_TYPEHASH_HIGH },
+            U8IntoU256::into(*self.index),
+            self.params.span().keccak_struct_hash()
         ];
         keccak::keccak_u256s_be_inputs(encoded_data.span()).byte_reverse()
     }

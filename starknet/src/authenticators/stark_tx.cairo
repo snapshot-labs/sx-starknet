@@ -9,7 +9,7 @@ trait IStarkTxAuthenticator<TContractState> {
         author: ContractAddress,
         execution_strategy: Strategy,
         user_proposal_validation_params: Array<felt252>,
-        metadata_URI: Array<felt252>
+        metadata_uri: Array<felt252>
     );
     fn authenticate_vote(
         ref self: TContractState,
@@ -18,7 +18,7 @@ trait IStarkTxAuthenticator<TContractState> {
         proposal_id: u256,
         choice: Choice,
         user_voting_strategies: Array<IndexedStrategy>,
-        metadata_URI: Array<felt252>
+        metadata_uri: Array<felt252>
     );
     fn authenticate_update_proposal(
         ref self: TContractState,
@@ -26,7 +26,7 @@ trait IStarkTxAuthenticator<TContractState> {
         author: ContractAddress,
         proposal_id: u256,
         execution_strategy: Strategy,
-        metadata_URI: Array<felt252>
+        metadata_uri: Array<felt252>
     );
 }
 
@@ -34,9 +34,10 @@ trait IStarkTxAuthenticator<TContractState> {
 mod StarkTxAuthenticator {
     use super::IStarkTxAuthenticator;
     use starknet::{ContractAddress, info};
-    use core::array::ArrayTrait;
-    use sx::space::space::{ISpaceDispatcher, ISpaceDispatcherTrait};
-    use sx::types::{UserAddress, Strategy, IndexedStrategy, Choice};
+    use sx::{
+        space::space::{ISpaceDispatcher, ISpaceDispatcherTrait},
+        types::{UserAddress, Strategy, IndexedStrategy, Choice},
+    };
 
     #[storage]
     struct Storage {}
@@ -49,18 +50,16 @@ mod StarkTxAuthenticator {
             author: ContractAddress,
             execution_strategy: Strategy,
             user_proposal_validation_params: Array<felt252>,
-            metadata_URI: Array<felt252>
+            metadata_uri: Array<felt252>
         ) {
             assert(info::get_caller_address() == author, 'Invalid Caller');
 
-            ISpaceDispatcher {
-                contract_address: space
-            }
+            ISpaceDispatcher { contract_address: space }
                 .propose(
                     UserAddress::Starknet(author),
                     execution_strategy,
                     user_proposal_validation_params,
-                    metadata_URI
+                    metadata_uri
                 );
         }
 
@@ -71,19 +70,17 @@ mod StarkTxAuthenticator {
             proposal_id: u256,
             choice: Choice,
             user_voting_strategies: Array<IndexedStrategy>,
-            metadata_URI: Array<felt252>
+            metadata_uri: Array<felt252>
         ) {
             assert(info::get_caller_address() == voter, 'Invalid Caller');
 
-            ISpaceDispatcher {
-                contract_address: space
-            }
+            ISpaceDispatcher { contract_address: space }
                 .vote(
                     UserAddress::Starknet(voter),
                     proposal_id,
                     choice,
                     user_voting_strategies,
-                    metadata_URI
+                    metadata_uri
                 );
         }
 
@@ -93,15 +90,13 @@ mod StarkTxAuthenticator {
             author: ContractAddress,
             proposal_id: u256,
             execution_strategy: Strategy,
-            metadata_URI: Array<felt252>
+            metadata_uri: Array<felt252>
         ) {
             assert(info::get_caller_address() == author, 'Invalid Caller');
 
-            ISpaceDispatcher {
-                contract_address: space
-            }
+            ISpaceDispatcher { contract_address: space }
                 .update_proposal(
-                    UserAddress::Starknet(author), proposal_id, execution_strategy, metadata_URI
+                    UserAddress::Starknet(author), proposal_id, execution_strategy, metadata_uri
                 );
         }
     }

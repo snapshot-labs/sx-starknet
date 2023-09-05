@@ -1,6 +1,3 @@
-use zeroable::Zeroable;
-use traits::Into;
-
 impl U64Zeroable of Zeroable<u64> {
     fn zero() -> u64 {
         0

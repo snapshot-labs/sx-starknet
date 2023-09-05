@@ -1,7 +1,6 @@
 #[starknet::contract]
 mod VanillaVotingStrategy {
-    use sx::interfaces::IVotingStrategy;
-    use sx::types::UserAddress;
+    use sx::{interfaces::IVotingStrategy, types::UserAddress};
     use starknet::ContractAddress;
 
     #[storage]
@@ -13,8 +12,8 @@ mod VanillaVotingStrategy {
             self: @ContractState,
             timestamp: u32,
             voter: UserAddress,
-            params: Array<felt252>,
-            user_params: Array<felt252>,
+            params: Span<felt252>,
+            user_params: Span<felt252>,
         ) -> u256 {
             1_u256
         }

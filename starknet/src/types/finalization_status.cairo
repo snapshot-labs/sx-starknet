@@ -1,6 +1,3 @@
-use serde::Serde;
-use array::ArrayTrait;
-
 #[derive(Drop, Serde, PartialEq, Copy, starknet::Store)]
 enum FinalizationStatus {
     Pending: (),
@@ -28,6 +25,26 @@ impl FinalizationStatusIntoU8 of Into<FinalizationStatus, u8> {
             FinalizationStatus::Pending(_) => 0_u8,
             FinalizationStatus::Executed(_) => 1_u8,
             FinalizationStatus::Cancelled(_) => 2_u8,
+        }
+    }
+}
+
+impl FinalizationStatusIntoU128 of Into<FinalizationStatus, u128> {
+    fn into(self: FinalizationStatus) -> u128 {
+        match self {
+            FinalizationStatus::Pending(_) => 0_u128,
+            FinalizationStatus::Executed(_) => 1_u128,
+            FinalizationStatus::Cancelled(_) => 2_u128,
+        }
+    }
+}
+
+impl FinalizationStatusIntoU256 of Into<FinalizationStatus, u256> {
+    fn into(self: FinalizationStatus) -> u256 {
+        match self {
+            FinalizationStatus::Pending(_) => 0_u256,
+            FinalizationStatus::Executed(_) => 1_u256,
+            FinalizationStatus::Cancelled(_) => 2_u256,
         }
     }
 }

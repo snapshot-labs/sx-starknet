@@ -1,5 +1,11 @@
 name: SX-Starknet Workflow
 
+env:
+  STARKNET_SIERRA_COMPILE_PATH: ./cairo/bin/starknet-sierra-compile
+  OBJC_DISABLE_INITIALIZE_FORK_SAFETY: YES
+  ADDRESS: "0x347be35996a21f6bf0623e75dbce52baba918ad5ae8d83b6f416045ab22961a"
+  PK: "0xbdd640fb06671ad11c80317fa3b1799d"
+
 on:
   push:
     branches:
@@ -14,28 +20,28 @@ jobs:
     name: Forge tests
     runs-on: ubuntu-latest
     steps:
-      - name: Step 1 - Check out main branch
+      - name: Check out main branch
         uses: actions/checkout@v3
         with:
           submodules: recursive
 
-      - name: Step 2 - Install Foundry
+      - name: Install Foundry
         uses: foundry-rs/foundry-toolchain@v1
         with:
           version: nightly
 
-      - name: Step 3 - Check formatting
+      - name: Check formatting
         working-directory: ./ethereum
         run: forge fmt --check
 
-      - name: Step 4 - Build Solidity contracts
+      - name: Build Solidity contracts
         working-directory: ./ethereum
         run: |
           forge --version
           forge build --sizes
         id: build
 
-      - name: Step 5 - Run Forge tests
+      - name: Run Forge tests
         working-directory: ./ethereum
         run: |
           forge test -vvv
@@ -46,24 +52,67 @@ jobs:
       fail-fast: true
 
     name: Cairo tests
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-20.04
     steps:
-      - name: Step 1 - Check out main branch
+      - name: Check out main branch
         uses: actions/checkout@v3
 
-      - name: Step 2 - Install Scarb 
+      - name: Set up node
+        uses: actions/setup-node@v3
+        with:
+          node-version: 18.16.0
+
+      - name: Get yarn cache directory path
+        id: yarn-cache-dir-path
+        run: echo "::set-output name=dir::$(yarn cache dir)"
+
+      - name: Cache Yarn dependencies
+        uses: actions/cache@v3
+        with:
+          path: ${{ steps.yarn-cache-dir-path.outputs.dir }}
+          key: yarn-${{ hashFiles('**/yarn.lock') }}
+          restore-keys: |
+            yarn-
+
+      - name: Install Yarn dependencies
+        run: yarn install 
+
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: 3.9
+
+      - name: Install Python dependencies
+        run: |
+          sudo apt install -y libgmp3-dev
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+
+      - name: Install Cairo 
+        run: curl -L https://github.com/starkware-libs/cairo/releases/download/v2.2.0/release-x86_64-unknown-linux-musl.tar.gz > cairo.tar.gz 
+
+      - name: Extract Cairo
+        run: tar -xvf cairo.tar.gz
+
+      - name: Install Scarb 
         uses: software-mansion/setup-scarb@v1
         with: 
-          scarb-version: 0.6.2
+          scarb-version: 0.7.0
 
-      - name: Step 3 - Check formatting
+      - name: Check Cairo formatting
         working-directory: ./starknet
         run: scarb fmt --check
 
-      - name: Step 4 - Build Cairo contracts
+      - name: Build Cairo contracts
         working-directory: ./starknet
         run: scarb build --verbose      
 
-      - name: Step 4 - Running Cairo tests
+      - name: Run Cairo tests
         working-directory: ./starknet
         run: scarb test --verbose
+
+      - name: Compile Cairo contracts for Hardhat tests
+        run: yarn hardhat starknet-build
+
+      - name: run Hardhat tests
+        run:  yarn test:l1-execution; yarn test:eth-sig-auth

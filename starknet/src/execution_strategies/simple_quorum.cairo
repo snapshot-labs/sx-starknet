@@ -1,12 +1,9 @@
 use core::traits::TryInto;
 #[starknet::contract]
 mod SimpleQuorumExecutionStrategy {
-    use traits::TryInto;
-    use option::OptionTrait;
     use starknet::ContractAddress;
     use starknet::get_caller_address;
     use starknet::info;
-    use zeroable::Zeroable;
     use sx::types::{Proposal, FinalizationStatus, ProposalStatus};
 
     #[storage]
@@ -17,6 +14,11 @@ mod SimpleQuorumExecutionStrategy {
     #[internal]
     fn initializer(ref self: ContractState, quorum: u256) {
         self._quorum.write(quorum);
+    }
+
+    #[internal]
+    fn quorum(self: @ContractState) -> u256 {
+        self._quorum.read()
     }
 
     #[internal]

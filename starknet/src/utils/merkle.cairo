@@ -1,12 +1,5 @@
-use core::traits::Into;
-use array::{ArrayTrait, Span, SpanTrait};
-use option::OptionTrait;
-use serde::Serde;
-use sx::types::UserAddress;
-use clone::Clone;
 use hash::{LegacyHash};
-use debug::PrintTrait;
-use sx::utils::legacy_hash::LegacyHashSpanFelt252;
+use sx::{types::UserAddress, utils::legacy_hash::LegacyHashSpanFelt252};
 
 /// Leaf struct for the merkle tree
 #[derive(Copy, Clone, Drop, Serde)]

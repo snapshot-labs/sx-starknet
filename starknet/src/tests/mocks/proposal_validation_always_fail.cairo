@@ -12,8 +12,8 @@ mod AlwaysFailProposalValidationStrategy {
         fn validate(
             self: @ContractState,
             author: UserAddress,
-            params: Array<felt252>,
-            userParams: Array<felt252>
+            params: Span<felt252>,
+            user_params: Span<felt252>
         ) -> bool {
             false
         }

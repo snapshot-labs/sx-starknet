@@ -12,7 +12,7 @@ trait IEthSigAuthenticator<TContractState> {
         author: EthAddress,
         execution_strategy: Strategy,
         user_proposal_validation_params: Array<felt252>,
-        metadata_URI: Array<felt252>,
+        metadata_uri: Array<felt252>,
         salt: u256,
     );
     fn authenticate_vote(
@@ -25,7 +25,7 @@ trait IEthSigAuthenticator<TContractState> {
         proposal_id: u256,
         choice: Choice,
         user_voting_strategies: Array<IndexedStrategy>,
-        metadata_URI: Array<felt252>,
+        metadata_uri: Array<felt252>,
     );
     fn authenticate_update_proposal(
         ref self: TContractState,
@@ -36,7 +36,7 @@ trait IEthSigAuthenticator<TContractState> {
         author: EthAddress,
         proposal_id: u256,
         execution_strategy: Strategy,
-        metadata_URI: Array<felt252>,
+        metadata_uri: Array<felt252>,
         salt: u256
     );
 }
@@ -45,13 +45,10 @@ trait IEthSigAuthenticator<TContractState> {
 mod EthSigAuthenticator {
     use super::IEthSigAuthenticator;
     use starknet::{ContractAddress, EthAddress, syscalls::call_contract_syscall};
-    use array::{ArrayTrait, SpanTrait};
-    use option::OptionTrait;
-    use traits::{Into, TryInto};
     use integer::u128_byte_reverse;
     use sx::space::space::{ISpaceDispatcher, ISpaceDispatcherTrait};
     use sx::types::{Strategy, IndexedStrategy, Choice, UserAddress};
-    use sx::utils::{eip712, legacy_hash::LegacyHashEthAddress};
+    use sx::utils::{eip712, legacy_hash::{LegacyHashEthAddress, LegacyHashUsedSalts}};
     use sx::utils::endian::{into_le_u64_array, ByteReverse};
 
     #[storage]
@@ -71,7 +68,7 @@ mod EthSigAuthenticator {
             author: EthAddress,
             execution_strategy: Strategy,
             user_proposal_validation_params: Array<felt252>,
-            metadata_URI: Array<felt252>,
+            metadata_uri: Array<felt252>,
             salt: u256,
         ) {
             assert(!self._used_salts.read((author, salt)), 'Salt Already Used');
@@ -85,18 +82,16 @@ mod EthSigAuthenticator {
                 author,
                 @execution_strategy,
                 user_proposal_validation_params.span(),
-                metadata_URI.span(),
+                metadata_uri.span(),
                 salt,
             );
             self._used_salts.write((author, salt), true);
-            ISpaceDispatcher {
-                contract_address: space
-            }
+            ISpaceDispatcher { contract_address: space }
                 .propose(
                     UserAddress::Ethereum(author),
                     execution_strategy,
                     user_proposal_validation_params,
-                    metadata_URI
+                    metadata_uri
                 );
         }
 
@@ -110,7 +105,7 @@ mod EthSigAuthenticator {
             proposal_id: u256,
             choice: Choice,
             user_voting_strategies: Array<IndexedStrategy>,
-            metadata_URI: Array<felt252>,
+            metadata_uri: Array<felt252>,
         ) {
             // No need to check salts here, as double voting is prevented by the space itself.
 
@@ -124,18 +119,16 @@ mod EthSigAuthenticator {
                 proposal_id,
                 choice,
                 user_voting_strategies.span(),
-                metadata_URI.span(),
+                metadata_uri.span(),
             );
 
-            ISpaceDispatcher {
-                contract_address: space
-            }
+            ISpaceDispatcher { contract_address: space }
                 .vote(
                     UserAddress::Ethereum(voter),
                     proposal_id,
                     choice,
                     user_voting_strategies,
-                    metadata_URI
+                    metadata_uri
                 );
         }
 
@@ -148,7 +141,7 @@ mod EthSigAuthenticator {
             author: EthAddress,
             proposal_id: u256,
             execution_strategy: Strategy,
-            metadata_URI: Array<felt252>,
+            metadata_uri: Array<felt252>,
             salt: u256
         ) {
             assert(!self._used_salts.read((author, salt)), 'Salt Already Used');
@@ -162,15 +155,13 @@ mod EthSigAuthenticator {
                 author,
                 proposal_id,
                 @execution_strategy,
-                metadata_URI.span(),
+                metadata_uri.span(),
                 salt
             );
             self._used_salts.write((author, salt), true);
-            ISpaceDispatcher {
-                contract_address: space
-            }
+            ISpaceDispatcher { contract_address: space }
                 .update_proposal(
-                    UserAddress::Ethereum(author), proposal_id, execution_strategy, metadata_URI
+                    UserAddress::Ethereum(author), proposal_id, execution_strategy, metadata_uri
                 );
         }
     }

@@ -89,9 +89,7 @@ fn get_propose_digest(
     salt: u256
 ) -> u256 {
     let encoded_data = array![
-        u256 {
-            low: PROPOSE_TYPEHASH_LOW, high: PROPOSE_TYPEHASH_HIGH
-        },
+        u256 { low: PROPOSE_TYPEHASH_LOW, high: PROPOSE_TYPEHASH_HIGH },
         get_contract_address().into(),
         space.into(),
         author.into(),
@@ -114,9 +112,7 @@ fn get_vote_digest(
     metadata_URI: Span<felt252>,
 ) -> u256 {
     let encoded_data = array![
-        u256 {
-            low: VOTE_TYPEHASH_LOW, high: VOTE_TYPEHASH_HIGH
-        },
+        u256 { low: VOTE_TYPEHASH_LOW, high: VOTE_TYPEHASH_HIGH },
         get_contract_address().into(),
         space.into(),
         voter.into(),
@@ -139,9 +135,7 @@ fn get_update_proposal_digest(
     salt: u256
 ) -> u256 {
     let encoded_data = array![
-        u256 {
-            low: UPDATE_PROPOSAL_TYPEHASH_LOW, high: UPDATE_PROPOSAL_TYPEHASH_HIGH
-        },
+        u256 { low: UPDATE_PROPOSAL_TYPEHASH_LOW, high: UPDATE_PROPOSAL_TYPEHASH_HIGH },
         get_contract_address().into(),
         space.into(),
         author.into(),
@@ -159,9 +153,8 @@ fn get_domain_hash() -> u256 {
     // therefore we cannot use the `verifyingContract` field in the domain separator, instead we add the 
     //  verifying contract address to the message itself.
     let encoded_data = array![
-        u256 {
-            low: DOMAIN_TYPEHASH_LOW, high: DOMAIN_TYPEHASH_HIGH
-        }, Felt252IntoU256::into(get_tx_info().unbox().chain_id)
+        u256 { low: DOMAIN_TYPEHASH_LOW, high: DOMAIN_TYPEHASH_HIGH },
+        Felt252IntoU256::into(get_tx_info().unbox().chain_id)
     ];
     keccak::keccak_u256s_be_inputs(encoded_data.span()).byte_reverse()
 }
