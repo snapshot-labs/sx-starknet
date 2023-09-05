@@ -14,7 +14,7 @@
     "chain": "yarn chain:l1 & yarn chain:l2",
     "test:stark-sig-auth": "jest -c jest.config.ts",
     "test:eth-sig-auth": "bash './scripts/eth-sig-auth-test.sh'",
-    "test:l1-execution": "bash './scripts/l1-execution.sh'"
+    "test:l1-execution": "bash './scripts/l1-avatar-execution-test.sh'"
   },
   "devDependencies": {
     "@gnosis.pm/safe-contracts": "^1.3.0",
