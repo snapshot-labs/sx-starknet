@@ -62,9 +62,9 @@ describe('Ethereum Signature Authenticator', function () {
     // Initializing the space
     const initializeCalldata = CallData.compile({
       _owner: 1,
-      _max_voting_duration: 20,
-      _min_voting_duration: 20,
-      _voting_delay: 10,
+      _max_voting_duration: 200,
+      _min_voting_duration: 200,
+      _voting_delay: 100,
       _proposal_validation_strategy: {
         address: vanillaProposalValidationStrategy.address,
         params: [],
@@ -164,7 +164,7 @@ describe('Ethereum Signature Authenticator', function () {
     );
 
     // Increase time so voting period begins
-    await starknet.devnet.increaseTime(10);
+    await starknet.devnet.increaseTime(100);
 
     // VOTE
 
@@ -334,7 +334,7 @@ describe('Ethereum Signature Authenticator', function () {
     );
 
     // Increase time so voting period begins
-    await starknet.devnet.increaseTime(10);
+    await starknet.devnet.increaseTime(100);
 
     // VOTE
 
@@ -494,7 +494,7 @@ describe('Ethereum Signature Authenticator', function () {
     }
 
     // Increase time so voting period begins
-    await starknet.devnet.increaseTime(10);
+    await starknet.devnet.increaseTime(100);
 
     // VOTE
 
