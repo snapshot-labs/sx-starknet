@@ -29,7 +29,6 @@ mod VanillaExecutionStrategy {
             votes_abstain: u256,
             payload: Array<felt252>
         ) {
-            // TODO: this is probably wrong. 
             let mut state: SimpleQuorumExecutionStrategy::ContractState =
                 SimpleQuorumExecutionStrategy::unsafe_new_contract_state();
 

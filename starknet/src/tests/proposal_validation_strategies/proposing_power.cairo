@@ -30,7 +30,7 @@ mod tests {
 
     #[test]
     #[available_gas(10000000000)]
-    fn test_vanilla_works() {
+    fn vanilla_works() {
         starknet::testing::set_block_timestamp(1);
 
         // deploy vanilla voting strategy
@@ -103,7 +103,7 @@ mod tests {
 
     #[test]
     #[available_gas(10000000000)]
-    fn test_merkle_whitelist_works() {
+    fn merkle_whitelist_works() {
         starknet::testing::set_block_timestamp(1);
 
         // deploy merkle whitelist contract
@@ -258,7 +258,7 @@ mod tests {
 
     #[test]
     #[available_gas(10000000000)]
-    fn test_erc20votes_works() {
+    fn erc20votes_works() {
         let SUPPLY = 100_u256;
 
         // deploy erc20 voting strategy

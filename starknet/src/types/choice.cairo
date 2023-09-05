@@ -20,3 +20,13 @@ impl ChoiceIntoU256 of Into<Choice, u256> {
         ChoiceIntoU8::into(self).into()
     }
 }
+
+impl ChoiceEq of PartialEq<Choice> {
+    fn eq(lhs: @Choice, rhs: @Choice) -> bool {
+        ChoiceIntoU8::into(*lhs) == ChoiceIntoU8::into(*rhs)
+    }
+
+    fn ne(lhs: @Choice, rhs: @Choice) -> bool {
+        ChoiceIntoU8::into(*lhs) != ChoiceIntoU8::into(*rhs)
+    }
+}
