@@ -1,4 +1,4 @@
-use starknet::{ContractAddress, EthAddress};
+use starknet::{ContractAddress, EthAddress, contract_address_const};
 
 #[derive(Copy, Drop, Serde, PartialEq, starknet::Store)]
 enum UserAddress {

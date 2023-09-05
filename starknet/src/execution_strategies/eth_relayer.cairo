@@ -6,7 +6,7 @@ mod EthRelayerExecutionStrategy {
     use serde::Serde;
     use starknet::{info, syscalls, EthAddress};
     use sx::interfaces::IExecutionStrategy;
-    use sx::types::Proposal;
+    use sx::types::{Proposal, ProposalStatus};
 
     #[storage]
     struct Storage {}
@@ -52,6 +52,17 @@ mod EthRelayerExecutionStrategy {
 
         fn get_strategy_type(self: @ContractState) -> felt252 {
             'EthRelayer'
+        }
+
+        fn get_proposal_status(
+            self: @ContractState,
+            proposal: Proposal,
+            votes_for: u256,
+            votes_against: u256,
+            votes_abstain: u256,
+        ) -> ProposalStatus {
+            panic_with_felt252('unimplemented');
+            ProposalStatus::Cancelled(())
         }
     }
 }
