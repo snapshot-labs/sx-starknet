@@ -78,14 +78,14 @@ mod tests {
     use starknet::{EthAddress, contract_address_const};
 
     #[test]
-    fn test_is_zero() {
+    fn is_zero() {
         assert(UserAddress::Starknet(contract_address_const::<0>()).is_zero(), 'is not zero');
         assert(UserAddress::Ethereum(EthAddress { address: 0 }).is_zero(), 'is not zero');
         assert(UserAddress::Custom(0_u256).is_zero(), 'is not zero');
     }
 
     #[test]
-    fn test_is_zero_false_positive() {
+    fn is_zero_false_positive() {
         assert(
             UserAddress::Starknet(contract_address_const::<1>()).is_zero() == false,
             'false positive not zero'
@@ -98,14 +98,14 @@ mod tests {
     }
 
     #[test]
-    fn test_is_non_zero() {
+    fn is_non_zero() {
         assert(UserAddress::Starknet(contract_address_const::<1>()).is_non_zero(), 'is zero');
         assert(UserAddress::Ethereum(EthAddress { address: 1 }).is_non_zero(), 'is zero');
         assert(UserAddress::Custom(1_u256).is_non_zero(), 'is zero');
     }
 
     #[test]
-    fn test_is_non_zero_false_positive() {
+    fn is_non_zero_false_positive() {
         assert(
             UserAddress::Starknet(contract_address_const::<0>()).is_non_zero() == false,
             'false positive is zero'

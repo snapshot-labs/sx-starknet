@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: MIT
 
-pragma solidity ^0.8.18;
+pragma solidity ^0.8.19;
 
 import {IExecutionStrategy} from "../interfaces/IExecutionStrategy.sol";
 import {FinalizationStatus, Proposal, ProposalStatus} from "../types.sol";
@@ -8,6 +8,8 @@ import {StarknetSpaceManager} from "./StarknetSpaceManager.sol";
 
 /// @title Simple Quorum Base Execution Strategy
 abstract contract SimpleQuorumExecutionStrategy is IExecutionStrategy, StarknetSpaceManager {
+    event QuorumUpdated(uint256 newQuorum);
+
     /// @notice The quorum required to execute a proposal using this strategy.
     uint256 public quorum;
 
@@ -15,6 +17,13 @@ abstract contract SimpleQuorumExecutionStrategy is IExecutionStrategy, StarknetS
     // solhint-disable-next-line func-name-mixedcase
     function __SimpleQuorumExecutionStrategy_init(uint256 _quorum) internal onlyInitializing {
         quorum = _quorum;
+    }
+
+    /// @notice Sets the quorum required to execute a proposal using this strategy.
+    /// @param _quorum The new quorum.x
+    function setQuorum(uint256 _quorum) external onlyOwner {
+        quorum = _quorum;
+        emit QuorumUpdated(_quorum);
     }
 
     /// @notice Returns the status of a proposal that uses a simple quorum.

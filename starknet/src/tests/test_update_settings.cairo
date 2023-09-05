@@ -3,22 +3,38 @@ mod tests {
     use sx::space::space::{Space, ISpaceDispatcher, ISpaceDispatcherTrait};
     use sx::tests::setup::setup::setup::{setup, deploy, Config};
     use sx::types::{UpdateSettingsCalldata, UpdateSettingsCalldataImpl};
-    use sx::tests::utils::strategy_trait::{StrategyImpl};
+    use sx::tests::utils::strategy_trait::{StrategyImpl, StrategyDefault};
     use starknet::testing;
     use starknet::info;
-    use starknet::contract_address_const;
+    use starknet::{contract_address_const, ContractAddress};
     use clone::Clone;
     use array::{ArrayTrait, SpanTrait};
     use serde::Serde;
+    use openzeppelin::tests::utils;
+    use sx::space::space::Space::{
+        MinVotingDurationUpdated, MaxVotingDurationUpdated, VotingDelayUpdated, MetadataUriUpdated,
+        DaoUriUpdated, ProposalValidationStrategyUpdated, AuthenticatorsAdded,
+        AuthenticatorsRemoved, VotingStrategiesAdded, VotingStrategiesRemoved,
+    };
 
     fn setup_update_settings() -> (Config, ISpaceDispatcher) {
         let config = setup();
         let (_, space) = deploy(@config);
+        utils::drop_events(space.contract_address, 3);
 
         testing::set_caller_address(config.owner);
         testing::set_contract_address(config.owner);
 
         (config, space)
+    }
+
+    fn assert_correct_event<
+        T, impl TPartialEq: PartialEq<T>, impl TDrop: Drop<T>, impl TEvent: starknet::Event<T>
+    >(
+        space_address: ContractAddress, expected: T
+    ) {
+        let event = utils::pop_log::<T>(space_address).unwrap();
+        assert(event == expected, 'event\'s content incorrect');
     }
 
     #[test]
@@ -45,7 +61,10 @@ mod tests {
             space.min_voting_duration() == input.min_voting_duration,
             'Min voting duration not updated'
         );
-    // TODO: check event once it's been added
+        let expected_event = MinVotingDurationUpdated {
+            min_voting_duration: input.min_voting_duration
+        };
+        assert_correct_event::<MinVotingDurationUpdated>(space.contract_address, expected_event);
     }
 
     #[test]
@@ -73,7 +92,10 @@ mod tests {
             space.max_voting_duration() == input.max_voting_duration,
             'Max voting duration not updated'
         );
-    // TODO: check event once it's been added
+        let expected_event = MaxVotingDurationUpdated {
+            max_voting_duration: input.max_voting_duration
+        };
+        assert_correct_event::<MaxVotingDurationUpdated>(space.contract_address, expected_event);
     }
 
     #[test]
@@ -85,7 +107,6 @@ mod tests {
         input.max_voting_duration = config.min_voting_duration - 1;
 
         space.update_settings(input.clone());
-    // TODO: check event once it's been added
     }
 
     #[test]
@@ -105,7 +126,16 @@ mod tests {
             space.max_voting_duration() == input.max_voting_duration,
             'Max voting duration not updated'
         );
-    // TODO: check event once it's been added
+
+        let expected_event = MinVotingDurationUpdated {
+            min_voting_duration: input.min_voting_duration
+        };
+        assert_correct_event::<MinVotingDurationUpdated>(space.contract_address, expected_event);
+
+        let expected_event = MaxVotingDurationUpdated {
+            max_voting_duration: input.max_voting_duration
+        };
+        assert_correct_event::<MaxVotingDurationUpdated>(space.contract_address, expected_event);
     }
 
     #[test]
@@ -120,7 +150,6 @@ mod tests {
             .max_voting_duration; // min is bigger than max, should fail
 
         space.update_settings(input.clone());
-    // TODO: check event once it's been added
     }
 
     #[test]
@@ -133,7 +162,8 @@ mod tests {
         space.update_settings(input.clone());
 
         assert(space.voting_delay() == input.voting_delay, 'Voting delay not updated');
-    // TODO: check event once it's been added
+        let expected = VotingDelayUpdated { voting_delay: input.voting_delay };
+        assert_correct_event::<VotingDelayUpdated>(space.contract_address, expected);
     }
 
     #[test]
@@ -146,7 +176,8 @@ mod tests {
         input.metadata_uri = arr;
 
         space.update_settings(input.clone());
-    // TODO: check event once it's been added
+        let expected = MetadataUriUpdated { metadata_uri: input.metadata_uri.span() };
+        assert_correct_event::<MetadataUriUpdated>(space.contract_address, expected);
     }
 
     #[test]
@@ -158,7 +189,8 @@ mod tests {
 
         space.update_settings(input.clone());
         assert(space.dao_uri() == input.dao_uri, 'dao uri not updated');
-    // TODO: check event once it's been added
+        let expected = DaoUriUpdated { dao_uri: input.dao_uri.span() };
+        assert_correct_event::<DaoUriUpdated>(space.contract_address, expected);
     }
 
     #[test]
@@ -180,7 +212,13 @@ mod tests {
             space.proposal_validation_strategy() == input.proposal_validation_strategy,
             'Proposal strategy not updated'
         );
-    // TODO: check event once it's been added
+        let expected = ProposalValidationStrategyUpdated {
+            proposal_validation_strategy: input.proposal_validation_strategy,
+            proposal_validation_strategy_metadata_uri: input
+                .proposal_validation_strategy_metadata_uri
+                .span()
+        };
+        assert_correct_event::<ProposalValidationStrategyUpdated>(space.contract_address, expected);
     }
 
     #[test]
@@ -196,9 +234,10 @@ mod tests {
         space.update_settings(input.clone());
 
         assert(space.authenticators(auth1) == true, 'Authenticator 1 not added');
-
         assert(space.authenticators(auth2) == true, 'Authenticator 2 not added');
-    // TODO: check event once it's been added
+
+        let expected = AuthenticatorsAdded { authenticators: input.authenticators_to_add.span() };
+        assert_correct_event::<AuthenticatorsAdded>(space.contract_address, expected);
     }
 
     #[test]
@@ -213,7 +252,10 @@ mod tests {
         space.update_settings(input.clone());
 
         assert(space.authenticators(auth1) == false, 'Authenticator not removed');
-    // TODO: check event once it's been added
+        let expected = AuthenticatorsRemoved {
+            authenticators: input.authenticators_to_remove.span()
+        };
+        assert_correct_event::<AuthenticatorsRemoved>(space.contract_address, expected);
     }
 
     #[test]
@@ -251,12 +293,16 @@ mod tests {
         input.voting_strategies_to_add = arr;
         input.voting_strategies_metadata_uris_to_add = array![array![]]; // missing one uri!
 
-        space.update_settings(input);
+        space.update_settings(input.clone());
 
         assert(space.voting_strategies(1) == vs1, 'Voting strategy 1 not added');
         assert(space.voting_strategies(2) == vs2, 'Voting strategy 2 not added');
         assert(space.active_voting_strategies() == 0b111, 'Voting strategies not active');
-    // TODO: check event once it's been added
+        let expected = VotingStrategiesAdded {
+            voting_strategies: input.voting_strategies_to_add.span(),
+            voting_strategy_metadata_uris: array![].span()
+        };
+        assert_correct_event::<VotingStrategiesAdded>(space.contract_address, expected);
     }
 
 
@@ -275,14 +321,21 @@ mod tests {
         assert(space.voting_strategies(1) == vs1, 'Voting strategy 1 not added');
         assert(space.active_voting_strategies() == 0b11, 'Voting strategy not active');
 
+        // Drop the event that just got emitted
+        utils::drop_event(space.contract_address);
+
         // Now, remove the first voting strategy
         let mut input = UpdateSettingsCalldataImpl::default();
         let mut arr = array![0];
         input.voting_strategies_to_remove = arr;
 
-        space.update_settings(input);
+        space.update_settings(input.clone());
         assert(space.active_voting_strategies() == 0b10, 'strategy not removed');
-    // TODO: check event once it's been added
+
+        let expected = VotingStrategiesRemoved {
+            voting_strategy_indices: input.voting_strategies_to_remove.span()
+        };
+        assert_correct_event::<VotingStrategiesRemoved>(space.contract_address, expected);
     }
 
     #[test]
