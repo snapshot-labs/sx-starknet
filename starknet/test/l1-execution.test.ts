@@ -77,7 +77,7 @@ describe('L1 Avatar Execution', function () {
       },
       _proposal_validation_strategy_metadata_URI: [],
       _voting_strategies: [{ address: vanillaVotingStrategy.address, params: [] }],
-      _voting_strategies_metadata_URI: [],
+      _voting_strategies_metadata_URI: [[]],
       _authenticators: [starkTxAuthenticator.address],
       _metadata_URI: [],
       _dao_URI: [],
