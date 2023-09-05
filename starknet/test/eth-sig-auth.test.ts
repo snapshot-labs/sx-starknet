@@ -1,7 +1,6 @@
 import { expect } from 'chai';
 import dotenv from 'dotenv';
-import { ethers } from 'ethers';
-import { starknet } from 'hardhat';
+import { starknet, ethers } from 'hardhat';
 import { CallData, cairo, shortString } from 'starknet';
 import {
   Propose,
@@ -34,7 +33,6 @@ describe('Ethereum Signature Authenticator', function () {
 
   before(async function () {
     signer = ethers.Wallet.createRandom();
-
     account = await starknet.OpenZeppelinAccount.getAccountFromAddress(account_address, account_pk);
 
     const ethSigAuthenticatorFactory = await starknet.getContractFactory('sx_EthSigAuthenticator');
@@ -109,7 +107,7 @@ describe('Ethereum Signature Authenticator', function () {
       salt: '0x0',
     };
 
-    let sig = await signer.signTypedData(domain, proposeTypes, proposeMsg);
+    let sig = await signer._signTypedData(domain, proposeTypes, proposeMsg);
     let splitSig = getRSVFromSig(sig);
 
     const proposeCalldata = CallData.compile({
@@ -143,7 +141,7 @@ describe('Ethereum Signature Authenticator', function () {
       salt: '0x1',
     };
 
-    sig = await signer.signTypedData(domain, updateProposalTypes, updateProposalMsg);
+    sig = await signer._signTypedData(domain, updateProposalTypes, updateProposalMsg);
     splitSig = getRSVFromSig(sig);
 
     const updateProposalCalldata = CallData.compile({
@@ -180,7 +178,7 @@ describe('Ethereum Signature Authenticator', function () {
       metadataUri: ['0x1', '0x2', '0x3', '0x4'],
     };
 
-    sig = await signer.signTypedData(domain, voteTypes, voteMsg);
+    sig = await signer._signTypedData(domain, voteTypes, voteMsg);
     splitSig = getRSVFromSig(sig);
 
     const voteCalldata = CallData.compile({
@@ -224,7 +222,7 @@ describe('Ethereum Signature Authenticator', function () {
       salt: '0x0',
     };
 
-    let sig = await signer.signTypedData(domain, proposeTypes, proposeMsg);
+    let sig = await signer._signTypedData(domain, proposeTypes, proposeMsg);
     let splitSig = getRSVFromSig(sig);
 
     const proposeCalldata = CallData.compile({
@@ -241,7 +239,7 @@ describe('Ethereum Signature Authenticator', function () {
 
     // Random, signer that does not correspond to the proposal author
     let invalidSigner = ethers.Wallet.createRandom();
-    let invalidSig = await invalidSigner.signTypedData(domain, proposeTypes, proposeMsg);
+    let invalidSig = await invalidSigner._signTypedData(domain, proposeTypes, proposeMsg);
     let invalidSplitSig = getRSVFromSig(invalidSig);
 
     const invalidProposeCalldata = CallData.compile({
@@ -283,7 +281,7 @@ describe('Ethereum Signature Authenticator', function () {
       salt: '0x1',
     };
 
-    sig = await signer.signTypedData(domain, updateProposalTypes, updateProposalMsg);
+    sig = await signer._signTypedData(domain, updateProposalTypes, updateProposalMsg);
     splitSig = getRSVFromSig(sig);
 
     const updateProposalCalldata = CallData.compile({
@@ -300,7 +298,7 @@ describe('Ethereum Signature Authenticator', function () {
 
     // Random, signer that does not correspond to the proposal author
     invalidSigner = ethers.Wallet.createRandom();
-    invalidSig = await invalidSigner.signTypedData(domain, updateProposalTypes, updateProposalMsg);
+    invalidSig = await invalidSigner._signTypedData(domain, updateProposalTypes, updateProposalMsg);
     invalidSplitSig = getRSVFromSig(invalidSig);
 
     const invalidUpdateProposalCalldata = CallData.compile({
@@ -350,7 +348,7 @@ describe('Ethereum Signature Authenticator', function () {
       metadataUri: ['0x1', '0x2', '0x3', '0x4'],
     };
 
-    sig = await signer.signTypedData(domain, voteTypes, voteMsg);
+    sig = await signer._signTypedData(domain, voteTypes, voteMsg);
     splitSig = getRSVFromSig(sig);
 
     const voteCalldata = CallData.compile({
@@ -367,7 +365,7 @@ describe('Ethereum Signature Authenticator', function () {
 
     // Random, signer that does not correspond to the voter
     invalidSigner = ethers.Wallet.createRandom();
-    invalidSig = await invalidSigner.signTypedData(domain, voteTypes, voteMsg);
+    invalidSig = await invalidSigner._signTypedData(domain, voteTypes, voteMsg);
     invalidSplitSig = getRSVFromSig(invalidSig);
 
     const invalidVoteCalldata = CallData.compile({
@@ -419,7 +417,7 @@ describe('Ethereum Signature Authenticator', function () {
       salt: '0x0',
     };
 
-    let sig = await signer.signTypedData(domain, proposeTypes, proposeMsg);
+    let sig = await signer._signTypedData(domain, proposeTypes, proposeMsg);
     let splitSig = getRSVFromSig(sig);
 
     const proposeCalldata = CallData.compile({
@@ -461,7 +459,7 @@ describe('Ethereum Signature Authenticator', function () {
       salt: '0x1',
     };
 
-    sig = await signer.signTypedData(domain, updateProposalTypes, updateProposalMsg);
+    sig = await signer._signTypedData(domain, updateProposalTypes, updateProposalMsg);
     splitSig = getRSVFromSig(sig);
 
     const updateProposalCalldata = CallData.compile({
@@ -510,7 +508,7 @@ describe('Ethereum Signature Authenticator', function () {
       metadataUri: ['0x1', '0x2', '0x3', '0x4'],
     };
 
-    sig = await signer.signTypedData(domain, voteTypes, voteMsg);
+    sig = await signer._signTypedData(domain, voteTypes, voteMsg);
     splitSig = getRSVFromSig(sig);
 
     const voteCalldata = CallData.compile({
