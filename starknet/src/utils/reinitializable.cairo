@@ -6,6 +6,7 @@ trait IReinitializable<TContractState> {
     fn not_initialized(self: @TContractState);
 }
 
+/// A helper contract for initializing / re-initializing.
 #[starknet::contract]
 mod Reinitializable {
     use super::IReinitializable;
