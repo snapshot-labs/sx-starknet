@@ -7,9 +7,9 @@ trait IEthTxAuthenticator<TContractState> {
         ref self: TContractState,
         target: ContractAddress,
         author: EthAddress,
+        metadata_uri: Array<felt252>,
         execution_strategy: Strategy,
         user_proposal_validation_params: Array<felt252>,
-        metadata_uri: Array<felt252>
     );
     fn authenticate_vote(
         ref self: TContractState,
@@ -53,17 +53,17 @@ mod EthTxAuthenticator {
             ref self: ContractState,
             target: ContractAddress,
             author: EthAddress,
+            metadata_uri: Array<felt252>,
             execution_strategy: Strategy,
             user_proposal_validation_params: Array<felt252>,
-            metadata_uri: Array<felt252>
         ) {
             let mut payload = array![];
             target.serialize(ref payload);
             PROPOSE_SELECTOR.serialize(ref payload);
             author.serialize(ref payload);
+            metadata_uri.serialize(ref payload);
             execution_strategy.serialize(ref payload);
             user_proposal_validation_params.serialize(ref payload);
-            metadata_uri.serialize(ref payload);
             let payload_hash = poseidon::poseidon_hash_span(payload.span());
 
             consume_commit(ref self, payload_hash, author);
@@ -71,9 +71,9 @@ mod EthTxAuthenticator {
             ISpaceDispatcher { contract_address: target }
                 .propose(
                     UserAddress::Ethereum(author),
+                    metadata_uri,
                     execution_strategy,
                     user_proposal_validation_params,
-                    metadata_uri
                 );
         }
 
@@ -104,7 +104,7 @@ mod EthTxAuthenticator {
                     proposal_id,
                     choice,
                     user_voting_strategies,
-                    metadata_uri
+                    metadata_uri,
                 );
         }
 

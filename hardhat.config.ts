@@ -4,9 +4,8 @@ import { task } from 'hardhat/config';
 import { HardhatUserConfig } from 'hardhat/types';
 import '@shardlabs/starknet-hardhat-plugin';
 import '@typechain/hardhat';
-import '@nomiclabs/hardhat-ethers';
+import '@nomicfoundation/hardhat-ethers';
 import '@nomiclabs/hardhat-waffle';
-import 'hardhat-gas-reporter';
 import '@nomiclabs/hardhat-etherscan';
 import '@nomicfoundation/hardhat-network-helpers';
 import '@nomicfoundation/hardhat-foundry';
@@ -50,10 +49,6 @@ const config: HardhatUserConfig = {
     starknetLocal: {
       url: 'http://127.0.0.1:5050',
     },
-  },
-  gasReporter: {
-    enabled: process.env.REPORT_GAS !== undefined,
-    currency: 'USD',
   },
   etherscan: {
     apiKey: process.env.ETHERSCAN_API_KEY,
