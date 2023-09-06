@@ -7,7 +7,7 @@ trait IProposalValidationStrategy<TContractState> {
     /// # Arguments
     /// 
     /// * `author` - The address of the proposal author.
-    /// * `params` - Strategy-supplied parameters, stored in the space contract.
+    /// * `params` - Strategy-supplied parameters, stored in the space contract and defined by the space owner.
     /// * `user_params` - User-supplied parameters.
     ///
     /// # Returns
