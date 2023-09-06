@@ -6,7 +6,6 @@ use sx::utils::math;
 struct IndexedStrategy {
     /// The index of the strategy.
     index: u8,
-
     /// The corresponding parameters to use.
     params: Array<felt252>,
 }
