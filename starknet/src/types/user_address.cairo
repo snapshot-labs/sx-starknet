@@ -1,12 +1,13 @@
 use starknet::{ContractAddress, EthAddress, contract_address_const};
 
+/// Enum to represent a user address.
 #[derive(Copy, Drop, Serde, PartialEq, starknet::Store)]
 enum UserAddress {
-    // Starknet address type
+    /// Starknet address type
     Starknet: ContractAddress,
-    // Ethereum address type
+    /// Ethereum address type
     Ethereum: EthAddress,
-    // Custom address type to provide compatibility with any address that can be represented as a u256.
+    /// Custom address type to provide compatibility with any address that can be represented as a u256.
     Custom: u256
 }
 
