@@ -69,12 +69,12 @@ describe('Ethereum Signature Authenticator', function () {
         address: vanillaProposalValidationStrategy.address,
         params: [],
       },
-      _proposal_validation_strategy_metadata_URI: [],
+      _proposal_validation_strategy_metadata_uri: [],
       _voting_strategies: [{ address: vanillaVotingStrategy.address, params: [] }],
-      _voting_strategies_metadata_URI: [],
+      _voting_strategies_metadata_uri: [[]],
       _authenticators: [ethSigAuthenticator.address],
-      _metadata_URI: [],
-      _dao_URI: [],
+      _metadata_uri: [],
+      _dao_uri: [],
     });
 
     await account.invoke(space, 'initialize', initializeCalldata, { rawInput: true });
@@ -93,6 +93,7 @@ describe('Ethereum Signature Authenticator', function () {
       authenticator: ethSigAuthenticator.address,
       space: space.address,
       author: signer.address,
+      metadataUri: ['0x1', '0x2', '0x3', '0x4'],
       executionStrategy: {
         address: '0x0000000000000000000000000000000000005678',
         params: ['0x0'],
@@ -103,7 +104,6 @@ describe('Ethereum Signature Authenticator', function () {
         '0x5678',
         '0x9abc',
       ],
-      metadataUri: ['0x1', '0x2', '0x3', '0x4'],
       salt: '0x0',
     };
 
@@ -116,9 +116,9 @@ describe('Ethereum Signature Authenticator', function () {
       v: splitSig.v,
       space: proposeMsg.space,
       author: proposeMsg.author,
+      metadataUri: proposeMsg.metadataUri,
       executionStrategy: proposeMsg.executionStrategy,
       userProposalValidationParams: proposeMsg.userProposalValidationParams,
-      metadataUri: proposeMsg.metadataUri,
       salt: cairo.uint256(proposeMsg.salt),
     });
 
@@ -208,6 +208,7 @@ describe('Ethereum Signature Authenticator', function () {
       authenticator: ethSigAuthenticator.address,
       space: space.address,
       author: signer.address,
+      metadataUri: ['0x1', '0x2', '0x3', '0x4'],
       executionStrategy: {
         address: '0x0000000000000000000000000000000000005678',
         params: ['0x0'],
@@ -218,7 +219,6 @@ describe('Ethereum Signature Authenticator', function () {
         '0x5678',
         '0x9abc',
       ],
-      metadataUri: ['0x1', '0x2', '0x3', '0x4'],
       salt: '0x0',
     };
 
@@ -231,9 +231,9 @@ describe('Ethereum Signature Authenticator', function () {
       v: splitSig.v,
       space: proposeMsg.space,
       author: proposeMsg.author,
+      metadataUri: proposeMsg.metadataUri,
       executionStrategy: proposeMsg.executionStrategy,
       userProposalValidationParams: proposeMsg.userProposalValidationParams,
-      metadataUri: proposeMsg.metadataUri,
       salt: cairo.uint256(proposeMsg.salt),
     });
 
@@ -248,9 +248,9 @@ describe('Ethereum Signature Authenticator', function () {
       v: invalidSplitSig.v,
       space: proposeMsg.space,
       author: proposeMsg.author,
+      metadataUri: proposeMsg.metadataUri,
       executionStrategy: proposeMsg.executionStrategy,
       userProposalValidationParams: proposeMsg.userProposalValidationParams,
-      metadataUri: proposeMsg.metadataUri,
       salt: cairo.uint256(proposeMsg.salt),
     });
 
@@ -403,6 +403,7 @@ describe('Ethereum Signature Authenticator', function () {
       authenticator: ethSigAuthenticator.address,
       space: space.address,
       author: signer.address,
+      metadataUri: ['0x1', '0x2', '0x3', '0x4'],
       executionStrategy: {
         address: '0x0000000000000000000000000000000000005678',
         params: ['0x0'],
@@ -413,7 +414,6 @@ describe('Ethereum Signature Authenticator', function () {
         '0x5678',
         '0x9abc',
       ],
-      metadataUri: ['0x1', '0x2', '0x3', '0x4'],
       salt: '0x0',
     };
 
@@ -426,9 +426,9 @@ describe('Ethereum Signature Authenticator', function () {
       v: splitSig.v,
       space: proposeMsg.space,
       author: proposeMsg.author,
+      metadataUri: proposeMsg.metadataUri,
       executionStrategy: proposeMsg.executionStrategy,
       userProposalValidationParams: proposeMsg.userProposalValidationParams,
-      metadataUri: proposeMsg.metadataUri,
       salt: cairo.uint256(proposeMsg.salt),
     });
 

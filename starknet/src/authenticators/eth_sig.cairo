@@ -80,9 +80,9 @@ mod EthSigAuthenticator {
                 self._domain_hash.read(),
                 space,
                 author,
+                metadata_uri.span(),
                 @execution_strategy,
                 user_proposal_validation_params.span(),
-                metadata_uri.span(),
                 salt,
             );
             self._used_salts.write((author, salt), true);

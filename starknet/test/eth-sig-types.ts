@@ -14,9 +14,9 @@ export const proposeTypes = {
     { name: 'authenticator', type: 'uint256' },
     { name: 'space', type: 'uint256' },
     { name: 'author', type: 'address' },
+    { name: 'metadataUri', type: 'uint256[]' },
     { name: 'executionStrategy', type: 'Strategy' },
     { name: 'userProposalValidationParams', type: 'uint256[]' },
-    { name: 'metadataUri', type: 'uint256[]' },
     { name: 'salt', type: 'uint256' },
   ],
   Strategy: sharedTypes.Strategy,
@@ -52,9 +52,9 @@ export interface Propose {
   authenticator: string;
   space: string;
   author: string;
+  metadataUri: string[];
   executionStrategy: Strategy;
   userProposalValidationParams: string[];
-  metadataUri: string[];
   salt: string;
 }
 

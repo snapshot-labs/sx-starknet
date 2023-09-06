@@ -4,7 +4,6 @@ use array::{ArrayTrait};
 use traits::Into;
 use option::OptionTrait;
 use core::keccak;
-use core::integer::Felt252IntoU256;
 use box::BoxTrait;
 use starknet::secp256_trait::{signature_from_vrs, verify_eth_signature, Signature};
 use starknet::secp256k1::{Secp256k1Point, Secp256k1PointImpl};
@@ -26,18 +25,18 @@ fn verify_propose_sig(
     domain_hash: u256,
     target: ContractAddress,
     author: EthAddress,
+    metadata_uri: Span<felt252>,
     execution_strategy: @Strategy,
     user_proposal_validation_params: Span<felt252>,
-    metadata_URI: Span<felt252>,
     salt: u256,
 ) {
     let digest: u256 = get_propose_digest(
         domain_hash,
         target,
         author,
+        metadata_uri,
         execution_strategy,
         user_proposal_validation_params,
-        metadata_URI,
         salt
     );
     verify_eth_signature::<Secp256k1Point>(digest, signature_from_vrs(v, r, s), author);
@@ -53,10 +52,10 @@ fn verify_vote_sig(
     proposal_id: u256,
     choice: Choice,
     user_voting_strategies: Span<IndexedStrategy>,
-    metadata_URI: Span<felt252>,
+    metadata_uri: Span<felt252>,
 ) {
     let digest: u256 = get_vote_digest(
-        domain_hash, target, voter, proposal_id, choice, user_voting_strategies, metadata_URI
+        domain_hash, target, voter, proposal_id, choice, user_voting_strategies, metadata_uri
     );
     verify_eth_signature::<Secp256k1Point>(digest, signature_from_vrs(v, r, s), voter);
 }
@@ -70,11 +69,11 @@ fn verify_update_proposal_sig(
     author: EthAddress,
     proposal_id: u256,
     execution_strategy: @Strategy,
-    metadata_URI: Span<felt252>,
+    metadata_uri: Span<felt252>,
     salt: u256
 ) {
     let digest: u256 = get_update_proposal_digest(
-        domain_hash, target, author, proposal_id, execution_strategy, metadata_URI, salt
+        domain_hash, target, author, proposal_id, execution_strategy, metadata_uri, salt
     );
     verify_eth_signature::<Secp256k1Point>(digest, signature_from_vrs(v, r, s), author);
 }
@@ -83,9 +82,9 @@ fn get_propose_digest(
     domain_hash: u256,
     space: ContractAddress,
     author: EthAddress,
+    metadata_uri: Span<felt252>,
     execution_strategy: @Strategy,
     user_proposal_validation_params: Span<felt252>,
-    metadata_URI: Span<felt252>,
     salt: u256
 ) -> u256 {
     let encoded_data = array![
@@ -93,9 +92,9 @@ fn get_propose_digest(
         get_contract_address().into(),
         space.into(),
         author.into(),
+        metadata_uri.keccak_struct_hash(),
         execution_strategy.keccak_struct_hash(),
         user_proposal_validation_params.keccak_struct_hash(),
-        metadata_URI.keccak_struct_hash(),
         salt
     ];
     let message_hash = keccak::keccak_u256s_be_inputs(encoded_data.span()).byte_reverse();
@@ -109,7 +108,7 @@ fn get_vote_digest(
     proposal_id: u256,
     choice: Choice,
     user_voting_strategies: Span<IndexedStrategy>,
-    metadata_URI: Span<felt252>,
+    metadata_uri: Span<felt252>,
 ) -> u256 {
     let encoded_data = array![
         u256 { low: VOTE_TYPEHASH_LOW, high: VOTE_TYPEHASH_HIGH },
@@ -119,7 +118,7 @@ fn get_vote_digest(
         proposal_id,
         choice.into(),
         user_voting_strategies.keccak_struct_hash(),
-        metadata_URI.keccak_struct_hash()
+        metadata_uri.keccak_struct_hash()
     ];
     let message_hash = keccak::keccak_u256s_be_inputs(encoded_data.span()).byte_reverse();
     hash_typed_data(domain_hash, message_hash)
@@ -131,7 +130,7 @@ fn get_update_proposal_digest(
     author: EthAddress,
     proposal_id: u256,
     execution_strategy: @Strategy,
-    metadata_URI: Span<felt252>,
+    metadata_uri: Span<felt252>,
     salt: u256
 ) -> u256 {
     let encoded_data = array![
@@ -141,7 +140,7 @@ fn get_update_proposal_digest(
         author.into(),
         proposal_id,
         execution_strategy.keccak_struct_hash(),
-        metadata_URI.keccak_struct_hash(),
+        metadata_uri.keccak_struct_hash(),
         salt
     ];
     let message_hash = keccak::keccak_u256s_be_inputs(encoded_data.span()).byte_reverse();

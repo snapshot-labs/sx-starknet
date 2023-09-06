@@ -14,10 +14,10 @@ const DOMAIN_TYPEHASH_HIGH: u128 = 0xc49a8e302e3e5d6753b2bb3dbc3c28de;
 const DOMAIN_TYPEHASH_LOW: u128 = 0xba5e16e2572a92aef568063c963e3465;
 
 // keccak256(
-//    "Propose(uint256 authenticator,uint256 space,address author,Strategy executionStrategy,uint256[] userProposalValidationParams,uint256[] metadataUri,uint256 salt)Strategy(uint256 address,uint256[] params)"
+//    "Propose(uint256 authenticator,uint256 space,address author,uint256[] metadataUri,Strategy executionStrategy,uint256[] userProposalValidationParams,uint256 salt)Strategy(uint256 address,uint256[] params)"
 //         )
-const PROPOSE_TYPEHASH_HIGH: u128 = 0xa51b9a8f784a7bb23944f25225304745;
-const PROPOSE_TYPEHASH_LOW: u128 = 0xe1eb1085371f67eb5f53520fd2120125;
+const PROPOSE_TYPEHASH_HIGH: u128 = 0x4dfc61ed4ed6dbe067c67c4d27609650;
+const PROPOSE_TYPEHASH_LOW: u128 = 0xc15e92250dad00bce5b7a15d803f412c;
 
 // keccak256(
 //    "Vote(uint256 authenticator,uint256 space,address voter,uint256 proposalId,uint256 choice,IndexedStrategy[] userVotingStrategies,uint256[] metadataUri)IndexedStrategy(uint256 index,uint256[] params)"
