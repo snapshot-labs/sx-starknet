@@ -108,6 +108,7 @@ impl NoUpdateArray<T> of NoUpdateTrait<Array<T>> {
 }
 
 impl UpdateSettingsCalldataImpl of UpdateSettingsCalldataTrait {
+    /// Generates an `UpdateSettingsCalldata` struct with all values set to `NO_UPDATE`.
     fn default() -> UpdateSettingsCalldata {
         UpdateSettingsCalldata {
             min_voting_duration: NoUpdateU32::no_update(),
