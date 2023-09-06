@@ -1,52 +1,13 @@
-#[starknet::interface]
-trait ITimestampRemappers<TContractState> {
-    fn get_closest_l1_block_number(
-        self: @TContractState, tree: BinarySearchTree, timestamp: u256
-    ) -> Option<u256>;
-}
-
-#[starknet::interface]
-trait IEVMFactsRegistry<TContractState> {
-    fn get_slot_value(self: @TContractState, account: felt252, block: u256, slot: u256) -> u256;
-}
-
-type Peaks = Span<felt252>;
-
-type Proof = Span<felt252>;
-
-#[derive(Drop, Copy, Serde)]
-struct ProofElement {
-    index: usize,
-    value: u256,
-    peaks: Peaks,
-    proof: Proof,
-    last_pos: usize,
-}
-
-#[derive(Drop, Copy, Serde)]
-struct BinarySearchTree {
-    mapper_id: usize,
-    mmr_id: usize,
-    proofs: Span<ProofElement>,
-    left_neighbor: Option<ProofElement>,
-}
-
-
 #[starknet::contract]
 mod SingleSlotProof {
     use starknet::{ContractAddress, EthAddress};
-    use zeroable::Zeroable;
-    use integer::u128_byte_reverse;
-    use array::ArrayTrait;
-    use serde::Serde;
-    use option::OptionTrait;
-    use traits::{Into, TryInto};
-    use super::{
-        ProofElement, BinarySearchTree, ITimestampRemappers, ITimestampRemappersDispatcher,
-        ITimestampRemappersDispatcherTrait, IEVMFactsRegistry, IEVMFactsRegistryDispatcher,
+    use sx::external::herodotus::{
+        ProofElement, BinarySearchTree, ITimestampRemappersDispatcher,
+        ITimestampRemappersDispatcherTrait, IEVMFactsRegistryDispatcher,
         IEVMFactsRegistryDispatcherTrait
     };
-    use sx::utils::{math};
+    use sx::utils::math;
+    use sx::utils::endian::ByteReverse;
 
     #[storage]
     struct Storage {
@@ -64,20 +25,9 @@ mod SingleSlotProof {
         self._facts_registry.write(facts_registry);
     }
 
-    trait ByteReverse<T> {
-        fn byte_reverse(self: T) -> T;
-    }
-
-    impl ByteReverseU256 of ByteReverse<u256> {
-        fn byte_reverse(self: u256) -> u256 {
-            u256 { low: u128_byte_reverse(self.high), high: u128_byte_reverse(self.low) }
-        }
-    }
-
     #[internal]
     fn get_mapping_slot_key(mapping_key: u256, slot_index: u256) -> u256 {
-        let mut encoded_array = array![mapping_key, slot_index];
-        keccak::keccak_u256s_be_inputs(encoded_array.span()).byte_reverse()
+        keccak::keccak_u256s_be_inputs(array![mapping_key, slot_index].span()).byte_reverse()
     }
 
     #[internal]
@@ -117,15 +67,31 @@ mod SingleSlotProof {
 #[cfg(test)]
 mod tests {
     use super::SingleSlotProof;
-    use debug::PrintTrait;
 
     #[test]
     #[available_gas(10000000)]
     fn get_mapping_slot_key() {
-        let slot_index = 1_u256;
-        let mapping_key = 0xd8dA6BF26964aF9D7eEd9e03E53415D37aA96045_u256;
-        let slot_key = SingleSlotProof::get_mapping_slot_key(mapping_key, slot_index);
-        slot_key.print();
+        assert(
+            SingleSlotProof::get_mapping_slot_key(
+                0x0_u256, 0x0_u256
+            ) == u256 {
+                low: 0x2b36e491b30a40b2405849e597ba5fb5, high: 0xad3228b676f7d3cd4284a5443f17f196
+            }, 'Incorrect slot key'
+        );
+        assert(
+            SingleSlotProof::get_mapping_slot_key(
+                0x1_u256, 0x0_u256
+            ) == u256 {
+                low: 0x10426056ef8ca54750cb9bb552a59e7d, high: 0xada5013122d395ba3c54772283fb069b
+            }, 'Incorrect slot key'
+        );
+        assert(
+            SingleSlotProof::get_mapping_slot_key(
+                0xd8dA6BF26964aF9D7eEd9e03E53415D37aA96045_u256, 0x1_u256
+            ) == u256 {
+                low: 0xad9172e102b3af1e07a10cc29003beb2, high: 0xb931be0b3d1fb06daf0d92e2b8dfe49e
+            }, 'Incorrect slot key'
+        );
     }
 }
 
