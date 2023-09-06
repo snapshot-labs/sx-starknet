@@ -45,7 +45,6 @@ trait IEthSigAuthenticator<TContractState> {
 mod EthSigAuthenticator {
     use super::IEthSigAuthenticator;
     use starknet::{ContractAddress, EthAddress, syscalls::call_contract_syscall};
-    use integer::u128_byte_reverse;
     use sx::space::space::{ISpaceDispatcher, ISpaceDispatcherTrait};
     use sx::types::{Strategy, IndexedStrategy, Choice, UserAddress};
     use sx::utils::{eip712, legacy_hash::{LegacyHashEthAddress, LegacyHashUsedSalts}};

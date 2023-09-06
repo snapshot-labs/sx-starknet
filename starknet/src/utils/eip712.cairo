@@ -1,12 +1,7 @@
-use core::array::SpanTrait;
-use starknet::{EthAddress, ContractAddress, get_contract_address, get_tx_info};
-use array::{ArrayTrait};
-use traits::Into;
-use option::OptionTrait;
-use core::keccak;
-use box::BoxTrait;
-use starknet::secp256_trait::{signature_from_vrs, verify_eth_signature, Signature};
-use starknet::secp256k1::{Secp256k1Point, Secp256k1PointImpl};
+use starknet::{
+    EthAddress, ContractAddress, get_contract_address, get_tx_info, secp256k1::Secp256k1Point,
+    secp256_trait
+};
 use sx::types::{Strategy, IndexedStrategy, Choice};
 use sx::utils::constants::{
     DOMAIN_TYPEHASH_LOW, DOMAIN_TYPEHASH_HIGH, ETHEREUM_PREFIX, PROPOSE_TYPEHASH_LOW,
@@ -39,7 +34,9 @@ fn verify_propose_sig(
         user_proposal_validation_params,
         salt
     );
-    verify_eth_signature::<Secp256k1Point>(digest, signature_from_vrs(v, r, s), author);
+    secp256_trait::verify_eth_signature::<Secp256k1Point>(
+        digest, secp256_trait::signature_from_vrs(v, r, s), author
+    );
 }
 
 fn verify_vote_sig(
@@ -57,7 +54,9 @@ fn verify_vote_sig(
     let digest: u256 = get_vote_digest(
         domain_hash, target, voter, proposal_id, choice, user_voting_strategies, metadata_uri
     );
-    verify_eth_signature::<Secp256k1Point>(digest, signature_from_vrs(v, r, s), voter);
+    secp256_trait::verify_eth_signature::<Secp256k1Point>(
+        digest, secp256_trait::signature_from_vrs(v, r, s), voter
+    );
 }
 
 fn verify_update_proposal_sig(
@@ -75,7 +74,9 @@ fn verify_update_proposal_sig(
     let digest: u256 = get_update_proposal_digest(
         domain_hash, target, author, proposal_id, execution_strategy, metadata_uri, salt
     );
-    verify_eth_signature::<Secp256k1Point>(digest, signature_from_vrs(v, r, s), author);
+    secp256_trait::verify_eth_signature::<Secp256k1Point>(
+        digest, secp256_trait::signature_from_vrs(v, r, s), author
+    );
 }
 
 fn get_propose_digest(

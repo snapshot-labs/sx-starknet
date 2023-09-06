@@ -1,8 +1,3 @@
-use array::{ArrayTrait, SpanTrait};
-use traits::Into;
-use option::OptionTrait;
-use core::keccak;
-use core::integer::U8IntoU256;
 use sx::types::{Strategy, IndexedStrategy};
 use sx::utils::constants::{
     STRATEGY_TYPEHASH_LOW, STRATEGY_TYPEHASH_HIGH, INDEXED_STRATEGY_TYPEHASH_LOW,
@@ -37,7 +32,7 @@ impl KeccakStructHashIndexedStrategy of KeccakStructHash<IndexedStrategy> {
     fn keccak_struct_hash(self: @IndexedStrategy) -> u256 {
         let encoded_data = array![
             u256 { low: INDEXED_STRATEGY_TYPEHASH_LOW, high: INDEXED_STRATEGY_TYPEHASH_HIGH },
-            U8IntoU256::into(*self.index),
+            integer::U8IntoU256::into(*self.index),
             self.params.span().keccak_struct_hash()
         ];
         keccak::keccak_u256s_be_inputs(encoded_data.span()).byte_reverse()

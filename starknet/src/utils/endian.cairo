@@ -1,8 +1,4 @@
-use integer::u128_byte_reverse;
 use sx::utils::math::pow_u128;
-use traits::TryInto;
-use option::OptionTrait;
-use array::ArrayTrait;
 
 const MASK_LOW: u128 = 0xffffffffffffffff; // 2^64 - 1
 const MASK_HIGH: u128 = 0xffffffffffffffff0000000000000000; // 2^128 - 2^64
@@ -10,10 +6,10 @@ const SHIFT_64: u128 = 0x10000000000000000;
 
 // Converts a u256 into a tuple of 4 u64s in little endian order
 fn uint256_into_le_u64s(self: u256) -> (u64, u64, u64, u64) {
-    let low_low = u128_byte_reverse(self.low & MASK_LOW) / SHIFT_64;
-    let low_high = u128_byte_reverse(self.low & MASK_HIGH);
-    let high_low = u128_byte_reverse(self.high & MASK_LOW) / SHIFT_64;
-    let high_high = u128_byte_reverse(self.high & MASK_HIGH);
+    let low_low = integer::u128_byte_reverse(self.low & MASK_LOW) / SHIFT_64;
+    let low_high = integer::u128_byte_reverse(self.low & MASK_HIGH);
+    let high_low = integer::u128_byte_reverse(self.high & MASK_LOW) / SHIFT_64;
+    let high_high = integer::u128_byte_reverse(self.high & MASK_HIGH);
     (
         low_high.try_into().unwrap(),
         low_low.try_into().unwrap(),
@@ -55,6 +51,8 @@ trait ByteReverse<T> {
 
 impl ByteReverseU256 of ByteReverse<u256> {
     fn byte_reverse(self: u256) -> u256 {
-        u256 { low: u128_byte_reverse(self.high), high: u128_byte_reverse(self.low) }
+        u256 {
+            low: integer::u128_byte_reverse(self.high), high: integer::u128_byte_reverse(self.low)
+        }
     }
 }
