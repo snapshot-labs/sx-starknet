@@ -10,9 +10,9 @@ trait IEthSigAuthenticator<TContractState> {
         v: u256,
         target: ContractAddress,
         author: EthAddress,
+        metadata_uri: Array<felt252>,
         execution_strategy: Strategy,
         user_proposal_validation_params: Array<felt252>,
-        metadata_uri: Array<felt252>,
         salt: u256,
     );
     fn authenticate_vote(
@@ -67,9 +67,9 @@ mod EthSigAuthenticator {
             v: u256,
             target: ContractAddress,
             author: EthAddress,
+            metadata_uri: Array<felt252>,
             execution_strategy: Strategy,
             user_proposal_validation_params: Array<felt252>,
-            metadata_uri: Array<felt252>,
             salt: u256,
         ) {
             signatures::verify_propose_sig(
@@ -88,9 +88,9 @@ mod EthSigAuthenticator {
             ISpaceDispatcher { contract_address: target }
                 .propose(
                     UserAddress::Ethereum(author),
+                    metadata_uri,
                     execution_strategy,
                     user_proposal_validation_params,
-                    metadata_uri
                 );
         }
 
@@ -126,7 +126,7 @@ mod EthSigAuthenticator {
                     proposal_id,
                     choice,
                     user_voting_strategies,
-                    metadata_uri
+                    metadata_uri,
                 );
         }
 

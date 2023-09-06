@@ -3,7 +3,7 @@ mod tests {
     use sx::space::space::{Space, ISpaceDispatcher, ISpaceDispatcherTrait};
     use sx::tests::setup::setup::setup::{setup, deploy, Config};
     use sx::types::{UpdateSettingsCalldata, UpdateSettingsCalldataImpl};
-    use sx::tests::utils::strategy_trait::{StrategyImpl};
+    use sx::tests::utils::strategy_trait::{StrategyImpl, StrategyDefault};
     use starknet::testing;
     use starknet::info;
     use starknet::{contract_address_const, ContractAddress};
@@ -185,11 +185,10 @@ mod tests {
     fn dao_uri() {
         let (config, space) = setup_update_settings();
         let mut input = UpdateSettingsCalldataImpl::default();
-        let mut arr = array![];
-        'hello!'.serialize(ref arr);
-        input.dao_uri = arr;
+        input.dao_uri = array!['hello!'];
 
         space.update_settings(input.clone());
+        assert(space.dao_uri() == input.dao_uri, 'dao uri not updated');
         let expected = DaoUriUpdated { dao_uri: input.dao_uri.span() };
         assert_correct_event::<DaoUriUpdated>(space.contract_address, expected);
     }
@@ -270,6 +269,29 @@ mod tests {
 
         let mut arr = array![vs1.clone(), vs2.clone()];
         input.voting_strategies_to_add = arr;
+        input.voting_strategies_metadata_uris_to_add = array![array![], array![]];
+
+        space.update_settings(input);
+
+        assert(space.voting_strategies(1) == vs1, 'Voting strategy 1 not added');
+        assert(space.voting_strategies(2) == vs2, 'Voting strategy 2 not added');
+        assert(space.active_voting_strategies() == 0b111, 'Voting strategies not active');
+    // TODO: check event once it's been added
+    }
+
+    #[test]
+    #[available_gas(10000000000)]
+    #[should_panic(expected: ('len mismatch', 'ENTRYPOINT_FAILED'))]
+    fn add_voting_strategies_mismatch() {
+        let (config, space) = setup_update_settings();
+        let mut input = UpdateSettingsCalldataImpl::default();
+
+        let vs1 = StrategyImpl::from_address(contract_address_const::<'votingStrategy1'>());
+        let vs2 = StrategyImpl::from_address(contract_address_const::<'votingStrategy2'>());
+
+        let mut arr = array![vs1.clone(), vs2.clone()];
+        input.voting_strategies_to_add = arr;
+        input.voting_strategies_metadata_uris_to_add = array![array![]]; // missing one uri!
 
         space.update_settings(input.clone());
 
@@ -294,6 +316,7 @@ mod tests {
         let vs1 = StrategyImpl::from_address(contract_address_const::<'votingStrategy1'>());
         let mut arr = array![vs1.clone()];
         input.voting_strategies_to_add = arr;
+        input.voting_strategies_metadata_uris_to_add = array![array![]];
         space.update_settings(input);
         assert(space.voting_strategies(1) == vs1, 'Voting strategy 1 not added');
         assert(space.active_voting_strategies() == 0b11, 'Voting strategy not active');
