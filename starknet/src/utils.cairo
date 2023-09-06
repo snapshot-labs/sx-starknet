@@ -16,6 +16,8 @@ mod struct_hash;
 
 mod single_slot_proof;
 
+mod simple_majority;
+
 mod signatures;
 
 mod stark_eip712;
