@@ -7,9 +7,9 @@ trait IStarkTxAuthenticator<TContractState> {
         ref self: TContractState,
         space: ContractAddress,
         author: ContractAddress,
+        metadata_uri: Array<felt252>,
         execution_strategy: Strategy,
         user_proposal_validation_params: Array<felt252>,
-        metadata_uri: Array<felt252>
     );
     fn authenticate_vote(
         ref self: TContractState,
@@ -48,18 +48,18 @@ mod StarkTxAuthenticator {
             ref self: ContractState,
             space: ContractAddress,
             author: ContractAddress,
+            metadata_uri: Array<felt252>,
             execution_strategy: Strategy,
             user_proposal_validation_params: Array<felt252>,
-            metadata_uri: Array<felt252>
         ) {
             assert(info::get_caller_address() == author, 'Invalid Caller');
 
             ISpaceDispatcher { contract_address: space }
                 .propose(
                     UserAddress::Starknet(author),
+                    metadata_uri,
                     execution_strategy,
                     user_proposal_validation_params,
-                    metadata_uri
                 );
         }
 
@@ -80,7 +80,7 @@ mod StarkTxAuthenticator {
                     proposal_id,
                     choice,
                     user_voting_strategies,
-                    metadata_uri
+                    metadata_uri,
                 );
         }
 

@@ -47,7 +47,7 @@ mod tests {
 
     #[test]
     #[available_gas(10000000000)]
-    fn test_propose_update_vote() {
+    fn propose_update_vote() {
         let config = setup();
         let (factory, space) = deploy(@config);
         let authenticator = setup_stark_tx_auth(space, config.owner);
@@ -72,7 +72,7 @@ mod tests {
         testing::set_contract_address(author);
         authenticator
             .authenticate_propose(
-                space.contract_address, author, vanilla_execution_strategy, array![], array![]
+                space.contract_address, author, array![], vanilla_execution_strategy, array![]
             );
 
         assert(space.next_proposal_id() == 2_u256, 'next_proposal_id should be 2');
@@ -89,7 +89,7 @@ mod tests {
         testing::set_contract_address(author);
         authenticator
             .authenticate_update_proposal(
-                space.contract_address, author, proposal_id, new_execution_strategy, array![]
+                space.contract_address, author, proposal_id, new_execution_strategy, array![],
             );
 
         // Increasing block timestamp by 1 to pass voting delay
@@ -115,7 +115,7 @@ mod tests {
     #[test]
     #[available_gas(10000000000)]
     #[should_panic(expected: ('Invalid Caller', 'ENTRYPOINT_FAILED'))]
-    fn test_propose_invalid_caller() {
+    fn propose_invalid_caller() {
         let config = setup();
         let (factory, space) = deploy(@config);
         let authenticator = setup_stark_tx_auth(space, config.owner);
@@ -140,14 +140,14 @@ mod tests {
         testing::set_contract_address(config.owner);
         authenticator
             .authenticate_propose(
-                space.contract_address, author, vanilla_execution_strategy, array![], array![]
+                space.contract_address, author, array![], vanilla_execution_strategy, array![],
             );
     }
 
     #[test]
     #[available_gas(10000000000)]
     #[should_panic(expected: ('Invalid Caller', 'ENTRYPOINT_FAILED'))]
-    fn test_update_proposal_invalid_caller() {
+    fn update_proposal_invalid_caller() {
         let config = setup();
         let (factory, space) = deploy(@config);
         let authenticator = setup_stark_tx_auth(space, config.owner);
@@ -172,7 +172,7 @@ mod tests {
         testing::set_contract_address(author);
         authenticator
             .authenticate_propose(
-                space.contract_address, author, vanilla_execution_strategy, array![], array![]
+                space.contract_address, author, array![], vanilla_execution_strategy, array![],
             );
 
         assert(space.next_proposal_id() == 2_u256, 'next_proposal_id should be 2');
@@ -197,7 +197,7 @@ mod tests {
     #[test]
     #[available_gas(10000000000)]
     #[should_panic(expected: ('Invalid Caller', 'ENTRYPOINT_FAILED'))]
-    fn test_vote_invalid_caller() {
+    fn vote_invalid_caller() {
         let config = setup();
         let (factory, space) = deploy(@config);
         let authenticator = setup_stark_tx_auth(space, config.owner);
@@ -222,7 +222,7 @@ mod tests {
         testing::set_contract_address(author);
         authenticator
             .authenticate_propose(
-                space.contract_address, author, vanilla_execution_strategy, array![], array![]
+                space.contract_address, author, array![], vanilla_execution_strategy, array![],
             );
 
         assert(space.next_proposal_id() == 2_u256, 'next_proposal_id should be 2');

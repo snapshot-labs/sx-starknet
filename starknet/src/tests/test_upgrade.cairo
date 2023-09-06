@@ -24,7 +24,7 @@ mod tests {
         UserAddress, Strategy, IndexedStrategy, Choice, FinalizationStatus, Proposal,
         UpdateSettingsCalldataImpl
     };
-    use sx::utils::constants::{PROPOSE_SELECTOR, VOTE_SELECTOR, UPDATE_PROPOSAL_SELECTOR};
+    use sx::utils::constants::{PROPOSE_SELECTOR};
     use sx::tests::setup::setup::setup::{setup, deploy};
     use sx::interfaces::{
         IProposalValidationStrategyDispatcher, IProposalValidationStrategyDispatcherTrait
@@ -39,7 +39,7 @@ mod tests {
 
     #[test]
     #[available_gas(10000000000)]
-    fn test_upgrade() {
+    fn upgrade() {
         let config = setup();
         let (factory, space) = deploy(@config);
 
@@ -58,7 +58,7 @@ mod tests {
 
     #[test]
     #[available_gas(10000000000)]
-    fn test_upgrade_via_execution_strategy() {
+    fn upgrade_via_execution_strategy() {
         let config = setup();
         let (factory, space) = deploy(@config);
         let proposal_id = space.next_proposal_id();
@@ -94,8 +94,8 @@ mod tests {
 
         let mut propose_calldata = array![];
         UserAddress::Starknet(contract_address_const::<0x7676>()).serialize(ref propose_calldata);
-        execution_strategy.serialize(ref propose_calldata);
         ArrayTrait::<felt252>::new().serialize(ref propose_calldata);
+        execution_strategy.serialize(ref propose_calldata);
         ArrayTrait::<felt252>::new().serialize(ref propose_calldata);
 
         let authenticator = IVanillaAuthenticatorDispatcher {
@@ -116,7 +116,7 @@ mod tests {
     #[test]
     #[available_gas(10000000000)]
     #[should_panic(expected: ('Caller is not the owner', 'ENTRYPOINT_FAILED'))]
-    fn test_upgrade_unauthorized() {
+    fn upgrade_unauthorized() {
         let config = setup();
         let (factory, space) = deploy(@config);
 

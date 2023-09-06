@@ -11,7 +11,7 @@ mod tests {
     use clone::Clone;
     use serde::{Serde};
 
-    use sx::space::space::{Space, ISpaceDispatcher, ISpaceDispatcherTrait};
+    use sx::space::space::{Space, Space::VoteCast, ISpaceDispatcher, ISpaceDispatcherTrait};
     use sx::authenticators::vanilla::{
         VanillaAuthenticator, IVanillaAuthenticatorDispatcher, IVanillaAuthenticatorDispatcherTrait
     };
@@ -27,6 +27,7 @@ mod tests {
     };
     use sx::tests::utils::strategy_trait::{StrategyImpl};
     use sx::utils::constants::{PROPOSE_SELECTOR, VOTE_SELECTOR, UPDATE_PROPOSAL_SELECTOR};
+    use openzeppelin::tests::utils;
 
     use Space::Space as SpaceImpl;
 
@@ -52,12 +53,28 @@ mod tests {
         let author = UserAddress::Starknet(contract_address_const::<0x5678>());
         let mut propose_calldata = array![];
         author.serialize(ref propose_calldata);
-        execution_strategy.serialize(ref propose_calldata);
         ArrayTrait::<felt252>::new().serialize(ref propose_calldata);
+        execution_strategy.serialize(ref propose_calldata);
         ArrayTrait::<felt252>::new().serialize(ref propose_calldata);
 
         // Create Proposal
         authenticator.authenticate(space.contract_address, PROPOSE_SELECTOR, propose_calldata);
+    }
+
+    fn assert_vote_emitted_and_correct(
+        space_address: ContractAddress,
+        proposal_id: u256,
+        voter: UserAddress,
+        choice: Choice,
+        voting_power: u256,
+        metadata_uri: Span<felt252>,
+    ) {
+        let event = utils::pop_log::<VoteCast>(space_address).unwrap();
+        assert(event.proposal_id == proposal_id, 'Proposal ID should be correct');
+        assert(event.voter == voter, 'Voter should be correct');
+        assert(event.choice == choice, 'Choice should be correct');
+        assert(event.voting_power == voting_power, 'Voting power should be correct');
+        assert(event.metadata_uri == metadata_uri, 'Metadata URI should be correct');
     }
 
     #[test]
@@ -86,13 +103,20 @@ mod tests {
         choice.serialize(ref vote_calldata);
         let mut user_voting_strategies = array![IndexedStrategy { index: 0_u8, params: array![] }];
         user_voting_strategies.serialize(ref vote_calldata);
-        ArrayTrait::<felt252>::new().serialize(ref vote_calldata);
+        let metadata_uri: Array<felt252> = array![];
+        metadata_uri.serialize(ref vote_calldata);
+
+        // empty events queue
+        utils::drop_events(space.contract_address, 4);
 
         authenticator.authenticate(space.contract_address, VOTE_SELECTOR, vote_calldata);
+        assert(space.vote_registry(proposal_id, voter) == true, 'vote registry incorrect');
         assert(space.vote_power(proposal_id, Choice::For(())) == 1, 'Vote power should be 1');
         assert(space.vote_power(proposal_id, Choice::Against(())) == 0, 'Vote power should be 0');
         assert(space.vote_power(proposal_id, Choice::Abstain(())) == 0, 'Vote power should be 0');
-    // TODO : check event
+        assert_vote_emitted_and_correct(
+            space.contract_address, proposal_id, voter, choice, 1, metadata_uri.span()
+        );
     }
 
     #[test]
@@ -120,13 +144,20 @@ mod tests {
         choice.serialize(ref vote_calldata);
         let mut user_voting_strategies = array![IndexedStrategy { index: 0_u8, params: array![] }];
         user_voting_strategies.serialize(ref vote_calldata);
-        ArrayTrait::<felt252>::new().serialize(ref vote_calldata);
+        let metadata_uri: Array<felt252> = array![];
+        metadata_uri.serialize(ref vote_calldata);
+
+        // empty events queue
+        utils::drop_events(space.contract_address, 4);
 
         authenticator.authenticate(space.contract_address, VOTE_SELECTOR, vote_calldata);
+        assert(space.vote_registry(proposal_id, voter) == true, 'vote registry incorrect');
         assert(space.vote_power(proposal_id, Choice::For(())) == 0, 'Vote power should be 0');
         assert(space.vote_power(proposal_id, Choice::Against(())) == 1, 'Vote power should be 1');
         assert(space.vote_power(proposal_id, Choice::Abstain(())) == 0, 'Vote power should be 0');
-    // TODO : check event
+        assert_vote_emitted_and_correct(
+            space.contract_address, proposal_id, voter, choice, 1, metadata_uri.span()
+        );
     }
 
     #[test]
@@ -154,13 +185,19 @@ mod tests {
         choice.serialize(ref vote_calldata);
         let mut user_voting_strategies = array![IndexedStrategy { index: 0_u8, params: array![] }];
         user_voting_strategies.serialize(ref vote_calldata);
-        ArrayTrait::<felt252>::new().serialize(ref vote_calldata);
+        let metadata_uri: Array<felt252> = array![];
+        metadata_uri.serialize(ref vote_calldata);
 
+        // empty events queue
+        utils::drop_events(space.contract_address, 4);
         authenticator.authenticate(space.contract_address, VOTE_SELECTOR, vote_calldata);
+        assert(space.vote_registry(proposal_id, voter) == true, 'vote registry incorrect');
         assert(space.vote_power(proposal_id, Choice::For(())) == 0, 'Vote power should be 0');
         assert(space.vote_power(proposal_id, Choice::Against(())) == 0, 'Vote power should be 0');
         assert(space.vote_power(proposal_id, Choice::Abstain(())) == 1, 'Vote power should be 1');
-    // TODO : check event
+        assert_vote_emitted_and_correct(
+            space.contract_address, proposal_id, voter, choice, 1, metadata_uri.span()
+        );
     }
 
     #[test]
@@ -191,7 +228,6 @@ mod tests {
         ArrayTrait::<felt252>::new().serialize(ref vote_calldata);
 
         authenticator.authenticate(space.contract_address, VOTE_SELECTOR, vote_calldata);
-    // TODO : check event
     }
 
     #[test]
@@ -225,7 +261,6 @@ mod tests {
         ArrayTrait::<felt252>::new().serialize(ref vote_calldata);
 
         authenticator.authenticate(space.contract_address, VOTE_SELECTOR, vote_calldata);
-    // TODO : check event
     }
 
     #[test]
@@ -289,7 +324,6 @@ mod tests {
         let metadata_uri = array![];
 
         space.vote(voter, proposal_id, choice, user_voting_strategies, metadata_uri);
-    // TODO : check event
     }
 
     #[test]
@@ -349,6 +383,7 @@ mod tests {
 
         let mut input = UpdateSettingsCalldataImpl::default();
         input.voting_strategies_to_add = array![no_voting_power_strategy];
+        input.voting_strategies_metadata_uris_to_add = array![array![]];
 
         testing::set_contract_address(config.owner);
         space.update_settings(input);
@@ -368,6 +403,40 @@ mod tests {
         let mut user_voting_strategies = array![
             IndexedStrategy { index: 1_u8, params: array![] }
         ]; // index 1
+        user_voting_strategies.serialize(ref vote_calldata);
+        ArrayTrait::<felt252>::new().serialize(ref vote_calldata);
+
+        authenticator.authenticate(space.contract_address, VOTE_SELECTOR, vote_calldata);
+    }
+
+    #[test]
+    #[available_gas(10000000000)]
+    #[should_panic(
+        expected: ('Unknown enum indicator:', 'ENTRYPOINT_FAILED')
+    )] // TODO: replace once `default` works on Proposal
+    fn vote_inexistant_proposal() {
+        let config = setup();
+        let (factory, space) = deploy(@config);
+
+        let execution_strategy = get_execution_strategy();
+
+        let authenticator = IVanillaAuthenticatorDispatcher {
+            contract_address: *config.authenticators.at(0),
+        };
+
+        create_proposal(authenticator, space, execution_strategy);
+
+        // Increasing block timestamp pass voting delay
+        testing::set_block_timestamp(config.voting_delay.into());
+
+        let mut vote_calldata = array![];
+        let voter = UserAddress::Starknet(contract_address_const::<0x8765>());
+        voter.serialize(ref vote_calldata);
+        let proposal_id = 42_u256; // inexistent proposal
+        proposal_id.serialize(ref vote_calldata);
+        let choice = Choice::For(());
+        choice.serialize(ref vote_calldata);
+        let mut user_voting_strategies = array![IndexedStrategy { index: 0_u8, params: array![] }];
         user_voting_strategies.serialize(ref vote_calldata);
         ArrayTrait::<felt252>::new().serialize(ref vote_calldata);
 

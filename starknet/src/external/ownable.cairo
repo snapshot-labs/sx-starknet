@@ -1,5 +1,6 @@
 // OZ ownable module, adding here directly until OZ releases a Scarb package
 // Migrated lib to v2
+// TODO: OZ now has released a scarb package, use that instead
 #[starknet::contract]
 mod Ownable {
     use starknet::{ContractAddress, get_caller_address};

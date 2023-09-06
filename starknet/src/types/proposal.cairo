@@ -1,4 +1,4 @@
-use starknet::{ContractAddress, storage_access::StorePacking, Store};
+use starknet::{ContractAddress, storage_access::StorePacking, Store, contract_address_const};
 use sx::{
     utils::math::pow, types::{FinalizationStatus, UserAddress, user_address::UserAddressTrait}
 };
@@ -26,6 +26,21 @@ struct Proposal {
     execution_strategy: ContractAddress,
     author: UserAddress,
     active_voting_strategies: u256
+}
+
+impl ProposalDefault of Default<Proposal> {
+    fn default() -> Proposal {
+        Proposal {
+            start_timestamp: 0,
+            min_end_timestamp: 0,
+            max_end_timestamp: 0,
+            finalization_status: FinalizationStatus::Pending(()),
+            execution_payload_hash: 0,
+            execution_strategy: contract_address_const::<0>(),
+            author: UserAddress::Starknet(contract_address_const::<0>()),
+            active_voting_strategies: 0,
+        }
+    }
 }
 
 #[derive(Drop, starknet::Store)]
@@ -98,7 +113,7 @@ mod tests {
     use clone::Clone;
 
     #[test]
-    fn test_pack_zero() {
+    fn pack_zero() {
         let proposal = Proposal {
             start_timestamp: 0,
             min_end_timestamp: 0,
@@ -118,7 +133,7 @@ mod tests {
 
 
     #[test]
-    fn test_pack_start_timestamp() {
+    fn pack_start_timestamp() {
         let proposal = Proposal {
             start_timestamp: 42,
             min_end_timestamp: 0,
@@ -137,7 +152,7 @@ mod tests {
     }
 
     #[test]
-    fn test_pack_min_timestamp() {
+    fn pack_min_timestamp() {
         let proposal = Proposal {
             start_timestamp: 0,
             min_end_timestamp: 42,
@@ -157,7 +172,7 @@ mod tests {
 
 
     #[test]
-    fn test_pack_max_timestamp() {
+    fn pack_max_timestamp() {
         let proposal = Proposal {
             start_timestamp: 0,
             min_end_timestamp: 0,
@@ -178,7 +193,7 @@ mod tests {
     }
 
     #[test]
-    fn test_pack_finalization_status() {
+    fn pack_finalization_status() {
         let proposal = Proposal {
             start_timestamp: 0,
             min_end_timestamp: 0,
@@ -200,7 +215,7 @@ mod tests {
     }
 
     #[test]
-    fn test_pack_full() {
+    fn pack_full() {
         let proposal = Proposal {
             start_timestamp: 0xffffffff,
             min_end_timestamp: 0xffffffff,
