@@ -9,6 +9,7 @@ mod VanillaProposalValidationStrategy {
 
     #[external(v0)]
     impl VanillaProposalValidationStrategy of IProposalValidationStrategy<ContractState> {
+        /// Useless validation strategy that always returns true.
         fn validate(
             self: @ContractState,
             author: UserAddress,
