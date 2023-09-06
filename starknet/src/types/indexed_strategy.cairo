@@ -1,8 +1,13 @@
 use sx::utils::math;
 
+/// An indexed strategy is used to access a strategy in an array of
+/// strategies.
 #[derive(Option, Clone, Drop, Serde)]
 struct IndexedStrategy {
+    /// The index of the strategy.
     index: u8,
+
+    /// The corresponding parameters to use.
     params: Array<felt252>,
 }
 
