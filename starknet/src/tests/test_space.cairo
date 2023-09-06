@@ -31,7 +31,6 @@ mod tests {
     use sx::utils::constants::{PROPOSE_SELECTOR, VOTE_SELECTOR, UPDATE_PROPOSAL_SELECTOR};
     use sx::tests::mocks::executor::ExecutorWithoutTxExecutionStrategy;
     use openzeppelin::tests::utils;
-    use debug::PrintTrait;
 
     use Space::Space as SpaceImpl;
 
@@ -612,13 +611,62 @@ mod tests {
 
         // Create Proposal
         authenticator.authenticate(space.contract_address, PROPOSE_SELECTOR, propose_calldata);
-
         testing::set_block_timestamp(
             config.voting_delay.into() + config.max_voting_duration.into()
         );
 
         // Execute Proposal
         space.execute(1, array!['random', 'stuff']);
+    }
+
+    #[test]
+    #[available_gas(10000000000)]
+    fn get_proposal_status() {
+        let config = setup();
+        let (factory, space) = deploy(@config);
+
+        let authenticator = IVanillaAuthenticatorDispatcher {
+            contract_address: *config.authenticators.at(0),
+        };
+        let quorum = 1_u256;
+        let mut constructor_calldata = array![];
+        quorum.serialize(ref constructor_calldata);
+
+        let (vanilla_execution_strategy_address, _) = deploy_syscall(
+            VanillaExecutionStrategy::TEST_CLASS_HASH.try_into().unwrap(),
+            0,
+            constructor_calldata.span(),
+            false
+        )
+            .unwrap();
+        let vanilla_execution_strategy = StrategyImpl::from_address(
+            vanilla_execution_strategy_address
+        );
+        let author = UserAddress::Starknet(contract_address_const::<0x5678>());
+        let mut propose_calldata = array![];
+        author.serialize(ref propose_calldata);
+        ArrayTrait::<felt252>::new().serialize(ref propose_calldata);
+        vanilla_execution_strategy.serialize(ref propose_calldata);
+        ArrayTrait::<felt252>::new().serialize(ref propose_calldata);
+
+        // Create Proposal
+        authenticator.authenticate(space.contract_address, PROPOSE_SELECTOR, propose_calldata);
+
+        // We don't check the proposal status, simply call to make sure it doesn't revert
+        space.get_proposal_status(1);
+    }
+
+    #[test]
+    #[available_gas(10000000000)]
+    #[should_panic(
+        expected: ('Unknown enum indicator:', 0, 'ENTRYPOINT_FAILED')
+    )] // #default not working the the `ProposalStatus` enum
+    // #[should_panic(expected: ('Proposal does not exist', 'ENTRYPOINT_FAILED'))] // replace with this once default works
+    fn get_proposal_status_invalid_proposal_id() {
+        let config = setup();
+        let (factory, space) = deploy(@config);
+
+        space.get_proposal_status(0);
     }
 
     #[test]

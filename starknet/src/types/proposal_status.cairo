@@ -1,5 +1,6 @@
-#[derive(Copy, Drop, Serde, PartialEq)]
+#[derive(Copy, Drop, Default, Serde, PartialEq)]
 enum ProposalStatus {
+    #[default]
     VotingDelay: (),
     VotingPeriod: (),
     VotingPeriodAccepted: (),

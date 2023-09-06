@@ -1,5 +1,7 @@
 use starknet::{ClassHash, ContractAddress, SyscallResult};
-use sx::types::{UserAddress, Strategy, Proposal, IndexedStrategy, Choice, UpdateSettingsCalldata};
+use sx::types::{
+    UserAddress, Strategy, Proposal, IndexedStrategy, Choice, UpdateSettingsCalldata, ProposalStatus
+};
 
 #[starknet::interface]
 trait ISpace<TContractState> {
@@ -18,6 +20,7 @@ trait ISpace<TContractState> {
     fn vote_power(self: @TContractState, proposal_id: u256, choice: Choice) -> u256;
     fn vote_registry(self: @TContractState, proposal_id: u256, voter: UserAddress) -> bool;
     fn proposals(self: @TContractState, proposal_id: u256) -> Proposal;
+    fn get_proposal_status(self: @TContractState, proposal_id: u256) -> ProposalStatus;
 
     // Owner Actions 
     fn update_settings(ref self: TContractState, input: UpdateSettingsCalldata);
@@ -83,7 +86,7 @@ mod Space {
         types::{
             UserAddress, Choice, FinalizationStatus, Strategy, IndexedStrategy, Proposal,
             PackedProposal, IndexedStrategyTrait, IndexedStrategyImpl, UpdateSettingsCalldata,
-            NoUpdateTrait, NoUpdateString, strategy::StoreFelt252Array,
+            NoUpdateTrait, NoUpdateString, strategy::StoreFelt252Array, ProposalStatus,
         },
         utils::{
             reinitializable::{Reinitializable}, ReinitializableImpl, bits::BitSetter,
@@ -596,6 +599,18 @@ mod Space {
 
         fn proposals(self: @ContractState, proposal_id: u256) -> Proposal {
             self._proposals.read(proposal_id)
+        }
+
+        fn get_proposal_status(self: @ContractState, proposal_id: u256) -> ProposalStatus {
+            let proposal = self._proposals.read(proposal_id);
+            assert_proposal_exists(@proposal);
+
+            let votes_for = self._vote_power.read((proposal_id, Choice::For(())));
+            let votes_against = self._vote_power.read((proposal_id, Choice::Against(())));
+            let votes_abstain = self._vote_power.read((proposal_id, Choice::Abstain(())));
+
+            IExecutionStrategyDispatcher { contract_address: proposal.execution_strategy }
+                .get_proposal_status(proposal, votes_for, votes_against, votes_abstain)
         }
 
         fn update_settings(ref self: ContractState, input: UpdateSettingsCalldata) {
