@@ -21,7 +21,9 @@ mod ProposingPowerProposalValidationStrategy {
         ///
         /// * `author` - The address of the proposal author.
         /// * `params` - The strategy-supplied parameters (defined by space owner) used to compute the proposing power.
+        ///              The encoded parameters should be: [proposal_threshold: u256, allowed_strategies: Array<Strategy>]
         /// * `user_params` - The user-supplied parameters of the proposal used to compute the proposing power.
+        ///                   The encoded parameters should be: [user_strategies: Array<IndexedStrategy>]
         ///
         /// # Returns
         ///
