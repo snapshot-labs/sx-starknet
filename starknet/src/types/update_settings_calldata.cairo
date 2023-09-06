@@ -17,6 +17,7 @@ struct UpdateSettingsCalldata {
     voting_strategies_to_remove: Array<u8>,
 }
 
+// TODO: use `Default` trait
 trait UpdateSettingsCalldataTrait {
     fn default() -> UpdateSettingsCalldata;
 }
