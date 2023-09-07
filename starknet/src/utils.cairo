@@ -2,12 +2,12 @@ mod bits;
 
 mod constants;
 
-mod felt_arr_to_uint_arr;
-use felt_arr_to_uint_arr::Felt252ArrayIntoU256Array;
+mod into;
 
 mod legacy_hash;
 
 mod math;
+
 mod merkle;
 
 mod proposition_power;
@@ -16,7 +16,11 @@ mod struct_hash;
 
 mod single_slot_proof;
 
-mod signatures;
+mod eip712;
+
+mod endian;
+
+mod keccak;
 
 mod stark_eip712;
 

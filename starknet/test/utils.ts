@@ -147,3 +147,14 @@ export function extractMessagePayload(
   });
   return [proposal, forVotes, againstVotes, abstainVotes];
 }
+
+// From sx.js
+export function getRSVFromSig(sig: string) {
+  if (sig.startsWith('0x')) {
+    sig = sig.substring(2);
+  }
+  const r = `0x${sig.substring(0, 64)}`;
+  const s = `0x${sig.substring(64, 64 * 2)}`;
+  const v = `0x${sig.substring(64 * 2)}`;
+  return { r, s, v };
+}

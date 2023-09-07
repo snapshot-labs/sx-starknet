@@ -36,9 +36,8 @@ describe('L1 Avatar Execution', function () {
 
     account = await starknet.OpenZeppelinAccount.getAccountFromAddress(account_address, account_pk);
 
-    const starkTxAuthenticatorFactory = await starknet.getContractFactory(
-      'sx_StarkTxAuthenticator',
-    );
+    const starkTxAuthenticatorFactory =
+      await starknet.getContractFactory('sx_StarkTxAuthenticator');
     const vanillaVotingStrategyFactory = await starknet.getContractFactory(
       'sx_VanillaVotingStrategy',
     );

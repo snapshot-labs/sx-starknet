@@ -1,4 +1,4 @@
-use starknet::{ContractAddress, EthAddress, SyscallResult};
+use starknet::{ContractAddress, EthAddress};
 use sx::types::{Strategy, IndexedStrategy, Choice};
 
 #[starknet::interface]
@@ -7,8 +7,8 @@ trait IEthSigAuthenticator<TContractState> {
         ref self: TContractState,
         r: u256,
         s: u256,
-        v: u256,
-        target: ContractAddress,
+        v: u32,
+        space: ContractAddress,
         author: EthAddress,
         metadata_uri: Array<felt252>,
         execution_strategy: Strategy,
@@ -19,8 +19,8 @@ trait IEthSigAuthenticator<TContractState> {
         ref self: TContractState,
         r: u256,
         s: u256,
-        v: u256,
-        target: ContractAddress,
+        v: u32,
+        space: ContractAddress,
         voter: EthAddress,
         proposal_id: u256,
         choice: Choice,
@@ -31,8 +31,8 @@ trait IEthSigAuthenticator<TContractState> {
         ref self: TContractState,
         r: u256,
         s: u256,
-        v: u256,
-        target: ContractAddress,
+        v: u32,
+        space: ContractAddress,
         author: EthAddress,
         proposal_id: u256,
         execution_strategy: Strategy,
@@ -45,12 +45,10 @@ trait IEthSigAuthenticator<TContractState> {
 mod EthSigAuthenticator {
     use super::IEthSigAuthenticator;
     use starknet::{ContractAddress, EthAddress, syscalls::call_contract_syscall};
-    use sx::{
-        space::space::{ISpaceDispatcher, ISpaceDispatcherTrait},
-        types::{Strategy, IndexedStrategy, Choice, UserAddress},
-        utils::{signatures, legacy_hash::{LegacyHashEthAddress, LegacyHashUsedSalts}}
-    };
-
+    use sx::space::space::{ISpaceDispatcher, ISpaceDispatcherTrait};
+    use sx::types::{Strategy, IndexedStrategy, Choice, UserAddress};
+    use sx::utils::{eip712, legacy_hash::{LegacyHashEthAddress, LegacyHashUsedSalts}};
+    use sx::utils::endian::{into_le_u64_array, ByteReverse};
 
     #[storage]
     struct Storage {
@@ -64,28 +62,30 @@ mod EthSigAuthenticator {
             ref self: ContractState,
             r: u256,
             s: u256,
-            v: u256,
-            target: ContractAddress,
+            v: u32,
+            space: ContractAddress,
             author: EthAddress,
             metadata_uri: Array<felt252>,
             execution_strategy: Strategy,
             user_proposal_validation_params: Array<felt252>,
             salt: u256,
         ) {
-            signatures::verify_propose_sig(
+            assert(!self._used_salts.read((author, salt)), 'Salt Already Used');
+
+            eip712::verify_propose_sig(
                 r,
                 s,
                 v,
                 self._domain_hash.read(),
-                target,
+                space,
                 author,
-                execution_strategy.clone(),
-                user_proposal_validation_params.clone(),
+                metadata_uri.span(),
+                @execution_strategy,
+                user_proposal_validation_params.span(),
                 salt,
             );
             self._used_salts.write((author, salt), true);
-
-            ISpaceDispatcher { contract_address: target }
+            ISpaceDispatcher { contract_address: space }
                 .propose(
                     UserAddress::Ethereum(author),
                     metadata_uri,
@@ -98,29 +98,30 @@ mod EthSigAuthenticator {
             ref self: ContractState,
             r: u256,
             s: u256,
-            v: u256,
-            target: ContractAddress,
+            v: u32,
+            space: ContractAddress,
             voter: EthAddress,
             proposal_id: u256,
             choice: Choice,
             user_voting_strategies: Array<IndexedStrategy>,
             metadata_uri: Array<felt252>,
         ) {
-            signatures::verify_vote_sig(
+            // No need to check salts here, as double voting is prevented by the space itself.
+
+            eip712::verify_vote_sig(
                 r,
                 s,
                 v,
                 self._domain_hash.read(),
-                target,
+                space,
                 voter,
                 proposal_id,
                 choice,
-                user_voting_strategies.clone(),
+                user_voting_strategies.span(),
+                metadata_uri.span(),
             );
 
-            // No need to check salts here, as double voting is prevented by the space itself.
-
-            ISpaceDispatcher { contract_address: target }
+            ISpaceDispatcher { contract_address: space }
                 .vote(
                     UserAddress::Ethereum(voter),
                     proposal_id,
@@ -134,28 +135,30 @@ mod EthSigAuthenticator {
             ref self: ContractState,
             r: u256,
             s: u256,
-            v: u256,
-            target: ContractAddress,
+            v: u32,
+            space: ContractAddress,
             author: EthAddress,
             proposal_id: u256,
             execution_strategy: Strategy,
             metadata_uri: Array<felt252>,
             salt: u256
         ) {
-            signatures::verify_update_proposal_sig(
+            assert(!self._used_salts.read((author, salt)), 'Salt Already Used');
+
+            eip712::verify_update_proposal_sig(
                 r,
                 s,
                 v,
                 self._domain_hash.read(),
-                target,
+                space,
                 author,
                 proposal_id,
-                execution_strategy.clone(),
+                @execution_strategy,
+                metadata_uri.span(),
                 salt
             );
             self._used_salts.write((author, salt), true);
-
-            ISpaceDispatcher { contract_address: target }
+            ISpaceDispatcher { contract_address: space }
                 .update_proposal(
                     UserAddress::Ethereum(author), proposal_id, execution_strategy, metadata_uri
                 );
@@ -163,8 +166,7 @@ mod EthSigAuthenticator {
     }
 
     #[constructor]
-    fn constructor(ref self: ContractState, name: felt252, version: felt252) {
-        // TODO: domain hash is immutable so could be placed in the contract code instead of storage to save on reads.
-        self._domain_hash.write(signatures::get_domain_hash(name, version));
+    fn constructor(ref self: ContractState) {
+        self._domain_hash.write(eip712::get_domain_hash());
     }
 }
