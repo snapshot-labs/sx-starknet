@@ -10,7 +10,8 @@ use sx::{
     }
 };
 
-trait StructHash<T> {
+/// Struct hash trait helper.
+trait StructHash<T> {k
     fn struct_hash(self: @T) -> felt252;
 }
 
