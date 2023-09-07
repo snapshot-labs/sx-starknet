@@ -2,11 +2,10 @@
 mod SingleSlotProof {
     use starknet::{ContractAddress, EthAddress};
     use sx::external::herodotus::{
-        ProofElement, BinarySearchTree, ITimestampRemappersDispatcher,
+        Words64, BinarySearchTree, ITimestampRemappersDispatcher,
         ITimestampRemappersDispatcherTrait, IEVMFactsRegistryDispatcher,
         IEVMFactsRegistryDispatcherTrait
     };
-    use sx::utils::math;
     use sx::utils::endian::ByteReverse;
 
     #[storage]
@@ -37,17 +36,21 @@ mod SingleSlotProof {
         l1_contract_address: EthAddress,
         slot_index: u256,
         mapping_key: u256,
-        serialized_tree: Span<felt252>
+        params: Span<felt252>
     ) -> u256 {
-        let mut serialized_tree = serialized_tree;
-        let tree = Serde::<BinarySearchTree>::deserialize(ref serialized_tree).unwrap();
+        let mut params = params;
+        let (tree, mpt_proof) = Serde::<(BinarySearchTree, Span<Words64>)>::deserialize(ref params)
+            .unwrap();
 
-        // Map timestamp to closest L1 block number that occured before the timestamp.
+        // Maps timestamp to closest L1 block number that occured before the timestamp. If the queried 
+        // timestamp is less than the earliest timestamp or larger than the latest timestamp in the mapper
+        // then the call will return Option::None and the transaction will revert.
         let l1_block_number = ITimestampRemappersDispatcher {
             contract_address: self._timestamp_remappers.read()
         }
             .get_closest_l1_block_number(tree, timestamp.into())
-            .unwrap();
+            .expect('Timestamp mapping failed')
+            .expect('Timestamp out of range');
 
         // Computes the key of the EVM storage slot from the index of the mapping in storage and the mapping key.
         let slot_key = get_mapping_slot_key(slot_index, mapping_key);
@@ -56,7 +59,7 @@ mod SingleSlotProof {
         let slot_value = IEVMFactsRegistryDispatcher {
             contract_address: self._facts_registry.read()
         }
-            .get_slot_value(l1_contract_address.into(), l1_block_number, slot_key);
+            .get_storage(l1_block_number, l1_contract_address.into(), slot_key, 1, mpt_proof);
 
         assert(slot_value.is_non_zero(), 'Slot is zero');
 
@@ -76,21 +79,24 @@ mod tests {
                 0x0_u256, 0x0_u256
             ) == u256 {
                 low: 0x2b36e491b30a40b2405849e597ba5fb5, high: 0xad3228b676f7d3cd4284a5443f17f196
-            }, 'Incorrect slot key'
+            },
+            'Incorrect slot key'
         );
         assert(
             SingleSlotProof::get_mapping_slot_key(
                 0x1_u256, 0x0_u256
             ) == u256 {
                 low: 0x10426056ef8ca54750cb9bb552a59e7d, high: 0xada5013122d395ba3c54772283fb069b
-            }, 'Incorrect slot key'
+            },
+            'Incorrect slot key'
         );
         assert(
             SingleSlotProof::get_mapping_slot_key(
                 0xd8dA6BF26964aF9D7eEd9e03E53415D37aA96045_u256, 0x1_u256
             ) == u256 {
                 low: 0xad9172e102b3af1e07a10cc29003beb2, high: 0xb931be0b3d1fb06daf0d92e2b8dfe49e
-            }, 'Incorrect slot key'
+            },
+            'Incorrect slot key'
         );
     }
 }
