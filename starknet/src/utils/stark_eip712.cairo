@@ -15,6 +15,9 @@ use sx::{
     }
 };
 
+/// Implementation of off-chain signature verification.
+/// See https://community.starknet.io/t/snip-off-chain-signatures-a-la-eip712/98029
+
 /// Verifies the signature of a propose by calling the account contract.
 fn verify_propose_sig(
     domain_hash: felt252,
