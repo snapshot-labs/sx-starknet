@@ -20,9 +20,9 @@ fn verify_propose_sig(
     signature: Array<felt252>,
     target: ContractAddress,
     author: ContractAddress,
+    metadata_uri: Span<felt252>,
     execution_strategy: @Strategy,
     user_proposal_validation_params: Span<felt252>,
-    metadata_uri: Span<felt252>,
     salt: felt252,
     account_type: felt252,
 ) {
@@ -30,9 +30,9 @@ fn verify_propose_sig(
         domain_hash,
         target,
         author,
+        metadata_uri,
         execution_strategy,
         user_proposal_validation_params,
-        metadata_uri,
         salt
     );
 
@@ -77,18 +77,18 @@ fn get_propose_digest(
     domain_hash: felt252,
     space: ContractAddress,
     author: ContractAddress,
+    metadata_uri: Span<felt252>,
     execution_strategy: @Strategy,
     user_proposal_validation_params: Span<felt252>,
-    metadata_uri: Span<felt252>,
     salt: felt252
 ) -> felt252 {
     let mut encoded_data = array![];
     PROPOSE_TYPEHASH.serialize(ref encoded_data);
     space.serialize(ref encoded_data);
     author.serialize(ref encoded_data);
+    metadata_uri.struct_hash().serialize(ref encoded_data);
     execution_strategy.struct_hash().serialize(ref encoded_data);
     user_proposal_validation_params.struct_hash().serialize(ref encoded_data);
-    metadata_uri.struct_hash().serialize(ref encoded_data);
     salt.serialize(ref encoded_data);
     hash_typed_data(domain_hash, encoded_data.span().struct_hash(), author)
 }

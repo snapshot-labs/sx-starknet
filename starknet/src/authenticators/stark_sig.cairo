@@ -73,9 +73,9 @@ mod StarkSigAuthenticator {
                 signature,
                 target,
                 author,
+                metadata_uri.span(),
                 @execution_strategy,
                 user_proposal_validation_params.span(),
-                metadata_uri.span(),
                 salt,
                 account_type
             );
@@ -135,31 +135,29 @@ mod StarkSigAuthenticator {
             metadata_uri: Array<felt252>,
             salt: felt252,
             account_type: felt252
-        ) {
-            assert(!self._used_salts.read((author, salt)), 'Salt Already Used');
+        ) {// assert(!self._used_salts.read((author, salt)), 'Salt Already Used');
 
-            stark_eip712::verify_update_proposal_sig(
-                self._domain_hash.read(),
-                signature,
-                target,
-                author,
-                proposal_id,
-                @execution_strategy,
-                metadata_uri.span(),
-                salt,
-                account_type
-            );
+        // stark_eip712::verify_update_proposal_sig(
+        //     self._domain_hash.read(),
+        //     signature,
+        //     target,
+        //     author,
+        //     proposal_id,
+        //     @execution_strategy,
+        //     metadata_uri.span(),
+        //     salt,
+        //     account_type
+        // );
 
-            self._used_salts.write((author, salt), true);
-            ISpaceDispatcher { contract_address: target }
-                .update_proposal(
-                    UserAddress::Starknet(author), proposal_id, execution_strategy, metadata_uri
-                );
+        // self._used_salts.write((author, salt), true);
+        // ISpaceDispatcher { contract_address: target }
+        //     .update_proposal(
+        //         UserAddress::Starknet(author), proposal_id, execution_strategy, metadata_uri
+        //     );
         }
     }
     #[constructor]
     fn constructor(ref self: ContractState, name: felt252, version: felt252) {
-        // TODO: store domain hash in stark_eip712 component once syntax is live.
         self._domain_hash.write(stark_eip712::get_domain_hash(name, version));
     }
 }
