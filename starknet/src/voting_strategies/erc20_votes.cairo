@@ -19,7 +19,7 @@ mod ERC20VotesVotingStrategy {
         /// # Arguments
         ///
         /// * `timestamp` - The timestamp at which to calculate the voting power.
-        /// * `voter` - The address of the voter.
+        /// * `voter` - The address of the voter. Expected to be a starknet address.
         /// * `params` - Expected to hold the address of the ERC20 contract.
         /// * `_user_params` - Unused.
         ///
