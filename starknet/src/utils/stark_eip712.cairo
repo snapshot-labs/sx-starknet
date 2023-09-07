@@ -15,6 +15,7 @@ use sx::{
     }
 };
 
+/// Verifies the signature of a propose by calling the account contract.
 fn verify_propose_sig(
     domain_hash: felt252,
     signature: Array<felt252>,
@@ -39,6 +40,7 @@ fn verify_propose_sig(
     verify_signature(digest, signature, author, account_type);
 }
 
+/// Verifies the signature of a vote by calling the account contract.
 fn verify_vote_sig(
     domain_hash: felt252,
     signature: Array<felt252>,
@@ -56,6 +58,7 @@ fn verify_vote_sig(
     verify_signature(digest, signature, voter, account_type);
 }
 
+/// Verifies the signature of an update proposal by calling the account contract.
 fn verify_update_proposal_sig(
     domain_hash: felt252,
     signature: Array<felt252>,
@@ -73,6 +76,17 @@ fn verify_update_proposal_sig(
     verify_signature(digest, signature, author, account_type);
 }
 
+/// Returns the digest of the propose calldata.
+///
+/// # Arguments
+///
+/// * `domain_hash` - The domain hash.
+/// * `space` - The space contract address.
+/// * `author` - The author address.
+/// * `execution_strategy` - The execution strategy.
+/// * `user_proposal_validation_params` - The user proposal validation params.
+/// * `metadata_uri` - The metadata URI.
+/// * `salt` - The salt (used for replay protection).
 fn get_propose_digest(
     domain_hash: felt252,
     space: ContractAddress,
@@ -93,6 +107,19 @@ fn get_propose_digest(
     hash_typed_data(domain_hash, encoded_data.span().struct_hash(), author)
 }
 
+/// Returns the digest of the vote calldata.
+/// A `salt` is not needed in this function because a vote is only counted
+/// once (verified at the space level in the `vote` function).
+///
+/// # Arguments
+///
+/// * `domain_hash` - The domain hash.
+/// * `space` - The space contract address.
+/// * `voter` - The voter address.
+/// * `proposal_id` - The proposal id.
+/// * `choice` - The choice.
+/// * `user_voting_strategies` - The user voting strategies.
+/// * `metadata_uri` - The metadata URI.
 fn get_vote_digest(
     domain_hash: felt252,
     space: ContractAddress,
@@ -113,6 +140,18 @@ fn get_vote_digest(
     hash_typed_data(domain_hash, encoded_data.span().struct_hash(), voter)
 }
 
+
+/// Returns the digest of the update proposal calldata.
+///
+/// # Arguments
+///
+/// * `domain_hash` - The domain hash.
+/// * `space` - The space contract address.
+/// * `author` - The author address.
+/// * `proposal_id` - The proposal id.
+/// * `execution_strategy` - The execution strategy.
+/// * `metadata_uri` - The metadata URI.
+/// * `salt` - The salt (used for replay protection).
 fn get_update_proposal_digest(
     domain_hash: felt252,
     space: ContractAddress,
@@ -133,6 +172,13 @@ fn get_update_proposal_digest(
     hash_typed_data(domain_hash, encoded_data.span().struct_hash(), author)
 }
 
+
+/// Returns the domain hash of the contract.
+/// 
+/// # Arguments
+///
+/// * `name` - The name of the domain.
+/// * `version` - The version of the domain.
 fn get_domain_hash(name: felt252, version: felt252) -> felt252 {
     let mut encoded_data = array![];
     DOMAIN_TYPEHASH.serialize(ref encoded_data);
@@ -143,6 +189,13 @@ fn get_domain_hash(name: felt252, version: felt252) -> felt252 {
     encoded_data.span().struct_hash()
 }
 
+/// Hashes typed data according to the starknet equiavelnt to the EIP-712 specification.
+/// 
+/// # Arguments
+///
+/// * `domain_hash` - The domain hash.
+/// * `message_hash` - The message hash.
+/// * `signer` - The signer address.
 fn hash_typed_data(
     domain_hash: felt252, message_hash: felt252, signer: ContractAddress
 ) -> felt252 {
@@ -155,6 +208,14 @@ fn hash_typed_data(
 }
 
 /// Verifies the signature of a message by calling the account contract.
+/// This function does not return anything, but will panic if the signature is invalid.
+///
+/// # Arguments
+///
+/// * `digest` - The message digest.
+/// * `signature` - The user-supplied signature of the digest.
+/// * `account` - The account contract address.
+/// * `account_type` - The account contract type (either 'snake' or 'camel'). Here for historical compatibility.
 fn verify_signature(
     digest: felt252, signature: Array<felt252>, account: ContractAddress, account_type: felt252
 ) {
