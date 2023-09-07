@@ -1,11 +1,11 @@
 #[starknet::contract]
 mod EthBalanceOfVotingStrategy {
     use starknet::{EthAddress, ContractAddress};
-    use integer::u256_from_felt252;
     use sx::{
         interfaces::IVotingStrategy, types::{UserAddress, UserAddressTrait},
         utils::single_slot_proof::SingleSlotProof
     };
+    use sx::utils::into::TIntoU256;
 
     #[storage]
     struct Storage {}
@@ -49,12 +49,5 @@ mod EthBalanceOfVotingStrategy {
         // TODO: temporary until components are released
         let mut state = SingleSlotProof::unsafe_new_contract_state();
         SingleSlotProof::initializer(ref state, timestamp_remappers, facts_registry);
-    }
-
-    // TODO: temp till PR with this is merged
-    impl TIntoU256<T, impl TIntoFelt252: Into<T, felt252>> of Into<T, u256> {
-        fn into(self: T) -> u256 {
-            u256_from_felt252(self.into())
-        }
     }
 }
