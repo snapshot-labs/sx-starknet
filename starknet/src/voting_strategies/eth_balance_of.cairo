@@ -18,7 +18,7 @@ mod EthBalanceOfVotingStrategy {
         /// # Arguments
         ///
         /// * `timestamp` - The timestamp of the block at which the voting power is calculated.
-        /// * `voter` - The address of the voter.
+        /// * `voter` - The address of the voter. Expected to be an ethereum address.
         /// * `params` - Should contain the contract address and the slot index.
         /// * `user_params` - Should contain the encoded proofs for the L1 contract and the slot index.
         ///
