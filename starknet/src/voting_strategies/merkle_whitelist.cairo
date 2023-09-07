@@ -11,6 +11,20 @@ mod MerkleWhitelistVotingStrategy {
 
     #[external(v0)]
     impl MerkleWhitelistImpl of IVotingStrategy<ContractState> {
+        /// Returns the voting power of a members of a merkle tree.
+        /// The merkle tree root is stored in the strategy parameters (defined by the space owner).
+        /// It is up to the user to supply the leaf and the corresponding proof.
+        ///
+        /// # Arguments
+        ///
+        /// * `timestamp` - Unused.
+        /// * `voter` - The address of the voter. Can be an Ethereum address or a Starknet address.
+        /// * `params` - Should contain the merkle tree root.
+        /// * `user_params` - Should contain the leaf and the corresponding proof.
+        ///
+        /// # Returns
+        ///
+        /// * The voting power of the voter.
         fn get_voting_power(
             self: @ContractState,
             timestamp: u32,
