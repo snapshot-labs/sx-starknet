@@ -11,6 +11,17 @@ mod EthRelayerExecutionStrategy {
     #[storage]
     struct Storage {}
 
+    /// Forwards the execution to the L1<->Starknet bridge to the contract located in the `payload` argument.
+    /// Since this contract does not check who is calling it, it is the responsibility of the L1 contract to
+    /// check that the caller is indeed an authorized space contract (this information is sent to the bridge).
+    ///
+    /// # Arguments
+    ///
+    /// * proposal - The proposal to execute.
+    /// * votes_for - The number of votes for the proposal.
+    /// * votes_against - The number of votes against the proposal.
+    /// * votes_abstain - The number of votes abstaining from the proposal.
+    /// * payload - Should be a tuple of the form `(l1_execution_strategy, l1_execution_hash)`.
     #[external(v0)]
     impl EthRelayerExecutionStrategy of IExecutionStrategy<ContractState> {
         fn execute(
@@ -54,6 +65,7 @@ mod EthRelayerExecutionStrategy {
             'EthRelayer'
         }
 
+        /// Errors when called. The proposal status is only available on the L1 contract.
         fn get_proposal_status(
             self: @ContractState,
             proposal: Proposal,
