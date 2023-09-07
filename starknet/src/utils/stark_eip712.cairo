@@ -1,4 +1,3 @@
-use core::starknet::SyscallResultTrait;
 use starknet::{ContractAddress, get_tx_info, get_contract_address};
 use sx::{
     types::{Strategy, IndexedStrategy, Choice},
