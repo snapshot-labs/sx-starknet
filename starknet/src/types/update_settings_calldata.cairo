@@ -91,7 +91,7 @@ impl NoUpdateString of NoUpdateTrait<Array<felt252>> {
             Option::Some(e) => {
                 *e.unbox() != 'No update'
             },
-            Option::None => false,
+            Option::None => true,
         }
     }
 }
@@ -114,14 +114,14 @@ impl UpdateSettingsCalldataImpl of UpdateSettingsCalldataTrait {
             min_voting_duration: NoUpdateU32::no_update(),
             max_voting_duration: NoUpdateU32::no_update(),
             voting_delay: NoUpdateU32::no_update(),
-            metadata_uri: NoUpdateArray::no_update(), // TODO: string
-            dao_uri: NoUpdateArray::no_update(), // TODO: string
+            metadata_uri: NoUpdateString::no_update(),
+            dao_uri: NoUpdateString::no_update(),
             proposal_validation_strategy: NoUpdateStrategy::no_update(),
-            proposal_validation_strategy_metadata_uri: NoUpdateArray::no_update(), // TODO: string
+            proposal_validation_strategy_metadata_uri: NoUpdateString::no_update(),
             authenticators_to_add: NoUpdateArray::no_update(),
             authenticators_to_remove: NoUpdateArray::no_update(),
             voting_strategies_to_add: NoUpdateArray::no_update(),
-            voting_strategies_metadata_uris_to_add: NoUpdateArray::no_update(), // TODO: string
+            voting_strategies_metadata_uris_to_add: NoUpdateArray::no_update(),
             voting_strategies_to_remove: NoUpdateArray::no_update(),
         }
     }

@@ -5,53 +5,45 @@ const VOTE_SELECTOR: felt252 = 0x132bdf85fc8aa10ac3c22f02317f8f53d4b4f52235ed1ea
 const UPDATE_PROPOSAL_SELECTOR: felt252 =
     0x1f93122f646d968b0ce8c1a4986533f8b4ed3f099122381a4f77478a480c2c3;
 
+// ------ Ethereum Signature Constants ------
+
 const ETHEREUM_PREFIX: u128 = 0x1901;
 
-// TODO: Decide on contents of Domain
-// Name, Version, Chain ID, Verifying Contract
-const DOMAIN_TYPEHASH_HIGH: u128 = 0x8b73c3c69bb8fe3d512ecc4cf759cc79;
-const DOMAIN_TYPEHASH_LOW: u128 = 0x239f7b179b0ffacaa9a75d522b39400f;
-
-// Not sure exactly how to define the typehashes. Should we use use Solidity types or Cairo ones? 
-// keccak256(
-//             "Propose(ContractAddress space,ContractAddress author,Strategy execution_strategy,"
-//             "uint8[] user_proposal_validation_params,uint256 salt)"
-//             "Strategy(ContractAddress address,uint8[] params)"
-//         )
-const PROPOSE_TYPEHASH_HIGH: u128 = 0xb3819ccd8da0765bcd8ddb0565804a77;
-const PROPOSE_TYPEHASH_LOW: u128 = 0xf68d3517c389b0125db8929ffa949667;
+// keccak256("EIP712Domain(uint256 chainId)")
+const DOMAIN_TYPEHASH_HIGH: u128 = 0xc49a8e302e3e5d6753b2bb3dbc3c28de;
+const DOMAIN_TYPEHASH_LOW: u128 = 0xba5e16e2572a92aef568063c963e3465;
 
 // keccak256(
-//             "Vote(ContractAddress space,ContractAddress voter,Choice choice,"
-//             "IndexedStrategy[] user_voting_strategies)"
-//             "IndexedStrategy(uint256 index,uint8[] params)"
+//    "Propose(uint256 authenticator,uint256 space,address author,uint256[] metadataUri,Strategy executionStrategy,uint256[] userProposalValidationParams,uint256 salt)Strategy(uint256 address,uint256[] params)"
 //         )
-const VOTE_TYPEHASH_HIGH: u128 = 0x96d1d90c026a09b7b038acf99c5e292a;
-const VOTE_TYPEHASH_LOW: u128 = 0x7b8d480ba77d954029dd696edd6333cc;
+const PROPOSE_TYPEHASH_HIGH: u128 = 0x4dfc61ed4ed6dbe067c67c4d27609650;
+const PROPOSE_TYPEHASH_LOW: u128 = 0xc15e92250dad00bce5b7a15d803f412c;
 
 // keccak256(
-//             "UpdateProposal(ContractAddress space,ContractAddress author,uint256 proposal_id,"
-//             "Strategy execution_strategy)"
-//             "Strategy(ContractAddress address,uint8[] params)"
+//    "Vote(uint256 authenticator,uint256 space,address voter,uint256 proposalId,uint256 choice,IndexedStrategy[] userVotingStrategies,uint256[] metadataUri)IndexedStrategy(uint256 index,uint256[] params)"
 //         )
-const UPDATE_PROPOSAL_TYPEHASH_HIGH: u128 = 0xe696044e69e092275313905ca33fa3d0;
-const UPDATE_PROPOSAL_TYPEHASH_LOW: u128 = 0x2580ebe8785ab31624d10836156f45b3;
+const VOTE_TYPEHASH_HIGH: u128 = 0x3de8a6075852dd4e4b0b01cdd1c58ed6;
+const VOTE_TYPEHASH_LOW: u128 = 0x2e3bdd0734e744e68fbab937d9ec3663;
 
-// keccak256("Strategy(ContractAddress address,uint8[] params)")
-const STRATEGY_TYPEHASH_HIGH: u128 = 0x0ccb9059759f3ea104c9200ef8a59445;
-const STRATEGY_TYPEHASH_LOW: u128 = 0x78d5506febfdb18580ea361801747e63;
+// keccak256(
+//    "UpdateProposal(uint256 authenticator,uint256 space,address author,uint256 proposalId,Strategy executionStrategy,uint256[] metadataUri,uint256 salt)Strategy(uint256 address,uint256[] params)"
+//         )
+const UPDATE_PROPOSAL_TYPEHASH_HIGH: u128 = 0xccae29691c0af6c4ee02ec442cb0ade3;
+const UPDATE_PROPOSAL_TYPEHASH_LOW: u128 = 0x3fc36989a73ba9357060d3eeac00b67f;
 
-// keccak256("IndexedStrategy(uint256 index,uint8[] params)")
-const INDEXED_STRATEGY_TYPEHASH_HIGH: u128 = 0x894665428ec742c74109dc21d320d1ab;
-const INDEXED_STRATEGY_TYPEHASH_LOW: u128 = 0x8b36195eec0090e913c01e7534729c74;
+// keccak256("Strategy(uint256 address,uint256[] params)")
+const STRATEGY_TYPEHASH_HIGH: u128 = 0xa6cb034787a88e7219605b9db792cb9a;
+const STRATEGY_TYPEHASH_LOW: u128 = 0x312314462975078b4bdad10feee486d9;
 
+// keccak256("IndexedStrategy(uint256 index,uint256[] params)")
+const INDEXED_STRATEGY_TYPEHASH_HIGH: u128 = 0xf4acb5967e70f3ad896d52230fe743c9;
+const INDEXED_STRATEGY_TYPEHASH_LOW: u128 = 0x1d011b57ff63174d8f2b064ab6ce9cc6;
 
 // ------ Stark Signature Constants ------
-// H refers to the Starknet Keccak hash function
 
 const STARKNET_MESSAGE: felt252 = 'StarkNet Message';
 
-// H('StarkNetDomain(name:felt252,version:felt252,chainId:felt252,verifyingContract:ContractAddress)')
+// StarknetKeccak('StarkNetDomain(name:felt252,version:felt252,chainId:felt252,verifyingContract:ContractAddress)')
 const DOMAIN_TYPEHASH: felt252 = 0xa9974a36dee531bbc36aad5eeab4ade4df5ad388a296bb14d28ad4e9bf2164;
 
 // H('Propose(space:ContractAddress,author:ContractAddress,executionStrategy:Strategy, userProposalValidationParams:felt*,
@@ -67,18 +59,19 @@ const VOTE_TYPEHASH: felt252 = 0x1d9763f87aaaeb271287d4b9c84053d3f201ad61efc2c32
 const UPDATE_PROPOSAL_TYPEHASH: felt252 =
     0x34f1b3fe98891caddfc18d9b8d3bee36be34145a6e9f7a7bb76a45038dda780;
 
-// H('Strategy(address:felt252,params:felt*)')
+// StarknetKeccak('Strategy(address:felt252,params:felt*)')
 const STRATEGY_TYPEHASH: felt252 =
     0x39154ec0efadcd0deffdfc2044cf45dd986d260e59c26d69564b50a18f40f6b;
 
-// H('IndexedStrategy(index:felt252,params:felt*)')
+// StarknetKeccak('IndexedStrategy(index:felt252,params:felt*)')
 const INDEXED_STRATEGY_TYPEHASH: felt252 =
     0x1f464f3e668281a899c5f3fc74a009ccd1df05fd0b9331b0460dc3f8054f64c;
 
-// H('u256(low:felt252,high:felt252)')
+// StarknetKeccak('u256(low:felt252,high:felt252)')
 const U256_TYPEHASH: felt252 = 0x1094260a770342332e6a73e9256b901d484a438925316205b4b6ff25df4a97a;
 
 // ------ ERC165 Interface Ids ------
 // For more information, refer to: https://github.com/starknet-io/SNIPs/blob/main/SNIPS/snip-5.md
+
 const ERC165_ACCOUNT_INTERFACE_ID: felt252 = 0xa66bd575; // snake 
 const ERC165_OLD_ACCOUNT_INTERFACE_ID: felt252 = 0x3943f10f; // camel 
