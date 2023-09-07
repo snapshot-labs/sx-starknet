@@ -3,6 +3,9 @@ use sx::types::{Strategy, IndexedStrategy, Choice};
 
 #[starknet::interface]
 trait IEthTxAuthenticator<TContractState> {
+    /// Authenticates a propose transaction by checking that `author` has indeed sent a transaction from L1
+    /// to the bridge contract.
+    /// `author` is expected to be an ethereum address.
     fn authenticate_propose(
         ref self: TContractState,
         target: ContractAddress,
@@ -11,6 +14,10 @@ trait IEthTxAuthenticator<TContractState> {
         execution_strategy: Strategy,
         user_proposal_validation_params: Array<felt252>,
     );
+
+    /// Authenticates a vote transaction by checking that `voter` has indeed sent a transaction from L1
+    /// to the bridge contract.
+    /// `voter` is expected to be an ethereum address.
     fn authenticate_vote(
         ref self: TContractState,
         target: ContractAddress,
@@ -20,6 +27,10 @@ trait IEthTxAuthenticator<TContractState> {
         user_voting_strategies: Array<IndexedStrategy>,
         metadata_uri: Array<felt252>
     );
+
+    /// Authenticates an update_proposal transaction by checking that `author` has indeed sent a transaction from L1
+    /// to the bridge contract.
+    /// `author` is expected to be an ethereum address.
     fn authenticate_update_proposal(
         ref self: TContractState,
         target: ContractAddress,
