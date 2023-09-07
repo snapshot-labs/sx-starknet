@@ -294,7 +294,7 @@ describe('Starknet Signature Authenticator', function () {
       salt: '0x1',
     };
 
-    const invalidUpdateProposalSig = (await accountWithSigner.signMessage({
+    const invalidUpdateProposalSig = (await invalidAccountWithSigner.signMessage({
       types: updateProposalTypes,
       primaryType: 'UpdateProposal',
       domain: domain,
