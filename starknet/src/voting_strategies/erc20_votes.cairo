@@ -30,7 +30,7 @@ mod ERC20VotesVotingStrategy {
             self: @ContractState,
             timestamp: u32,
             voter: UserAddress,
-            mut params: Span<felt252>,
+            mut params: Span<felt252>, // [contract_address: address]
             user_params: Span<felt252>,
         ) -> u256 {
             // Cast voter address to a Starknet address
