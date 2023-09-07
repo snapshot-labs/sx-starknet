@@ -11,12 +11,26 @@ mod EthBalanceOfVotingStrategy {
 
     #[external(v0)]
     impl EthBalanceOfVotingStrategy of IVotingStrategy<ContractState> {
+        /// Returns the layer 1 balance of the voter. The contract address and slot index is stored
+        /// in the strategy parameters (defined by the space owner).
+        /// The proof itself is supplied by the voter, in the `user_params` argument.
+        ///
+        /// # Arguments
+        ///
+        /// * `timestamp` - The timestamp of the block at which the voting power is calculated.
+        /// * `voter` - The address of the voter.
+        /// * `params` - Should contain the contract address and the slot index.
+        /// * `user_params` - Should contain the encoded proofs for the L1 contract and the slot index.
+        ///
+        /// # Returns
+        ///
+        /// `u256` - The voting power of the voter at the given timestamp.
         fn get_voting_power(
             self: @ContractState,
             timestamp: u32,
             voter: UserAddress,
-            params: Span<felt252>,
-            user_params: Span<felt252>,
+            params: Span<felt252>, // [contract_address: address, slot_index: u32]
+            user_params: Span<felt252>, // encoded proofs
         ) -> u256 {
             // Cast voter address to an Ethereum address
             // Will revert if the address is not an Ethereum address
