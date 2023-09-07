@@ -135,25 +135,26 @@ mod StarkSigAuthenticator {
             metadata_uri: Array<felt252>,
             salt: felt252,
             account_type: felt252
-        ) {// assert(!self._used_salts.read((author, salt)), 'Salt Already Used');
+        ) {
+            assert(!self._used_salts.read((author, salt)), 'Salt Already Used');
 
-        // stark_eip712::verify_update_proposal_sig(
-        //     self._domain_hash.read(),
-        //     signature,
-        //     target,
-        //     author,
-        //     proposal_id,
-        //     @execution_strategy,
-        //     metadata_uri.span(),
-        //     salt,
-        //     account_type
-        // );
+            stark_eip712::verify_update_proposal_sig(
+                self._domain_hash.read(),
+                signature,
+                target,
+                author,
+                proposal_id,
+                @execution_strategy,
+                metadata_uri.span(),
+                salt,
+                account_type
+            );
 
-        // self._used_salts.write((author, salt), true);
-        // ISpaceDispatcher { contract_address: target }
-        //     .update_proposal(
-        //         UserAddress::Starknet(author), proposal_id, execution_strategy, metadata_uri
-        //     );
+            self._used_salts.write((author, salt), true);
+            ISpaceDispatcher { contract_address: target }
+                .update_proposal(
+                    UserAddress::Starknet(author), proposal_id, execution_strategy, metadata_uri
+                );
         }
     }
     #[constructor]
