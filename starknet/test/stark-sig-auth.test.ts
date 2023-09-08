@@ -140,7 +140,6 @@ describe('Starknet Signature Authenticator', function () {
     await account.invoke(starkSigAuthenticator, 'authenticate_propose', proposeCalldata, {
       rawInput: true,
     });
-    console.log('Propose authenticated');
 
     // UPDATE PROPOSAL
 
@@ -257,8 +256,9 @@ describe('Starknet Signature Authenticator', function () {
       await account.invoke(starkSigAuthenticator, 'authenticate_propose', invalidProposeCalldata, {
         rawInput: true,
       });
+      expect.fail('Should have failed');
     } catch (err: any) {
-      // snippit of error message thrown when signature is invalid
+      // snippet of error message thrown when signature is invalid
       expect(err.message).to.contain('is invalid, with respect to the public key');
     }
 
@@ -278,7 +278,6 @@ describe('Starknet Signature Authenticator', function () {
     await account.invoke(starkSigAuthenticator, 'authenticate_propose', proposeCalldata, {
       rawInput: true,
     });
-    console.log('Propose authenticated');
 
     // UPDATE PROPOSAL
 
@@ -316,8 +315,9 @@ describe('Starknet Signature Authenticator', function () {
           rawInput: true,
         },
       );
+      expect.fail('Should have failed');
     } catch (err: any) {
-      // snippit of error message thrown when signature is invalid
+      // snippet of error message thrown when signature is invalid
       expect(err.message).to.contain('is invalid, with respect to the public key');
     }
 
@@ -374,8 +374,9 @@ describe('Starknet Signature Authenticator', function () {
       await account.invoke(starkSigAuthenticator, 'authenticate_vote', invalidVoteCalldata, {
         rawInput: true,
       });
+      expect.fail('Should have failed');
     } catch (err: any) {
-      // snippit of error message thrown when signature is invalid
+      // snippet of error message thrown when signature is invalid
       expect(err.message).to.contain('is invalid, with respect to the public key');
     }
 
@@ -441,11 +442,10 @@ describe('Starknet Signature Authenticator', function () {
       await account.invoke(starkSigAuthenticator, 'authenticate_propose', proposeCalldata, {
         rawInput: true,
       });
+      expect.fail('Should have failed');
     } catch (err: any) {
       expect(err.message).to.contain(shortString.encodeShortString('Salt Already Used'));
     }
-
-    console.log('Propose authenticated');
 
     // UPDATE PROPOSAL
 
@@ -492,6 +492,7 @@ describe('Starknet Signature Authenticator', function () {
           rawInput: true,
         },
       );
+      expect.fail('Should have failed');
     } catch (err: any) {
       expect(err.message).to.contain(shortString.encodeShortString('Salt Already Used'));
     }
