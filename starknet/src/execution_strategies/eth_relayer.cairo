@@ -22,7 +22,7 @@ mod EthRelayerExecutionStrategy {
     /// * votes_for - The number of votes for the proposal.
     /// * votes_against - The number of votes against the proposal.
     /// * votes_abstain - The number of votes abstaining from the proposal.
-    /// * payload - Should be a tuple of the form `(l1_execution_strategy, l1_execution_hash)`.
+    /// * payload - An array containing the serialized L1 execution strategy address and the L1 execution hash.
     #[external(v0)]
     impl EthRelayerExecutionStrategy of IExecutionStrategy<ContractState> {
         fn execute(
