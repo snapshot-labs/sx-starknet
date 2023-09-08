@@ -28,7 +28,6 @@ trait IEthTxAuthenticator<TContractState> {
         execution_strategy: Strategy,
         metadata_uri: Array<felt252>
     );
-// TODO: Should L1 handlers be part of the interface?
 }
 
 #[starknet::contract]
