@@ -16,7 +16,7 @@ const TWO_POWER_32: u128 = 0x100000000;
 const TWO_POWER_64: u128 = 0x10000000000000000;
 const TWO_POWER_96: u128 = 0x1000000000000000000000000;
 
-#[derive(Clone, Drop, Serde, PartialEq)]
+#[derive(Clone, Default, Drop, Serde, PartialEq)]
 struct Proposal {
     start_timestamp: u32,
     min_end_timestamp: u32,
@@ -28,18 +28,10 @@ struct Proposal {
     active_voting_strategies: u256
 }
 
-impl ProposalDefault of Default<Proposal> {
-    fn default() -> Proposal {
-        Proposal {
-            start_timestamp: 0,
-            min_end_timestamp: 0,
-            max_end_timestamp: 0,
-            finalization_status: FinalizationStatus::Pending(()),
-            execution_payload_hash: 0,
-            execution_strategy: contract_address_const::<0>(),
-            author: UserAddress::Starknet(contract_address_const::<0>()),
-            active_voting_strategies: 0,
-        }
+// Required for the proposal derivation. Ideally, ContractAddress would impl Default in the corelib.
+impl ContractAddressDefault of Default<ContractAddress> {
+    fn default() -> ContractAddress {
+        contract_address_const::<0>()
     }
 }
 

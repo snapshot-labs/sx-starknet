@@ -1,5 +1,6 @@
-#[derive(Drop, Serde, PartialEq, Copy, starknet::Store)]
+#[derive(Drop, Default, Serde, PartialEq, Copy, starknet::Store)]
 enum FinalizationStatus {
+    #[default]
     Pending: (),
     Executed: (),
     Cancelled: (),

@@ -411,9 +411,7 @@ mod tests {
 
     #[test]
     #[available_gas(10000000000)]
-    #[should_panic(
-        expected: ('Unknown enum indicator:', 'ENTRYPOINT_FAILED')
-    )] // TODO: replace once `default` works on Proposal
+    #[should_panic(expected: ('Proposal does not exist', 'ENTRYPOINT_FAILED'))]
     fn vote_inexistant_proposal() {
         let config = setup();
         let (factory, space) = deploy(@config);

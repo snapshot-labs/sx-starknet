@@ -87,6 +87,7 @@ mod Space {
             UserAddress, Choice, FinalizationStatus, Strategy, IndexedStrategy, Proposal,
             PackedProposal, IndexedStrategyTrait, IndexedStrategyImpl, UpdateSettingsCalldata,
             NoUpdateTrait, NoUpdateString, strategy::StoreFelt252Array, ProposalStatus,
+            proposal::ProposalDefault
         },
         utils::{
             reinitializable::{Reinitializable}, ReinitializableImpl, bits::BitSetter,
@@ -804,9 +805,7 @@ mod Space {
     }
 
     fn assert_proposal_exists(proposal: @Proposal) {
-        assert(
-            *proposal.start_timestamp != 0, 'Proposal does not exist'
-        );
+        assert(*proposal.start_timestamp != 0, 'Proposal does not exist');
     }
 
     fn _get_cumulative_power(

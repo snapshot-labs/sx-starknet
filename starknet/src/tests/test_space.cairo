@@ -658,10 +658,7 @@ mod tests {
 
     #[test]
     #[available_gas(10000000000)]
-    #[should_panic(
-        expected: ('Unknown enum indicator:', 0, 'ENTRYPOINT_FAILED')
-    )] // #default not working the the `ProposalStatus` enum
-    // #[should_panic(expected: ('Proposal does not exist', 'ENTRYPOINT_FAILED'))] // replace with this once default works
+    #[should_panic(expected: ('Proposal does not exist', 'ENTRYPOINT_FAILED'))]
     fn get_proposal_status_invalid_proposal_id() {
         let config = setup();
         let (factory, space) = deploy(@config);
@@ -737,10 +734,7 @@ mod tests {
 
     #[test]
     #[available_gas(1000000000)]
-    #[should_panic(
-        expected: ('Unknown enum indicator:', 0, 'ENTRYPOINT_FAILED')
-    )] // TODO: replace once `default` works on Proposal
-    // #[should_panic(expected: ('Proposal does not exist', 'ENTRYPOINT_FAILED'))]
+    #[should_panic(expected: ('Proposal does not exist', 'ENTRYPOINT_FAILED'))]
     fn cancel_inexistent_proposal() {
         let config = setup();
         let (factory, space) = deploy(@config);
@@ -999,10 +993,7 @@ mod tests {
 
     #[test]
     #[available_gas(10000000000)]
-    #[should_panic(
-        expected: ('Unknown enum indicator:', 'ENTRYPOINT_FAILED')
-    )] // TODO: replace once `default` works on Proposal
-    // #[should_panic(expected: ('Proposal does not exist', 'ENTRYPOINT_FAILED'))]
+    #[should_panic(expected: ('Proposal does not exist', 'ENTRYPOINT_FAILED'))]
     fn update_inexistent_proposal() {
         let config = setup();
         let (factory, space) = deploy(@config);
