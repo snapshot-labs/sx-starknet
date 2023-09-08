@@ -73,6 +73,7 @@ trait ISpace<TContractState> {
 #[starknet::contract]
 mod Space {
     use super::ISpace;
+    use openzeppelin::access::ownable::Ownable;
     use starknet::{
         storage_access::{StorePacking, StoreUsingPacking}, ClassHash, ContractAddress, info, Store,
         syscalls, SyscallResult,
@@ -95,7 +96,6 @@ mod Space {
             },
             constants::INITIALIZE_SELECTOR
         },
-        external::ownable::Ownable
     };
 
     #[storage]
@@ -295,8 +295,7 @@ mod Space {
 
             //TODO: temporary component syntax
             let mut state = Ownable::unsafe_new_contract_state();
-            Ownable::initializer(ref state);
-            Ownable::transfer_ownership(ref state, owner);
+            Ownable::InternalImpl::initializer(ref state, owner);
             _set_dao_uri(ref self, dao_uri);
             _set_max_voting_duration(
                 ref self, max_voting_duration
@@ -469,7 +468,7 @@ mod Space {
         fn cancel(ref self: ContractState, proposal_id: u256) {
             //TODO: temporary component syntax
             let state = Ownable::unsafe_new_contract_state();
-            Ownable::assert_only_owner(@state);
+            Ownable::InternalImpl::assert_only_owner(@state);
 
             let mut proposal = self._proposals.read(proposal_id);
             assert_proposal_exists(@proposal);
@@ -525,7 +524,7 @@ mod Space {
             ref self: ContractState, class_hash: ClassHash, initialize_calldata: Array<felt252>
         ) -> SyscallResult<()> {
             let state: Ownable::ContractState = Ownable::unsafe_new_contract_state();
-            Ownable::assert_only_owner(@state);
+            Ownable::InternalImpl::assert_only_owner(@state);
 
             assert(class_hash.is_non_zero(), 'Class Hash cannot be zero');
             starknet::replace_class_syscall(class_hash)?;
@@ -554,7 +553,7 @@ mod Space {
         fn owner(self: @ContractState) -> ContractAddress {
             //TODO: temporary component syntax
             let state = Ownable::unsafe_new_contract_state();
-            Ownable::owner(@state)
+            Ownable::OwnableImpl::owner(@state)
         }
 
         fn max_voting_duration(self: @ContractState) -> u32 {
@@ -616,7 +615,7 @@ mod Space {
         fn update_settings(ref self: ContractState, input: UpdateSettingsCalldata) {
             //TODO: temporary component syntax
             let state = Ownable::unsafe_new_contract_state();
-            Ownable::assert_only_owner(@state);
+            Ownable::InternalImpl::assert_only_owner(@state);
 
             // Needed because the compiler will go crazy if we try to use `input` directly
             let _min_voting_duration = input.min_voting_duration;
@@ -785,15 +784,13 @@ mod Space {
         fn transfer_ownership(ref self: ContractState, new_owner: ContractAddress) {
             //TODO: temporary component syntax
             let mut state = Ownable::unsafe_new_contract_state();
-            Ownable::assert_only_owner(@state);
-            Ownable::transfer_ownership(ref state, new_owner);
+            Ownable::OwnableImpl::transfer_ownership(ref state, new_owner);
         }
 
         fn renounce_ownership(ref self: ContractState) {
             //TODO: temporary component syntax
             let mut state = Ownable::unsafe_new_contract_state();
-            Ownable::assert_only_owner(@state);
-            Ownable::renounce_ownership(ref state);
+            Ownable::OwnableImpl::renounce_ownership(ref state);
         }
     }
 
