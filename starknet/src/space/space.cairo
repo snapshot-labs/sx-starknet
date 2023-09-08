@@ -10,7 +10,7 @@ trait ISpace<TContractState> {
     /// Returns the owner of the contract.
     fn owner(self: @TContractState) -> ContractAddress;
 
-    /// The voting delay to wait for between a proposal is created and the start of the voting period.
+    /// The voting delay in seconds between when a proposal is created and the start of the voting period.
     fn voting_delay(self: @TContractState) -> u32;
 
     /// Returns the minimum voting duration. Once this duration has elapsed,
