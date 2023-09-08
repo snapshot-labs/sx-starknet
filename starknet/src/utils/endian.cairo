@@ -1,5 +1,3 @@
-use sx::utils::math::pow_u128;
-
 const MASK_LOW: u128 = 0xffffffffffffffff; // 2^64 - 1
 const MASK_HIGH: u128 = 0xffffffffffffffff0000000000000000; // 2^128 - 2^64
 const SHIFT_64: u128 = 0x10000000000000000;

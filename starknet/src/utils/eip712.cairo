@@ -8,7 +8,7 @@ use sx::utils::constants::{
     PROPOSE_TYPEHASH_HIGH, VOTE_TYPEHASH_LOW, VOTE_TYPEHASH_HIGH, UPDATE_PROPOSAL_TYPEHASH_LOW,
     UPDATE_PROPOSAL_TYPEHASH_HIGH, INDEXED_STRATEGY_TYPEHASH_LOW, INDEXED_STRATEGY_TYPEHASH_HIGH,
 };
-use sx::utils::math::{pow, pow_u128};
+use sx::utils::math::pow;
 use sx::utils::endian::{into_le_u64_array, ByteReverse};
 use sx::utils::keccak::KeccakStructHash;
 use sx::utils::into::TIntoU256;
