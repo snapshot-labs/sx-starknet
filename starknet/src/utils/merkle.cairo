@@ -25,12 +25,12 @@ impl HashSerde<T, impl TSerde: Serde<T>> of Hash<T> {
 /// Asserts that the given proof is valid for the given leaf and root.
 fn assert_valid_proof(root: felt252, leaf: Leaf, proof: Span<felt252>) {
     let leaf_node = leaf.hash();
-    let computed_root = _compute_merkle_root(leaf_node, proof);
+    let computed_root = compute_merkle_root(leaf_node, proof);
     assert(computed_root == root, 'Merkle: Invalid proof');
 }
 
 /// Internal helper function that computes the merkle root, given a leaf node and a proof.
-fn _compute_merkle_root(mut current: felt252, proof: Span<felt252>) -> felt252 {
+fn compute_merkle_root(mut current: felt252, proof: Span<felt252>) -> felt252 {
     let mut proof = proof;
     loop {
         match proof.pop_front() {
