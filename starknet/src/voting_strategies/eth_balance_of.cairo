@@ -33,7 +33,7 @@ mod EthBalanceOfVotingStrategy {
             // Get the balance of the voter at the given block timestamp
             // TODO: temporary until components are released
             let state = SingleSlotProof::unsafe_new_contract_state();
-            let balance = SingleSlotProof::get_storage_slot(
+            let balance = SingleSlotProof::InternalImpl::get_storage_slot(
                 @state, timestamp, l1_account_address, slot_index, voter.into(), user_params
             );
             balance
@@ -48,6 +48,6 @@ mod EthBalanceOfVotingStrategy {
     ) {
         // TODO: temporary until components are released
         let mut state = SingleSlotProof::unsafe_new_contract_state();
-        SingleSlotProof::initializer(ref state, timestamp_remappers, facts_registry);
+        SingleSlotProof::InternalImpl::initializer(ref state, timestamp_remappers, facts_registry);
     }
 }
