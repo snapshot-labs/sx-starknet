@@ -13,9 +13,7 @@ trait ISpace<TContractState> {
     /// The voting delay in seconds between when a proposal is created and the start of the voting period.
     fn voting_delay(self: @TContractState) -> u32;
 
-    /// Returns the minimum voting duration. Once this duration has elapsed,
-    /// a proposal can be finalized. Most DAOs should set `min_voting_duration` and
-    /// `max_voting_duration` to the same value.
+i    /// @notice The minimum duration of the voting period.
     fn min_voting_duration(self: @TContractState) -> u32;
 
     /// Returns the maximum voting duration. Once this duration has elasped, a proposal
