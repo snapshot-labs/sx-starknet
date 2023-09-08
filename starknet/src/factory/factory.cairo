@@ -14,10 +14,7 @@ trait IFactory<TContractState> {
 #[starknet::contract]
 mod Factory {
     use super::IFactory;
-    use starknet::{
-        ContractAddress, ClassHash, contract_address_const,
-        syscalls::{deploy_syscall, call_contract_syscall}, SyscallResult
-    };
+    use starknet::{ContractAddress, ClassHash, syscalls, SyscallResult};
     use sx::utils::constants::INITIALIZE_SELECTOR;
 
     #[event]
@@ -43,12 +40,14 @@ mod Factory {
             contract_address_salt: felt252,
             initialize_calldata: Span<felt252>
         ) -> SyscallResult<ContractAddress> {
-            let (space_address, _) = deploy_syscall(
+            let (space_address, _) = syscalls::deploy_syscall(
                 class_hash, contract_address_salt, array![].span(), false
             )?;
 
             // Call initializer. 
-            call_contract_syscall(space_address, INITIALIZE_SELECTOR, initialize_calldata)?;
+            syscalls::call_contract_syscall(
+                space_address, INITIALIZE_SELECTOR, initialize_calldata
+            )?;
 
             self
                 .emit(

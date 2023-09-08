@@ -2,7 +2,7 @@
 mod VanillaExecutionStrategy {
     use sx::interfaces::{IExecutionStrategy, IQuorum};
     use sx::types::{Proposal, ProposalStatus};
-    use sx::execution_strategies::simple_quorum::SimpleQuorumExecutionStrategy;
+    use sx::execution_strategies::SimpleQuorumExecutionStrategy;
 
     #[storage]
     struct Storage {

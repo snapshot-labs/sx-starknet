@@ -10,6 +10,7 @@ mod execution_strategies {
     mod eth_relayer;
     mod no_execution_simple_majority;
     mod simple_quorum;
+    use simple_quorum::SimpleQuorumExecutionStrategy;
     mod vanilla;
 }
 
@@ -24,6 +25,7 @@ mod interfaces {
     mod i_proposal_validation_strategy;
     mod i_quorum;
     mod i_voting_strategy;
+    mod i_space;
 
     use i_voting_strategy::{
         IVotingStrategy, IVotingStrategyDispatcher, IVotingStrategyDispatcherTrait
@@ -40,6 +42,7 @@ mod interfaces {
         AccountCamelABIDispatcher, AccountCamelABIDispatcherTrait
     };
     use i_quorum::{IQuorum, IQuorumDispatcher, IQuorumDispatcherTrait};
+    use i_space::{ISpace, ISpaceDispatcher, ISpaceDispatcherTrait};
 }
 
 
@@ -86,20 +89,32 @@ mod types {
 
 mod utils {
     mod bits;
+    use bits::BitSetter;
     mod constants;
     mod eip712;
+    use eip712::EIP712;
     mod endian;
+    use endian::ByteReverse;
     mod into;
+    use into::{TIntoU256, Felt252SpanIntoU256Array};
     mod keccak;
+    use keccak::KeccakStructHash;
     mod legacy_hash;
+    use legacy_hash::{
+        LegacyHashEthAddress, LegacyHashUsedSalts, LegacyHashChoice, LegacyHashUserAddress,
+        LegacyHashVotePower, LegacyHashVoteRegistry, LegacyHashSpanFelt252
+    };
     mod math;
     mod merkle;
     mod proposition_power;
     mod reinitializable;
+    use reinitializable::Reinitializable;
     mod simple_majority;
     mod single_slot_proof;
     mod stark_eip712;
+    use stark_eip712::StarkEIP712;
     mod struct_hash;
+    use struct_hash::StructHash;
 }
 mod voting_strategies {
     mod erc20_votes;

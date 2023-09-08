@@ -1,5 +1,6 @@
-use hash::{LegacyHash};
-use sx::{types::UserAddress, utils::legacy_hash::LegacyHashSpanFelt252};
+use hash::LegacyHash;
+use sx::types::UserAddress;
+use sx::utils::LegacyHashSpanFelt252;
 
 /// Leaf struct for the merkle tree
 #[derive(Copy, Clone, Drop, Serde)]

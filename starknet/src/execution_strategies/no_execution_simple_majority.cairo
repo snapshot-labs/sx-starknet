@@ -3,7 +3,7 @@
 /// the `SimpleMajority` rule (`votes_for > votes_against`).
 #[starknet::contract]
 mod NoExecutionSimpleMajorityExecutionStrategy {
-    use sx::interfaces::{IExecutionStrategy};
+    use sx::interfaces::IExecutionStrategy;
     use sx::types::{Proposal, ProposalStatus};
     use sx::utils::simple_majority;
 

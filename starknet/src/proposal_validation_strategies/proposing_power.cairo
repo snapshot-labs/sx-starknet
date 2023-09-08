@@ -1,13 +1,11 @@
 #[starknet::contract]
 mod ProposingPowerProposalValidationStrategy {
-    use sx::{
-        interfaces::{
-            IProposalValidationStrategy, IVotingStrategyDispatcher, IVotingStrategyDispatcherTrait
-        },
-        types::{UserAddress, IndexedStrategy, IndexedStrategyTrait, Strategy},
-        utils::{bits::BitSetter, proposition_power::_validate}
-    };
     use starknet::{ContractAddress, info};
+    use sx::interfaces::{
+        IProposalValidationStrategy, IVotingStrategyDispatcher, IVotingStrategyDispatcherTrait
+    };
+    use sx::types::{UserAddress, IndexedStrategy, IndexedStrategyTrait, Strategy};
+    use sx::utils::{bits::BitSetter, proposition_power::_validate};
 
     #[storage]
     struct Storage {}

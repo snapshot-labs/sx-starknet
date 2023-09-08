@@ -1,4 +1,4 @@
-use starknet::{ContractAddress};
+use starknet::ContractAddress;
 use sx::types::{Strategy, IndexedStrategy, Choice};
 
 #[starknet::interface]
@@ -64,10 +64,8 @@ trait IStarkTxAuthenticator<TContractState> {
 mod StarkTxAuthenticator {
     use super::IStarkTxAuthenticator;
     use starknet::{ContractAddress, info};
-    use sx::{
-        space::space::{ISpaceDispatcher, ISpaceDispatcherTrait},
-        types::{UserAddress, Strategy, IndexedStrategy, Choice},
-    };
+    use sx::interfaces::{ISpaceDispatcher, ISpaceDispatcherTrait};
+    use sx::types::{UserAddress, Strategy, IndexedStrategy, Choice};
 
     #[storage]
     struct Storage {}

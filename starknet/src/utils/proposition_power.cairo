@@ -1,10 +1,9 @@
-use sx::{
-    interfaces::{
-        IProposalValidationStrategy, IVotingStrategyDispatcher, IVotingStrategyDispatcherTrait
-    },
-    types::{UserAddress, IndexedStrategy, IndexedStrategyTrait, Strategy}, utils::bits::BitSetter
-};
 use starknet::{ContractAddress, info};
+use sx::types::{UserAddress, IndexedStrategy, IndexedStrategyTrait, Strategy};
+use sx::utils::BitSetter;
+use sx::interfaces::{
+    IProposalValidationStrategy, IVotingStrategyDispatcher, IVotingStrategyDispatcherTrait
+};
 
 // Proposal validation strategy specific version of `get_cumulative_power` function from the space contract.
 // The difference is that this function takes a span  of `allowed_strategies` instead of an uint256.

@@ -1,9 +1,5 @@
 #[starknet::contract]
 mod EthRelayerExecutionStrategy {
-    use array::ArrayTrait;
-    use option::OptionTrait;
-    use traits::{Into, TryInto};
-    use serde::Serde;
     use starknet::{info, syscalls, EthAddress};
     use sx::interfaces::IExecutionStrategy;
     use sx::types::{Proposal, ProposalStatus};
