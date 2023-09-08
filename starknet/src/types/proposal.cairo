@@ -20,7 +20,7 @@ const TWO_POWER_96: u128 = 0x1000000000000000000000000;
 /// The proposal state at any time consists of this struct along with the corresponding for,
 /// against, and abstain vote counts. The proposal status is a function of the proposal state as
 /// defined in the execution strategy for the proposal.
-#[derive(Clone, Drop, Serde, PartialEq)]
+#[derive(Clone, Default, Drop, Serde, PartialEq)]
 struct Proposal {
     /// The timestamp at which the voting period starts.
     start_timestamp: u32,
@@ -43,18 +43,10 @@ struct Proposal {
     active_voting_strategies: u256
 }
 
-impl ProposalDefault of Default<Proposal> {
-    fn default() -> Proposal {
-        Proposal {
-            start_timestamp: 0,
-            min_end_timestamp: 0,
-            max_end_timestamp: 0,
-            finalization_status: FinalizationStatus::Pending(()),
-            execution_payload_hash: 0,
-            execution_strategy: contract_address_const::<0>(),
-            author: UserAddress::Starknet(contract_address_const::<0>()),
-            active_voting_strategies: 0,
-        }
+// Required for the proposal derivation. Ideally, ContractAddress would impl Default in the corelib.
+impl ContractAddressDefault of Default<ContractAddress> {
+    fn default() -> ContractAddress {
+        contract_address_const::<0>()
     }
 }
 

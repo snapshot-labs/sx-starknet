@@ -11,7 +11,6 @@ mod EIP712 {
         UPDATE_PROPOSAL_TYPEHASH_HIGH, INDEXED_STRATEGY_TYPEHASH_LOW,
         INDEXED_STRATEGY_TYPEHASH_HIGH,
     };
-    use sx::utils::math::{pow, pow_u128};
     use sx::utils::endian::{into_le_u64_array, ByteReverse};
     use sx::utils::keccak::KeccakStructHash;
     use sx::utils::into::TIntoU256;

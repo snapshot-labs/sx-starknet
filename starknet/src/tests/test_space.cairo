@@ -25,7 +25,7 @@ mod tests {
     use sx::tests::setup::setup::setup::{setup, deploy};
     use sx::types::{
         UserAddress, Strategy, IndexedStrategy, Choice, FinalizationStatus, Proposal,
-        UpdateSettingsCalldataImpl
+        UpdateSettingsCalldata
     };
     use sx::tests::utils::strategy_trait::{StrategyImpl, StrategyDefault};
     use sx::utils::constants::{PROPOSE_SELECTOR, VOTE_SELECTOR, UPDATE_PROPOSAL_SELECTOR};
@@ -503,7 +503,7 @@ mod tests {
 
         testing::set_caller_address(config.owner);
         testing::set_contract_address(config.owner);
-        let mut input = UpdateSettingsCalldataImpl::default();
+        let mut input: UpdateSettingsCalldata = Default::default();
         input.proposal_validation_strategy = StrategyImpl::from_address(strategy_address);
 
         space.update_settings(input);
@@ -658,10 +658,7 @@ mod tests {
 
     #[test]
     #[available_gas(10000000000)]
-    #[should_panic(
-        expected: ('Unknown enum indicator:', 0, 'ENTRYPOINT_FAILED')
-    )] // #default not working the the `ProposalStatus` enum
-    // #[should_panic(expected: ('Proposal does not exist', 'ENTRYPOINT_FAILED'))] // replace with this once default works
+    #[should_panic(expected: ('Proposal does not exist', 'ENTRYPOINT_FAILED'))]
     fn get_proposal_status_invalid_proposal_id() {
         let config = setup();
         let (factory, space) = deploy(@config);
@@ -737,10 +734,7 @@ mod tests {
 
     #[test]
     #[available_gas(1000000000)]
-    #[should_panic(
-        expected: ('Unknown enum indicator:', 0, 'ENTRYPOINT_FAILED')
-    )] // TODO: replace once `default` works on Proposal
-    // #[should_panic(expected: ('Proposal does not exist', 'ENTRYPOINT_FAILED'))]
+    #[should_panic(expected: ('Proposal does not exist', 'ENTRYPOINT_FAILED'))]
     fn cancel_inexistent_proposal() {
         let config = setup();
         let (factory, space) = deploy(@config);
@@ -999,10 +993,7 @@ mod tests {
 
     #[test]
     #[available_gas(10000000000)]
-    #[should_panic(
-        expected: ('Unknown enum indicator:', 'ENTRYPOINT_FAILED')
-    )] // TODO: replace once `default` works on Proposal
-    // #[should_panic(expected: ('Proposal does not exist', 'ENTRYPOINT_FAILED'))]
+    #[should_panic(expected: ('Proposal does not exist', 'ENTRYPOINT_FAILED'))]
     fn update_inexistent_proposal() {
         let config = setup();
         let (factory, space) = deploy(@config);

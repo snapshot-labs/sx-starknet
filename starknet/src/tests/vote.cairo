@@ -23,7 +23,7 @@ mod tests {
     use sx::tests::setup::setup::setup::{setup, deploy};
     use sx::types::{
         UserAddress, Strategy, IndexedStrategy, Choice, FinalizationStatus, Proposal,
-        UpdateSettingsCalldataImpl
+        UpdateSettingsCalldata
     };
     use sx::tests::utils::strategy_trait::{StrategyImpl};
     use sx::utils::constants::{PROPOSE_SELECTOR, VOTE_SELECTOR, UPDATE_PROPOSAL_SELECTOR};
@@ -381,7 +381,7 @@ mod tests {
             .unwrap();
         let no_voting_power_strategy = StrategyImpl::from_address(no_voting_power_contract);
 
-        let mut input = UpdateSettingsCalldataImpl::default();
+        let mut input: UpdateSettingsCalldata = Default::default();
         input.voting_strategies_to_add = array![no_voting_power_strategy];
         input.voting_strategies_metadata_uris_to_add = array![array![]];
 
@@ -411,9 +411,7 @@ mod tests {
 
     #[test]
     #[available_gas(10000000000)]
-    #[should_panic(
-        expected: ('Unknown enum indicator:', 'ENTRYPOINT_FAILED')
-    )] // TODO: replace once `default` works on Proposal
+    #[should_panic(expected: ('Proposal does not exist', 'ENTRYPOINT_FAILED'))]
     fn vote_inexistant_proposal() {
         let config = setup();
         let (factory, space) = deploy(@config);

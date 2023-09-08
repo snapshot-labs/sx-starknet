@@ -20,7 +20,7 @@ mod tests {
     use sx::tests::setup::setup::setup::{setup, deploy};
     use sx::types::{
         UserAddress, Strategy, IndexedStrategy, Choice, FinalizationStatus, Proposal,
-        UpdateSettingsCalldataImpl, UpdateSettingsCalldata
+        UpdateSettingsCalldata
     };
     use sx::tests::utils::strategy_trait::{StrategyImpl};
 
@@ -36,8 +36,7 @@ mod tests {
         let authenticator = IStarkTxAuthenticatorDispatcher {
             contract_address: stark_tx_authenticator_address,
         };
-        let mut updateSettingsCalldata: UpdateSettingsCalldata =
-            UpdateSettingsCalldataImpl::default();
+        let mut updateSettingsCalldata: UpdateSettingsCalldata = Default::default();
         updateSettingsCalldata.authenticators_to_add = array![stark_tx_authenticator_address];
         testing::set_contract_address(owner);
         space.update_settings(updateSettingsCalldata);

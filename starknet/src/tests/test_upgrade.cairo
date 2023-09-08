@@ -20,10 +20,7 @@ mod tests {
     use sx::execution_strategies::vanilla::VanillaExecutionStrategy;
     use sx::voting_strategies::vanilla::VanillaVotingStrategy;
     use sx::proposal_validation_strategies::vanilla::VanillaProposalValidationStrategy;
-    use sx::types::{
-        UserAddress, Strategy, IndexedStrategy, Choice, FinalizationStatus, Proposal,
-        UpdateSettingsCalldataImpl
-    };
+    use sx::types::{UserAddress, Strategy, IndexedStrategy, Choice, FinalizationStatus, Proposal,};
     use sx::utils::constants::{PROPOSE_SELECTOR};
     use sx::tests::setup::setup::setup::{setup, deploy};
     use sx::interfaces::{
