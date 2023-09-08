@@ -337,8 +337,6 @@ mod Space {
             let min_end_timestamp = start_timestamp + self._min_voting_duration.read();
             let max_end_timestamp = start_timestamp + self._max_voting_duration.read();
 
-            // TODO: we use a felt252 for the hash despite felts being discouraged 
-            // a new field would just replace the hash. Might be worth casting to a u256 though? 
             let execution_payload_hash = poseidon::poseidon_hash_span(
                 execution_strategy.params.span()
             );
