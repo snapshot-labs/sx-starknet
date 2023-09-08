@@ -99,7 +99,7 @@ mod EthTxAuthenticator {
             user_proposal_validation_params.serialize(ref payload);
             let payload_hash = poseidon::poseidon_hash_span(payload.span());
 
-            consume_commit(ref self, payload_hash, author);
+            self.consume_commit(payload_hash, author);
 
             ISpaceDispatcher { contract_address: target }
                 .propose(
@@ -129,7 +129,7 @@ mod EthTxAuthenticator {
             metadata_uri.serialize(ref payload);
             let payload_hash = poseidon::poseidon_hash_span(payload.span());
 
-            consume_commit(ref self, payload_hash, voter);
+            self.consume_commit(payload_hash, voter);
 
             ISpaceDispatcher { contract_address: target }
                 .vote(
@@ -158,7 +158,7 @@ mod EthTxAuthenticator {
             metadata_uri.serialize(ref payload);
             let payload_hash = poseidon::poseidon_hash_span(payload.span());
 
-            consume_commit(ref self, payload_hash, author);
+            self.consume_commit(payload_hash, author);
 
             ISpaceDispatcher { contract_address: target }
                 .update_proposal(
@@ -184,11 +184,14 @@ mod EthTxAuthenticator {
         self._commits.write(hash, sender_address.try_into().unwrap());
     }
 
-    fn consume_commit(ref self: ContractState, hash: felt252, sender_address: EthAddress) {
-        let committer_address = self._commits.read(hash);
-        assert(!committer_address.is_zero(), 'Commit not found');
-        assert(committer_address == sender_address, 'Invalid sender address');
-        // Delete the commit to prevent replay attacks.
-        self._commits.write(hash, Zeroable::zero());
+    #[generate_trait]
+    impl InternalImpl of InternalTrait {
+        fn consume_commit(ref self: ContractState, hash: felt252, sender_address: EthAddress) {
+            let committer_address = self._commits.read(hash);
+            assert(!committer_address.is_zero(), 'Commit not found');
+            assert(committer_address == sender_address, 'Invalid sender address');
+            // Delete the commit to prevent replay attacks.
+            self._commits.write(hash, Zeroable::zero());
+        }
     }
 }

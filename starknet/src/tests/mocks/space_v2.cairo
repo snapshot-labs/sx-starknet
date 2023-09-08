@@ -8,7 +8,7 @@ trait ISpaceV2<TContractState> {
 mod SpaceV2 {
     use super::ISpaceV2;
     use sx::utils::reinitializable::Reinitializable;
-    use sx::utils::ReinitializableImpl;
+
     #[storage]
     struct Storage {
         _var: felt252
@@ -19,7 +19,7 @@ mod SpaceV2 {
         fn initialize(ref self: ContractState, var: felt252) {
             // TODO: Temp component syntax
             let mut state = Reinitializable::unsafe_new_contract_state();
-            ReinitializableImpl::initialize(ref state);
+            Reinitializable::InternalImpl::initialize(ref state);
             self._var.write(var);
         }
         fn get_var(self: @ContractState) -> felt252 {
