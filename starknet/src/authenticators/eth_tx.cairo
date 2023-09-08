@@ -5,7 +5,14 @@ use sx::types::{Strategy, IndexedStrategy, Choice};
 trait IEthTxAuthenticator<TContractState> {
     /// Authenticates a propose transaction by checking that `author` has indeed sent a transaction from L1
     /// to the bridge contract.
-    /// `author` is expected to be an ethereum address.
+    ///
+    /// # Arguments
+    ///
+    /// * `target` - The address of the contract to which the transaction is sent.
+    /// * `author` - The author of the proposal. Expected to be an ethereum address.
+    /// * `metadata_uri` - The metadata URI of the proposal.
+    /// * `execution_strategy` - The execution strategy of the proposal.
+    /// * `user_proposal_validation_params` - The user proposal validation params of the proposal.
     fn authenticate_propose(
         ref self: TContractState,
         target: ContractAddress,
@@ -17,7 +24,15 @@ trait IEthTxAuthenticator<TContractState> {
 
     /// Authenticates a vote transaction by checking that `voter` has indeed sent a transaction from L1
     /// to the bridge contract.
-    /// `voter` is expected to be an ethereum address.
+    ///
+    /// # Arguments
+    ///
+    /// * `target` - The address of the contract to which the transaction is sent.
+    /// * `voter` - The voter. Expected to be an ethereum address.
+    /// * `proposal_id` - The id of the proposal.
+    /// * `choice` - The choice of the vote.
+    /// * `user_voting_strategies` - The user voting strategies of the vote.
+    /// * `metadata_uri` - The metadata URI of the vote.
     fn authenticate_vote(
         ref self: TContractState,
         target: ContractAddress,
@@ -30,7 +45,14 @@ trait IEthTxAuthenticator<TContractState> {
 
     /// Authenticates an update_proposal transaction by checking that `author` has indeed sent a transaction from L1
     /// to the bridge contract.
-    /// `author` is expected to be an ethereum address.
+    ///
+    /// # Arguments
+    ///
+    /// * `target` - The address of the contract to which the transaction is sent.
+    /// * `author` - The author of the proposal. Expected to be an ethereum address.
+    /// * `proposal_id` - The id of the proposal.
+    /// * `execution_strategy` - The execution strategy of the proposal.
+    /// * `metadata_uri` - The metadata URI of the proposal.
     fn authenticate_update_proposal(
         ref self: TContractState,
         target: ContractAddress,
