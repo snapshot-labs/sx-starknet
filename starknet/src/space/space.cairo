@@ -13,7 +13,7 @@ trait ISpace<TContractState> {
     /// The voting delay in seconds between when a proposal is created and the start of the voting period.
     fn voting_delay(self: @TContractState) -> u32;
 
-i    /// @notice The minimum duration of the voting period.
+    /// @notice The minimum duration of the voting period.
     fn min_voting_duration(self: @TContractState) -> u32;
 
     /// Returns the maximum voting duration. Once this duration has elapsed, no additional votes can be cast.
@@ -87,8 +87,8 @@ i    /// @notice The minimum duration of the voting period.
     ///
     /// * `author` - The author of the proposal.
     /// * `metadata_uri` - The metadata URI of the proposal. Could be a link to a discussion page, etc.
-    /// * `execution_strategy` - The execution strategy of the proposal. This is the contract that will be called
-    ///                          when the proposal is finalized.
+    /// * `execution_strategy` - The execution strategy for the proposal, consisting of a
+    ///                          strategy address and an execution payload.
     /// * `user_proposal_validation_params` - The user proposal validation params. These are the params that will be
     ///                                      passed to the proposal validation strategy.
     fn propose(
