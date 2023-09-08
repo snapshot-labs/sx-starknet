@@ -24,7 +24,7 @@ mod tests {
         UserAddress, Strategy, IndexedStrategy, Choice, FinalizationStatus, Proposal,
         UpdateSettingsCalldataImpl
     };
-    use sx::utils::constants::{PROPOSE_SELECTOR, VOTE_SELECTOR, UPDATE_PROPOSAL_SELECTOR};
+    use sx::utils::constants::{PROPOSE_SELECTOR};
     use sx::tests::setup::setup::setup::{setup, deploy};
     use sx::interfaces::{
         IProposalValidationStrategyDispatcher, IProposalValidationStrategyDispatcherTrait
@@ -94,8 +94,8 @@ mod tests {
 
         let mut propose_calldata = array![];
         UserAddress::Starknet(contract_address_const::<0x7676>()).serialize(ref propose_calldata);
-        execution_strategy.serialize(ref propose_calldata);
         ArrayTrait::<felt252>::new().serialize(ref propose_calldata);
+        execution_strategy.serialize(ref propose_calldata);
         ArrayTrait::<felt252>::new().serialize(ref propose_calldata);
 
         let authenticator = IVanillaAuthenticatorDispatcher {

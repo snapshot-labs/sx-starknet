@@ -72,7 +72,7 @@ mod tests {
         testing::set_contract_address(author);
         authenticator
             .authenticate_propose(
-                space.contract_address, author, vanilla_execution_strategy, array![], array![]
+                space.contract_address, author, array![], vanilla_execution_strategy, array![]
             );
 
         assert(space.next_proposal_id() == 2_u256, 'next_proposal_id should be 2');
@@ -89,7 +89,7 @@ mod tests {
         testing::set_contract_address(author);
         authenticator
             .authenticate_update_proposal(
-                space.contract_address, author, proposal_id, new_execution_strategy, array![]
+                space.contract_address, author, proposal_id, new_execution_strategy, array![],
             );
 
         // Increasing block timestamp by 1 to pass voting delay
@@ -140,7 +140,7 @@ mod tests {
         testing::set_contract_address(config.owner);
         authenticator
             .authenticate_propose(
-                space.contract_address, author, vanilla_execution_strategy, array![], array![]
+                space.contract_address, author, array![], vanilla_execution_strategy, array![],
             );
     }
 
@@ -172,7 +172,7 @@ mod tests {
         testing::set_contract_address(author);
         authenticator
             .authenticate_propose(
-                space.contract_address, author, vanilla_execution_strategy, array![], array![]
+                space.contract_address, author, array![], vanilla_execution_strategy, array![],
             );
 
         assert(space.next_proposal_id() == 2_u256, 'next_proposal_id should be 2');
@@ -222,7 +222,7 @@ mod tests {
         testing::set_contract_address(author);
         authenticator
             .authenticate_propose(
-                space.contract_address, author, vanilla_execution_strategy, array![], array![]
+                space.contract_address, author, array![], vanilla_execution_strategy, array![],
             );
 
         assert(space.next_proposal_id() == 2_u256, 'next_proposal_id should be 2');

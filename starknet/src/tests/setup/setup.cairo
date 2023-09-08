@@ -13,6 +13,7 @@ mod setup {
     use sx::factory::factory::{Factory, IFactoryDispatcher, IFactoryDispatcherTrait};
     use starknet::ClassHash;
     use sx::space::space::{Space, ISpaceDispatcher, ISpaceDispatcherTrait};
+    use debug::PrintTrait;
 
     #[derive(Drop, Serde)]
     struct Config {
@@ -97,7 +98,7 @@ mod setup {
         );
 
         let proposal_validation_strategy_metadata_uri = array!['https:://rick.roll'];
-        let voting_strategies_metadata_uris = array![];
+        let voting_strategies_metadata_uris = array![array![]];
         let dao_uri = array!['https://dao.uri'];
         let metadata_uri = array!['https://metadata.uri'];
 
@@ -120,16 +121,31 @@ mod setup {
         let space_class_hash: ClassHash = Space::TEST_CLASS_HASH.try_into().unwrap();
         let contract_address_salt = 0;
 
-        let (factory_address, _) = deploy_syscall(
-            Factory::TEST_CLASS_HASH.try_into().unwrap(), 0, array![].span(), false
-        )
-            .unwrap();
+        let factory_address =
+            match deploy_syscall(
+                Factory::TEST_CLASS_HASH.try_into().unwrap(), 0, array![].span(), false
+            ) {
+            Result::Ok((address, _)) => address,
+            Result::Err(e) => {
+                e.print();
+                panic_with_felt252('deploy failed');
+                contract_address_const::<0>()
+            }
+        };
 
         let factory = IFactoryDispatcher { contract_address: factory_address };
 
         let mut initializer_calldata = config.get_initialize_calldata();
-        let space_address = factory
-            .deploy(space_class_hash, contract_address_salt, initializer_calldata.span());
+        let space_address =
+            match factory
+                .deploy(space_class_hash, contract_address_salt, initializer_calldata.span()) {
+            Result::Ok(address) => address,
+            Result::Err(e) => {
+                e.print();
+                panic_with_felt252('deploy failed');
+                contract_address_const::<0>()
+            },
+        };
 
         let space = ISpaceDispatcher { contract_address: space_address };
 
