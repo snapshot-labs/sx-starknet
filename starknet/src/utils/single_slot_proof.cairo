@@ -49,7 +49,7 @@ mod SingleSlotProof {
             contract_address: self._timestamp_remappers.read()
         }
             .get_closest_l1_block_number(tree, timestamp.into())
-            .expect('Timestamp mapping failed')
+            .expect('TimestampRemappers call failed')
             .expect('Timestamp out of range');
 
         // Computes the key of the EVM storage slot from the index of the mapping in storage and the mapping key.
