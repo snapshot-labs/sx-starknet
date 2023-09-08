@@ -806,7 +806,7 @@ mod Space {
     fn assert_proposal_exists(proposal: @Proposal) {
         assert(
             *proposal.start_timestamp != 0, 'Proposal does not exist'
-        ); // TODO: test this assertion
+        );
     }
 
     fn _get_cumulative_power(
