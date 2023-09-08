@@ -106,9 +106,8 @@ trait ISpace<TContractState> {
     /// * `voter` - The voter.
     /// * `proposal_id` - The proposal id to vote on.
     /// * `choice` - The choice to vote for.
-    /// * `user_voting_strategies` - The voting strategies that the user wants to vote with. This allows to only 
-    ///                             query the `user_voting_strategies` for voting power instead of iterating through all
-    ///                             allowde voting strategies.
+    /// * `user_voting_strategies` - The strategies to use to compute the voter's voting power, each consisting of a
+    ///                                 strategy index and an array of user provided parameters.
     /// * `metadata_uri` - The metadata URI of the vote.
     fn vote(
         ref self: TContractState,
