@@ -4,7 +4,7 @@ use sx::types::{Strategy, IndexedStrategy, Choice};
 /// See https://community.starknet.io/t/snip-off-chain-signatures-a-la-eip712/98029
 #[starknet::interface]
 trait IStarkSigAuthenticator<TContractState> {
-    /// Authenticates a propose transaction using the starknet EIP71-equivalent signature scheme.
+    /// Authenticates a propose transaction using the starknet EIP712-equivalent signature scheme.
     /// 
     /// # Arguments
     ///
@@ -29,7 +29,7 @@ trait IStarkSigAuthenticator<TContractState> {
     );
 
 
-    /// Authenticates a vote transaction using the starknet EIP71-equivalent signature scheme.
+    /// Authenticates a vote transaction using the starknet EIP712-equivalent signature scheme.
     /// Salt is not needed because double voting is prevented by the space itself.
     ///
     /// # Arguments
@@ -55,7 +55,7 @@ trait IStarkSigAuthenticator<TContractState> {
         account_type: felt252
     );
 
-    /// Authenticates an update proposal transaction using the starknet EIP71-equivalent signature scheme.
+    /// Authenticates an update proposal transaction using the starknet EIP712-equivalent signature scheme.
     ///
     /// # Arguments
     ///
