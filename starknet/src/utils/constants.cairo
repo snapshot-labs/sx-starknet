@@ -46,9 +46,9 @@ const STARKNET_MESSAGE: felt252 = 'StarkNet Message';
 // StarknetKeccak('StarkNetDomain(name:felt252,version:felt252,chainId:felt252,verifyingContract:ContractAddress)')
 const DOMAIN_TYPEHASH: felt252 = 0xa9974a36dee531bbc36aad5eeab4ade4df5ad388a296bb14d28ad4e9bf2164;
 
-// H('Propose(space:ContractAddress,author:ContractAddress,executionStrategy:Strategy, userProposalValidationParams:felt*,
-//    metadataUri:felt*,salt:felt252)Strategy(address:felt252,params:felt*)')
-const PROPOSE_TYPEHASH: felt252 = 0x1c363469fe163e6c76a850cf019c9c91740adbff5962889db4147507d7e1eb7;
+// H('Propose(space:ContractAddress,author:ContractAddress,metadataUri:felt*,executionStrategy:Strategy,
+//    userProposalValidationParams:felt*,salt:felt252)Strategy(address:felt252,params:felt*)')
+const PROPOSE_TYPEHASH: felt252 = 0x22175ade273c5b12630bfc15eca8c6a8eb7e2648ac63d2b9882c535f92d71b9;
 
 // H('Vote(space:ContractAddress,voter:ContractAddress,proposalId:u256,choice:felt252,userVotingStrategies:IndexedStrategy*,
 //    metadataUri:felt*)IndexedStrategy(index:felt252,params:felt*)u256(low:felt252,high:felt252)')

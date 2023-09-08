@@ -115,9 +115,9 @@ mod StarkSigAuthenticator {
                 signature,
                 target,
                 author,
+                metadata_uri.span(),
                 @execution_strategy,
                 user_proposal_validation_params.span(),
-                metadata_uri.span(),
                 salt,
                 account_type
             );
@@ -201,7 +201,6 @@ mod StarkSigAuthenticator {
     }
     #[constructor]
     fn constructor(ref self: ContractState, name: felt252, version: felt252) {
-        // TODO: store domain hash in stark_eip712 component once syntax is live.
         self._domain_hash.write(stark_eip712::get_domain_hash(name, version));
     }
 }
