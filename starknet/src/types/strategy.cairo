@@ -1,9 +1,12 @@
 use starknet::ContractAddress;
 use starknet::{StorageBaseAddress, Store, SyscallResult};
 
+/// A strategy identified by an address
 #[derive(Clone, Drop, Option, Serde, starknet::Store)]
 struct Strategy {
+    /// The strategy address.
     address: ContractAddress,
+    /// The strategy parameters.
     params: Array<felt252>,
 }
 

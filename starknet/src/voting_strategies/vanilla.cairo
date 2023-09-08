@@ -8,6 +8,7 @@ mod VanillaVotingStrategy {
 
     #[external(v0)]
     impl VanillaVotingStrategy of IVotingStrategy<ContractState> {
+        /// Vanilla voting strategy that returns 1 for all voters.
         fn get_voting_power(
             self: @ContractState,
             timestamp: u32,

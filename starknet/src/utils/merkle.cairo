@@ -8,6 +8,7 @@ struct Leaf {
     voting_power: u256,
 }
 
+/// Hash wrapper.
 trait Hash<T> {
     fn hash(self: @T) -> felt252;
 }

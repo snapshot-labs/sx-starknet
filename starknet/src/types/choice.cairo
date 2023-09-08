@@ -1,3 +1,4 @@
+/// A choice in a vote.
 #[derive(Copy, Drop, Serde)]
 enum Choice {
     Against: (),
