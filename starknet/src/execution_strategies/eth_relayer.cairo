@@ -11,9 +11,10 @@ mod EthRelayerExecutionStrategy {
     #[storage]
     struct Storage {}
 
-    /// Forwards the execution to the L1<->Starknet bridge to the contract located in the `payload` argument.
-    /// Since this contract does not check who is calling it, it is the responsibility of the L1 contract to
-    /// check that the caller is indeed an authorized space contract (this information is sent to the bridge).
+    /// Forwards the proposal data to the L1 execution strategy specified in the payload argument via
+    /// the Starknet<->L1 bridge. Since this contract does not check who is calling it, it is the
+    /// responsibility of the L1 contract to check that the caller is indeed an authorized
+    /// space contract (this information is sent to the bridge).
     ///
     /// # Arguments
     ///
