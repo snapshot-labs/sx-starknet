@@ -12,8 +12,6 @@ mod voting_strategies;
 
 mod utils;
 
-mod external;
-
 mod interfaces;
 
 mod tests;
