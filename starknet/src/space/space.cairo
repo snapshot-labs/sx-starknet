@@ -16,8 +16,7 @@ trait ISpace<TContractState> {
 i    /// @notice The minimum duration of the voting period.
     fn min_voting_duration(self: @TContractState) -> u32;
 
-    /// Returns the maximum voting duration. Once this duration has elasped, a proposal
-    /// can be finalized. No other votes can come in.
+    /// Returns the maximum voting duration. Once this duration has elapsed, no additional votes can be cast.
     fn max_voting_duration(self: @TContractState) -> u32;
 
     /// Returns the DAO URI. See https://ethereum-magicians.org/t/erc-4824-decentralized-autonomous-organizations/8362
