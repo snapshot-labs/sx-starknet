@@ -23,9 +23,13 @@ struct BinarySearchTree {
 
 #[starknet::interface]
 trait ITimestampRemappers<TContractState> {
+    // Retrieves the timestamp of the L1 block closest to the given timestamp.
     fn get_closest_l1_block_number(
         self: @TContractState, tree: BinarySearchTree, timestamp: u256
     ) -> Result<Option<u256>, felt252>;
+
+    // Getter for the last timestamp of a given mapper.
+    fn get_last_mapper_timestamp(self: @TContractState, mapper_id: usize) -> u256;
 }
 
 #[starknet::interface]
