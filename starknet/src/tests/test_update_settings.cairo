@@ -271,12 +271,17 @@ mod tests {
         input.voting_strategies_to_add = arr;
         input.voting_strategies_metadata_uris_to_add = array![array![], array![]];
 
-        space.update_settings(input);
+        space.update_settings(input.clone());
 
         assert(space.voting_strategies(1) == vs1, 'Voting strategy 1 not added');
         assert(space.voting_strategies(2) == vs2, 'Voting strategy 2 not added');
         assert(space.active_voting_strategies() == 0b111, 'Voting strategies not active');
-    // TODO: check event once it's been added
+
+        let expected = VotingStrategiesAdded {
+            voting_strategies: input.voting_strategies_to_add.span(),
+            voting_strategy_metadata_uris: input.voting_strategies_metadata_uris_to_add.span(),
+        };
+        assert_correct_event::<VotingStrategiesAdded>(space.contract_address, expected);
     }
 
     #[test]
@@ -298,11 +303,6 @@ mod tests {
         assert(space.voting_strategies(1) == vs1, 'Voting strategy 1 not added');
         assert(space.voting_strategies(2) == vs2, 'Voting strategy 2 not added');
         assert(space.active_voting_strategies() == 0b111, 'Voting strategies not active');
-        let expected = VotingStrategiesAdded {
-            voting_strategies: input.voting_strategies_to_add.span(),
-            voting_strategy_metadata_uris: array![].span()
-        };
-        assert_correct_event::<VotingStrategiesAdded>(space.contract_address, expected);
     }
 
 
