@@ -171,6 +171,7 @@ mod Space {
             UserAddress, Choice, FinalizationStatus, Strategy, IndexedStrategy, Proposal,
             PackedProposal, IndexedStrategyTrait, IndexedStrategyImpl, UpdateSettingsCalldata,
             NoUpdateTrait, NoUpdateString, strategy::StoreFelt252Array, ProposalStatus,
+            proposal::ProposalDefault
         },
         utils::{
             reinitializable::{Reinitializable}, ReinitializableImpl, bits::BitSetter,
@@ -419,8 +420,6 @@ mod Space {
             let min_end_timestamp = start_timestamp + self._min_voting_duration.read();
             let max_end_timestamp = start_timestamp + self._max_voting_duration.read();
 
-            // TODO: we use a felt252 for the hash despite felts being discouraged 
-            // a new field would just replace the hash. Might be worth casting to a u256 though? 
             let execution_payload_hash = poseidon::poseidon_hash_span(
                 execution_strategy.params.span()
             );
@@ -515,7 +514,6 @@ mod Space {
                 );
         }
 
-        // TODO: missing `nonReentrant` modifier
         fn execute(ref self: ContractState, proposal_id: u256, execution_payload: Array<felt252>) {
             let mut proposal = self._proposals.read(proposal_id);
             assert_proposal_exists(@proposal);
@@ -887,9 +885,7 @@ mod Space {
     }
 
     fn assert_proposal_exists(proposal: @Proposal) {
-        assert(
-            *proposal.start_timestamp != 0, 'Proposal does not exist'
-        ); // TODO: test this assertion
+        assert(*proposal.start_timestamp != 0, 'Proposal does not exist');
     }
 
     fn _get_cumulative_power(

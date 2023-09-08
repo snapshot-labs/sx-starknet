@@ -28,12 +28,12 @@ fn get_proposal_status(
 #[cfg(test)]
 mod tests {
     use super::{get_proposal_status};
-    use sx::types::{Proposal, proposal::ProposalDefault, FinalizationStatus, ProposalStatus};
+    use sx::types::{Proposal, FinalizationStatus, ProposalStatus};
 
     #[test]
     #[available_gas(10000000)]
     fn cancelled() {
-        let mut proposal = ProposalDefault::default();
+        let mut proposal: Proposal = Default::default();
         proposal.finalization_status = FinalizationStatus::Cancelled(());
         let votes_for = 0;
         let votes_against = 0;
@@ -45,7 +45,7 @@ mod tests {
     #[test]
     #[available_gas(10000000)]
     fn executed() {
-        let mut proposal = ProposalDefault::default();
+        let mut proposal: Proposal = Default::default();
         proposal.finalization_status = FinalizationStatus::Executed(());
         let votes_for = 0;
         let votes_against = 0;
@@ -57,7 +57,7 @@ mod tests {
     #[test]
     #[available_gas(10000000)]
     fn voting_delay() {
-        let mut proposal = ProposalDefault::default();
+        let mut proposal: Proposal = Default::default();
         proposal.start_timestamp = 42424242;
         let votes_for = 0;
         let votes_against = 0;
@@ -69,7 +69,7 @@ mod tests {
     #[test]
     #[available_gas(10000000)]
     fn voting_period() {
-        let mut proposal = ProposalDefault::default();
+        let mut proposal: Proposal = Default::default();
         proposal.min_end_timestamp = 42424242;
         proposal.max_end_timestamp = proposal.min_end_timestamp + 1;
         let votes_for = 0;
@@ -82,7 +82,7 @@ mod tests {
     #[test]
     #[available_gas(10000000)]
     fn early_end_does_not_work() {
-        let mut proposal = ProposalDefault::default();
+        let mut proposal: Proposal = Default::default();
         proposal.max_end_timestamp = 10;
         let votes_for = 1;
         let votes_against = 0;
@@ -94,7 +94,7 @@ mod tests {
     #[test]
     #[available_gas(10000000)]
     fn balanced() {
-        let mut proposal = ProposalDefault::default();
+        let mut proposal: Proposal = Default::default();
         let votes_for = 42;
         let votes_against = 42;
         let votes_abstain = 0;
@@ -105,7 +105,7 @@ mod tests {
     #[test]
     #[available_gas(10000000)]
     fn accepted() {
-        let mut proposal = ProposalDefault::default();
+        let mut proposal: Proposal = Default::default();
         let votes_for = 10;
         let votes_against = 9;
         let votes_abstain = 0;
@@ -116,7 +116,7 @@ mod tests {
     #[test]
     #[available_gas(10000000)]
     fn accepted_with_abstains() {
-        let mut proposal = ProposalDefault::default();
+        let mut proposal: Proposal = Default::default();
         let votes_for = 2;
         let votes_against = 1;
         let votes_abstain = 10;
@@ -127,7 +127,7 @@ mod tests {
     #[test]
     #[available_gas(10000000)]
     fn rejected_only_againsts() {
-        let mut proposal = ProposalDefault::default();
+        let mut proposal: Proposal = Default::default();
         let votes_for = 0;
         let votes_against = 1;
         let votes_abstain = 0;

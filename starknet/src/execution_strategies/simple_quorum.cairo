@@ -80,14 +80,14 @@ mod SimpleQuorumExecutionStrategy {
 mod tests {
     use super::SimpleQuorumExecutionStrategy;
     use super::SimpleQuorumExecutionStrategy::{get_proposal_status, initializer};
-    use sx::types::{Proposal, proposal::ProposalDefault, FinalizationStatus, ProposalStatus};
+    use sx::types::{Proposal, FinalizationStatus, ProposalStatus};
 
     #[test]
     #[available_gas(10000000)]
     fn cancelled() {
         let mut state = SimpleQuorumExecutionStrategy::unsafe_new_contract_state();
 
-        let mut proposal = ProposalDefault::default();
+        let mut proposal: Proposal = Default::default();
         proposal.finalization_status = FinalizationStatus::Cancelled(());
         let votes_for = 0;
         let votes_against = 0;
@@ -103,7 +103,7 @@ mod tests {
     fn executed() {
         let mut state = SimpleQuorumExecutionStrategy::unsafe_new_contract_state();
 
-        let mut proposal = ProposalDefault::default();
+        let mut proposal: Proposal = Default::default();
         proposal.finalization_status = FinalizationStatus::Executed(());
         let votes_for = 0;
         let votes_against = 0;
@@ -119,7 +119,7 @@ mod tests {
     fn voting_delay() {
         let mut state = SimpleQuorumExecutionStrategy::unsafe_new_contract_state();
 
-        let mut proposal = ProposalDefault::default();
+        let mut proposal: Proposal = Default::default();
         proposal.start_timestamp = 42424242;
         let votes_for = 0;
         let votes_against = 0;
@@ -135,7 +135,7 @@ mod tests {
     fn voting_period() {
         let mut state = SimpleQuorumExecutionStrategy::unsafe_new_contract_state();
 
-        let mut proposal = ProposalDefault::default();
+        let mut proposal: Proposal = Default::default();
         proposal.min_end_timestamp = 42424242;
         let votes_for = 0;
         let votes_against = 0;
@@ -153,7 +153,7 @@ mod tests {
         let quorum = 2;
         initializer(ref state, quorum);
 
-        let mut proposal = ProposalDefault::default();
+        let mut proposal: Proposal = Default::default();
         proposal.max_end_timestamp = 10;
         let votes_for = quorum;
         let votes_against = 0;
@@ -171,7 +171,7 @@ mod tests {
         let quorum = 2;
         initializer(ref state, quorum);
 
-        let mut proposal = ProposalDefault::default();
+        let mut proposal: Proposal = Default::default();
         proposal.max_end_timestamp = 10;
         let votes_for = 0;
         let votes_against = 0;
@@ -189,7 +189,7 @@ mod tests {
         let quorum = 2;
         initializer(ref state, quorum);
 
-        let mut proposal = ProposalDefault::default();
+        let mut proposal: Proposal = Default::default();
         proposal.max_end_timestamp = 10;
         let votes_for = 0;
         let votes_against = quorum;
@@ -207,7 +207,7 @@ mod tests {
         let quorum = 2;
         initializer(ref state, quorum);
 
-        let mut proposal = ProposalDefault::default();
+        let mut proposal: Proposal = Default::default();
         proposal.max_end_timestamp = 10;
         let votes_for = quorum;
         let votes_against = quorum;
@@ -225,7 +225,7 @@ mod tests {
         let quorum = 2;
         initializer(ref state, quorum);
 
-        let mut proposal = ProposalDefault::default();
+        let mut proposal: Proposal = Default::default();
         let votes_for = quorum;
         let votes_against = quorum;
         let votes_abstain = 0;
@@ -242,7 +242,7 @@ mod tests {
         let quorum = 2;
         initializer(ref state, quorum);
 
-        let mut proposal = ProposalDefault::default();
+        let mut proposal: Proposal = Default::default();
         let votes_for = quorum;
         let votes_against = quorum - 1;
         let votes_abstain = 0;
@@ -259,7 +259,7 @@ mod tests {
         let quorum = 5;
         initializer(ref state, quorum);
 
-        let mut proposal = ProposalDefault::default();
+        let mut proposal: Proposal = Default::default();
         let votes_for = 2;
         let votes_against = 1;
         let votes_abstain = 10;
@@ -276,7 +276,7 @@ mod tests {
         let quorum = 0;
         initializer(ref state, quorum);
 
-        let mut proposal = ProposalDefault::default();
+        let mut proposal: Proposal = Default::default();
         let votes_for = 0;
         let votes_against = 1;
         let votes_abstain = 0;
@@ -293,7 +293,7 @@ mod tests {
         let quorum = 3;
         initializer(ref state, quorum);
 
-        let mut proposal = ProposalDefault::default();
+        let mut proposal: Proposal = Default::default();
         let votes_for = 2;
         let votes_against = 0;
         let votes_abstain = 0;
