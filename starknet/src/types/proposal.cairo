@@ -38,7 +38,8 @@ struct Proposal {
     execution_strategy: ContractAddress,
     /// The address of the proposal author.
     author: UserAddress,
-    /// A snapshot of the active voting strategies at the time of proposal creation.
+    /// Bit array where the index of each each bit corresponds to whether the voting strategy at
+    /// that index is active at the time of proposal creation.
     active_voting_strategies: u256
 }
 
