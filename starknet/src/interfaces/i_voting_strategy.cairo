@@ -7,7 +7,7 @@ trait IVotingStrategy<TContractState> {
     ///
     /// # Arguments
     ///
-    /// * `timestamp` - The timestamp to use to compute the voting power.
+    /// * `timestamp` - The timestamp to use to compute the voting power at.
     /// * `voter` - The address of the voter.
     /// * `params` - The strategy-supplied parameters used to compute the voting power.
     /// * `user_params` - The user-supplied parameters used to compute the voting power.
