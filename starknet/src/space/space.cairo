@@ -37,7 +37,7 @@ i    /// @notice The minimum duration of the voting period.
     /// it only affects subsequent proposals, not ongoing ones.
     fn active_voting_strategies(self: @TContractState) -> u256;
 
-    /// The next voting strategy index. Starts at 0.
+    /// The index of the next available voting strategy. Starts at 0.
     fn next_voting_strategy_index(self: @TContractState) -> u8;
 
     /// The proposal validation strategy. This strategy is used to determine whether a user can create a new proposal or not.
