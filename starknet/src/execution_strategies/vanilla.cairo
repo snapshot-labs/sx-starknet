@@ -20,7 +20,7 @@ mod VanillaExecutionStrategy {
     }
 
     /// The vanilla execution strategy is a dummy execution strategy that simply increments a `_num_executed` variable for every
-    /// new execute proposal. It uses the `SimpleQuorum` method to determine whether a proposal is accepted or not.
+    /// newly executed proposal. It uses the `SimpleQuorum` method to determine whether a proposal is accepted or not.
     #[external(v0)]
     impl VanillaExecutionStrategy of IExecutionStrategy<ContractState> {
         fn execute(
