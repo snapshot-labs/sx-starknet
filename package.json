@@ -12,7 +12,7 @@
     "chain:l1": "hardhat node",
     "chain:l2": "bash './scripts/chain-l2.sh'",
     "chain": "yarn chain:l1 & yarn chain:l2",
-    "test:stark-sig-auth": "jest -c jest.config.ts",
+    "test:stark-sig-auth": "bash './scripts/stark-sig-auth-test.sh'",
     "test:eth-sig-auth": "bash './scripts/eth-sig-auth-test.sh'",
     "test:l1-execution": "bash './scripts/l1-avatar-execution-test.sh'"
   },
@@ -30,7 +30,6 @@
     "@shardlabs/starknet-hardhat-plugin": "0.8.0-alpha.4",
     "@typechain/ethers-v6": "^0.5.0",
     "@typechain/hardhat": "^9.0.0",
-    "@types/jest": "^29.5.3",
     "@types/node": "^20.4.5",
     "@types/sinon-chai": "^3.2.9",
     "@typescript-eslint/eslint-plugin": "^6.2.1",
@@ -45,10 +44,8 @@
     "fs": "^0.0.1-security",
     "hardhat": "^2.17.2",
     "hardhat-gas-reporter": "^1.0.9",
-    "jest": "^29.6.2",
     "prettier": "^3.0.0",
-    "starknet": "^5.14.1",
-    "ts-jest": "^29.1.1",
+    "starknet": "^5.19.5",
     "ts-node": "^10.9.1",
     "typescript": "^5.1.6",
     "wait-on": "^7.0.1"

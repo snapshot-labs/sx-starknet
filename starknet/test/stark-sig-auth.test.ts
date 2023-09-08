@@ -1,6 +1,7 @@
-import fs from 'fs';
+import { expect } from 'chai';
 import dotenv from 'dotenv';
-import { Provider, Account, CallData, typedData, shortString, json } from 'starknet';
+import { starknet } from 'hardhat';
+import { CallData, typedData, shortString, Account, Provider } from 'starknet';
 import {
   proposeTypes,
   voteTypes,
@@ -8,249 +9,492 @@ import {
   Propose,
   Vote,
   UpdateProposal,
-  StarknetSigProposeCalldata,
-  StarknetSigVoteCalldata,
-  StarknetSigUpdateProposalCalldata,
 } from './stark-sig-types';
 
 dotenv.config();
 
-const network = process.env.NETWORK_URL || '';
+const account_address = process.env.ADDRESS || '';
+const account_pk = process.env.PK || '';
+const network = process.env.STARKNET_NETWORK_URL || '';
 
-describe('Starknet Signature Authenticator', () => {
-  const provider = new Provider({ sequencer: { baseUrl: network } });
-  // starknet devnet predeployed account 0 with seed 0
-  const privateKey_0 = '0xe3e70682c2094cac629f6fbed82c07cd';
-  const address0 = '0x7e00d496e324876bbc8531f2d9a82bf154d1a04a50218ee74cdd372f75a551a';
-  const account0 = new Account(provider, address0, privateKey_0);
+describe('Starknet Signature Authenticator', function () {
+  this.timeout(1000000);
 
-  // change this to 'camel' if the account interface uses camel case
-  const account0Type = shortString.encodeShortString('snake');
+  // Need a starknet.js account for signing
+  let accountWithSigner: Account;
+  let account: starknet.starknetAccount;
+  let accountType: string;
 
-  let spaceAddress: string;
-  let vanillaVotingStrategyAddress: string;
-  let vanillaProposalValidationStrategyAddress: string;
-  let starkSigAuthAddress: string;
+  let starkSigAuthenticator: starknet.StarknetContract;
+  let vanillaVotingStrategy: starknet.StarknetContract;
+  let vanillaProposalValidationStrategy: starknet.StarknetContract;
+  let space: starknet.StarknetContract;
+
   let domain: any;
 
-  beforeAll(async () => {
-    // Deploy Starknet Signature Authenticator
-    const starkSigAuthSierra = json.parse(
-      fs.readFileSync('starknet/target/dev/sx_StarkSigAuthenticator.sierra.json').toString('ascii'),
+  before(async function () {
+    accountWithSigner = new Account(
+      new Provider({ sequencer: { baseUrl: network } }),
+      account_address,
+      account_pk,
     );
-    const starkSigAuthCasm = json.parse(
-      fs.readFileSync('starknet/target/dev/sx_StarkSigAuthenticator.casm.json').toString('ascii'),
+    account = await starknet.OpenZeppelinAccount.getAccountFromAddress(account_address, account_pk);
+    // change this to 'camel' if the account interface uses camel case
+    accountType = shortString.encodeShortString('snake');
+    const starkSigAuthenticatorFactory = await starknet.getContractFactory(
+      'sx_StarkSigAuthenticator',
     );
+    const vanillaVotingStrategyFactory = await starknet.getContractFactory(
+      'sx_VanillaVotingStrategy',
+    );
+    const vanillaProposalValidationStrategyFactory = await starknet.getContractFactory(
+      'sx_VanillaProposalValidationStrategy',
+    );
+    const spaceFactory = await starknet.getContractFactory('sx_Space');
 
-    let deployResponse = await account0.declareAndDeploy({
-      contract: starkSigAuthSierra,
-      casm: starkSigAuthCasm,
-      constructorCalldata: CallData.compile({ name: 'sx-sn', version: '0.1.0' }),
+    try {
+      // If the contracts are already declared, this will be skipped
+      await account.declare(starkSigAuthenticatorFactory);
+      await account.declare(vanillaVotingStrategyFactory);
+      await account.declare(vanillaProposalValidationStrategyFactory);
+      await account.declare(spaceFactory);
+    } catch {}
+
+    starkSigAuthenticator = await account.deploy(starkSigAuthenticatorFactory, {
+      name: shortString.encodeShortString('sx-sn'),
+      version: shortString.encodeShortString('0.1.0'),
     });
-    starkSigAuthAddress = deployResponse.deploy.contract_address;
-
-    // Deploy Vanilla Voting Strategy
-    const vanillaVotingStrategySierra = json.parse(
-      fs.readFileSync('starknet/target/dev/sx_VanillaVotingStrategy.sierra.json').toString('ascii'),
+    vanillaVotingStrategy = await account.deploy(vanillaVotingStrategyFactory);
+    vanillaProposalValidationStrategy = await account.deploy(
+      vanillaProposalValidationStrategyFactory,
     );
-    const vanillaVotingStrategyCasm = json.parse(
-      fs.readFileSync('starknet/target/dev/sx_VanillaVotingStrategy.casm.json').toString('ascii'),
-    );
+    space = await account.deploy(spaceFactory);
 
-    deployResponse = await account0.declareAndDeploy({
-      contract: vanillaVotingStrategySierra,
-      casm: vanillaVotingStrategyCasm,
-      constructorCalldata: CallData.compile({}),
+    // Initializing the space
+    const initializeCalldata = CallData.compile({
+      _owner: 1,
+      _max_voting_duration: 200,
+      _min_voting_duration: 200,
+      _voting_delay: 100,
+      _proposal_validation_strategy: {
+        address: vanillaProposalValidationStrategy.address,
+        params: [],
+      },
+      _proposal_validation_strategy_metadata_uri: [],
+      _voting_strategies: [{ address: vanillaVotingStrategy.address, params: [] }],
+      _voting_strategies_metadata_uri: [[]],
+      _authenticators: [starkSigAuthenticator.address],
+      _metadata_uri: [],
+      _dao_uri: [],
     });
-    vanillaVotingStrategyAddress = deployResponse.deploy.contract_address;
 
-    // Deploy Vanilla Proposal Validation Strategy
-    const vanillaProposalValidationStrategySierra = json.parse(
-      fs
-        .readFileSync('starknet/target/dev/sx_VanillaProposalValidationStrategy.sierra.json')
-        .toString('ascii'),
-    );
-    const vanillaProposalValidationStrategyCasm = json.parse(
-      fs
-        .readFileSync('starknet/target/dev/sx_VanillaProposalValidationStrategy.casm.json')
-        .toString('ascii'),
-    );
-
-    deployResponse = await account0.declareAndDeploy({
-      contract: vanillaProposalValidationStrategySierra,
-      casm: vanillaProposalValidationStrategyCasm,
-      constructorCalldata: CallData.compile({}),
-    });
-    vanillaProposalValidationStrategyAddress = deployResponse.deploy.contract_address;
-
-    // Deploy Space
-    const spaceSierra = json.parse(
-      fs.readFileSync('starknet/target/dev/sx_Space.sierra.json').toString('ascii'),
-    );
-    const spaceCasm = json.parse(
-      fs.readFileSync('starknet/target/dev/sx_Space.casm.json').toString('ascii'),
-    );
-
-    deployResponse = await account0.declareAndDeploy({
-      contract: spaceSierra,
-      casm: spaceCasm,
-      constructorCalldata: CallData.compile({
-        _owner: 1,
-        _max_voting_duration: 100,
-        _min_voting_duration: 100,
-        _voting_delay: 15,
-        _proposal_validation_strategy: {
-          address: vanillaProposalValidationStrategyAddress,
-          params: [[]],
-        },
-        _proposal_validation_strategy_metadata_URI: [],
-        _voting_strategies: [{ address: vanillaVotingStrategyAddress, params: [] }],
-        _voting_strategies_metadata_URI: [],
-        _authenticators: [starkSigAuthAddress],
-        _metadata_URI: [],
-        _dao_URI: [],
-      }),
-    });
-    spaceAddress = deployResponse.deploy.contract_address;
+    await account.invoke(space, 'initialize', initializeCalldata, { rawInput: true });
 
     domain = {
       name: 'sx-sn',
       version: '0.1.0',
       chainId: '0x534e5f474f45524c49', // devnet id
-      verifyingContract: starkSigAuthAddress,
+      verifyingContract: starkSigAuthenticator.address,
     };
-  }, 100000);
-  test('can authenticate a proposal, a vote, and a proposal update', async () => {
+
+    // Dumping the Starknet state so it can be loaded at the same point for each test
+    await starknet.devnet.dump('dump.pkl');
+  }, 10000000);
+
+  it('can authenticate a proposal, a vote, and a proposal update', async () => {
+    await starknet.devnet.restart();
+    await starknet.devnet.load('./dump.pkl');
+    await starknet.devnet.increaseTime(10);
+
     // PROPOSE
     const proposeMsg: Propose = {
-      space: spaceAddress,
-      author: address0,
+      space: space.address,
+      author: account.address,
+      metadataUri: ['0x1', '0x2', '0x3', '0x4'],
       executionStrategy: {
-        address: '0x0000000000000000000000000000000000001234',
-        params: ['0x5', '0x6', '0x7', '0x8'],
+        address: '0x0000000000000000000000000000000000005678',
+        params: ['0x0'],
       },
-      userProposalValidationParams: ['0x1', '0x2', '0x3', '0x4'],
-      metadataURI: ['0x1', '0x2', '0x3', '0x4'],
+      userProposalValidationParams: [
+        '0xffffffffffffffffffffffffffffffffffffffffff',
+        '0x1234',
+        '0x5678',
+        '0x9abc',
+      ],
       salt: '0x0',
     };
 
-    const proposeData: typedData.TypedData = {
+    const proposeSig = (await accountWithSigner.signMessage({
       types: proposeTypes,
       primaryType: 'Propose',
       domain: domain,
       message: proposeMsg as any,
-    };
+    } as typedData.TypedData)) as any;
 
-    const proposeSig = (await account0.signMessage(proposeData)) as any;
-
-    const proposeCalldata: StarknetSigProposeCalldata = {
+    const proposeCalldata = CallData.compile({
       signature: [proposeSig.r, proposeSig.s],
       ...proposeMsg,
-      accountType: account0Type,
-    };
+      accountType: accountType,
+    });
 
-    await account0.execute({
-      contractAddress: starkSigAuthAddress,
-      entrypoint: 'authenticate_propose',
-      calldata: CallData.compile(proposeCalldata as any),
+    await account.invoke(starkSigAuthenticator, 'authenticate_propose', proposeCalldata, {
+      rawInput: true,
     });
 
     // UPDATE PROPOSAL
 
     const updateProposalMsg: UpdateProposal = {
-      space: spaceAddress,
-      author: address0,
+      space: space.address,
+      author: account.address,
       proposalId: { low: '0x1', high: '0x0' },
       executionStrategy: {
         address: '0x0000000000000000000000000000000000005678',
         params: ['0x5', '0x6', '0x7', '0x8'],
       },
-      metadataURI: ['0x1', '0x2', '0x3', '0x4'],
+      metadataUri: ['0x1', '0x2', '0x3', '0x4'],
       salt: '0x1',
     };
-    const updateProposalData: typedData.TypedData = {
+
+    const updateProposalSig = (await accountWithSigner.signMessage({
       types: updateProposalTypes,
       primaryType: 'UpdateProposal',
       domain: domain,
       message: updateProposalMsg as any,
-    };
+    } as typedData.TypedData)) as any;
 
-    const updateProposalSig = (await account0.signMessage(updateProposalData)) as any;
-
-    const updateProposalCalldata: StarknetSigUpdateProposalCalldata = {
+    const updateProposalCalldata = CallData.compile({
       signature: [updateProposalSig.r, updateProposalSig.s],
       ...updateProposalMsg,
-      accountType: account0Type,
-    };
-
-    await account0.execute({
-      contractAddress: starkSigAuthAddress,
-      entrypoint: 'authenticate_update_proposal',
-      calldata: CallData.compile(updateProposalCalldata as any),
+      accountType: accountType,
     });
 
-    {
-      // Random Tx just to advance the block number on the devnet so the voting period begins.
+    await account.invoke(
+      starkSigAuthenticator,
+      'authenticate_update_proposal',
+      updateProposalCalldata,
+      {
+        rawInput: true,
+      },
+    );
 
-      await account0.declareAndDeploy({
-        contract: json.parse(
-          fs
-            .readFileSync('starknet/target/dev/sx_StarkSigAuthenticator.sierra.json')
-            .toString('ascii'),
-        ),
-        casm: json.parse(
-          fs
-            .readFileSync('starknet/target/dev/sx_StarkSigAuthenticator.casm.json')
-            .toString('ascii'),
-        ),
-        constructorCalldata: CallData.compile({ name: 'sx-sn', version: '0.1.0' }),
-      });
-
-      await account0.declareAndDeploy({
-        contract: json.parse(
-          fs
-            .readFileSync('starknet/target/dev/sx_StarkSigAuthenticator.sierra.json')
-            .toString('ascii'),
-        ),
-        casm: json.parse(
-          fs
-            .readFileSync('starknet/target/dev/sx_StarkSigAuthenticator.casm.json')
-            .toString('ascii'),
-        ),
-        constructorCalldata: CallData.compile({ name: 'sx-sn', version: '0.1.0' }),
-      });
-    }
+    // Increase time so voting period begins
+    await starknet.devnet.increaseTime(100);
 
     // VOTE
 
     const voteMsg: Vote = {
-      space: spaceAddress,
-      voter: address0,
+      space: space.address,
+      voter: account.address,
       proposalId: { low: '0x1', high: '0x0' },
       choice: '0x1',
       userVotingStrategies: [{ index: '0x0', params: ['0x1', '0x2', '0x3', '0x4'] }],
-      metadataURI: ['0x1', '0x2', '0x3', '0x4'],
+      metadataUri: ['0x1', '0x2', '0x3', '0x4'],
     };
 
-    const voteData: typedData.TypedData = {
+    const voteSig = (await accountWithSigner.signMessage({
       types: voteTypes,
       primaryType: 'Vote',
       domain: domain,
       message: voteMsg as any,
-    };
+    } as typedData.TypedData)) as any;
 
-    const voteSig = (await account0.signMessage(voteData)) as any;
-
-    const voteCalldata: StarknetSigVoteCalldata = {
+    const voteCalldata = CallData.compile({
       signature: [voteSig.r, voteSig.s],
       ...voteMsg,
-      accountType: account0Type,
+      accountType: accountType,
+    });
+
+    await account.invoke(starkSigAuthenticator, 'authenticate_vote', voteCalldata, {
+      rawInput: true,
+    });
+  }, 1000000);
+
+  it('should revert if an incorrect signature is used', async () => {
+    await starknet.devnet.restart();
+    await starknet.devnet.load('./dump.pkl');
+    await starknet.devnet.increaseTime(10);
+
+    // Account #1 on Starknet devnet with seed 42
+    const invalidAccountWithSigner = new Account(
+      new Provider({ sequencer: { baseUrl: network } }),
+      '0x7aac39162d91acf2c4f0d539f4b81e23832619ac0c3df9fce22e4a8d505632a',
+      '0x23b8c1e9392456de3eb13b9046685257',
+    );
+
+    // PROPOSE
+    const proposeMsg: Propose = {
+      space: space.address,
+      author: account.address,
+      metadataUri: ['0x1', '0x2', '0x3', '0x4'],
+      executionStrategy: {
+        address: '0x0000000000000000000000000000000000005678',
+        params: ['0x0'],
+      },
+      userProposalValidationParams: [
+        '0xffffffffffffffffffffffffffffffffffffffffff',
+        '0x1234',
+        '0x5678',
+        '0x9abc',
+      ],
+      salt: '0x0',
     };
 
-    await account0.execute({
-      contractAddress: starkSigAuthAddress,
-      entrypoint: 'authenticate_vote',
-      calldata: CallData.compile(voteCalldata as any),
+    const invalidProposeSig = (await invalidAccountWithSigner.signMessage({
+      types: proposeTypes,
+      primaryType: 'Propose',
+      domain: domain,
+      message: proposeMsg as any,
+    } as typedData.TypedData)) as any;
+
+    const invalidProposeCalldata = CallData.compile({
+      signature: [invalidProposeSig.r, invalidProposeSig.s],
+      ...proposeMsg,
+      accountType: accountType,
     });
+
+    try {
+      await account.invoke(starkSigAuthenticator, 'authenticate_propose', invalidProposeCalldata, {
+        rawInput: true,
+      });
+      expect.fail('Should have failed');
+    } catch (err: any) {
+      // snippet of error message thrown when signature is invalid
+      expect(err.message).to.contain('is invalid, with respect to the public key');
+    }
+
+    const proposeSig = (await accountWithSigner.signMessage({
+      types: proposeTypes,
+      primaryType: 'Propose',
+      domain: domain,
+      message: proposeMsg as any,
+    } as typedData.TypedData)) as any;
+
+    const proposeCalldata = CallData.compile({
+      signature: [proposeSig.r, proposeSig.s],
+      ...proposeMsg,
+      accountType: accountType,
+    });
+
+    await account.invoke(starkSigAuthenticator, 'authenticate_propose', proposeCalldata, {
+      rawInput: true,
+    });
+
+    // UPDATE PROPOSAL
+
+    const updateProposalMsg: UpdateProposal = {
+      space: space.address,
+      author: account.address,
+      proposalId: { low: '0x1', high: '0x0' },
+      executionStrategy: {
+        address: '0x0000000000000000000000000000000000005678',
+        params: ['0x5', '0x6', '0x7', '0x8'],
+      },
+      metadataUri: ['0x1', '0x2', '0x3', '0x4'],
+      salt: '0x1',
+    };
+
+    const invalidUpdateProposalSig = (await invalidAccountWithSigner.signMessage({
+      types: updateProposalTypes,
+      primaryType: 'UpdateProposal',
+      domain: domain,
+      message: updateProposalMsg as any,
+    } as typedData.TypedData)) as any;
+
+    const invalidUpdateProposalCalldata = CallData.compile({
+      signature: [invalidUpdateProposalSig.r, invalidUpdateProposalSig.s],
+      ...updateProposalMsg,
+      accountType: accountType,
+    });
+
+    try {
+      await account.invoke(
+        starkSigAuthenticator,
+        'authenticate_update_proposal',
+        invalidUpdateProposalCalldata,
+        {
+          rawInput: true,
+        },
+      );
+      expect.fail('Should have failed');
+    } catch (err: any) {
+      // snippet of error message thrown when signature is invalid
+      expect(err.message).to.contain('is invalid, with respect to the public key');
+    }
+
+    const updateProposalSig = (await accountWithSigner.signMessage({
+      types: updateProposalTypes,
+      primaryType: 'UpdateProposal',
+      domain: domain,
+      message: updateProposalMsg as any,
+    } as typedData.TypedData)) as any;
+
+    const updateProposalCalldata = CallData.compile({
+      signature: [updateProposalSig.r, updateProposalSig.s],
+      ...updateProposalMsg,
+      accountType: accountType,
+    });
+
+    await account.invoke(
+      starkSigAuthenticator,
+      'authenticate_update_proposal',
+      updateProposalCalldata,
+      {
+        rawInput: true,
+      },
+    );
+
+    // Increase time so voting period begins
+    await starknet.devnet.increaseTime(100);
+
+    // VOTE
+
+    const voteMsg: Vote = {
+      space: space.address,
+      voter: account.address,
+      proposalId: { low: '0x1', high: '0x0' },
+      choice: '0x1',
+      userVotingStrategies: [{ index: '0x0', params: ['0x1', '0x2', '0x3', '0x4'] }],
+      metadataUri: ['0x1', '0x2', '0x3', '0x4'],
+    };
+
+    const invalidVoteSig = (await invalidAccountWithSigner.signMessage({
+      types: voteTypes,
+      primaryType: 'Vote',
+      domain: domain,
+      message: voteMsg as any,
+    } as typedData.TypedData)) as any;
+
+    const invalidVoteCalldata = CallData.compile({
+      signature: [invalidVoteSig.r, invalidVoteSig.s],
+      ...voteMsg,
+      accountType: accountType,
+    });
+
+    try {
+      await account.invoke(starkSigAuthenticator, 'authenticate_vote', invalidVoteCalldata, {
+        rawInput: true,
+      });
+      expect.fail('Should have failed');
+    } catch (err: any) {
+      // snippet of error message thrown when signature is invalid
+      expect(err.message).to.contain('is invalid, with respect to the public key');
+    }
+
+    const voteSig = (await accountWithSigner.signMessage({
+      types: voteTypes,
+      primaryType: 'Vote',
+      domain: domain,
+      message: voteMsg as any,
+    } as typedData.TypedData)) as any;
+
+    const voteCalldata = CallData.compile({
+      signature: [voteSig.r, voteSig.s],
+      ...voteMsg,
+      accountType: accountType,
+    });
+
+    await account.invoke(starkSigAuthenticator, 'authenticate_vote', voteCalldata, {
+      rawInput: true,
+    });
+  }, 1000000);
+
+  it('should revert if a salt is reused by an author when creating or updating a proposal', async () => {
+    await starknet.devnet.restart();
+    await starknet.devnet.load('./dump.pkl');
+    await starknet.devnet.increaseTime(10);
+
+    // PROPOSE
+    const proposeMsg: Propose = {
+      space: space.address,
+      author: account.address,
+      metadataUri: ['0x1', '0x2', '0x3', '0x4'],
+      executionStrategy: {
+        address: '0x0000000000000000000000000000000000005678',
+        params: ['0x0'],
+      },
+      userProposalValidationParams: [
+        '0xffffffffffffffffffffffffffffffffffffffffff',
+        '0x1234',
+        '0x5678',
+        '0x9abc',
+      ],
+      salt: '0x0',
+    };
+
+    const proposeSig = (await accountWithSigner.signMessage({
+      types: proposeTypes,
+      primaryType: 'Propose',
+      domain: domain,
+      message: proposeMsg as any,
+    } as typedData.TypedData)) as any;
+
+    const proposeCalldata = CallData.compile({
+      signature: [proposeSig.r, proposeSig.s],
+      ...proposeMsg,
+      accountType: accountType,
+    });
+
+    await account.invoke(starkSigAuthenticator, 'authenticate_propose', proposeCalldata, {
+      rawInput: true,
+    });
+
+    try {
+      await account.invoke(starkSigAuthenticator, 'authenticate_propose', proposeCalldata, {
+        rawInput: true,
+      });
+      expect.fail('Should have failed');
+    } catch (err: any) {
+      expect(err.message).to.contain(shortString.encodeShortString('Salt Already Used'));
+    }
+
+    // UPDATE PROPOSAL
+
+    const updateProposalMsg: UpdateProposal = {
+      space: space.address,
+      author: account.address,
+      proposalId: { low: '0x1', high: '0x0' },
+      executionStrategy: {
+        address: '0x0000000000000000000000000000000000005678',
+        params: ['0x5', '0x6', '0x7', '0x8'],
+      },
+      metadataUri: ['0x1', '0x2', '0x3', '0x4'],
+      salt: '0x1',
+    };
+
+    const updateProposalSig = (await accountWithSigner.signMessage({
+      types: updateProposalTypes,
+      primaryType: 'UpdateProposal',
+      domain: domain,
+      message: updateProposalMsg as any,
+    } as typedData.TypedData)) as any;
+
+    const updateProposalCalldata = CallData.compile({
+      signature: [updateProposalSig.r, updateProposalSig.s],
+      ...updateProposalMsg,
+      accountType: accountType,
+    });
+
+    await account.invoke(
+      starkSigAuthenticator,
+      'authenticate_update_proposal',
+      updateProposalCalldata,
+      {
+        rawInput: true,
+      },
+    );
+
+    try {
+      await account.invoke(
+        starkSigAuthenticator,
+        'authenticate_update_proposal',
+        updateProposalCalldata,
+        {
+          rawInput: true,
+        },
+      );
+      expect.fail('Should have failed');
+    } catch (err: any) {
+      expect(err.message).to.contain(shortString.encodeShortString('Salt Already Used'));
+    }
   }, 1000000);
 });

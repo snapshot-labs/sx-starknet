@@ -30,15 +30,15 @@ mod StarkEIP712 {
             self._domain_hash.write(InternalImpl::get_domain_hash(name, version));
         }
 
-        /// Verifies the signature of the calldata.
+        /// Verifies the signature of the propose calldata.
         fn verify_propose_sig(
             self: @ContractState,
             signature: Array<felt252>,
             target: ContractAddress,
             author: ContractAddress,
+            metadata_uri: Span<felt252>,
             execution_strategy: @Strategy,
             user_proposal_validation_params: Span<felt252>,
-            metadata_uri: Span<felt252>,
             salt: felt252,
             account_type: felt252,
         ) {
@@ -46,9 +46,9 @@ mod StarkEIP712 {
                 .get_propose_digest(
                     target,
                     author,
+                    metadata_uri,
                     execution_strategy,
                     user_proposal_validation_params,
-                    metadata_uri,
                     salt
                 );
 
@@ -98,18 +98,18 @@ mod StarkEIP712 {
             self: @ContractState,
             space: ContractAddress,
             author: ContractAddress,
+            metadata_uri: Span<felt252>,
             execution_strategy: @Strategy,
             user_proposal_validation_params: Span<felt252>,
-            metadata_uri: Span<felt252>,
             salt: felt252
         ) -> felt252 {
             let mut encoded_data = array![];
             PROPOSE_TYPEHASH.serialize(ref encoded_data);
             space.serialize(ref encoded_data);
             author.serialize(ref encoded_data);
+            metadata_uri.struct_hash().serialize(ref encoded_data);
             execution_strategy.struct_hash().serialize(ref encoded_data);
             user_proposal_validation_params.struct_hash().serialize(ref encoded_data);
-            metadata_uri.struct_hash().serialize(ref encoded_data);
             salt.serialize(ref encoded_data);
             self.hash_typed_data(encoded_data.span().struct_hash(), author)
         }

@@ -116,9 +116,9 @@ mod StarkSigAuthenticator {
                 signature,
                 target,
                 author,
+                metadata_uri.span(),
                 @execution_strategy,
                 user_proposal_validation_params.span(),
-                metadata_uri.span(),
                 salt,
                 account_type
             );
