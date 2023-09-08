@@ -2,7 +2,7 @@
 mod tests {
     use sx::space::space::{Space, ISpaceDispatcher, ISpaceDispatcherTrait};
     use sx::tests::setup::setup::setup::{setup, deploy, Config};
-    use sx::types::{UpdateSettingsCalldata, UpdateSettingsCalldataImpl};
+    use sx::types::{UpdateSettingsCalldata};
     use sx::tests::utils::strategy_trait::{StrategyImpl, StrategyDefault};
     use starknet::testing;
     use starknet::info;
@@ -42,7 +42,7 @@ mod tests {
     #[should_panic(expected: ('Caller is not the owner', 'ENTRYPOINT_FAILED'))]
     fn update_unauthorized() {
         let (config, space) = setup_update_settings();
-        let mut input = UpdateSettingsCalldataImpl::default();
+        let mut input: UpdateSettingsCalldata = Default::default();
 
         testing::set_contract_address(contract_address_const::<'unauthorized'>());
         space.update_settings(input);
@@ -52,7 +52,7 @@ mod tests {
     #[available_gas(10000000000)]
     fn update_min_voting_duration() {
         let (config, space) = setup_update_settings();
-        let mut input = UpdateSettingsCalldataImpl::default();
+        let mut input: UpdateSettingsCalldata = Default::default();
         input.min_voting_duration = config.min_voting_duration + 1;
 
         space.update_settings(input.clone());
@@ -72,7 +72,7 @@ mod tests {
     #[should_panic(expected: ('Invalid duration', 'ENTRYPOINT_FAILED'))]
     fn update_min_voting_duration_too_big() {
         let (config, space) = setup_update_settings();
-        let mut input = UpdateSettingsCalldataImpl::default();
+        let mut input: UpdateSettingsCalldata = Default::default();
         input.min_voting_duration = config.max_voting_duration + 1;
 
         space.update_settings(input.clone());
@@ -83,7 +83,7 @@ mod tests {
     #[available_gas(10000000000)]
     fn update_max_voting_duration() {
         let (config, space) = setup_update_settings();
-        let mut input = UpdateSettingsCalldataImpl::default();
+        let mut input: UpdateSettingsCalldata = Default::default();
         input.max_voting_duration = config.max_voting_duration + 1;
 
         space.update_settings(input.clone());
@@ -103,7 +103,7 @@ mod tests {
     #[should_panic(expected: ('Invalid duration', 'ENTRYPOINT_FAILED'))]
     fn update_max_voting_duration_too_small() {
         let (config, space) = setup_update_settings();
-        let mut input = UpdateSettingsCalldataImpl::default();
+        let mut input: UpdateSettingsCalldata = Default::default();
         input.max_voting_duration = config.min_voting_duration - 1;
 
         space.update_settings(input.clone());
@@ -113,7 +113,7 @@ mod tests {
     #[available_gas(10000000000)]
     fn update_min_max_voting_duration_at_once() {
         let (config, space) = setup_update_settings();
-        let mut input = UpdateSettingsCalldataImpl::default();
+        let mut input: UpdateSettingsCalldata = Default::default();
         input.min_voting_duration = config.max_voting_duration + 1;
         input.max_voting_duration = config.max_voting_duration + 2;
 
@@ -143,7 +143,7 @@ mod tests {
     #[should_panic(expected: ('Invalid duration', 'ENTRYPOINT_FAILED'))]
     fn update_min_max_voting_duration_at_once_invalid() {
         let (config, space) = setup_update_settings();
-        let mut input = UpdateSettingsCalldataImpl::default();
+        let mut input: UpdateSettingsCalldata = Default::default();
         input.min_voting_duration = config.max_voting_duration + 1;
         input
             .max_voting_duration = config
@@ -156,7 +156,7 @@ mod tests {
     #[available_gas(10000000000)]
     fn update_voting_delay() {
         let (config, space) = setup_update_settings();
-        let mut input = UpdateSettingsCalldataImpl::default();
+        let mut input: UpdateSettingsCalldata = Default::default();
         input.voting_delay = config.voting_delay + 1;
 
         space.update_settings(input.clone());
@@ -170,7 +170,7 @@ mod tests {
     #[available_gas(10000000000)]
     fn metadata_uri() {
         let (config, space) = setup_update_settings();
-        let mut input = UpdateSettingsCalldataImpl::default();
+        let mut input: UpdateSettingsCalldata = Default::default();
         let mut arr = array![];
         'hello!'.serialize(ref arr);
         input.metadata_uri = arr;
@@ -184,7 +184,7 @@ mod tests {
     #[available_gas(10000000000)]
     fn dao_uri() {
         let (config, space) = setup_update_settings();
-        let mut input = UpdateSettingsCalldataImpl::default();
+        let mut input: UpdateSettingsCalldata = Default::default();
         input.dao_uri = array!['hello!'];
 
         space.update_settings(input.clone());
@@ -197,7 +197,7 @@ mod tests {
     #[available_gas(10000000000)]
     fn proposal_validation_strategy() {
         let (config, space) = setup_update_settings();
-        let mut input = UpdateSettingsCalldataImpl::default();
+        let mut input: UpdateSettingsCalldata = Default::default();
         let randomStrategy = StrategyImpl::from_address(
             contract_address_const::<'randomStrategy'>()
         );
@@ -225,7 +225,7 @@ mod tests {
     #[available_gas(10000000000)]
     fn add_authenticators() {
         let (config, space) = setup_update_settings();
-        let mut input = UpdateSettingsCalldataImpl::default();
+        let mut input: UpdateSettingsCalldata = Default::default();
         let auth1 = contract_address_const::<'authenticator1'>();
         let auth2 = contract_address_const::<'authenticator2'>();
         let mut arr = array![auth1, auth2];
@@ -244,7 +244,7 @@ mod tests {
     #[available_gas(10000000000)]
     fn remove_authenticators() {
         let (config, space) = setup_update_settings();
-        let mut input = UpdateSettingsCalldataImpl::default();
+        let mut input: UpdateSettingsCalldata = Default::default();
         let auth1 = *config.authenticators.at(0);
         let mut arr = array![auth1];
         input.authenticators_to_remove = arr;
@@ -262,7 +262,7 @@ mod tests {
     #[available_gas(10000000000)]
     fn add_voting_strategies() {
         let (config, space) = setup_update_settings();
-        let mut input = UpdateSettingsCalldataImpl::default();
+        let mut input: UpdateSettingsCalldata = Default::default();
 
         let vs1 = StrategyImpl::from_address(contract_address_const::<'votingStrategy1'>());
         let vs2 = StrategyImpl::from_address(contract_address_const::<'votingStrategy2'>());
@@ -289,7 +289,7 @@ mod tests {
     #[should_panic(expected: ('len mismatch', 'ENTRYPOINT_FAILED'))]
     fn add_voting_strategies_mismatch() {
         let (config, space) = setup_update_settings();
-        let mut input = UpdateSettingsCalldataImpl::default();
+        let mut input: UpdateSettingsCalldata = Default::default();
 
         let vs1 = StrategyImpl::from_address(contract_address_const::<'votingStrategy1'>());
         let vs2 = StrategyImpl::from_address(contract_address_const::<'votingStrategy2'>());
@@ -310,7 +310,7 @@ mod tests {
     #[available_gas(10000000000)]
     fn remove_voting_strategies() {
         let (config, space) = setup_update_settings();
-        let mut input = UpdateSettingsCalldataImpl::default();
+        let mut input: UpdateSettingsCalldata = Default::default();
 
         // First, add a new voting strategy
         let vs1 = StrategyImpl::from_address(contract_address_const::<'votingStrategy1'>());
@@ -325,7 +325,7 @@ mod tests {
         utils::drop_event(space.contract_address);
 
         // Now, remove the first voting strategy
-        let mut input = UpdateSettingsCalldataImpl::default();
+        let mut input: UpdateSettingsCalldata = Default::default();
         let mut arr = array![0];
         input.voting_strategies_to_remove = arr;
 
@@ -343,7 +343,7 @@ mod tests {
     #[should_panic(expected: ('No active voting strategy left', 'ENTRYPOINT_FAILED'))]
     fn remove_all_voting_strategies() {
         let (config, space) = setup_update_settings();
-        let mut input = UpdateSettingsCalldataImpl::default();
+        let mut input: UpdateSettingsCalldata = Default::default();
 
         // Remove the first voting strategy
         let mut arr = array![0];

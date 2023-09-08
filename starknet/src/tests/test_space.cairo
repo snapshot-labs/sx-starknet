@@ -25,7 +25,7 @@ mod tests {
     use sx::tests::setup::setup::setup::{setup, deploy};
     use sx::types::{
         UserAddress, Strategy, IndexedStrategy, Choice, FinalizationStatus, Proposal,
-        UpdateSettingsCalldataImpl
+        UpdateSettingsCalldata
     };
     use sx::tests::utils::strategy_trait::{StrategyImpl, StrategyDefault};
     use sx::utils::constants::{PROPOSE_SELECTOR, VOTE_SELECTOR, UPDATE_PROPOSAL_SELECTOR};
@@ -503,7 +503,7 @@ mod tests {
 
         testing::set_caller_address(config.owner);
         testing::set_contract_address(config.owner);
-        let mut input = UpdateSettingsCalldataImpl::default();
+        let mut input: UpdateSettingsCalldata = Default::default();
         input.proposal_validation_strategy = StrategyImpl::from_address(strategy_address);
 
         space.update_settings(input);

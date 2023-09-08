@@ -21,8 +21,8 @@ mod tests {
     };
     use sx::voting_strategies::erc20_votes::ERC20VotesVotingStrategy;
     use sx::types::{
-        Choice, Proposal, IndexedStrategy, Strategy, UpdateSettingsCalldata,
-        UpdateSettingsCalldataImpl, UserAddress, UserAddressTrait
+        Choice, Proposal, IndexedStrategy, Strategy, UpdateSettingsCalldata, UserAddress,
+        UserAddressTrait
     };
     use sx::tests::utils::strategy_trait::StrategyImpl;
     use sx::utils::constants::{PROPOSE_SELECTOR, VOTE_SELECTOR};
@@ -75,7 +75,7 @@ mod tests {
         let erc20_voting_strategy = strategy_from_contract(token_contract);
         let to_remove = array![0];
         let to_add = array![erc20_voting_strategy];
-        let mut settings = UpdateSettingsCalldataImpl::default();
+        let mut settings: UpdateSettingsCalldata = Default::default();
         settings.voting_strategies_to_add = to_add;
         settings.voting_strategies_metadata_uris_to_add = array![array![]];
         settings.voting_strategies_to_remove = to_remove;

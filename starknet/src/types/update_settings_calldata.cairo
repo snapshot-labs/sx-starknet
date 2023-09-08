@@ -20,11 +20,6 @@ struct UpdateSettingsCalldata {
     voting_strategies_to_remove: Array<u8>,
 }
 
-// TODO: use `Default` trait
-trait UpdateSettingsCalldataTrait {
-    fn default() -> UpdateSettingsCalldata;
-}
-
 // Theoretically could derive a value with a proc_macro,
 // since NO_UPDATE values are simply the first x bytes of a hash.
 trait NoUpdateTrait<T> {
@@ -107,7 +102,7 @@ impl NoUpdateArray<T> of NoUpdateTrait<Array<T>> {
     }
 }
 
-impl UpdateSettingsCalldataImpl of UpdateSettingsCalldataTrait {
+impl UpdateSettingsCalldataDefault of Default<UpdateSettingsCalldata> {
     /// Generates an `UpdateSettingsCalldata` struct with all values set to `NO_UPDATE`.
     fn default() -> UpdateSettingsCalldata {
         UpdateSettingsCalldata {
