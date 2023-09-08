@@ -1,8 +1,11 @@
 use sx::utils::math;
 
+/// A strategy identified by a unique index. 
 #[derive(Option, Clone, Drop, Serde)]
 struct IndexedStrategy {
+    /// The index of the strategy.
     index: u8,
+    /// The corresponding parameters to use.
     params: Array<felt252>,
 }
 

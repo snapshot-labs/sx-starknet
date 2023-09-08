@@ -2,6 +2,7 @@ use starknet::{ContractAddress, SyscallResult};
 
 #[starknet::interface]
 trait IVanillaAuthenticator<TContractState> {
+    /// Forwards the call to the target contract, no questions asked.
     fn authenticate(
         ref self: TContractState, target: ContractAddress, selector: felt252, data: Array<felt252>
     );

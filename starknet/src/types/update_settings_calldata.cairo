@@ -1,6 +1,9 @@
 use starknet::{ContractAddress, contract_address_const};
 use sx::types::Strategy;
 
+/// A struct representing the calldata of the update_settings function.
+/// This allows smooth UX as updating multiple values can be done in a single call.
+/// If a value is not to be updated, it should be set to the corresponding NO_UPDATE value (see `NoUpdateTrait`).
 #[derive(Clone, Drop, Serde)]
 struct UpdateSettingsCalldata {
     min_voting_duration: u32,
@@ -17,6 +20,7 @@ struct UpdateSettingsCalldata {
     voting_strategies_to_remove: Array<u8>,
 }
 
+// TODO: use `Default` trait
 trait UpdateSettingsCalldataTrait {
     fn default() -> UpdateSettingsCalldata;
 }
@@ -92,6 +96,7 @@ impl NoUpdateString of NoUpdateTrait<Array<felt252>> {
     }
 }
 
+/// Strings should use `NoUpdateString` (since String currently is not an official type).
 impl NoUpdateArray<T> of NoUpdateTrait<Array<T>> {
     fn no_update() -> Array<T> {
         array![]
@@ -103,6 +108,7 @@ impl NoUpdateArray<T> of NoUpdateTrait<Array<T>> {
 }
 
 impl UpdateSettingsCalldataImpl of UpdateSettingsCalldataTrait {
+    /// Generates an `UpdateSettingsCalldata` struct with all values set to `NO_UPDATE`.
     fn default() -> UpdateSettingsCalldata {
         UpdateSettingsCalldata {
             min_voting_duration: NoUpdateU32::no_update(),

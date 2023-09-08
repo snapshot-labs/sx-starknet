@@ -1,8 +1,21 @@
 use starknet::ContractAddress;
 use sx::types::{Strategy, IndexedStrategy, Choice};
 
+/// See https://community.starknet.io/t/snip-off-chain-signatures-a-la-eip712/98029
 #[starknet::interface]
 trait IStarkSigAuthenticator<TContractState> {
+    /// Authenticates a propose transaction using the starknet EIP712-equivalent signature scheme.
+    /// 
+    /// # Arguments
+    ///
+    /// * `signature` - The signature of message digest.
+    /// * `target` - The address of the space contract.
+    /// * `author` - The starkent address of the author of the proposal.
+    /// * `metadata_uri` - The URI of the proposal metadata.
+    /// * `execution_strategy` - The execution strategy of the proposal.
+    /// * `user_proposal_validation_params` - The user proposal validation params of the proposal.
+    /// * `salt` - The salt, used for replay protection.
+    /// * `account_type` - The account type of the author ('snake' or 'camel').
     fn authenticate_propose(
         ref self: TContractState,
         signature: Array<felt252>,
@@ -14,6 +27,22 @@ trait IStarkSigAuthenticator<TContractState> {
         salt: felt252,
         account_type: felt252
     );
+
+
+    /// Authenticates a vote transaction using the starknet EIP712-equivalent signature scheme.
+    /// Salt is not needed because double voting is prevented by the space itself.
+    ///
+    /// # Arguments
+    ///
+    /// * `signature` - The signature of message digest.
+    /// * `target` - The address of the space contract.
+    /// * `voter` - The starkent address of the voter.
+    /// * `proposal_id` - The id of the proposal.
+    /// * `choice` - The choice of the voter.
+    /// * `user_voting_strategies` - The user voting strategies of the voter.
+    /// * `metadata_uri` - The URI of the proposal metadata.
+    /// * `account_type` - The account type of the voter ('snake' or 'camel').
+    ///
     fn authenticate_vote(
         ref self: TContractState,
         signature: Array<felt252>,
@@ -25,6 +54,19 @@ trait IStarkSigAuthenticator<TContractState> {
         metadata_uri: Array<felt252>,
         account_type: felt252
     );
+
+    /// Authenticates an update proposal transaction using the starknet EIP712-equivalent signature scheme.
+    ///
+    /// # Arguments
+    ///
+    /// * `signature` - The signature of message digest.
+    /// * `target` - The address of the space contract.
+    /// * `author` - The starkent address of the author of the proposal.
+    /// * `proposal_id` - The id of the proposal.
+    /// * `execution_strategy` - The execution strategy of the proposal.
+    /// * `metadata_uri` - The URI of the proposal metadata.
+    /// * `salt` - The salt, used for replay protection.
+    /// * `account_type` - The account type of the author ('snake' or 'camel').
     fn authenticate_update_proposal(
         ref self: TContractState,
         signature: Array<felt252>,

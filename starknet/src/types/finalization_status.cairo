@@ -1,8 +1,13 @@
+/// Finalization status of a proposal.
 #[derive(Drop, Default, Serde, PartialEq, Copy, starknet::Store)]
 enum FinalizationStatus {
+    /// The proposal is pending finalization. Could be because the
+    /// vote is still ongoing, or simply because the no one has called `execute` yet.
     #[default]
     Pending: (),
+    /// The proposal has been executed using the `execute()` function.
     Executed: (),
+    /// The proposal has been cancelled using the `cancel()` function.
     Cancelled: (),
 }
 

@@ -22,6 +22,14 @@ mod SimpleQuorumExecutionStrategy {
     }
 
     #[internal]
+    /// Returns the status of a proposal.
+    /// To be accepted, a proposal must be supported by a majority of votes, have reached the quorum,
+    /// and have the current timetsamp must be greater or equal to `max_end_timestamp`.
+    /// If the proposal is has a majority of votes and have reached the quorum,
+    /// then it can be early accepted (it will return `VotingPeriodAccepted`) provided the current timestamp is
+    /// between `min_end_timestamp` and `max_end_timestamp`.
+    /// Spaces that don't want to deal with early accepting proposals should set `min_voting_duration` and `max_voting_duration`
+    /// to the same value.
     fn get_proposal_status(
         self: @ContractState,
         proposal: @Proposal,

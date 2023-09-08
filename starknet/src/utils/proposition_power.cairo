@@ -6,6 +6,8 @@ use sx::{
 };
 use starknet::{ContractAddress, info};
 
+// Proposal validation strategy specific version of `get_cumulative_power` function from the space contract.
+// The difference is that this function takes a span  of `allowed_strategies` instead of an uint256.
 fn _get_cumulative_power(
     voter: UserAddress,
     timestamp: u32,
@@ -41,6 +43,7 @@ fn _get_cumulative_power(
     }
 }
 
+/// See `ProposingPowerProposalValidationStrategy` for more information.
 fn _validate(
     author: UserAddress,
     mut params: Span<felt252>, // [proposal_threshold: u256, allowed_strategies: Array<Strategy>]

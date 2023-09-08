@@ -12,11 +12,25 @@ mod ERC20VotesVotingStrategy {
 
     #[external(v0)]
     impl ERC20VotesVotingStrategy of IVotingStrategy<ContractState> {
+        /// Returns the total amount of delegated votes of `voter` at the given `timestamp`.
+        /// A user must self-delegate if he wishes to have voting power.
+        /// This is *not* the user's token balance, but the users's delegated voting power!
+        ///
+        /// # Arguments
+        ///
+        /// * `timestamp` - The timestamp at which to calculate the voting power.
+        /// * `voter` - The address of the voter. Expected to be a starknet address.
+        /// * `params` - Expected to hold the address of the ERC20 contract.
+        /// * `_user_params` - Unused.
+        ///
+        /// # Returns
+        ///
+        /// * `u256` - The voting power of the voter at the given timestamp.
         fn get_voting_power(
             self: @ContractState,
             timestamp: u32,
             voter: UserAddress,
-            mut params: Span<felt252>,
+            mut params: Span<felt252>, // [contract_address: address]
             user_params: Span<felt252>,
         ) -> u256 {
             // Cast voter address to a Starknet address
