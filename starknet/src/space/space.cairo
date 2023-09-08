@@ -431,7 +431,6 @@ mod Space {
                 );
         }
 
-        // TODO: missing `nonReentrant` modifier
         fn execute(ref self: ContractState, proposal_id: u256, execution_payload: Array<felt252>) {
             let mut proposal = self._proposals.read(proposal_id);
             assert_proposal_exists(@proposal);
