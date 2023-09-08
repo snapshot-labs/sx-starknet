@@ -4,7 +4,6 @@ use sx::types::{Proposal, FinalizationStatus, ProposalStatus};
 /// Returns the status of a proposal, according to a 'Simple Majority' rule.
 /// 'Simple Majority' is defined like so: a proposal is accepted if there are more `votes_for` than `votes_against`.
 /// So, a proposal will return Accepted if `max_end_timestamp` has been reached, and `votes_for > votes_agasint`.
-/// A proposal will return `VotingPeriodAccepted` if `min_end_timestamp` has been reached and `votes_for > votes_against`.
 fn get_proposal_status(
     proposal: @Proposal, votes_for: u256, votes_against: u256, votes_abstain: u256,
 ) -> ProposalStatus {
@@ -17,14 +16,8 @@ fn get_proposal_status(
         ProposalStatus::Executed(())
     } else if timestamp < *proposal.start_timestamp {
         ProposalStatus::VotingDelay(())
-    } else if timestamp < *proposal.min_end_timestamp {
-        ProposalStatus::VotingPeriod(())
     } else if timestamp < *proposal.max_end_timestamp {
-        if accepted {
-            ProposalStatus::VotingPeriodAccepted(())
-        } else {
-            ProposalStatus::VotingPeriod(())
-        }
+        ProposalStatus::VotingPeriod(())
     } else if accepted {
         ProposalStatus::Accepted(())
     } else {
@@ -78,6 +71,7 @@ mod tests {
     fn voting_period() {
         let mut proposal = ProposalDefault::default();
         proposal.min_end_timestamp = 42424242;
+        proposal.max_end_timestamp = proposal.min_end_timestamp + 1;
         let votes_for = 0;
         let votes_against = 0;
         let votes_abstain = 0;
@@ -87,50 +81,14 @@ mod tests {
 
     #[test]
     #[available_gas(10000000)]
-    fn shortcut_accepted() {
+    fn early_end_does_not_work() {
         let mut proposal = ProposalDefault::default();
         proposal.max_end_timestamp = 10;
         let votes_for = 1;
         let votes_against = 0;
         let votes_abstain = 0;
         let result = get_proposal_status(@proposal, votes_for, votes_against, votes_abstain);
-        assert(result == ProposalStatus::VotingPeriodAccepted(()), 'failed shortcut_accepted');
-    }
-
-    #[test]
-    #[available_gas(10000000)]
-    fn shortcut_only_abstains() {
-        let mut proposal = ProposalDefault::default();
-        proposal.max_end_timestamp = 10;
-        let votes_for = 0;
-        let votes_against = 0;
-        let votes_abstain = 1;
-        let result = get_proposal_status(@proposal, votes_for, votes_against, votes_abstain);
-        assert(result == ProposalStatus::VotingPeriod(()), 'failed shortcut_only_abstains');
-    }
-
-    #[test]
-    #[available_gas(10000000)]
-    fn shortcut_only_againsts() {
-        let mut proposal = ProposalDefault::default();
-        proposal.max_end_timestamp = 10;
-        let votes_for = 0;
-        let votes_against = 1;
-        let votes_abstain = 0;
-        let result = get_proposal_status(@proposal, votes_for, votes_against, votes_abstain);
-        assert(result == ProposalStatus::VotingPeriod(()), 'failed shortcut_only_againsts');
-    }
-
-    #[test]
-    #[available_gas(10000000)]
-    fn shortcut_balanced() {
-        let mut proposal = ProposalDefault::default();
-        proposal.max_end_timestamp = 10;
-        let votes_for = 1;
-        let votes_against = 1;
-        let votes_abstain = 0;
-        let result = get_proposal_status(@proposal, votes_for, votes_against, votes_abstain);
-        assert(result == ProposalStatus::VotingPeriod(()), 'failed shortcut_balanced');
+        assert(result == ProposalStatus::VotingPeriod(()), 'failed shortcut_accepted');
     }
 
     #[test]
