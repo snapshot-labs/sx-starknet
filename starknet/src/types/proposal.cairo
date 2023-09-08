@@ -16,7 +16,10 @@ const TWO_POWER_32: u128 = 0x100000000;
 const TWO_POWER_64: u128 = 0x10000000000000000;
 const TWO_POWER_96: u128 = 0x1000000000000000000000000;
 
-/// Definition of a proposal.
+/// Data stored when a proposal is created.
+/// The proposal state at any time consists of this struct along with the corresponding for,
+/// against, and abstain vote counts. The proposal status is a function of the proposal state as
+/// defined in the execution strategy for the proposal.
 #[derive(Clone, Drop, Serde, PartialEq)]
 struct Proposal {
     /// The timestamp at which the voting period starts.
