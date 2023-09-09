@@ -3,7 +3,7 @@
 kill -9 $(lsof -t -i:5050)
 yarn chain:l2 &
 sleep 10 &&
-yarn hardhat test starknet/test/stark-sig-auth.test.ts
+yarn hardhat test tests/stark-sig-auth.test.ts
 if [ $? -eq 0 ]
 then
   kill -9 $(lsof -t -i:5050)
