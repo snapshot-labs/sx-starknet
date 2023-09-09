@@ -1,1 +1,1 @@
-mod proposing_power;
+mod proposition_power;

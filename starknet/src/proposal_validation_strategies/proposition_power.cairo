@@ -1,17 +1,17 @@
 #[starknet::contract]
-mod ProposingPowerProposalValidationStrategy {
+mod PropositionPowerProposalValidationStrategy {
     use starknet::{ContractAddress, info};
     use sx::interfaces::{
         IProposalValidationStrategy, IVotingStrategyDispatcher, IVotingStrategyDispatcherTrait
     };
     use sx::types::{UserAddress, IndexedStrategy, IndexedStrategyTrait, Strategy};
-    use sx::utils::{bits::BitSetter, proposition_power::_validate};
+    use sx::utils::{bits::BitSetter, proposition_power};
 
     #[storage]
     struct Storage {}
 
     #[external(v0)]
-    impl ProposingPowerProposalValidationStrategy of IProposalValidationStrategy<ContractState> {
+    impl PropositionPowerProposalValidationStrategy of IProposalValidationStrategy<ContractState> {
         /// Designed to be used by spaces that which to use voting strategies to define who can create proposals.
         /// The allowed strategies simply need to be supplied in the `params` field.
         ///
@@ -32,7 +32,7 @@ mod ProposingPowerProposalValidationStrategy {
             params: Span<felt252>, // [proposal_threshold: u256, allowed_strategies: Array<Strategy>]
             user_params: Span<felt252> // [user_strategies: Array<IndexedStrategy>]
         ) -> bool {
-            _validate(author, params, user_params)
+            proposition_power::validate(author, params, user_params)
         }
     }
 }

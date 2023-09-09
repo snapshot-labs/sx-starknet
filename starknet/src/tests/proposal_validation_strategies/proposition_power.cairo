@@ -10,7 +10,7 @@ mod tests {
             erc20_votes::ERC20VotesVotingStrategy
         },
         utils::{merkle::Leaf},
-        proposal_validation_strategies::proposing_power::{ProposingPowerProposalValidationStrategy},
+        proposal_validation_strategies::{PropositionPowerProposalValidationStrategy},
         interfaces::{
             IProposalValidationStrategy, IProposalValidationStrategyDispatcher,
             IProposalValidationStrategyDispatcherTrait
@@ -43,7 +43,7 @@ mod tests {
 
         // create a proposal validation strategy
         let (proposal_validation_contract, _) = deploy_syscall(
-            ProposingPowerProposalValidationStrategy::TEST_CLASS_HASH.try_into().unwrap(),
+            PropositionPowerProposalValidationStrategy::TEST_CLASS_HASH.try_into().unwrap(),
             0,
             array![].span(),
             false
@@ -117,7 +117,7 @@ mod tests {
 
         // create proposal validation strategy based on the deployed merkle whitelist contract
         let (proposal_validation_contract, _) = deploy_syscall(
-            ProposingPowerProposalValidationStrategy::TEST_CLASS_HASH.try_into().unwrap(),
+            PropositionPowerProposalValidationStrategy::TEST_CLASS_HASH.try_into().unwrap(),
             0,
             array![].span(),
             false
@@ -284,7 +284,7 @@ mod tests {
 
         // create a proposal validation strategy
         let (proposal_validation_contract, _) = deploy_syscall(
-            ProposingPowerProposalValidationStrategy::TEST_CLASS_HASH.try_into().unwrap(),
+            PropositionPowerProposalValidationStrategy::TEST_CLASS_HASH.try_into().unwrap(),
             0,
             array![].span(),
             false

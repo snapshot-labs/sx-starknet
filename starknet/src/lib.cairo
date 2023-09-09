@@ -32,7 +32,8 @@ mod voting_strategies {
 }
 
 mod proposal_validation_strategies {
-    mod proposing_power;
+    mod proposition_power;
+    use proposition_power::PropositionPowerProposalValidationStrategy;
 
     mod vanilla;
 }
