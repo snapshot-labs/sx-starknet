@@ -1,8 +1,17 @@
-use starknet::{ContractAddress};
+use starknet::ContractAddress;
 use sx::types::{Strategy, IndexedStrategy, Choice};
 
 #[starknet::interface]
 trait IStarkTxAuthenticator<TContractState> {
+    /// Authenticates a propose transaction by checking that the message sender is indeed `author`.
+    ///
+    /// # Arguments
+    ///
+    /// * `space` - The address of the space contract.
+    /// * `author` - The starknet address of the author.
+    /// * `metadata_uri` - The URI of the metadata.
+    /// * `execution_strategy` - The execution strategy of the proposal.
+    /// * `user_proposal_validation_params` - The user proposal validation params.
     fn authenticate_propose(
         ref self: TContractState,
         space: ContractAddress,
@@ -11,6 +20,17 @@ trait IStarkTxAuthenticator<TContractState> {
         execution_strategy: Strategy,
         user_proposal_validation_params: Array<felt252>,
     );
+
+    /// Authenticates a vote transaction by checking that the message sender is indeed `voter`.
+    ///
+    /// # Arguments
+    ///
+    /// * `space` - The address of the space contract.
+    /// * `voter` - The starknet address of the voter.
+    /// * `proposal_id` - The id of the proposal.
+    /// * `choice` - The choice of the voter.
+    /// * `user_voting_strategies` - The user voting strategies.
+    /// * `metadata_uri` - The URI of the metadata.
     fn authenticate_vote(
         ref self: TContractState,
         space: ContractAddress,
@@ -20,6 +40,16 @@ trait IStarkTxAuthenticator<TContractState> {
         user_voting_strategies: Array<IndexedStrategy>,
         metadata_uri: Array<felt252>
     );
+
+    /// Authenticates an update proposal transaction by checking that the message sender is indeed `author`.
+    ///
+    /// # Arguments
+    ///
+    /// * `space` - The address of the space contract.
+    /// * `author` - The starknet address of the author.
+    /// * `proposal_id` - The id of the proposal.
+    /// * `execution_strategy` - The execution strategy of the proposal.
+    /// * `metadata_uri` - The URI of the metadata.
     fn authenticate_update_proposal(
         ref self: TContractState,
         space: ContractAddress,
@@ -34,10 +64,8 @@ trait IStarkTxAuthenticator<TContractState> {
 mod StarkTxAuthenticator {
     use super::IStarkTxAuthenticator;
     use starknet::{ContractAddress, info};
-    use sx::{
-        space::space::{ISpaceDispatcher, ISpaceDispatcherTrait},
-        types::{UserAddress, Strategy, IndexedStrategy, Choice},
-    };
+    use sx::interfaces::{ISpaceDispatcher, ISpaceDispatcherTrait};
+    use sx::types::{UserAddress, Strategy, IndexedStrategy, Choice};
 
     #[storage]
     struct Storage {}

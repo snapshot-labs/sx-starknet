@@ -1,13 +1,14 @@
 #[starknet::contract]
 mod VanillaVotingStrategy {
-    use sx::{interfaces::IVotingStrategy, types::UserAddress};
     use starknet::ContractAddress;
+    use sx::{interfaces::IVotingStrategy, types::UserAddress};
 
     #[storage]
     struct Storage {}
 
     #[external(v0)]
     impl VanillaVotingStrategy of IVotingStrategy<ContractState> {
+        /// Vanilla voting strategy that returns 1 for all voters.
         fn get_voting_power(
             self: @ContractState,
             timestamp: u32,

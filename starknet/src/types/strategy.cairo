@@ -1,9 +1,12 @@
 use starknet::ContractAddress;
 use starknet::{StorageBaseAddress, Store, SyscallResult};
 
+/// A strategy identified by an address
 #[derive(Clone, Drop, Option, Serde, starknet::Store)]
 struct Strategy {
+    /// The strategy address.
     address: ContractAddress,
+    /// The strategy parameters.
     params: Array<felt252>,
 }
 
@@ -22,7 +25,6 @@ impl PartialEqStrategy of PartialEq<Strategy> {
 
 // TODO: Should eventually be able to derive the Store trait on the structs and enum 
 // cant atm as the derive only works for simple structs I think
-
 impl StoreFelt252Array of Store<Array<felt252>> {
     fn read(address_domain: u32, base: StorageBaseAddress) -> SyscallResult<Array<felt252>> {
         StoreFelt252Array::read_at_offset(address_domain, base, 0)

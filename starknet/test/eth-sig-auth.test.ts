@@ -258,6 +258,7 @@ describe('Ethereum Signature Authenticator', function () {
       await account.invoke(ethSigAuthenticator, 'authenticate_propose', invalidProposeCalldata, {
         rawInput: true,
       });
+      expect.fail('Should have failed');
     } catch (err: any) {
       expect(err.message).to.contain(shortString.encodeShortString('Invalid signature'));
     }
@@ -322,6 +323,7 @@ describe('Ethereum Signature Authenticator', function () {
           rawInput: true,
         },
       );
+      expect.fail('Should have failed');
     } catch (err: any) {
       expect(err.message).to.contain(shortString.encodeShortString('Invalid signature'));
     }
@@ -384,6 +386,7 @@ describe('Ethereum Signature Authenticator', function () {
       await account.invoke(ethSigAuthenticator, 'authenticate_vote', invalidVoteCalldata, {
         rawInput: true,
       });
+      expect.fail('Should have failed');
     } catch (err: any) {
       expect(err.message).to.contain(shortString.encodeShortString('Invalid signature'));
     }
@@ -440,6 +443,7 @@ describe('Ethereum Signature Authenticator', function () {
       await account.invoke(ethSigAuthenticator, 'authenticate_propose', proposeCalldata, {
         rawInput: true,
       });
+      expect.fail('Should have failed');
     } catch (err: any) {
       expect(err.message).to.contain(shortString.encodeShortString('Salt Already Used'));
     }
@@ -488,6 +492,7 @@ describe('Ethereum Signature Authenticator', function () {
         updateProposalCalldata,
         { rawInput: true },
       );
+      expect.fail('Should have failed');
     } catch (err: any) {
       // 'salt already used' error
       expect(err.message).to.contain(shortString.encodeShortString('Salt Already Used'));

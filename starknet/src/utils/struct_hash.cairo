@@ -1,15 +1,12 @@
 use hash::LegacyHash;
-use sx::{
-    types::{Strategy, IndexedStrategy},
-    utils::{
-        constants::{
-            STARKNET_MESSAGE, DOMAIN_TYPEHASH, STRATEGY_TYPEHASH, INDEXED_STRATEGY_TYPEHASH,
-            U256_TYPEHASH, PROPOSE_TYPEHASH, VOTE_TYPEHASH, UPDATE_PROPOSAL_TYPEHASH
-        },
-        legacy_hash::LegacyHashSpanFelt252,
-    }
+use sx::types::{Strategy, IndexedStrategy};
+use sx::utils::LegacyHashSpanFelt252;
+use sx::utils::constants::{
+    STARKNET_MESSAGE, DOMAIN_TYPEHASH, STRATEGY_TYPEHASH, INDEXED_STRATEGY_TYPEHASH, U256_TYPEHASH,
+    PROPOSE_TYPEHASH, VOTE_TYPEHASH, UPDATE_PROPOSAL_TYPEHASH
 };
 
+/// Struct hash trait helper.
 trait StructHash<T> {
     fn struct_hash(self: @T) -> felt252;
 }

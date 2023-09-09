@@ -1,29 +1,15 @@
-use sx::interfaces::i_proposal_validation_strategy::IProposalValidationStrategyDispatcherTrait;
 #[cfg(test)]
 mod tests {
-    use array::ArrayTrait;
-    use starknet::{
-        class_hash::Felt252TryIntoClassHash, ContractAddress, syscalls::deploy_syscall, testing,
-        contract_address_const, info
-    };
-    use traits::{Into, TryInto};
-    use result::ResultTrait;
-    use option::OptionTrait;
-    use integer::u256_from_felt252;
-    use clone::Clone;
-    use serde::{Serde};
-
-    use sx::space::space::{Space, ISpaceDispatcher, ISpaceDispatcherTrait};
-    use sx::authenticators::vanilla::{
+    use starknet::{class_hash::Felt252TryIntoClassHash, ContractAddress, syscalls, testing, info};
+    use sx::interfaces::{ISpaceDispatcher, ISpaceDispatcherTrait};
+    use sx::space::space::Space;
+    use sx::tests::mocks::vanilla_authenticator::{
         VanillaAuthenticator, IVanillaAuthenticatorDispatcher, IVanillaAuthenticatorDispatcherTrait
     };
-    use sx::execution_strategies::vanilla::VanillaExecutionStrategy;
-    use sx::voting_strategies::vanilla::VanillaVotingStrategy;
-    use sx::proposal_validation_strategies::vanilla::VanillaProposalValidationStrategy;
-    use sx::types::{
-        UserAddress, Strategy, IndexedStrategy, Choice, FinalizationStatus, Proposal,
-        UpdateSettingsCalldataImpl
-    };
+    use sx::tests::mocks::vanilla_execution_strategy::VanillaExecutionStrategy;
+    use sx::tests::mocks::vanilla_voting_strategy::VanillaVotingStrategy;
+    use sx::tests::mocks::vanilla_proposal_validation::VanillaProposalValidationStrategy;
+    use sx::types::{UserAddress, Strategy, IndexedStrategy, Choice, FinalizationStatus, Proposal,};
     use sx::utils::constants::{PROPOSE_SELECTOR};
     use sx::tests::setup::setup::setup::{setup, deploy};
     use sx::interfaces::{
@@ -34,8 +20,6 @@ mod tests {
     };
     use sx::tests::mocks::space_v2::{SpaceV2, ISpaceV2Dispatcher, ISpaceV2DispatcherTrait};
     use starknet::ClassHash;
-
-    use Space::Space as SpaceImpl;
 
     #[test]
     #[available_gas(10000000000)]
@@ -66,7 +50,7 @@ mod tests {
         // New implementation is not a proposer space but a random contract (here, a proposal validation strategy).
         let new_implem: ClassHash = SpaceV2::TEST_CLASS_HASH.try_into().unwrap();
 
-        let (execution_contract_address, _) = deploy_syscall(
+        let (execution_contract_address, _) = syscalls::deploy_syscall(
             ExecutorExecutionStrategy::TEST_CLASS_HASH.try_into().unwrap(),
             0,
             array![].span(),
@@ -93,7 +77,8 @@ mod tests {
         };
 
         let mut propose_calldata = array![];
-        UserAddress::Starknet(contract_address_const::<0x7676>()).serialize(ref propose_calldata);
+        UserAddress::Starknet(starknet::contract_address_const::<0x7676>())
+            .serialize(ref propose_calldata);
         ArrayTrait::<felt252>::new().serialize(ref propose_calldata);
         execution_strategy.serialize(ref propose_calldata);
         ArrayTrait::<felt252>::new().serialize(ref propose_calldata);
@@ -122,7 +107,7 @@ mod tests {
 
         let new_implem = SpaceV2::TEST_CLASS_HASH.try_into().unwrap();
 
-        testing::set_contract_address(contract_address_const::<0xdead>());
+        testing::set_contract_address(starknet::contract_address_const::<0xdead>());
 
         // Upgrade should fail as caller is not owner
         space.upgrade(new_implem, array![7]);

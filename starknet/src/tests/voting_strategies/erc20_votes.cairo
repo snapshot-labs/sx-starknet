@@ -1,39 +1,36 @@
 #[cfg(test)]
 mod tests {
     use sx::tests::mocks::erc20_votes_preset::ERC20VotesPreset; // temporary while we wait for scarb to fix their dependencies
-    use sx::space::space::{ISpace, ISpaceDispatcher, ISpaceDispatcherTrait};
+    use sx::interfaces::{ISpaceDispatcher, ISpaceDispatcherTrait};
     use openzeppelin::token::erc20::presets::ERC20VotesPreset::ERC20Impl;
     use openzeppelin::token::erc20::presets::ERC20VotesPreset::VotesImpl;
     use openzeppelin::token::erc20::interface::{IERC20Dispatcher, IERC20DispatcherTrait};
     use openzeppelin::governance::utils::interfaces::votes::{
         IVotes, IVotesDispatcher, IVotesDispatcherTrait
     };
-    use starknet::{ContractAddress, contract_address_const};
-    use starknet::{info, testing};
+    use starknet::{ContractAddress, info, testing, syscalls, SyscallResult};
     use sx::tests::setup::setup::setup::{setup as _setup, deploy, Config};
-    use starknet::syscalls::deploy_syscall;
-    use starknet::SyscallResult;
     use sx::interfaces::{
         IVotingStrategy, IVotingStrategyDispatcher, IVotingStrategyDispatcherTrait
     };
-    use sx::authenticators::vanilla::{
+    use sx::tests::mocks::vanilla_authenticator::{
         VanillaAuthenticator, IVanillaAuthenticatorDispatcher, IVanillaAuthenticatorDispatcherTrait
     };
     use sx::voting_strategies::erc20_votes::ERC20VotesVotingStrategy;
     use sx::types::{
-        Choice, Proposal, IndexedStrategy, Strategy, UpdateSettingsCalldata,
-        UpdateSettingsCalldataImpl, UserAddress, UserAddressTrait
+        Choice, Proposal, IndexedStrategy, Strategy, UpdateSettingsCalldata, UserAddress,
+        UserAddressTrait
     };
     use sx::tests::utils::strategy_trait::StrategyImpl;
     use sx::utils::constants::{PROPOSE_SELECTOR, VOTE_SELECTOR};
-    use sx::execution_strategies::vanilla::VanillaExecutionStrategy;
+    use sx::tests::mocks::vanilla_execution_strategy::VanillaExecutionStrategy;
 
     const NAME: felt252 = 'TEST';
     const SYMBOL: felt252 = 'TST';
     const INITIAL_SUPPLY: u256 = 1_000;
 
     fn OWNER() -> ContractAddress {
-        contract_address_const::<0x111111>()
+        starknet::contract_address_const::<0x111111>()
     }
 
     fn deploy_token_contract() -> ContractAddress {
@@ -42,7 +39,7 @@ mod tests {
             NAME, SYMBOL, INITIAL_SUPPLY.low.into(), INITIAL_SUPPLY.high.into(), OWNER().into()
         ];
 
-        let (token_contract, _) = deploy_syscall(
+        let (token_contract, _) = syscalls::deploy_syscall(
             ERC20VotesPreset::TEST_CLASS_HASH.try_into().unwrap(),
             0,
             constructor_data.span(),
@@ -54,7 +51,7 @@ mod tests {
     }
 
     fn strategy_from_contract(token_contract: ContractAddress) -> Strategy {
-        let (contract, _) = deploy_syscall(
+        let (contract, _) = syscalls::deploy_syscall(
             ERC20VotesVotingStrategy::TEST_CLASS_HASH.try_into().unwrap(),
             0,
             array![].span(),
@@ -75,7 +72,7 @@ mod tests {
         let erc20_voting_strategy = strategy_from_contract(token_contract);
         let to_remove = array![0];
         let to_add = array![erc20_voting_strategy];
-        let mut settings = UpdateSettingsCalldataImpl::default();
+        let mut settings: UpdateSettingsCalldata = Default::default();
         settings.voting_strategies_to_add = to_add;
         settings.voting_strategies_metadata_uris_to_add = array![array![]];
         settings.voting_strategies_to_remove = to_remove;
@@ -90,7 +87,7 @@ mod tests {
         let mut constructor_calldata = array![];
         quorum.serialize(ref constructor_calldata);
 
-        let (vanilla_execution_strategy_address, _) = deploy_syscall(
+        let (vanilla_execution_strategy_address, _) = syscalls::deploy_syscall(
             VanillaExecutionStrategy::TEST_CLASS_HASH.try_into().unwrap(),
             0,
             constructor_calldata.span(),
@@ -111,11 +108,11 @@ mod tests {
 
         let token_contract = IERC20Dispatcher { contract_address: contract, };
         // Create accounts
-        let account0 = contract_address_const::<0x1234>();
-        let account1 = contract_address_const::<0x2345>();
-        let account2 = contract_address_const::<0x3456>();
-        let account3 = contract_address_const::<0x4567>();
-        let account4 = contract_address_const::<0x5678>();
+        let account0 = starknet::contract_address_const::<0x1234>();
+        let account1 = starknet::contract_address_const::<0x2345>();
+        let account2 = starknet::contract_address_const::<0x3456>();
+        let account3 = starknet::contract_address_const::<0x4567>();
+        let account4 = starknet::contract_address_const::<0x5678>();
 
         // Calling from ownwer account
         testing::set_contract_address(OWNER());
@@ -163,7 +160,7 @@ mod tests {
             contract_address: *config.authenticators.at(0),
         };
 
-        let author = UserAddress::Starknet(contract_address_const::<0x5678>());
+        let author = UserAddress::Starknet(starknet::contract_address_const::<0x5678>());
         let mut propose_calldata = array::ArrayTrait::<felt252>::new();
         author.serialize(ref propose_calldata);
         ArrayTrait::<felt252>::new().serialize(ref propose_calldata);
@@ -210,7 +207,7 @@ mod tests {
             contract_address: *config.authenticators.at(0),
         };
 
-        let author = UserAddress::Starknet(contract_address_const::<0x5678>());
+        let author = UserAddress::Starknet(starknet::contract_address_const::<0x5678>());
         let mut propose_calldata = array::ArrayTrait::<felt252>::new();
         author.serialize(ref propose_calldata);
         ArrayTrait::<felt252>::new().serialize(ref propose_calldata);
@@ -258,9 +255,9 @@ mod tests {
             .unwrap();
         let token_contract = IVotesDispatcher { contract_address: token_contract, };
         testing::set_contract_address((*accounts.at(0)).to_starknet_address());
-        token_contract.delegate((contract_address_const::<0xdeadbeef>()));
+        token_contract.delegate((starknet::contract_address_const::<0xdeadbeef>()));
 
-        let author = UserAddress::Starknet(contract_address_const::<0x5678>());
+        let author = UserAddress::Starknet(starknet::contract_address_const::<0x5678>());
         let mut propose_calldata = array::ArrayTrait::<felt252>::new();
         author.serialize(ref propose_calldata);
         ArrayTrait::<felt252>::new().serialize(ref propose_calldata);

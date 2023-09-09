@@ -16,33 +16,41 @@ const TWO_POWER_32: u128 = 0x100000000;
 const TWO_POWER_64: u128 = 0x10000000000000000;
 const TWO_POWER_96: u128 = 0x1000000000000000000000000;
 
-#[derive(Clone, Drop, Serde, PartialEq)]
+/// Data stored when a proposal is created.
+/// The proposal state at any time consists of this struct along with the corresponding for,
+/// against, and abstain vote counts. The proposal status is a function of the proposal state as
+/// defined in the execution strategy for the proposal.
+#[derive(Clone, Default, Drop, Serde, PartialEq)]
 struct Proposal {
+    /// The timestamp at which the voting period starts.
     start_timestamp: u32,
+    /// The timestamp at which a proposal can be early finalized.
+    /// Spaces that do not want this feature should ensure `min_voting_duration`
+    /// and `max_voting_duration` are set at the same value.
     min_end_timestamp: u32,
+    /// The timestamp at which the voting period ends.
     max_end_timestamp: u32,
+    /// The finalization status of the proposal.
     finalization_status: FinalizationStatus,
+    /// The hash of the execution payload.
     execution_payload_hash: felt252,
+    /// The address of the execution strategy.
     execution_strategy: ContractAddress,
+    /// The address of the proposal author.
     author: UserAddress,
+    /// Bit array where the index of each each bit corresponds to whether the voting strategy at
+    /// that index is active at the time of proposal creation.
     active_voting_strategies: u256
 }
 
-impl ProposalDefault of Default<Proposal> {
-    fn default() -> Proposal {
-        Proposal {
-            start_timestamp: 0,
-            min_end_timestamp: 0,
-            max_end_timestamp: 0,
-            finalization_status: FinalizationStatus::Pending(()),
-            execution_payload_hash: 0,
-            execution_strategy: contract_address_const::<0>(),
-            author: UserAddress::Starknet(contract_address_const::<0>()),
-            active_voting_strategies: 0,
-        }
+// Required for the proposal derivation. Ideally, ContractAddress would impl Default in the corelib.
+impl ContractAddressDefault of Default<ContractAddress> {
+    fn default() -> ContractAddress {
+        contract_address_const::<0>()
     }
 }
 
+/// A packed version of the `Proposal` struct. Used to minimize storage costs.
 #[derive(Drop, starknet::Store)]
 struct PackedProposal {
     timestamps_and_finalization_status: u128, // In order: start, min, max, finalization_status

@@ -1,13 +1,22 @@
 use starknet::{ContractAddress, EthAddress, contract_address_const};
 
-#[derive(Copy, Drop, Serde, PartialEq, starknet::Store)]
+/// Enum to represent a user address.
+#[derive(Copy, Default, Drop, Serde, PartialEq, starknet::Store)]
 enum UserAddress {
-    // Starknet address type
+    /// Starknet address type
+    #[default]
     Starknet: ContractAddress,
-    // Ethereum address type
+    /// Ethereum address type
     Ethereum: EthAddress,
-    // Custom address type to provide compatibility with any address that can be represented as a u256.
+    /// Custom address type to provide compatibility with any address that can be represented as a u256.
     Custom: u256
+}
+
+// Required for the proposal derivation. Ideally, ContractAddress would impl Default in the corelib.
+impl ContractAddressDefault of Default<ContractAddress> {
+    fn default() -> ContractAddress {
+        contract_address_const::<0>()
+    }
 }
 
 trait UserAddressTrait {
@@ -17,6 +26,7 @@ trait UserAddressTrait {
 }
 
 impl UserAddressImpl of UserAddressTrait {
+    /// Returns the starknet address. Panics if the address is not a starknet address.
     fn to_starknet_address(self: UserAddress) -> ContractAddress {
         match self {
             UserAddress::Starknet(address) => address,
@@ -29,6 +39,7 @@ impl UserAddressImpl of UserAddressTrait {
         }
     }
 
+    /// Returns the ethereum address. Panics if the address is not an ethereum address.
     fn to_ethereum_address(self: UserAddress) -> EthAddress {
         match self {
             UserAddress::Starknet(_) => {
@@ -41,6 +52,7 @@ impl UserAddressImpl of UserAddressTrait {
         }
     }
 
+    /// Returns the custom address. Panics if the address is not a custom address.
     fn to_custom_address(self: UserAddress) -> u256 {
         match self {
             UserAddress::Starknet(_) => {

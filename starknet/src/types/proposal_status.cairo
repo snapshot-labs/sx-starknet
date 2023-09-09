@@ -1,12 +1,21 @@
+/// Enum to represent the different statuses of a proposal.
 #[derive(Copy, Drop, Default, Serde, PartialEq)]
 enum ProposalStatus {
     #[default]
+    /// The voting period has not started yet.
     VotingDelay: (),
+    /// The vote is ongoing.
     VotingPeriod: (),
+    /// The voting period is not completely over but the proposal can already
+    /// be accepted (see the `min_voting_duration` field in [`Proposal`]).
     VotingPeriodAccepted: (),
+    /// The proposal has been accepted.
     Accepted: (),
+    /// The proposal has been executed.
     Executed: (),
+    /// The proposal has been rejected.
     Rejected: (),
+    /// The proposal has been cancelled.
     Cancelled: ()
 }
 

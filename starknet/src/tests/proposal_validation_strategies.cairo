@@ -1,1 +1,0 @@
-mod proposing_power;

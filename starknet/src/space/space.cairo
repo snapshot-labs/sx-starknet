@@ -1,101 +1,23 @@
-use starknet::{ClassHash, ContractAddress, SyscallResult};
-use sx::types::{
-    UserAddress, Strategy, Proposal, IndexedStrategy, Choice, UpdateSettingsCalldata, ProposalStatus
-};
-
-#[starknet::interface]
-trait ISpace<TContractState> {
-    // State 
-    fn owner(self: @TContractState) -> ContractAddress;
-    fn max_voting_duration(self: @TContractState) -> u32;
-    fn min_voting_duration(self: @TContractState) -> u32;
-    fn dao_uri(self: @TContractState) -> Array<felt252>;
-    fn next_proposal_id(self: @TContractState) -> u256;
-    fn voting_delay(self: @TContractState) -> u32;
-    fn authenticators(self: @TContractState, account: ContractAddress) -> bool;
-    fn voting_strategies(self: @TContractState, index: u8) -> Strategy;
-    fn active_voting_strategies(self: @TContractState) -> u256;
-    fn next_voting_strategy_index(self: @TContractState) -> u8;
-    fn proposal_validation_strategy(self: @TContractState) -> Strategy;
-    fn vote_power(self: @TContractState, proposal_id: u256, choice: Choice) -> u256;
-    fn vote_registry(self: @TContractState, proposal_id: u256, voter: UserAddress) -> bool;
-    fn proposals(self: @TContractState, proposal_id: u256) -> Proposal;
-    fn get_proposal_status(self: @TContractState, proposal_id: u256) -> ProposalStatus;
-
-    // Owner Actions 
-    fn update_settings(ref self: TContractState, input: UpdateSettingsCalldata);
-    fn transfer_ownership(ref self: TContractState, new_owner: ContractAddress);
-    fn renounce_ownership(ref self: TContractState);
-    // Actions 
-    fn initialize(
-        ref self: TContractState,
-        owner: ContractAddress,
-        min_voting_duration: u32,
-        max_voting_duration: u32,
-        voting_delay: u32,
-        proposal_validation_strategy: Strategy,
-        proposal_validation_strategy_metadata_uri: Array<felt252>,
-        voting_strategies: Array<Strategy>,
-        voting_strategy_metadata_uris: Array<Array<felt252>>,
-        authenticators: Array<ContractAddress>,
-        metadata_uri: Array<felt252>,
-        dao_uri: Array<felt252>,
-    );
-    fn propose(
-        ref self: TContractState,
-        author: UserAddress,
-        metadata_uri: Array<felt252>,
-        execution_strategy: Strategy,
-        user_proposal_validation_params: Array<felt252>,
-    );
-    fn vote(
-        ref self: TContractState,
-        voter: UserAddress,
-        proposal_id: u256,
-        choice: Choice,
-        user_voting_strategies: Array<IndexedStrategy>,
-        metadata_uri: Array<felt252>,
-    );
-    fn execute(ref self: TContractState, proposal_id: u256, execution_payload: Array<felt252>);
-    fn update_proposal(
-        ref self: TContractState,
-        author: UserAddress,
-        proposal_id: u256,
-        execution_strategy: Strategy,
-        metadata_uri: Array<felt252>,
-    );
-    fn cancel(ref self: TContractState, proposal_id: u256);
-    fn upgrade(
-        ref self: TContractState, class_hash: ClassHash, initialize_calldata: Array<felt252>
-    ) -> SyscallResult<()>;
-}
-
 #[starknet::contract]
 mod Space {
-    use super::ISpace;
-    use starknet::{
-        storage_access::{StorePacking, StoreUsingPacking}, ClassHash, ContractAddress, info, Store,
-        syscalls, SyscallResult,
+    use starknet::{ClassHash, ContractAddress, info, Store, syscalls, SyscallResult,};
+    use starknet::storage_access::{StorePacking, StoreUsingPacking};
+    use openzeppelin::access::ownable::Ownable;
+    use sx::interfaces::ISpace;
+    use sx::interfaces::{
+        IProposalValidationStrategyDispatcher, IProposalValidationStrategyDispatcherTrait,
+        IVotingStrategyDispatcher, IVotingStrategyDispatcherTrait, IExecutionStrategyDispatcher,
+        IExecutionStrategyDispatcherTrait
     };
-    use sx::{
-        interfaces::{
-            IProposalValidationStrategyDispatcher, IProposalValidationStrategyDispatcherTrait,
-            IVotingStrategyDispatcher, IVotingStrategyDispatcherTrait, IExecutionStrategyDispatcher,
-            IExecutionStrategyDispatcherTrait
-        },
-        types::{
-            UserAddress, Choice, FinalizationStatus, Strategy, IndexedStrategy, Proposal,
-            PackedProposal, IndexedStrategyTrait, IndexedStrategyImpl, UpdateSettingsCalldata,
-            NoUpdateTrait, NoUpdateString, strategy::StoreFelt252Array, ProposalStatus,
-        },
-        utils::{
-            reinitializable::{Reinitializable}, ReinitializableImpl, bits::BitSetter,
-            legacy_hash::{
-                LegacyHashChoice, LegacyHashUserAddress, LegacyHashVotePower, LegacyHashVoteRegistry
-            },
-            constants::INITIALIZE_SELECTOR
-        },
-        external::ownable::Ownable
+    use sx::types::{
+        UserAddress, Choice, FinalizationStatus, Strategy, IndexedStrategy, Proposal,
+        PackedProposal, IndexedStrategyTrait, IndexedStrategyImpl, UpdateSettingsCalldata,
+        NoUpdateTrait, NoUpdateString, strategy::StoreFelt252Array, ProposalStatus,
+        proposal::ProposalDefault
+    };
+    use sx::utils::{
+        Reinitializable, BitSetter, LegacyHashChoice, LegacyHashUserAddress, LegacyHashVotePower,
+        LegacyHashVoteRegistry, constants::INITIALIZE_SELECTOR
     };
 
     #[storage]
@@ -284,10 +206,10 @@ mod Space {
                 );
 
             // Checking that the contract is not already initialized
-            //TODO: temporary component syntax (see imports too)
+            //TODO: temporary component syntax
             let mut state: Reinitializable::ContractState =
                 Reinitializable::unsafe_new_contract_state();
-            ReinitializableImpl::initialize(ref state);
+            Reinitializable::InternalImpl::initialize(ref state);
 
             assert(voting_strategies.len() != 0, 'empty voting strategies');
             assert(authenticators.len() != 0, 'empty authenticators');
@@ -295,17 +217,17 @@ mod Space {
 
             //TODO: temporary component syntax
             let mut state = Ownable::unsafe_new_contract_state();
-            Ownable::initializer(ref state);
-            Ownable::transfer_ownership(ref state, owner);
-            _set_dao_uri(ref self, dao_uri);
-            _set_max_voting_duration(
-                ref self, max_voting_duration
-            ); // Need to set max before min, or else `max == 0` and set_min will revert
-            _set_min_voting_duration(ref self, min_voting_duration);
-            _set_proposal_validation_strategy(ref self, proposal_validation_strategy);
-            _set_voting_delay(ref self, voting_delay);
-            _add_voting_strategies(ref self, voting_strategies.span());
-            _add_authenticators(ref self, authenticators.span());
+            Ownable::InternalImpl::initializer(ref state, owner);
+            self.set_dao_uri(dao_uri);
+            self
+                .set_max_voting_duration(
+                    max_voting_duration
+                ); // Need to set max before min, or else `max == 0` and set_min will revert
+            self.set_min_voting_duration(min_voting_duration);
+            self.set_proposal_validation_strategy(proposal_validation_strategy);
+            self.set_voting_delay(voting_delay);
+            self.add_voting_strategies(voting_strategies.span());
+            self.add_authenticators(authenticators.span());
             self._next_proposal_id.write(1_u256);
         }
 
@@ -316,7 +238,7 @@ mod Space {
             execution_strategy: Strategy,
             user_proposal_validation_params: Array<felt252>,
         ) {
-            assert_only_authenticator(@self);
+            self.assert_only_authenticator();
             assert(author.is_non_zero(), 'Zero Address');
 
             // Proposal Validation
@@ -337,8 +259,6 @@ mod Space {
             let min_end_timestamp = start_timestamp + self._min_voting_duration.read();
             let max_end_timestamp = start_timestamp + self._max_voting_duration.read();
 
-            // TODO: we use a felt252 for the hash despite felts being discouraged 
-            // a new field would just replace the hash. Might be worth casting to a u256 though? 
             let execution_payload_hash = poseidon::poseidon_hash_span(
                 execution_strategy.params.span()
             );
@@ -381,10 +301,10 @@ mod Space {
             user_voting_strategies: Array<IndexedStrategy>,
             metadata_uri: Array<felt252>
         ) {
-            assert_only_authenticator(@self);
+            self.assert_only_authenticator();
             assert(voter.is_non_zero(), 'Zero Address');
             let proposal = self._proposals.read(proposal_id);
-            assert_proposal_exists(@proposal);
+            InternalImpl::assert_proposal_exists(@proposal);
 
             let timestamp = info::get_block_timestamp().try_into().unwrap();
 
@@ -401,13 +321,13 @@ mod Space {
             // Written here to prevent re-entrency attacks via malicious voting strategies
             self._vote_registry.write((proposal_id, voter), true);
 
-            let voting_power = _get_cumulative_power(
-                @self,
-                voter,
-                proposal.start_timestamp,
-                user_voting_strategies.span(),
-                proposal.active_voting_strategies
-            );
+            let voting_power = self
+                .get_cumulative_power(
+                    voter,
+                    proposal.start_timestamp,
+                    user_voting_strategies.span(),
+                    proposal.active_voting_strategies
+                );
             assert(voting_power > 0, 'User has no voting power');
 
             self
@@ -433,10 +353,9 @@ mod Space {
                 );
         }
 
-        // TODO: missing `nonReentrant` modifier
         fn execute(ref self: ContractState, proposal_id: u256, execution_payload: Array<felt252>) {
             let mut proposal = self._proposals.read(proposal_id);
-            assert_proposal_exists(@proposal);
+            InternalImpl::assert_proposal_exists(@proposal);
 
             let recovered_hash = poseidon::poseidon_hash_span(execution_payload.span());
             // Check that payload matches
@@ -469,10 +388,10 @@ mod Space {
         fn cancel(ref self: ContractState, proposal_id: u256) {
             //TODO: temporary component syntax
             let state = Ownable::unsafe_new_contract_state();
-            Ownable::assert_only_owner(@state);
+            Ownable::InternalImpl::assert_only_owner(@state);
 
             let mut proposal = self._proposals.read(proposal_id);
-            assert_proposal_exists(@proposal);
+            InternalImpl::assert_proposal_exists(@proposal);
             assert(
                 proposal.finalization_status == FinalizationStatus::Pending(()), 'Already finalized'
             );
@@ -489,10 +408,10 @@ mod Space {
             execution_strategy: Strategy,
             metadata_uri: Array<felt252>,
         ) {
-            assert_only_authenticator(@self);
+            self.assert_only_authenticator();
             assert(author.is_non_zero(), 'Zero Address');
             let mut proposal = self._proposals.read(proposal_id);
-            assert_proposal_exists(@proposal);
+            InternalImpl::assert_proposal_exists(@proposal);
             assert(
                 proposal.finalization_status == FinalizationStatus::Pending(()), 'Already finalized'
             );
@@ -525,7 +444,7 @@ mod Space {
             ref self: ContractState, class_hash: ClassHash, initialize_calldata: Array<felt252>
         ) -> SyscallResult<()> {
             let state: Ownable::ContractState = Ownable::unsafe_new_contract_state();
-            Ownable::assert_only_owner(@state);
+            Ownable::InternalImpl::assert_only_owner(@state);
 
             assert(class_hash.is_non_zero(), 'Class Hash cannot be zero');
             starknet::replace_class_syscall(class_hash)?;
@@ -533,7 +452,7 @@ mod Space {
             // Allowing initializer to be called again.
             let mut state: Reinitializable::ContractState =
                 Reinitializable::unsafe_new_contract_state();
-            ReinitializableImpl::reinitialize(ref state);
+            Reinitializable::InternalImpl::reinitialize(ref state);
 
             // Call initializer on the new version.
             syscalls::call_contract_syscall(
@@ -554,7 +473,7 @@ mod Space {
         fn owner(self: @ContractState) -> ContractAddress {
             //TODO: temporary component syntax
             let state = Ownable::unsafe_new_contract_state();
-            Ownable::owner(@state)
+            Ownable::OwnableImpl::owner(@state)
         }
 
         fn max_voting_duration(self: @ContractState) -> u32 {
@@ -603,7 +522,7 @@ mod Space {
 
         fn get_proposal_status(self: @ContractState, proposal_id: u256) -> ProposalStatus {
             let proposal = self._proposals.read(proposal_id);
-            assert_proposal_exists(@proposal);
+            InternalImpl::assert_proposal_exists(@proposal);
 
             let votes_for = self._vote_power.read((proposal_id, Choice::For(())));
             let votes_against = self._vote_power.read((proposal_id, Choice::Against(())));
@@ -616,7 +535,7 @@ mod Space {
         fn update_settings(ref self: ContractState, input: UpdateSettingsCalldata) {
             //TODO: temporary component syntax
             let state = Ownable::unsafe_new_contract_state();
-            Ownable::assert_only_owner(@state);
+            Ownable::InternalImpl::assert_only_owner(@state);
 
             // Needed because the compiler will go crazy if we try to use `input` directly
             let _min_voting_duration = input.min_voting_duration;
@@ -649,7 +568,7 @@ mod Space {
                         )
                     );
             } else if _min_voting_duration.should_update() {
-                _set_min_voting_duration(ref self, input.min_voting_duration);
+                self.set_min_voting_duration(input.min_voting_duration);
                 self
                     .emit(
                         Event::MinVotingDurationUpdated(
@@ -659,7 +578,7 @@ mod Space {
                         )
                     );
             } else if _max_voting_duration.should_update() {
-                _set_max_voting_duration(ref self, input.max_voting_duration);
+                self.set_max_voting_duration(input.max_voting_duration);
                 self
                     .emit(
                         Event::MaxVotingDurationUpdated(
@@ -671,7 +590,7 @@ mod Space {
             }
 
             if input.voting_delay.should_update() {
-                _set_voting_delay(ref self, input.voting_delay);
+                self.set_voting_delay(input.voting_delay);
 
                 self
                     .emit(
@@ -691,14 +610,12 @@ mod Space {
             }
 
             if NoUpdateString::should_update((@input).dao_uri) {
-                _set_dao_uri(ref self, input.dao_uri.clone());
+                self.set_dao_uri(input.dao_uri.clone());
                 self.emit(Event::DaoUriUpdated(DaoUriUpdated { dao_uri: input.dao_uri.span() }));
             }
 
             if input.proposal_validation_strategy.should_update() {
-                _set_proposal_validation_strategy(
-                    ref self, input.proposal_validation_strategy.clone()
-                );
+                self.set_proposal_validation_strategy(input.proposal_validation_strategy.clone());
                 self
                     .emit(
                         Event::ProposalValidationStrategyUpdated(
@@ -715,7 +632,7 @@ mod Space {
             }
 
             if input.authenticators_to_add.should_update() {
-                _add_authenticators(ref self, input.authenticators_to_add.span());
+                self.add_authenticators(input.authenticators_to_add.span());
                 self
                     .emit(
                         Event::AuthenticatorsAdded(
@@ -727,7 +644,7 @@ mod Space {
             }
 
             if input.authenticators_to_remove.should_update() {
-                _remove_authenticators(ref self, input.authenticators_to_remove.span());
+                self.remove_authenticators(input.authenticators_to_remove.span());
                 self
                     .emit(
                         Event::AuthenticatorsRemoved(
@@ -747,7 +664,7 @@ mod Space {
                         .len(),
                     'len mismatch'
                 );
-                _add_voting_strategies(ref self, input.voting_strategies_to_add.span());
+                self.add_voting_strategies(input.voting_strategies_to_add.span());
                 self
                     .emit(
                         Event::VotingStrategiesAdded(
@@ -762,7 +679,7 @@ mod Space {
             }
 
             if input.voting_strategies_to_remove.should_update() {
-                _remove_voting_strategies(ref self, input.voting_strategies_to_remove.span());
+                self.remove_voting_strategies(input.voting_strategies_to_remove.span());
                 self
                     .emit(
                         Event::VotingStrategiesRemoved(
@@ -785,153 +702,155 @@ mod Space {
         fn transfer_ownership(ref self: ContractState, new_owner: ContractAddress) {
             //TODO: temporary component syntax
             let mut state = Ownable::unsafe_new_contract_state();
-            Ownable::assert_only_owner(@state);
-            Ownable::transfer_ownership(ref state, new_owner);
+            Ownable::OwnableImpl::transfer_ownership(ref state, new_owner);
         }
 
         fn renounce_ownership(ref self: ContractState) {
             //TODO: temporary component syntax
             let mut state = Ownable::unsafe_new_contract_state();
-            Ownable::assert_only_owner(@state);
-            Ownable::renounce_ownership(ref state);
+            Ownable::OwnableImpl::renounce_ownership(ref state);
         }
     }
 
-    /// 
-    /// Internals
-    ///
+    #[generate_trait]
+    impl InternalImpl of InternalTrait {
+        fn assert_only_authenticator(self: @ContractState) {
+            let caller: ContractAddress = info::get_caller_address();
+            assert(self._authenticators.read(caller), 'Caller is not an authenticator');
+        }
 
-    fn assert_only_authenticator(self: @ContractState) {
-        let caller: ContractAddress = info::get_caller_address();
-        assert(self._authenticators.read(caller), 'Caller is not an authenticator');
-    }
-
-    fn assert_proposal_exists(proposal: @Proposal) {
-        assert(
-            *proposal.start_timestamp != 0, 'Proposal does not exist'
-        ); // TODO: test this assertion
-    }
-
-    fn _get_cumulative_power(
-        self: @ContractState,
-        voter: UserAddress,
-        timestamp: u32,
-        mut user_strategies: Span<IndexedStrategy>,
-        allowed_strategies: u256
-    ) -> u256 {
-        user_strategies.assert_no_duplicate_indices();
-        let mut total_voting_power = 0_u256;
-        loop {
-            match user_strategies.pop_front() {
-                Option::Some(strategy_index) => {
-                    assert(
-                        allowed_strategies.is_bit_set(*strategy_index.index),
-                        'Invalid strategy index'
-                    );
-                    let strategy = self._voting_strategies.read(*strategy_index.index);
-                    total_voting_power +=
-                        IVotingStrategyDispatcher { contract_address: strategy.address }
-                        .get_voting_power(
-                            timestamp, voter, strategy.params.span(), strategy_index.params.span()
+        fn get_cumulative_power(
+            self: @ContractState,
+            voter: UserAddress,
+            timestamp: u32,
+            mut user_strategies: Span<IndexedStrategy>,
+            allowed_strategies: u256
+        ) -> u256 {
+            user_strategies.assert_no_duplicate_indices();
+            let mut total_voting_power = 0_u256;
+            loop {
+                match user_strategies.pop_front() {
+                    Option::Some(strategy_index) => {
+                        assert(
+                            allowed_strategies.is_bit_set(*strategy_index.index),
+                            'Invalid strategy index'
                         );
-                },
-                Option::None => {
-                    break;
-                },
+                        let strategy = self._voting_strategies.read(*strategy_index.index);
+                        total_voting_power +=
+                            IVotingStrategyDispatcher { contract_address: strategy.address }
+                            .get_voting_power(
+                                timestamp,
+                                voter,
+                                strategy.params.span(),
+                                strategy_index.params.span()
+                            );
+                    },
+                    Option::None => {
+                        break;
+                    },
+                };
             };
-        };
-        total_voting_power
-    }
-
-    fn _set_max_voting_duration(ref self: ContractState, _max_voting_duration: u32) {
-        assert(_max_voting_duration >= self._min_voting_duration.read(), 'Invalid duration');
-        self._max_voting_duration.write(_max_voting_duration);
-    }
-
-    fn _set_min_voting_duration(ref self: ContractState, _min_voting_duration: u32) {
-        assert(_min_voting_duration <= self._max_voting_duration.read(), 'Invalid duration');
-        self._min_voting_duration.write(_min_voting_duration);
-    }
-
-    fn _set_voting_delay(ref self: ContractState, _voting_delay: u32) {
-        self._voting_delay.write(_voting_delay);
-    }
-
-    fn _set_dao_uri(ref self: ContractState, _dao_uri: Array<felt252>) {
-        self._dao_uri.write(_dao_uri);
-    }
-
-    fn _set_proposal_validation_strategy(
-        ref self: ContractState, _proposal_validation_strategy: Strategy
-    ) {
-        self._proposal_validation_strategy.write(_proposal_validation_strategy);
-    }
-
-    fn _add_voting_strategies(ref self: ContractState, mut _voting_strategies: Span<Strategy>) {
-        let mut cachedActiveVotingStrategies = self._active_voting_strategies.read();
-        let mut cachedNextVotingStrategyIndex = self._next_voting_strategy_index.read();
-        assert(
-            cachedNextVotingStrategyIndex.into() < 256_u32 - _voting_strategies.len(),
-            'Exceeds Voting Strategy Limit'
-        );
-        loop {
-            match _voting_strategies.pop_front() {
-                Option::Some(strategy) => {
-                    assert(!(*strategy.address).is_zero(), 'Invalid voting strategy');
-                    cachedActiveVotingStrategies.set_bit(cachedNextVotingStrategyIndex, true);
-                    self._voting_strategies.write(cachedNextVotingStrategyIndex, strategy.clone());
-                    cachedNextVotingStrategyIndex += 1_u8;
-                },
-                Option::None => {
-                    break;
-                },
-            };
-        };
-        self._active_voting_strategies.write(cachedActiveVotingStrategies);
-        self._next_voting_strategy_index.write(cachedNextVotingStrategyIndex);
-    }
-
-    fn _remove_voting_strategies(ref self: ContractState, mut _voting_strategies: Span<u8>) {
-        let mut cachedActiveVotingStrategies = self._active_voting_strategies.read();
-        loop {
-            match _voting_strategies.pop_front() {
-                Option::Some(index) => {
-                    cachedActiveVotingStrategies.set_bit(*index, false);
-                },
-                Option::None => {
-                    break;
-                },
-            };
-        };
-
-        assert(cachedActiveVotingStrategies != 0, 'No active voting strategy left');
-
-        self._active_voting_strategies.write(cachedActiveVotingStrategies);
-    }
-
-    fn _add_authenticators(ref self: ContractState, mut _authenticators: Span<ContractAddress>) {
-        loop {
-            match _authenticators.pop_front() {
-                Option::Some(authenticator) => {
-                    self._authenticators.write(*authenticator, true);
-                },
-                Option::None => {
-                    break;
-                },
-            };
+            total_voting_power
         }
-    }
 
-    fn _remove_authenticators(ref self: ContractState, mut _authenticators: Span<ContractAddress>) {
-        loop {
-            match _authenticators.pop_front() {
-                Option::Some(authenticator) => {
-                    self._authenticators.write(*authenticator, false);
-                },
-                Option::None => {
-                    break;
-                },
+        fn set_max_voting_duration(ref self: ContractState, _max_voting_duration: u32) {
+            assert(_max_voting_duration >= self._min_voting_duration.read(), 'Invalid duration');
+            self._max_voting_duration.write(_max_voting_duration);
+        }
+
+        fn set_min_voting_duration(ref self: ContractState, _min_voting_duration: u32) {
+            assert(_min_voting_duration <= self._max_voting_duration.read(), 'Invalid duration');
+            self._min_voting_duration.write(_min_voting_duration);
+        }
+
+        fn set_voting_delay(ref self: ContractState, _voting_delay: u32) {
+            self._voting_delay.write(_voting_delay);
+        }
+
+        fn set_dao_uri(ref self: ContractState, _dao_uri: Array<felt252>) {
+            self._dao_uri.write(_dao_uri);
+        }
+
+        fn set_proposal_validation_strategy(
+            ref self: ContractState, _proposal_validation_strategy: Strategy
+        ) {
+            self._proposal_validation_strategy.write(_proposal_validation_strategy);
+        }
+
+        fn add_voting_strategies(ref self: ContractState, mut _voting_strategies: Span<Strategy>) {
+            let mut cachedActiveVotingStrategies = self._active_voting_strategies.read();
+            let mut cachedNextVotingStrategyIndex = self._next_voting_strategy_index.read();
+            assert(
+                cachedNextVotingStrategyIndex.into() < 256_u32 - _voting_strategies.len(),
+                'Exceeds Voting Strategy Limit'
+            );
+            loop {
+                match _voting_strategies.pop_front() {
+                    Option::Some(strategy) => {
+                        assert(!(*strategy.address).is_zero(), 'Invalid voting strategy');
+                        cachedActiveVotingStrategies.set_bit(cachedNextVotingStrategyIndex, true);
+                        self
+                            ._voting_strategies
+                            .write(cachedNextVotingStrategyIndex, strategy.clone());
+                        cachedNextVotingStrategyIndex += 1_u8;
+                    },
+                    Option::None => {
+                        break;
+                    },
+                };
             };
+            self._active_voting_strategies.write(cachedActiveVotingStrategies);
+            self._next_voting_strategy_index.write(cachedNextVotingStrategyIndex);
+        }
+
+        fn remove_voting_strategies(ref self: ContractState, mut _voting_strategies: Span<u8>) {
+            let mut cachedActiveVotingStrategies = self._active_voting_strategies.read();
+            loop {
+                match _voting_strategies.pop_front() {
+                    Option::Some(index) => {
+                        cachedActiveVotingStrategies.set_bit(*index, false);
+                    },
+                    Option::None => {
+                        break;
+                    },
+                };
+            };
+
+            assert(cachedActiveVotingStrategies != 0, 'No active voting strategy left');
+
+            self._active_voting_strategies.write(cachedActiveVotingStrategies);
+        }
+
+        fn add_authenticators(ref self: ContractState, mut _authenticators: Span<ContractAddress>) {
+            loop {
+                match _authenticators.pop_front() {
+                    Option::Some(authenticator) => {
+                        self._authenticators.write(*authenticator, true);
+                    },
+                    Option::None => {
+                        break;
+                    },
+                };
+            }
+        }
+
+        fn remove_authenticators(
+            ref self: ContractState, mut _authenticators: Span<ContractAddress>
+        ) {
+            loop {
+                match _authenticators.pop_front() {
+                    Option::Some(authenticator) => {
+                        self._authenticators.write(*authenticator, false);
+                    },
+                    Option::None => {
+                        break;
+                    },
+                };
+            }
+        }
+
+        fn assert_proposal_exists(proposal: @Proposal) {
+            assert(*proposal.start_timestamp != 0, 'Proposal does not exist');
         }
     }
 }

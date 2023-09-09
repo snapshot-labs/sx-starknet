@@ -1,26 +1,20 @@
 #[cfg(test)]
 mod tests {
-    use array::ArrayTrait;
     use starknet::{
         ContractAddress, syscalls::deploy_syscall, testing, contract_address_const, info
     };
-    use traits::{Into, TryInto};
-    use result::ResultTrait;
-    use option::OptionTrait;
-    use integer::u256_from_felt252;
-    use clone::Clone;
-    use serde::{Serde};
-    use sx::space::space::{Space, ISpaceDispatcher, ISpaceDispatcherTrait};
+    use sx::interfaces::{ISpaceDispatcher, ISpaceDispatcherTrait};
+    use sx::space::space::Space;
     use sx::authenticators::stark_tx::{
         StarkTxAuthenticator, IStarkTxAuthenticatorDispatcher, IStarkTxAuthenticatorDispatcherTrait
     };
-    use sx::execution_strategies::vanilla::VanillaExecutionStrategy;
-    use sx::voting_strategies::vanilla::VanillaVotingStrategy;
-    use sx::proposal_validation_strategies::vanilla::VanillaProposalValidationStrategy;
+    use sx::tests::mocks::vanilla_execution_strategy::VanillaExecutionStrategy;
+    use sx::tests::mocks::vanilla_voting_strategy::VanillaVotingStrategy;
+    use sx::tests::mocks::vanilla_proposal_validation::VanillaProposalValidationStrategy;
     use sx::tests::setup::setup::setup::{setup, deploy};
     use sx::types::{
         UserAddress, Strategy, IndexedStrategy, Choice, FinalizationStatus, Proposal,
-        UpdateSettingsCalldataImpl, UpdateSettingsCalldata
+        UpdateSettingsCalldata
     };
     use sx::tests::utils::strategy_trait::{StrategyImpl};
 
@@ -36,8 +30,7 @@ mod tests {
         let authenticator = IStarkTxAuthenticatorDispatcher {
             contract_address: stark_tx_authenticator_address,
         };
-        let mut updateSettingsCalldata: UpdateSettingsCalldata =
-            UpdateSettingsCalldataImpl::default();
+        let mut updateSettingsCalldata: UpdateSettingsCalldata = Default::default();
         updateSettingsCalldata.authenticators_to_add = array![stark_tx_authenticator_address];
         testing::set_contract_address(owner);
         space.update_settings(updateSettingsCalldata);
@@ -52,7 +45,7 @@ mod tests {
         let (factory, space) = deploy(@config);
         let authenticator = setup_stark_tx_auth(space, config.owner);
 
-        let quorum = u256_from_felt252(1);
+        let quorum = 1_u256;
         let mut constructor_calldata = array![];
         quorum.serialize(ref constructor_calldata);
 
@@ -79,7 +72,7 @@ mod tests {
 
         // Update Proposal
 
-        let proposal_id = u256_from_felt252(1);
+        let proposal_id = 1_u256;
         // Keeping the same execution strategy contract but changing the payload
         let mut new_payload = array![1];
         let new_execution_strategy = Strategy {
@@ -109,7 +102,7 @@ mod tests {
         testing::set_block_timestamp(2_u64);
 
         // Execute Proposal
-        space.execute(u256_from_felt252(1), new_payload);
+        space.execute(1_u256, new_payload);
     }
 
     #[test]
@@ -120,7 +113,7 @@ mod tests {
         let (factory, space) = deploy(@config);
         let authenticator = setup_stark_tx_auth(space, config.owner);
 
-        let quorum = u256_from_felt252(1);
+        let quorum = 1_u256;
         let mut constructor_calldata = array![];
         quorum.serialize(ref constructor_calldata);
 
@@ -152,7 +145,7 @@ mod tests {
         let (factory, space) = deploy(@config);
         let authenticator = setup_stark_tx_auth(space, config.owner);
 
-        let quorum = u256_from_felt252(1);
+        let quorum = 1_u256;
         let mut constructor_calldata = array![];
         quorum.serialize(ref constructor_calldata);
 
@@ -179,7 +172,7 @@ mod tests {
 
         // Update Proposal
 
-        let proposal_id = u256_from_felt252(1);
+        let proposal_id = 1_u256;
         // Keeping the same execution strategy contract but changing the payload
         let mut new_payload = array![1];
         let new_execution_strategy = Strategy {
@@ -202,7 +195,7 @@ mod tests {
         let (factory, space) = deploy(@config);
         let authenticator = setup_stark_tx_auth(space, config.owner);
 
-        let quorum = u256_from_felt252(1);
+        let quorum = 1_u256;
         let mut constructor_calldata = array![];
         quorum.serialize(ref constructor_calldata);
 
@@ -229,7 +222,7 @@ mod tests {
 
         // Update Proposal
 
-        let proposal_id = u256_from_felt252(1);
+        let proposal_id = 1_u256;
         // Keeping the same execution strategy contract but changing the payload
         let mut new_payload = array![1];
         let new_execution_strategy = Strategy {

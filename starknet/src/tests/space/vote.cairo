@@ -1,29 +1,20 @@
 #[cfg(test)]
 mod tests {
-    use array::ArrayTrait;
-    use starknet::{
-        ContractAddress, syscalls::deploy_syscall, testing, contract_address_const, info
-    };
-    use traits::{Into, TryInto};
-    use result::ResultTrait;
-    use option::OptionTrait;
-    use integer::u256_from_felt252;
-    use clone::Clone;
-    use serde::{Serde};
-
-    use sx::space::space::{Space, Space::VoteCast, ISpaceDispatcher, ISpaceDispatcherTrait};
-    use sx::authenticators::vanilla::{
+    use starknet::{ContractAddress, syscalls, testing, info};
+    use sx::space::space::{Space, Space::VoteCast};
+    use sx::interfaces::{ISpaceDispatcher, ISpaceDispatcherTrait};
+    use sx::tests::mocks::vanilla_authenticator::{
         VanillaAuthenticator, IVanillaAuthenticatorDispatcher, IVanillaAuthenticatorDispatcherTrait
     };
     use sx::tests::mocks::executor::ExecutorWithoutTxExecutionStrategy;
-    use sx::voting_strategies::vanilla::VanillaVotingStrategy;
-    use sx::proposal_validation_strategies::vanilla::VanillaProposalValidationStrategy;
+    use sx::tests::mocks::vanilla_voting_strategy::VanillaVotingStrategy;
+    use sx::tests::mocks::vanilla_proposal_validation::VanillaProposalValidationStrategy;
     use sx::tests::mocks::proposal_validation_always_fail::AlwaysFailProposalValidationStrategy;
     use sx::tests::mocks::no_voting_power::NoVotingPowerVotingStrategy;
     use sx::tests::setup::setup::setup::{setup, deploy};
     use sx::types::{
         UserAddress, Strategy, IndexedStrategy, Choice, FinalizationStatus, Proposal,
-        UpdateSettingsCalldataImpl
+        UpdateSettingsCalldata
     };
     use sx::tests::utils::strategy_trait::{StrategyImpl};
     use sx::utils::constants::{PROPOSE_SELECTOR, VOTE_SELECTOR, UPDATE_PROPOSAL_SELECTOR};
@@ -34,7 +25,7 @@ mod tests {
     fn get_execution_strategy() -> Strategy {
         let mut constructor_calldata = array![];
 
-        let (execution_strategy_address, _) = deploy_syscall(
+        let (execution_strategy_address, _) = syscalls::deploy_syscall(
             ExecutorWithoutTxExecutionStrategy::TEST_CLASS_HASH.try_into().unwrap(),
             0,
             constructor_calldata.span(),
@@ -50,7 +41,7 @@ mod tests {
         space: ISpaceDispatcher,
         execution_strategy: Strategy
     ) {
-        let author = UserAddress::Starknet(contract_address_const::<0x5678>());
+        let author = UserAddress::Starknet(starknet::contract_address_const::<0x5678>());
         let mut propose_calldata = array![];
         author.serialize(ref propose_calldata);
         ArrayTrait::<felt252>::new().serialize(ref propose_calldata);
@@ -95,7 +86,7 @@ mod tests {
         testing::set_block_timestamp(config.voting_delay.into());
 
         let mut vote_calldata = array![];
-        let voter = UserAddress::Starknet(contract_address_const::<0x8765>());
+        let voter = UserAddress::Starknet(starknet::contract_address_const::<0x8765>());
         voter.serialize(ref vote_calldata);
         let proposal_id = 1_u256;
         proposal_id.serialize(ref vote_calldata);
@@ -136,7 +127,7 @@ mod tests {
         testing::set_block_timestamp(config.voting_delay.into());
 
         let mut vote_calldata = array![];
-        let voter = UserAddress::Starknet(contract_address_const::<0x8765>());
+        let voter = UserAddress::Starknet(starknet::contract_address_const::<0x8765>());
         voter.serialize(ref vote_calldata);
         let proposal_id = 1_u256;
         proposal_id.serialize(ref vote_calldata);
@@ -177,7 +168,7 @@ mod tests {
         testing::set_block_timestamp(config.voting_delay.into());
 
         let mut vote_calldata = array![];
-        let voter = UserAddress::Starknet(contract_address_const::<0x8765>());
+        let voter = UserAddress::Starknet(starknet::contract_address_const::<0x8765>());
         voter.serialize(ref vote_calldata);
         let proposal_id = 1_u256;
         proposal_id.serialize(ref vote_calldata);
@@ -217,7 +208,7 @@ mod tests {
         // Do NOT increase block timestamp 
 
         let mut vote_calldata = array![];
-        let voter = UserAddress::Starknet(contract_address_const::<0x8765>());
+        let voter = UserAddress::Starknet(starknet::contract_address_const::<0x8765>());
         voter.serialize(ref vote_calldata);
         let proposal_id = 1_u256;
         proposal_id.serialize(ref vote_calldata);
@@ -250,7 +241,7 @@ mod tests {
         );
 
         let mut vote_calldata = array![];
-        let voter = UserAddress::Starknet(contract_address_const::<0x8765>());
+        let voter = UserAddress::Starknet(starknet::contract_address_const::<0x8765>());
         voter.serialize(ref vote_calldata);
         let proposal_id = 1_u256;
         proposal_id.serialize(ref vote_calldata);
@@ -285,7 +276,7 @@ mod tests {
             ); // Execute the proposal (will work because execution strategy doesn't check for finalization status or quorum)
 
         let mut vote_calldata = array![];
-        let voter = UserAddress::Starknet(contract_address_const::<0x8765>());
+        let voter = UserAddress::Starknet(starknet::contract_address_const::<0x8765>());
         voter.serialize(ref vote_calldata);
         let proposal_id = 1_u256;
         proposal_id.serialize(ref vote_calldata);
@@ -317,7 +308,7 @@ mod tests {
             config.voting_delay.into() + config.max_voting_duration.into()
         );
 
-        let voter = UserAddress::Starknet(contract_address_const::<0x8765>());
+        let voter = UserAddress::Starknet(starknet::contract_address_const::<0x8765>());
         let proposal_id = 1_u256;
         let choice = Choice::For(());
         let mut user_voting_strategies = array![IndexedStrategy { index: 0_u8, params: array![] }];
@@ -345,7 +336,7 @@ mod tests {
         testing::set_block_timestamp(config.voting_delay.into());
 
         let mut vote_calldata = array![];
-        let voter = UserAddress::Starknet(contract_address_const::<0x8765>());
+        let voter = UserAddress::Starknet(starknet::contract_address_const::<0x8765>());
         voter.serialize(ref vote_calldata);
         let proposal_id = 1_u256;
         proposal_id.serialize(ref vote_calldata);
@@ -372,7 +363,7 @@ mod tests {
             contract_address: *config.authenticators.at(0),
         };
 
-        let (no_voting_power_contract, _) = deploy_syscall(
+        let (no_voting_power_contract, _) = syscalls::deploy_syscall(
             NoVotingPowerVotingStrategy::TEST_CLASS_HASH.try_into().unwrap(),
             0,
             array![].span(),
@@ -381,7 +372,7 @@ mod tests {
             .unwrap();
         let no_voting_power_strategy = StrategyImpl::from_address(no_voting_power_contract);
 
-        let mut input = UpdateSettingsCalldataImpl::default();
+        let mut input: UpdateSettingsCalldata = Default::default();
         input.voting_strategies_to_add = array![no_voting_power_strategy];
         input.voting_strategies_metadata_uris_to_add = array![array![]];
 
@@ -394,7 +385,7 @@ mod tests {
         testing::set_block_timestamp(config.voting_delay.into());
 
         let mut vote_calldata = array![];
-        let voter = UserAddress::Starknet(contract_address_const::<0x8765>());
+        let voter = UserAddress::Starknet(starknet::contract_address_const::<0x8765>());
         voter.serialize(ref vote_calldata);
         let proposal_id = 1_u256;
         proposal_id.serialize(ref vote_calldata);
@@ -411,9 +402,7 @@ mod tests {
 
     #[test]
     #[available_gas(10000000000)]
-    #[should_panic(
-        expected: ('Unknown enum indicator:', 'ENTRYPOINT_FAILED')
-    )] // TODO: replace once `default` works on Proposal
+    #[should_panic(expected: ('Proposal does not exist', 'ENTRYPOINT_FAILED'))]
     fn vote_inexistant_proposal() {
         let config = setup();
         let (factory, space) = deploy(@config);
@@ -430,7 +419,7 @@ mod tests {
         testing::set_block_timestamp(config.voting_delay.into());
 
         let mut vote_calldata = array![];
-        let voter = UserAddress::Starknet(contract_address_const::<0x8765>());
+        let voter = UserAddress::Starknet(starknet::contract_address_const::<0x8765>());
         voter.serialize(ref vote_calldata);
         let proposal_id = 42_u256; // inexistent proposal
         proposal_id.serialize(ref vote_calldata);

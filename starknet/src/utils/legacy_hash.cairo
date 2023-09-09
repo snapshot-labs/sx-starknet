@@ -41,7 +41,6 @@ impl LegacyHashUserAddress of LegacyHash<UserAddress> {
     }
 }
 
-// TODO: investigate if we can derive Hash on Choice
 impl LegacyHashUsedSalts of LegacyHash<(EthAddress, u256)> {
     fn hash(state: felt252, value: (EthAddress, u256)) -> felt252 {
         let (addr, salt) = value;
@@ -50,7 +49,6 @@ impl LegacyHashUsedSalts of LegacyHash<(EthAddress, u256)> {
     }
 }
 
-// TODO: investigate if we can derive Hash on Choice
 impl LegacyHashVotePower of LegacyHash<(u256, Choice)> {
     fn hash(state: felt252, value: (u256, Choice)) -> felt252 {
         let (proposal_id, choice) = value;
@@ -59,7 +57,6 @@ impl LegacyHashVotePower of LegacyHash<(u256, Choice)> {
     }
 }
 
-// TODO: investigate if we can derive Hash on UserAddress
 impl LegacyHashVoteRegistry of LegacyHash<(u256, UserAddress)> {
     fn hash(state: felt252, value: (u256, UserAddress)) -> felt252 {
         let (proposal_id, user) = value;

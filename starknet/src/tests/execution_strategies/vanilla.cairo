@@ -1,9 +1,9 @@
 #[cfg(test)]
 mod tests {
-    use sx::interfaces::{IQuorum, IQuorumDispatcher, IQuorumDispatcherTrait};
-    use sx::execution_strategies::vanilla::{VanillaExecutionStrategy};
-    use sx::execution_strategies::simple_quorum::SimpleQuorumExecutionStrategy;
-    use starknet::syscalls::{deploy_syscall};
+    use sx::tests::utils::i_quorum::{IQuorum, IQuorumDispatcher, IQuorumDispatcherTrait};
+    use sx::tests::mocks::vanilla_execution_strategy::{VanillaExecutionStrategy};
+    use sx::tests::mocks::simple_quorum::SimpleQuorumExecutionStrategy;
+    use starknet::syscalls;
 
     #[test]
     #[available_gas(10000000)]
@@ -25,7 +25,7 @@ mod tests {
         let mut constructor_calldata: Array<felt252> = array![];
         quorum.serialize(ref constructor_calldata);
 
-        let (contract, _) = deploy_syscall(
+        let (contract, _) = syscalls::deploy_syscall(
             VanillaExecutionStrategy::TEST_CLASS_HASH.try_into().unwrap(),
             0,
             constructor_calldata.span(),

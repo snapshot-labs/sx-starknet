@@ -1,38 +1,25 @@
 #[cfg(test)]
 mod tests {
-    use array::ArrayTrait;
-    use starknet::{
-        ContractAddress, syscalls::deploy_syscall, testing, contract_address_const, info
-    };
-    use traits::{Into, TryInto};
-    use result::ResultTrait;
-    use option::OptionTrait;
-    use integer::u256_from_felt252;
-    use clone::Clone;
-    use serde::{Serde};
-
-    use sx::space::space::{
-        Space, Space::{ProposalCreated, VoteCast, ProposalUpdated}, ISpaceDispatcher,
-        ISpaceDispatcherTrait
-    };
-    use sx::authenticators::vanilla::{
+    use starknet::{ContractAddress, syscalls, testing, info};
+    use openzeppelin::tests::utils;
+    use sx::interfaces::{ISpaceDispatcher, ISpaceDispatcherTrait};
+    use sx::space::space::{Space, Space::{ProposalCreated, VoteCast, ProposalUpdated},};
+    use sx::tests::mocks::vanilla_authenticator::{
         VanillaAuthenticator, IVanillaAuthenticatorDispatcher, IVanillaAuthenticatorDispatcherTrait
     };
-    use sx::execution_strategies::vanilla::VanillaExecutionStrategy;
-    use sx::voting_strategies::vanilla::VanillaVotingStrategy;
-    use sx::proposal_validation_strategies::vanilla::VanillaProposalValidationStrategy;
+    use sx::tests::mocks::vanilla_execution_strategy::VanillaExecutionStrategy;
+    use sx::tests::mocks::vanilla_voting_strategy::VanillaVotingStrategy;
+    use sx::tests::mocks::vanilla_proposal_validation::VanillaProposalValidationStrategy;
     use sx::tests::mocks::proposal_validation_always_fail::AlwaysFailProposalValidationStrategy;
     use sx::tests::setup::setup::setup::{setup, deploy};
     use sx::types::{
         UserAddress, Strategy, IndexedStrategy, Choice, FinalizationStatus, Proposal,
-        UpdateSettingsCalldataImpl
+        UpdateSettingsCalldata
     };
-    use sx::tests::utils::strategy_trait::{StrategyImpl, StrategyDefault};
     use sx::utils::constants::{PROPOSE_SELECTOR, VOTE_SELECTOR, UPDATE_PROPOSAL_SELECTOR};
+    use sx::tests::utils::strategy_trait::{StrategyImpl, StrategyDefault};
     use sx::tests::mocks::executor::ExecutorWithoutTxExecutionStrategy;
-    use openzeppelin::tests::utils;
 
-    use Space::Space as SpaceImpl;
 
     fn assert_correct_proposal_event(
         space_address: ContractAddress,
@@ -84,25 +71,25 @@ mod tests {
     #[test]
     #[available_gas(100000000)]
     fn initialize() {
-        let deployer = contract_address_const::<0xdead>();
+        let deployer = starknet::contract_address_const::<0xdead>();
 
         testing::set_caller_address(deployer);
         testing::set_contract_address(deployer);
         // Space Settings
-        let owner = contract_address_const::<0x123456789>();
+        let owner = starknet::contract_address_const::<0x123456789>();
         let min_voting_duration = 1_u32;
         let max_voting_duration = 2_u32;
         let voting_delay = 1_u32;
 
         // Deploy Vanilla Authenticator 
-        let (vanilla_authenticator_address, _) = deploy_syscall(
+        let (vanilla_authenticator_address, _) = syscalls::deploy_syscall(
             VanillaAuthenticator::TEST_CLASS_HASH.try_into().unwrap(), 0, array![].span(), false
         )
             .unwrap();
         let mut authenticators = array![vanilla_authenticator_address];
 
         // Deploy Vanilla Proposal Validation Strategy
-        let (vanilla_proposal_validation_address, _) = deploy_syscall(
+        let (vanilla_proposal_validation_address, _) = syscalls::deploy_syscall(
             VanillaProposalValidationStrategy::TEST_CLASS_HASH.try_into().unwrap(),
             0,
             array![].span(),
@@ -114,7 +101,7 @@ mod tests {
         );
 
         // Deploy Vanilla Voting Strategy 
-        let (vanilla_voting_strategy_address, _) = deploy_syscall(
+        let (vanilla_voting_strategy_address, _) = syscalls::deploy_syscall(
             VanillaVotingStrategy::TEST_CLASS_HASH.try_into().unwrap(), 0, array![].span(), false
         )
             .unwrap();
@@ -123,7 +110,7 @@ mod tests {
         ];
 
         // Deploy Space 
-        let (space_address, _) = deploy_syscall(
+        let (space_address, _) = syscalls::deploy_syscall(
             Space::TEST_CLASS_HASH.try_into().unwrap(), 0, array![].span(), false
         )
             .unwrap();
@@ -160,7 +147,7 @@ mod tests {
     #[should_panic(expected: ('empty voting strategies',))]
     fn empty_voting_strategies() {
         let mut state = Space::unsafe_new_contract_state();
-        let owner = contract_address_const::<0x123456789>();
+        let owner = starknet::contract_address_const::<0x123456789>();
         let min_voting_duration = 1_u32;
         let max_voting_duration = 2_u32;
         let voting_delay = 1_u32;
@@ -168,7 +155,7 @@ mod tests {
         let proposal_validation_strategy_metadata_uri = array![];
         let voting_strategies = array![];
         let voting_strategies_metadata_uris = array![];
-        let authenticators = array![contract_address_const::<0>()];
+        let authenticators = array![starknet::contract_address_const::<0>()];
         let metadata_uri = array![];
         let dao_uri = array![];
 
@@ -193,7 +180,7 @@ mod tests {
     #[should_panic(expected: ('empty authenticators',))]
     fn empty_authenticators() {
         let mut state = Space::unsafe_new_contract_state();
-        let owner = contract_address_const::<0x123456789>();
+        let owner = starknet::contract_address_const::<0x123456789>();
         let min_voting_duration = 1_u32;
         let max_voting_duration = 2_u32;
         let voting_delay = 1_u32;
@@ -226,7 +213,7 @@ mod tests {
     #[should_panic(expected: ('len mismatch',))]
     fn voting_strategies_and_metadata_uris_mismatch() {
         let mut state = Space::unsafe_new_contract_state();
-        let owner = contract_address_const::<0x123456789>();
+        let owner = starknet::contract_address_const::<0x123456789>();
         let min_voting_duration = 1_u32;
         let max_voting_duration = 2_u32;
         let voting_delay = 1_u32;
@@ -234,7 +221,7 @@ mod tests {
         let proposal_validation_strategy_metadata_uri = array![];
         let voting_strategies = array![StrategyDefault::default()];
         let voting_strategies_metadata_uris = array![array![], array![]];
-        let authenticators = array![contract_address_const::<0>()];
+        let authenticators = array![starknet::contract_address_const::<0>()];
         let metadata_uri = array![];
         let dao_uri = array![];
 
@@ -258,18 +245,18 @@ mod tests {
     #[available_gas(100000000)]
     #[should_panic(expected: ('Already Initialized', 'ENTRYPOINT_FAILED'))]
     fn reinitialize() {
-        let deployer = contract_address_const::<0xdead>();
+        let deployer = starknet::contract_address_const::<0xdead>();
 
         testing::set_caller_address(deployer);
         testing::set_contract_address(deployer);
         // Space Settings
-        let owner = contract_address_const::<0x123456789>();
+        let owner = starknet::contract_address_const::<0x123456789>();
         let min_voting_duration = 1_u32;
         let max_voting_duration = 2_u32;
         let voting_delay = 1_u32;
 
         // Deploy Vanilla Authenticator 
-        let (vanilla_authenticator_address, _) = deploy_syscall(
+        let (vanilla_authenticator_address, _) = syscalls::deploy_syscall(
             VanillaAuthenticator::TEST_CLASS_HASH.try_into().unwrap(),
             0,
             array::ArrayTrait::<felt252>::new().span(),
@@ -280,7 +267,7 @@ mod tests {
         authenticators.append(vanilla_authenticator_address);
 
         // Deploy Vanilla Proposal Validation Strategy
-        let (vanilla_proposal_validation_address, _) = deploy_syscall(
+        let (vanilla_proposal_validation_address, _) = syscalls::deploy_syscall(
             VanillaProposalValidationStrategy::TEST_CLASS_HASH.try_into().unwrap(),
             0,
             array::ArrayTrait::<felt252>::new().span(),
@@ -292,7 +279,7 @@ mod tests {
         );
 
         // Deploy Vanilla Voting Strategy 
-        let (vanilla_voting_strategy_address, _) = deploy_syscall(
+        let (vanilla_voting_strategy_address, _) = syscalls::deploy_syscall(
             VanillaVotingStrategy::TEST_CLASS_HASH.try_into().unwrap(),
             0,
             array::ArrayTrait::<felt252>::new().span(),
@@ -308,7 +295,7 @@ mod tests {
             );
 
         // Deploy Space 
-        let (space_address, _) = deploy_syscall(
+        let (space_address, _) = syscalls::deploy_syscall(
             Space::TEST_CLASS_HASH.try_into().unwrap(), 0, array![].span(), false
         )
             .unwrap();
@@ -352,7 +339,7 @@ mod tests {
     fn propose_update_vote_execute() {
         let config = setup();
         let (factory, space) = deploy(@config);
-        let sx::space::space::ISpaceDispatcher{contract_address: space_contract_address } = space;
+        let ISpaceDispatcher{contract_address: space_contract_address } = space;
 
         utils::drop_events(space_contract_address, 3);
 
@@ -360,11 +347,11 @@ mod tests {
             contract_address: *config.authenticators.at(0),
         };
 
-        let quorum = u256_from_felt252(1);
+        let quorum = 1_u256;
         let mut constructor_calldata = array![];
         quorum.serialize(ref constructor_calldata);
 
-        let (vanilla_execution_strategy_address, _) = deploy_syscall(
+        let (vanilla_execution_strategy_address, _) = syscalls::deploy_syscall(
             VanillaExecutionStrategy::TEST_CLASS_HASH.try_into().unwrap(),
             0,
             constructor_calldata.span(),
@@ -374,7 +361,7 @@ mod tests {
         let vanilla_execution_strategy = StrategyImpl::from_address(
             vanilla_execution_strategy_address
         );
-        let author = UserAddress::Starknet(contract_address_const::<0x5678>());
+        let author = UserAddress::Starknet(starknet::contract_address_const::<0x5678>());
         let mut propose_calldata = array![];
         author.serialize(ref propose_calldata);
         let metadata_uri: Array<felt252> = array![];
@@ -418,7 +405,7 @@ mod tests {
         // Update Proposal
         let mut update_calldata = array![];
         author.serialize(ref update_calldata);
-        let proposal_id = u256_from_felt252(1);
+        let proposal_id = 1_u256;
         proposal_id.serialize(ref update_calldata);
 
         // Keeping the same execution strategy contract but changing the payload
@@ -439,9 +426,9 @@ mod tests {
         testing::set_block_timestamp(config.voting_delay.into());
 
         let mut vote_calldata = array![];
-        let voter = UserAddress::Starknet(contract_address_const::<0x8765>());
+        let voter = UserAddress::Starknet(starknet::contract_address_const::<0x8765>());
         voter.serialize(ref vote_calldata);
-        let proposal_id = u256_from_felt252(1);
+        let proposal_id = 1_u256;
         proposal_id.serialize(ref vote_calldata);
         let choice = Choice::For(());
         choice.serialize(ref vote_calldata);
@@ -461,8 +448,7 @@ mod tests {
         );
 
         // Execute Proposal
-        ISpaceDispatcher { contract_address: space_contract_address }
-            .execute(u256_from_felt252(1), new_payload);
+        ISpaceDispatcher { contract_address: space_contract_address }.execute(1_u256, new_payload);
     }
 
     #[test]
@@ -475,11 +461,11 @@ mod tests {
             contract_address: *config.authenticators.at(0)
         };
 
-        let quorum = u256_from_felt252(1);
+        let quorum = 1_u256;
         let mut constructor_calldata = array![];
         quorum.serialize(ref constructor_calldata);
 
-        let (vanilla_execution_strategy_address, _) = deploy_syscall(
+        let (vanilla_execution_strategy_address, _) = syscalls::deploy_syscall(
             VanillaExecutionStrategy::TEST_CLASS_HASH.try_into().unwrap(),
             0,
             constructor_calldata.span(),
@@ -493,7 +479,7 @@ mod tests {
         assert(space.next_proposal_id() == 1_u256, 'next_proposal_id should be 1');
 
         // Replace proposal validation strategy with one that always fails
-        let (strategy_address, _) = deploy_syscall(
+        let (strategy_address, _) = syscalls::deploy_syscall(
             AlwaysFailProposalValidationStrategy::TEST_CLASS_HASH.try_into().unwrap(),
             0,
             array![].span(),
@@ -503,12 +489,12 @@ mod tests {
 
         testing::set_caller_address(config.owner);
         testing::set_contract_address(config.owner);
-        let mut input = UpdateSettingsCalldataImpl::default();
+        let mut input: UpdateSettingsCalldata = Default::default();
         input.proposal_validation_strategy = StrategyImpl::from_address(strategy_address);
 
         space.update_settings(input);
 
-        let author = UserAddress::Starknet(contract_address_const::<0x5678>());
+        let author = UserAddress::Starknet(starknet::contract_address_const::<0x5678>());
         let mut propose_calldata = array![];
         author.serialize(ref propose_calldata);
         ArrayTrait::<felt252>::new().serialize(ref propose_calldata);
@@ -530,11 +516,11 @@ mod tests {
             contract_address: *config.authenticators.at(0),
         };
 
-        let quorum = u256_from_felt252(1);
+        let quorum = 1_u256;
         let mut constructor_calldata = array![];
         quorum.serialize(ref constructor_calldata);
 
-        let (vanilla_execution_strategy_address, _) = deploy_syscall(
+        let (vanilla_execution_strategy_address, _) = syscalls::deploy_syscall(
             VanillaExecutionStrategy::TEST_CLASS_HASH.try_into().unwrap(),
             0,
             constructor_calldata.span(),
@@ -544,7 +530,7 @@ mod tests {
         let vanilla_execution_strategy = StrategyImpl::from_address(
             vanilla_execution_strategy_address
         );
-        let author = UserAddress::Starknet(contract_address_const::<0x5678>());
+        let author = UserAddress::Starknet(starknet::contract_address_const::<0x5678>());
         let mut propose_calldata = array![];
         author.serialize(ref propose_calldata);
         ArrayTrait::<felt252>::new().serialize(ref propose_calldata);
@@ -559,9 +545,9 @@ mod tests {
         testing::set_block_timestamp(config.voting_delay.into());
 
         let mut vote_calldata = array![];
-        let voter = UserAddress::Starknet(contract_address_const::<0x8765>());
+        let voter = UserAddress::Starknet(starknet::contract_address_const::<0x8765>());
         voter.serialize(ref vote_calldata);
-        let proposal_id = u256_from_felt252(1);
+        let proposal_id = 1_u256;
         proposal_id.serialize(ref vote_calldata);
         let choice = Choice::For(());
         choice.serialize(ref vote_calldata);
@@ -577,10 +563,10 @@ mod tests {
         );
 
         // Execute Proposal
-        space.execute(u256_from_felt252(1), vanilla_execution_strategy.params.clone());
+        space.execute(1_u256, vanilla_execution_strategy.params.clone());
 
         // Execute a second time
-        space.execute(u256_from_felt252(1), vanilla_execution_strategy.params.clone());
+        space.execute(1_u256, vanilla_execution_strategy.params.clone());
     }
 
     #[test]
@@ -594,7 +580,7 @@ mod tests {
             contract_address: *config.authenticators.at(0),
         };
 
-        let (executor_address, _) = deploy_syscall(
+        let (executor_address, _) = syscalls::deploy_syscall(
             ExecutorWithoutTxExecutionStrategy::TEST_CLASS_HASH.try_into().unwrap(),
             0,
             array![].span(),
@@ -602,7 +588,7 @@ mod tests {
         )
             .unwrap();
         let execution_strategy = StrategyImpl::from_address(executor_address);
-        let author = UserAddress::Starknet(contract_address_const::<0x5678>());
+        let author = UserAddress::Starknet(starknet::contract_address_const::<0x5678>());
         let mut propose_calldata = array![];
         author.serialize(ref propose_calldata);
         ArrayTrait::<felt252>::new().serialize(ref propose_calldata);
@@ -632,7 +618,7 @@ mod tests {
         let mut constructor_calldata = array![];
         quorum.serialize(ref constructor_calldata);
 
-        let (vanilla_execution_strategy_address, _) = deploy_syscall(
+        let (vanilla_execution_strategy_address, _) = syscalls::deploy_syscall(
             VanillaExecutionStrategy::TEST_CLASS_HASH.try_into().unwrap(),
             0,
             constructor_calldata.span(),
@@ -642,7 +628,7 @@ mod tests {
         let vanilla_execution_strategy = StrategyImpl::from_address(
             vanilla_execution_strategy_address
         );
-        let author = UserAddress::Starknet(contract_address_const::<0x5678>());
+        let author = UserAddress::Starknet(starknet::contract_address_const::<0x5678>());
         let mut propose_calldata = array![];
         author.serialize(ref propose_calldata);
         ArrayTrait::<felt252>::new().serialize(ref propose_calldata);
@@ -658,10 +644,7 @@ mod tests {
 
     #[test]
     #[available_gas(10000000000)]
-    #[should_panic(
-        expected: ('Unknown enum indicator:', 0, 'ENTRYPOINT_FAILED')
-    )] // #default not working the the `ProposalStatus` enum
-    // #[should_panic(expected: ('Proposal does not exist', 'ENTRYPOINT_FAILED'))] // replace with this once default works
+    #[should_panic(expected: ('Proposal does not exist', 'ENTRYPOINT_FAILED'))]
     fn get_proposal_status_invalid_proposal_id() {
         let config = setup();
         let (factory, space) = deploy(@config);
@@ -673,7 +656,7 @@ mod tests {
     #[available_gas(10000000000)]
     #[should_panic(expected: ('Proposal has been finalized', 'ENTRYPOINT_FAILED'))]
     fn cancel() {
-        let relayer = contract_address_const::<0x1234>();
+        let relayer = starknet::contract_address_const::<0x1234>();
         let config = setup();
         let (factory, space) = deploy(@config);
 
@@ -681,7 +664,7 @@ mod tests {
             contract_address: *config.authenticators.at(0)
         };
 
-        let (executor_address, _) = deploy_syscall(
+        let (executor_address, _) = syscalls::deploy_syscall(
             ExecutorWithoutTxExecutionStrategy::TEST_CLASS_HASH.try_into().unwrap(),
             0,
             array![].span(),
@@ -690,7 +673,7 @@ mod tests {
             .unwrap();
         let execution_strategy = StrategyImpl::from_address(executor_address);
         let mut propose_calldata = array![];
-        let author = UserAddress::Starknet(contract_address_const::<0x5678>());
+        let author = UserAddress::Starknet(starknet::contract_address_const::<0x5678>());
         author.serialize(ref propose_calldata);
         ArrayTrait::<felt252>::new().serialize(ref propose_calldata);
         execution_strategy.serialize(ref propose_calldata);
@@ -698,7 +681,7 @@ mod tests {
 
         // Create Proposal
         authenticator.authenticate(space.contract_address, PROPOSE_SELECTOR, propose_calldata);
-        let proposal_id = u256_from_felt252(1);
+        let proposal_id = 1_u256;
 
         testing::set_block_timestamp(config.voting_delay.into());
         let proposal = space.proposals(proposal_id);
@@ -714,7 +697,7 @@ mod tests {
 
         // Try to cast vote on Cancelled Proposal
         let mut vote_calldata = array![];
-        let voter = UserAddress::Starknet(contract_address_const::<0x8765>());
+        let voter = UserAddress::Starknet(starknet::contract_address_const::<0x8765>());
         voter.serialize(ref vote_calldata);
         proposal_id.serialize(ref vote_calldata);
         let choice = Choice::For(());
@@ -731,16 +714,13 @@ mod tests {
     fn cancel_unauthorized() {
         let mut state = Space::unsafe_new_contract_state();
 
-        testing::set_caller_address(contract_address_const::<'random'>());
+        testing::set_caller_address(starknet::contract_address_const::<'random'>());
         Space::Space::cancel(ref state, 0);
     }
 
     #[test]
     #[available_gas(1000000000)]
-    #[should_panic(
-        expected: ('Unknown enum indicator:', 0, 'ENTRYPOINT_FAILED')
-    )] // TODO: replace once `default` works on Proposal
-    // #[should_panic(expected: ('Proposal does not exist', 'ENTRYPOINT_FAILED'))]
+    #[should_panic(expected: ('Proposal does not exist', 'ENTRYPOINT_FAILED'))]
     fn cancel_inexistent_proposal() {
         let config = setup();
         let (factory, space) = deploy(@config);
@@ -760,7 +740,7 @@ mod tests {
             contract_address: *config.authenticators.at(0),
         };
 
-        let (executor_address, _) = deploy_syscall(
+        let (executor_address, _) = syscalls::deploy_syscall(
             ExecutorWithoutTxExecutionStrategy::TEST_CLASS_HASH.try_into().unwrap(),
             0,
             array![].span(),
@@ -769,7 +749,7 @@ mod tests {
             .unwrap();
 
         let execution_strategy = StrategyImpl::from_address(executor_address);
-        let author = UserAddress::Starknet(contract_address_const::<'author'>());
+        let author = UserAddress::Starknet(starknet::contract_address_const::<'author'>());
         let mut propose_calldata = array![];
         author.serialize(ref propose_calldata);
         ArrayTrait::<felt252>::new().serialize(ref propose_calldata);
@@ -803,11 +783,11 @@ mod tests {
             contract_address: *config.authenticators.at(0),
         };
 
-        let quorum = u256_from_felt252(1);
+        let quorum = 1_u256;
         let mut constructor_calldata = ArrayTrait::<felt252>::new();
         quorum.serialize(ref constructor_calldata);
 
-        let (vanilla_execution_strategy_address, _) = deploy_syscall(
+        let (vanilla_execution_strategy_address, _) = syscalls::deploy_syscall(
             VanillaExecutionStrategy::TEST_CLASS_HASH.try_into().unwrap(),
             0,
             constructor_calldata.span(),
@@ -818,7 +798,7 @@ mod tests {
             vanilla_execution_strategy_address
         );
         // author is the zero address
-        let author = UserAddress::Starknet(contract_address_const::<0x0>());
+        let author = UserAddress::Starknet(starknet::contract_address_const::<0x0>());
         let mut propose_calldata = array::ArrayTrait::<felt252>::new();
         author.serialize(ref propose_calldata);
         ArrayTrait::<felt252>::new().serialize(ref propose_calldata);
@@ -842,7 +822,7 @@ mod tests {
 
         let execution_strategy = StrategyDefault::default();
         // author is the zero address
-        let author = UserAddress::Starknet(contract_address_const::<0x0>());
+        let author = UserAddress::Starknet(starknet::contract_address_const::<0x0>());
         let mut propose_calldata = array::ArrayTrait::<felt252>::new();
         author.serialize(ref propose_calldata);
         ArrayTrait::<felt252>::new().serialize(ref propose_calldata);
@@ -855,7 +835,7 @@ mod tests {
         // Update Proposal
         let mut update_calldata = array::ArrayTrait::<felt252>::new();
         author.serialize(ref update_calldata);
-        let proposal_id = u256_from_felt252(1);
+        let proposal_id = 1_u256;
         proposal_id.serialize(ref update_calldata);
         // Keeping the same execution strategy contract but changing the payload
         let mut new_execution_strategy = execution_strategy;
@@ -879,7 +859,7 @@ mod tests {
             contract_address: *config.authenticators.at(0),
         };
 
-        let (executor_address, _) = deploy_syscall(
+        let (executor_address, _) = syscalls::deploy_syscall(
             ExecutorWithoutTxExecutionStrategy::TEST_CLASS_HASH.try_into().unwrap(),
             0,
             array![].span(),
@@ -888,7 +868,7 @@ mod tests {
             .unwrap();
         let execution_strategy = StrategyImpl::from_address(executor_address);
 
-        let author = UserAddress::Starknet(contract_address_const::<'author'>());
+        let author = UserAddress::Starknet(starknet::contract_address_const::<'author'>());
         let mut propose_calldata = array::ArrayTrait::<felt252>::new();
         author.serialize(ref propose_calldata);
         ArrayTrait::<felt252>::new().serialize(ref propose_calldata);
@@ -904,7 +884,7 @@ mod tests {
         // Try to update Proposal
         let mut update_calldata = array::ArrayTrait::<felt252>::new();
         author.serialize(ref update_calldata);
-        let proposal_id = u256_from_felt252(1);
+        let proposal_id = 1_u256;
         proposal_id.serialize(ref update_calldata);
         // Keeping the same execution strategy contract but changing the payload
         let mut new_execution_strategy = execution_strategy;
@@ -928,7 +908,7 @@ mod tests {
         };
 
         let execution_strategy = StrategyDefault::default();
-        let author = UserAddress::Starknet(contract_address_const::<'author'>());
+        let author = UserAddress::Starknet(starknet::contract_address_const::<'author'>());
         let mut propose_calldata = array::ArrayTrait::<felt252>::new();
         author.serialize(ref propose_calldata);
         ArrayTrait::<felt252>::new().serialize(ref propose_calldata);
@@ -942,9 +922,9 @@ mod tests {
         let mut update_calldata = array::ArrayTrait::<felt252>::new();
 
         // author is different this time
-        let author = UserAddress::Starknet(contract_address_const::<'author2'>());
+        let author = UserAddress::Starknet(starknet::contract_address_const::<'author2'>());
         author.serialize(ref update_calldata);
-        let proposal_id = u256_from_felt252(1);
+        let proposal_id = 1_u256;
         proposal_id.serialize(ref update_calldata);
         // Keeping the same execution strategy contract but changing the payload
         let mut new_execution_strategy = execution_strategy;
@@ -968,7 +948,7 @@ mod tests {
         };
 
         let execution_strategy = StrategyDefault::default();
-        let author = UserAddress::Starknet(contract_address_const::<'author'>());
+        let author = UserAddress::Starknet(starknet::contract_address_const::<'author'>());
         let mut propose_calldata = array::ArrayTrait::<felt252>::new();
         author.serialize(ref propose_calldata);
         ArrayTrait::<felt252>::new().serialize(ref propose_calldata);
@@ -984,7 +964,7 @@ mod tests {
         // Try to update Proposal
         let mut update_calldata = array::ArrayTrait::<felt252>::new();
         author.serialize(ref update_calldata);
-        let proposal_id = u256_from_felt252(1);
+        let proposal_id = 1_u256;
         proposal_id.serialize(ref update_calldata);
 
         // Keeping the same execution strategy contract but changing the payload
@@ -999,10 +979,7 @@ mod tests {
 
     #[test]
     #[available_gas(10000000000)]
-    #[should_panic(
-        expected: ('Unknown enum indicator:', 'ENTRYPOINT_FAILED')
-    )] // TODO: replace once `default` works on Proposal
-    // #[should_panic(expected: ('Proposal does not exist', 'ENTRYPOINT_FAILED'))]
+    #[should_panic(expected: ('Proposal does not exist', 'ENTRYPOINT_FAILED'))]
     fn update_inexistent_proposal() {
         let config = setup();
         let (factory, space) = deploy(@config);
@@ -1013,7 +990,7 @@ mod tests {
 
         // Update Proposal
         let mut update_calldata = array::ArrayTrait::<felt252>::new();
-        let author = UserAddress::Starknet(contract_address_const::<'author'>());
+        let author = UserAddress::Starknet(starknet::contract_address_const::<'author'>());
         author.serialize(ref update_calldata);
         let proposal_id = 1_u256;
         proposal_id.serialize(ref update_calldata);
@@ -1032,11 +1009,11 @@ mod tests {
     fn update_unauthorized() {
         let mut state = Space::unsafe_new_contract_state();
 
-        let author = UserAddress::Starknet(contract_address_const::<'author'>());
+        let author = UserAddress::Starknet(starknet::contract_address_const::<'author'>());
         let proposal_id = 1;
         let execution_strategy = StrategyDefault::default();
         let metadata_uri = array![];
-        testing::set_caller_address(contract_address_const::<'random'>());
+        testing::set_caller_address(starknet::contract_address_const::<'random'>());
         Space::Space::update_proposal(
             ref state, author, proposal_id, execution_strategy, metadata_uri
         );
@@ -1053,12 +1030,12 @@ mod tests {
             contract_address: *config.authenticators.at(0),
         };
 
-        let quorum = u256_from_felt252(1);
+        let quorum = 1_u256;
         let mut constructor_calldata = ArrayTrait::<felt252>::new();
         quorum.serialize(ref constructor_calldata);
 
         let vanilla_execution_strategy = StrategyDefault::default();
-        let author = UserAddress::Starknet(contract_address_const::<'author'>());
+        let author = UserAddress::Starknet(starknet::contract_address_const::<'author'>());
         let mut propose_calldata = array::ArrayTrait::<felt252>::new();
         author.serialize(ref propose_calldata);
         ArrayTrait::<felt252>::new().serialize(ref propose_calldata);
@@ -1073,7 +1050,7 @@ mod tests {
 
         let mut vote_calldata = array::ArrayTrait::<felt252>::new();
         // Voter is the zero address
-        let voter = UserAddress::Starknet(contract_address_const::<0x0>());
+        let voter = UserAddress::Starknet(starknet::contract_address_const::<0x0>());
         voter.serialize(ref vote_calldata);
         let proposal_id = 1_u256;
         proposal_id.serialize(ref vote_calldata);

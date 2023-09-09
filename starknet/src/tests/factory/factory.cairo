@@ -1,11 +1,7 @@
 #[cfg(test)]
 mod tests {
-    use array::{ArrayTrait, SpanTrait};
-    use starknet::{syscalls::deploy_syscall, testing, contract_address_const, ContractAddress};
-    use traits::TryInto;
+    use starknet::{syscalls, testing, ContractAddress};
     use sx::factory::factory::{Factory, IFactoryDispatcher, IFactoryDispatcherTrait};
-    use option::OptionTrait;
-    use result::ResultTrait;
     use sx::space::space::Space;
     use sx::types::{Strategy};
     use starknet::ClassHash;
@@ -13,10 +9,6 @@ mod tests {
     use openzeppelin::tests::utils;
     use sx::space::space::Space::SpaceCreated;
     use sx::factory::factory::Factory::NewContractDeployed;
-    use debug::PrintTrait;
-
-    use traits::{PartialEq};
-    use clone::Clone;
 
     fn assert_space_event_is_correct(
         event: SpaceCreated, config: Config, space_address: ContractAddress
@@ -82,14 +74,13 @@ mod tests {
         let mut constructor_calldata = array![];
 
         let factory_address =
-            match deploy_syscall(
+            match syscalls::deploy_syscall(
                 Factory::TEST_CLASS_HASH.try_into().unwrap(), 0, constructor_calldata.span(), false
             ) {
             Result::Ok((address, _)) => address,
             Result::Err(e) => {
-                e.print();
                 panic_with_felt252('deploy failed');
-                contract_address_const::<0>()
+                starknet::contract_address_const::<0>()
             },
         };
 
