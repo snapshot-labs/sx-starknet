@@ -1,17 +1,45 @@
 mod authenticators {
     mod vanilla;
+
     mod eth_tx;
+
     mod eth_sig;
+
     mod stark_sig;
+
     mod stark_tx;
 }
 
 mod execution_strategies {
     mod eth_relayer;
+
     mod no_execution_simple_majority;
+
     mod simple_quorum;
     use simple_quorum::SimpleQuorumExecutionStrategy;
+
     mod vanilla;
+}
+
+mod voting_strategies {
+    mod erc20_votes;
+
+    mod eth_balance_of;
+
+    mod merkle_whitelist;
+
+    mod vanilla;
+}
+
+mod proposal_validation_strategies {
+    mod proposing_power;
+
+    mod vanilla;
+}
+
+mod space {
+    mod space;
+    use space::Space;
 }
 
 mod factory {
@@ -21,42 +49,33 @@ mod factory {
 
 mod interfaces {
     mod i_account;
-    mod i_execution_strategy;
-    mod i_proposal_validation_strategy;
-    mod i_quorum;
-    mod i_voting_strategy;
-    mod i_space;
-
-    use i_voting_strategy::{
-        IVotingStrategy, IVotingStrategyDispatcher, IVotingStrategyDispatcherTrait
-    };
-    use i_execution_strategy::{
-        IExecutionStrategy, IExecutionStrategyDispatcher, IExecutionStrategyDispatcherTrait
-    };
-    use i_proposal_validation_strategy::{
-        IProposalValidationStrategy, IProposalValidationStrategyDispatcher,
-        IProposalValidationStrategyDispatcherTrait
-    };
     use i_account::{
         AccountABI, AccountABIDispatcher, AccountABIDispatcherTrait, AccountCamelABI,
         AccountCamelABIDispatcher, AccountCamelABIDispatcherTrait
     };
+
+    mod i_quorum;
     use i_quorum::{IQuorum, IQuorumDispatcher, IQuorumDispatcherTrait};
+
+    mod i_execution_strategy;
+    use i_execution_strategy::{
+        IExecutionStrategy, IExecutionStrategyDispatcher, IExecutionStrategyDispatcherTrait
+    };
+
+    mod i_proposal_validation_strategy;
+    use i_proposal_validation_strategy::{
+        IProposalValidationStrategy, IProposalValidationStrategyDispatcher,
+        IProposalValidationStrategyDispatcherTrait
+    };
+
+    mod i_voting_strategy;
+    use i_voting_strategy::{
+        IVotingStrategy, IVotingStrategyDispatcher, IVotingStrategyDispatcherTrait
+    };
+
+    mod i_space;
     use i_space::{ISpace, ISpaceDispatcher, ISpaceDispatcherTrait};
 }
-
-
-mod proposal_validation_strategies {
-    mod proposing_power;
-    mod vanilla;
-}
-
-mod space {
-    mod space;
-    use space::Space;
-}
-
-mod tests;
 
 mod types {
     mod choice;
@@ -90,36 +109,47 @@ mod types {
 mod utils {
     mod bits;
     use bits::BitSetter;
+
     mod constants;
+
     mod eip712;
     use eip712::EIP712;
+
     mod endian;
     use endian::ByteReverse;
+
     mod into;
     use into::{TIntoU256, Felt252SpanIntoU256Array};
+
     mod keccak;
     use keccak::KeccakStructHash;
+
     mod legacy_hash;
     use legacy_hash::{
         LegacyHashEthAddress, LegacyHashUsedSalts, LegacyHashChoice, LegacyHashUserAddress,
         LegacyHashVotePower, LegacyHashVoteRegistry, LegacyHashSpanFelt252
     };
+
     mod math;
+
     mod merkle;
+    use merkle::Leaf;
+
     mod proposition_power;
+
     mod reinitializable;
     use reinitializable::Reinitializable;
+
     mod simple_majority;
+
     mod single_slot_proof;
+
     mod stark_eip712;
     use stark_eip712::StarkEIP712;
+
     mod struct_hash;
     use struct_hash::StructHash;
 }
-mod voting_strategies {
-    mod erc20_votes;
-    mod eth_balance_of;
-    mod merkle_whitelist;
-    mod vanilla;
-}
+
+mod tests;
 

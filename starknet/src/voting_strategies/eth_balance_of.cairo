@@ -1,6 +1,6 @@
 #[starknet::contract]
 mod EthBalanceOfVotingStrategy {
-    use starknet::{EthAddress, ContractAddress};
+    use starknet::ContractAddress;
     use sx::{
         interfaces::IVotingStrategy, types::{UserAddress, UserAddressTrait},
         utils::single_slot_proof::SingleSlotProof
