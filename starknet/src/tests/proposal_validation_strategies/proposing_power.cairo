@@ -6,8 +6,7 @@ mod tests {
     use starknet::ContractAddress;
     use sx::{
         voting_strategies::{
-            vanilla::VanillaVotingStrategy, merkle_whitelist::MerkleWhitelistVotingStrategy,
-            erc20_votes::ERC20VotesVotingStrategy
+            merkle_whitelist::MerkleWhitelistVotingStrategy, erc20_votes::ERC20VotesVotingStrategy
         },
         utils::{merkle::Leaf},
         proposal_validation_strategies::proposing_power::{ProposingPowerProposalValidationStrategy},
@@ -17,6 +16,7 @@ mod tests {
         },
         types::{IndexedStrategy, Strategy, UserAddress},
         tests::{
+            mocks::vanilla_voting_strategy::VanillaVotingStrategy,
             test_merkle_whitelist::merkle_utils::{
                 generate_merkle_data, generate_merkle_root, generate_proof
             },

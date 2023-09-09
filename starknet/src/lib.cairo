@@ -1,5 +1,4 @@
 mod authenticators {
-    mod vanilla;
     mod eth_tx;
     mod eth_sig;
     mod stark_sig;
@@ -9,8 +8,6 @@ mod authenticators {
 mod execution_strategies {
     mod eth_relayer;
     mod no_execution_simple_majority;
-    mod simple_quorum;
-    mod vanilla;
 }
 
 mod factory {
@@ -22,7 +19,6 @@ mod interfaces {
     mod i_account;
     mod i_execution_strategy;
     mod i_proposal_validation_strategy;
-    mod i_quorum;
     mod i_voting_strategy;
 
     use i_voting_strategy::{
@@ -39,13 +35,11 @@ mod interfaces {
         AccountABI, AccountABIDispatcher, AccountABIDispatcherTrait, AccountCamelABI,
         AccountCamelABIDispatcher, AccountCamelABIDispatcherTrait
     };
-    use i_quorum::{IQuorum, IQuorumDispatcher, IQuorumDispatcherTrait};
 }
 
 
 mod proposal_validation_strategies {
     mod proposing_power;
-    mod vanilla;
 }
 
 mod space {
@@ -105,6 +99,5 @@ mod voting_strategies {
     mod erc20_votes;
     mod eth_balance_of;
     mod merkle_whitelist;
-    mod vanilla;
 }
 

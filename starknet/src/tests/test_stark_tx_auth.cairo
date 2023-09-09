@@ -14,9 +14,9 @@ mod tests {
     use sx::authenticators::stark_tx::{
         StarkTxAuthenticator, IStarkTxAuthenticatorDispatcher, IStarkTxAuthenticatorDispatcherTrait
     };
-    use sx::execution_strategies::vanilla::VanillaExecutionStrategy;
-    use sx::voting_strategies::vanilla::VanillaVotingStrategy;
-    use sx::proposal_validation_strategies::vanilla::VanillaProposalValidationStrategy;
+    use sx::tests::mocks::vanilla_execution_strategy::VanillaExecutionStrategy;
+    use sx::tests::mocks::vanilla_voting_strategy::VanillaVotingStrategy;
+    use sx::tests::mocks::vanilla_proposal_validation::VanillaProposalValidationStrategy;
     use sx::tests::setup::setup::setup::{setup, deploy};
     use sx::types::{
         UserAddress, Strategy, IndexedStrategy, Choice, FinalizationStatus, Proposal,
