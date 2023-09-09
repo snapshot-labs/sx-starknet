@@ -6,21 +6,22 @@ information.
 ## Architecture
 
 The repository is split into two different parts:
-1. The Starknet part under `./starknet`
-2. The Ethereum part under `./ethereum`
+1. The Cairo files are in a [Scarb](https://github.com/software-mansion/scarb) package under `./starknet`
+2. The Solidity files are in a [Foundry](https://github.com/foundry-rs/foundry) package under `./ethereum`
 
-This project uses [yarn](https://yarnpkg.com/) at the root level, [scarb](https://github.com/software-mansion/scarb) for it's [starknet](https://github.com/foundry-rs/foundry) folder and `foundry` for its `ethereum` folder.
+There is also Hardhat Project in the root directory for crosschain tests. 
 
-To get started, please run `yarn`.
+### Install Python and Yarn requirements: 
 
-### Starknet
+```bash
+python3.9 -m venv ~/cairo_venv
+source ~/cairo_venv/bin/activate
+pip3 install -r requirements.txt
+yarn
+```
 
-We use the [scarb](https://github.com/software-mansion/scarb) package manager for the `starknet` folder.
-The source files are all under `starknet/src`. The tests are located in two different folders:
-1. `starknet/src/tests/` for purely cairo tests (you might also find additional unit tests directly in other files, declared as `mod tests`)
-2. `starknet/test`/ 
 
-#### To run the `starknet/src/tests` tests
+#### To run the Scarb tests
 
 For the following commands, make sure you `cd starknet`.
 
@@ -34,9 +35,9 @@ To test, run:
 scarb test
 ```
 
-#### To run the `starknet/test` tests
+#### To run the Hardhat tests
 
-// First, you will need to install [starknet-devnet](https://github.com/0xSpaceShard/starknet-devnet) ?
+// First, you will need to  install [starknet-devnet](https://github.com/0xSpaceShard/starknet-devnet) ?
 TODO
 
 ### Ethereum
