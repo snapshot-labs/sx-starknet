@@ -1,25 +1,15 @@
-#[starknet::interface]
-trait IReinitializable<TContractState> {
-    fn initialize(ref self: TContractState);
-    fn reinitialize(ref self: TContractState);
-    fn initialized(self: @TContractState);
-    fn not_initialized(self: @TContractState);
-}
-
-/// A helper contract for initializing / re-initializing.
+/// A helper module for initializing / re-initializing.
 #[starknet::contract]
 mod Reinitializable {
-    use super::IReinitializable;
     use starknet::{ContractAddress, syscalls::call_contract_syscall};
-    use core::array::{ArrayTrait, SpanTrait};
 
     #[storage]
     struct Storage {
         _initialized: bool
     }
 
-    #[external(v0)]
-    impl Reinitializable of IReinitializable<ContractState> {
+    #[generate_trait]
+    impl InternalImpl of InternalTrait {
         /// Initialize the contract. Must not have been initialized before.
         fn initialize(ref self: ContractState) {
             self.not_initialized();
