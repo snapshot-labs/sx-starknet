@@ -1,17 +1,54 @@
-mod test_merkle_whitelist;
-mod test_factory;
-mod test_space;
-mod test_upgrade;
-mod test_stark_tx_auth;
-mod test_update_settings;
+mod authenticators {
+    mod stark_tx;
+}
 
-mod execution_strategies;
-mod proposal_validation_strategies;
-mod voting_strategies;
+mod execution_strategies {
+    mod vanilla;
+}
 
-mod mocks;
-mod setup;
 
-mod utils;
+mod proposal_validation_strategies {
+    mod proposition_power;
+}
 
-mod vote;
+mod voting_strategies {
+    mod erc20_votes;
+
+    mod merkle_whitelist;
+}
+
+mod factory {
+    mod factory;
+}
+
+mod space {
+    mod space;
+
+    mod update_settings;
+
+    mod upgrade;
+
+    mod vote;
+}
+
+mod mocks {
+    mod erc20_votes_preset;
+    mod executor;
+    mod no_voting_power;
+    mod proposal_validation_always_fail;
+    mod space_v2;
+    mod simple_quorum;
+    mod vanilla_authenticator;
+    mod vanilla_execution_strategy;
+    mod vanilla_proposal_validation;
+    mod vanilla_voting_strategy;
+}
+
+mod setup {
+    mod setup;
+}
+
+mod utils {
+    mod strategy_trait;
+    mod i_quorum;
+}

@@ -1,6 +1,6 @@
 #[starknet::contract]
 mod SimpleQuorumExecutionStrategy {
-    use starknet::{ContractAddress, get_caller_address, info};
+    use starknet::{ContractAddress, info};
     use sx::types::{Proposal, FinalizationStatus, ProposalStatus};
 
     #[storage]

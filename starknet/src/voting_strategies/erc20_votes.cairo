@@ -1,11 +1,11 @@
 #[starknet::contract]
 mod ERC20VotesVotingStrategy {
-    use sx::interfaces::IVotingStrategy;
-    use sx::types::{UserAddress, UserAddressTrait};
     use starknet::ContractAddress;
     use openzeppelin::governance::utils::interfaces::votes::{
-        IVotes, IVotesDispatcher, IVotesDispatcherTrait
+        IVotesDispatcher, IVotesDispatcherTrait
     };
+    use sx::types::{UserAddress, UserAddressTrait};
+    use sx::interfaces::IVotingStrategy;
 
     #[storage]
     struct Storage {}

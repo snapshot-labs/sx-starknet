@@ -1,8 +1,8 @@
 #[starknet::contract]
 mod VanillaProposalValidationStrategy {
+    use starknet::ContractAddress;
     use sx::interfaces::IProposalValidationStrategy;
     use sx::types::UserAddress;
-    use starknet::ContractAddress;
 
     #[storage]
     struct Storage {}

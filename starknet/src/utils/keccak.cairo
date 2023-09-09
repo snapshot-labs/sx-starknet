@@ -1,10 +1,9 @@
 use sx::types::{Strategy, IndexedStrategy};
+use sx::utils::{ByteReverse, TIntoU256, Felt252SpanIntoU256Array};
 use sx::utils::constants::{
     STRATEGY_TYPEHASH_LOW, STRATEGY_TYPEHASH_HIGH, INDEXED_STRATEGY_TYPEHASH_LOW,
     INDEXED_STRATEGY_TYPEHASH_HIGH,
 };
-use sx::utils::endian::ByteReverse;
-use sx::utils::into::{TIntoU256, Felt252SpanIntoU256Array};
 
 trait KeccakStructHash<T> {
     fn keccak_struct_hash(self: @T) -> u256;

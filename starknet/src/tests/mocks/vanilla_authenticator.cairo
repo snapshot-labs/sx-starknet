@@ -1,4 +1,4 @@
-use starknet::{ContractAddress, SyscallResult};
+use starknet::ContractAddress;
 
 #[starknet::interface]
 trait IVanillaAuthenticator<TContractState> {
@@ -11,8 +11,7 @@ trait IVanillaAuthenticator<TContractState> {
 #[starknet::contract]
 mod VanillaAuthenticator {
     use super::IVanillaAuthenticator;
-    use starknet::ContractAddress;
-    use starknet::syscalls::call_contract_syscall;
+    use starknet::{ContractAddress, syscalls};
 
     #[storage]
     struct Storage {}
@@ -26,7 +25,7 @@ mod VanillaAuthenticator {
             data: Array<felt252>
         ) {
             // TODO: use if let Err(e) once it's supported
-            match call_contract_syscall(target, selector, data.span()) {
+            match syscalls::call_contract_syscall(target, selector, data.span()) {
                 Result::Ok(a) => {},
                 Result::Err(a) => {
                     assert(false, *a[0]);

@@ -2,21 +2,16 @@
 /// See here for more info: https://community.starknet.io/t/snip-off-chain-signatures-a-la-eip712/98029
 #[starknet::contract]
 mod StarkEIP712 {
-    use starknet::{ContractAddress, get_tx_info, get_contract_address};
-    use sx::{
-        types::{Strategy, IndexedStrategy, Choice},
-        utils::{
-            struct_hash::StructHash,
-            constants::{
-                STARKNET_MESSAGE, DOMAIN_TYPEHASH, PROPOSE_TYPEHASH, VOTE_TYPEHASH,
-                UPDATE_PROPOSAL_TYPEHASH, ERC165_ACCOUNT_INTERFACE_ID,
-                ERC165_OLD_ACCOUNT_INTERFACE_ID
-            }
-        },
-        interfaces::{
-            AccountABIDispatcher, AccountABIDispatcherTrait, AccountCamelABIDispatcher,
-            AccountCamelABIDispatcherTrait
-        }
+    use starknet::ContractAddress;
+    use sx::types::{Strategy, IndexedStrategy, Choice};
+    use sx::utils::StructHash;
+    use sx::utils::constants::{
+        STARKNET_MESSAGE, DOMAIN_TYPEHASH, PROPOSE_TYPEHASH, VOTE_TYPEHASH,
+        UPDATE_PROPOSAL_TYPEHASH, ERC165_ACCOUNT_INTERFACE_ID, ERC165_OLD_ACCOUNT_INTERFACE_ID
+    };
+    use sx::interfaces::{
+        AccountABIDispatcher, AccountABIDispatcherTrait, AccountCamelABIDispatcher,
+        AccountCamelABIDispatcherTrait
     };
 
     #[storage]
@@ -164,8 +159,8 @@ mod StarkEIP712 {
             DOMAIN_TYPEHASH.serialize(ref encoded_data);
             name.serialize(ref encoded_data);
             version.serialize(ref encoded_data);
-            get_tx_info().unbox().chain_id.serialize(ref encoded_data);
-            get_contract_address().serialize(ref encoded_data);
+            starknet::get_tx_info().unbox().chain_id.serialize(ref encoded_data);
+            starknet::get_contract_address().serialize(ref encoded_data);
             encoded_data.span().struct_hash()
         }
 

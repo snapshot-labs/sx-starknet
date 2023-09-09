@@ -1,8 +1,8 @@
 #[starknet::contract]
 mod MerkleWhitelistVotingStrategy {
-    use sx::{
-        interfaces::IVotingStrategy, types::UserAddress, utils::merkle::{assert_valid_proof, Leaf}
-    };
+    use sx::interfaces::IVotingStrategy;
+    use sx::types::UserAddress;
+    use sx::utils::{merkle, Leaf};
 
     const LEAF_SIZE: usize = 4; // Serde::<Leaf>::serialize().len()
 
@@ -42,7 +42,7 @@ mod MerkleWhitelistVotingStrategy {
 
             let root = *params.at(0); // no need to deserialize because it's a simple value
 
-            assert_valid_proof(root, leaf, proofs.span());
+            merkle::assert_valid_proof(root, leaf, proofs.span());
             leaf.voting_power
         }
     }

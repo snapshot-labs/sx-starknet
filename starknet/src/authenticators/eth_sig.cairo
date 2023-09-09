@@ -86,11 +86,10 @@ trait IEthSigAuthenticator<TContractState> {
 #[starknet::contract]
 mod EthSigAuthenticator {
     use super::IEthSigAuthenticator;
-    use starknet::{ContractAddress, EthAddress, syscalls::call_contract_syscall};
-    use sx::space::space::{ISpaceDispatcher, ISpaceDispatcherTrait};
+    use starknet::{ContractAddress, EthAddress};
+    use sx::interfaces::{ISpaceDispatcher, ISpaceDispatcherTrait};
     use sx::types::{Strategy, IndexedStrategy, Choice, UserAddress};
-    use sx::utils::{eip712::EIP712, legacy_hash::{LegacyHashEthAddress, LegacyHashUsedSalts}};
-    use sx::utils::endian::{into_le_u64_array, ByteReverse};
+    use sx::utils::{EIP712, LegacyHashEthAddress, LegacyHashUsedSalts, ByteReverse};
 
     #[storage]
     struct Storage {

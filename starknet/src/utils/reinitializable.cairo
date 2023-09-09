@@ -1,7 +1,7 @@
 /// A helper module for initializing / re-initializing.
 #[starknet::contract]
 mod Reinitializable {
-    use starknet::{ContractAddress, syscalls::call_contract_syscall};
+    use starknet::ContractAddress;
 
     #[storage]
     struct Storage {

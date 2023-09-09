@@ -12,8 +12,8 @@ mod setup {
     use starknet::syscalls::deploy_syscall;
     use sx::factory::factory::{Factory, IFactoryDispatcher, IFactoryDispatcherTrait};
     use starknet::ClassHash;
-    use sx::space::space::{Space, ISpaceDispatcher, ISpaceDispatcherTrait};
-    use debug::PrintTrait;
+    use sx::interfaces::{ISpaceDispatcher, ISpaceDispatcherTrait};
+    use sx::space::space::Space;
 
     #[derive(Drop, Serde)]
     struct Config {
@@ -127,7 +127,6 @@ mod setup {
             ) {
             Result::Ok((address, _)) => address,
             Result::Err(e) => {
-                e.print();
                 panic_with_felt252('deploy failed');
                 contract_address_const::<0>()
             }
@@ -141,7 +140,6 @@ mod setup {
                 .deploy(space_class_hash, contract_address_salt, initializer_calldata.span()) {
             Result::Ok(address) => address,
             Result::Err(e) => {
-                e.print();
                 panic_with_felt252('deploy failed');
                 contract_address_const::<0>()
             },

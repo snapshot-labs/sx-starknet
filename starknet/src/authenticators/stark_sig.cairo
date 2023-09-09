@@ -83,11 +83,9 @@ trait IStarkSigAuthenticator<TContractState> {
 mod StarkSigAuthenticator {
     use super::IStarkSigAuthenticator;
     use starknet::{ContractAddress, info};
-    use sx::{
-        space::space::{ISpaceDispatcher, ISpaceDispatcherTrait},
-        types::{Strategy, IndexedStrategy, UserAddress, Choice},
-    };
-    use sx::utils::stark_eip712::StarkEIP712;
+    use sx::interfaces::{ISpaceDispatcher, ISpaceDispatcherTrait};
+    use sx::types::{Strategy, IndexedStrategy, UserAddress, Choice};
+    use sx::utils::StarkEIP712;
 
     #[storage]
     struct Storage {
