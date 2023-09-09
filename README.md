@@ -36,6 +36,7 @@ scarb test
 
 #### To run the `starknet/test` tests
 
+// First, you will need to install [starknet-devnet](https://github.com/0xSpaceShard/starknet-devnet) ?
 TODO
 
 ### Ethereum
