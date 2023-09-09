@@ -1,41 +1,38 @@
 mod authenticators {
-    mod vanilla;
-
     mod eth_tx;
+    use eth_tx::EthTxAuthenticator;
 
     mod eth_sig;
+    use eth_sig::EthSigAuthenticator;
 
     mod stark_sig;
+    use stark_sig::StarkSigAuthenticator;
 
     mod stark_tx;
+    use stark_tx::StarkTxAuthenticator;
 }
 
 mod execution_strategies {
     mod eth_relayer;
+    use eth_relayer::EthRelayerExecutionStrategy;
 
     mod no_execution_simple_majority;
-
-    mod simple_quorum;
-    use simple_quorum::SimpleQuorumExecutionStrategy;
-
-    mod vanilla;
+    use no_execution_simple_majority::NoExecutionSimpleMajorityExecutionStrategy;
 }
 
 mod voting_strategies {
     mod erc20_votes;
+    use erc20_votes::ERC20VotesVotingStrategy;
 
     mod eth_balance_of;
+    use eth_balance_of::EthBalanceOfVotingStrategy;
 
     mod merkle_whitelist;
-
-    mod vanilla;
+    use merkle_whitelist::MerkleWhitelistVotingStrategy;
 }
-
 mod proposal_validation_strategies {
     mod proposition_power;
     use proposition_power::PropositionPowerProposalValidationStrategy;
-
-    mod vanilla;
 }
 
 mod space {
@@ -54,9 +51,6 @@ mod interfaces {
         AccountABI, AccountABIDispatcher, AccountABIDispatcherTrait, AccountCamelABI,
         AccountCamelABIDispatcher, AccountCamelABIDispatcherTrait
     };
-
-    mod i_quorum;
-    use i_quorum::{IQuorum, IQuorumDispatcher, IQuorumDispatcherTrait};
 
     mod i_execution_strategy;
     use i_execution_strategy::{

@@ -3,12 +3,12 @@ mod tests {
     use starknet::{ContractAddress, syscalls, testing, info};
     use sx::space::space::{Space, Space::VoteCast};
     use sx::interfaces::{ISpaceDispatcher, ISpaceDispatcherTrait};
-    use sx::authenticators::vanilla::{
+    use sx::tests::mocks::vanilla_authenticator::{
         VanillaAuthenticator, IVanillaAuthenticatorDispatcher, IVanillaAuthenticatorDispatcherTrait
     };
     use sx::tests::mocks::executor::ExecutorWithoutTxExecutionStrategy;
-    use sx::voting_strategies::vanilla::VanillaVotingStrategy;
-    use sx::proposal_validation_strategies::vanilla::VanillaProposalValidationStrategy;
+    use sx::tests::mocks::vanilla_voting_strategy::VanillaVotingStrategy;
+    use sx::tests::mocks::vanilla_proposal_validation::VanillaProposalValidationStrategy;
     use sx::tests::mocks::proposal_validation_always_fail::AlwaysFailProposalValidationStrategy;
     use sx::tests::mocks::no_voting_power::NoVotingPowerVotingStrategy;
     use sx::tests::setup::setup::setup::{setup, deploy};

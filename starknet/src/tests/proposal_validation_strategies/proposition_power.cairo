@@ -1,13 +1,9 @@
 #[cfg(test)]
 mod tests {
-    use starknet::syscalls::deploy_syscall;
-    use starknet::SyscallResult;
-    use starknet::contract_address_const;
-    use starknet::ContractAddress;
+    use starknet::{ContractAddress, syscalls};
     use sx::{
         voting_strategies::{
-            vanilla::VanillaVotingStrategy, merkle_whitelist::MerkleWhitelistVotingStrategy,
-            erc20_votes::ERC20VotesVotingStrategy
+            merkle_whitelist::MerkleWhitelistVotingStrategy, erc20_votes::ERC20VotesVotingStrategy
         },
         utils::{merkle::Leaf},
         proposal_validation_strategies::{PropositionPowerProposalValidationStrategy},
@@ -17,7 +13,8 @@ mod tests {
         },
         types::{IndexedStrategy, Strategy, UserAddress},
         tests::{
-            test_merkle_whitelist::merkle_utils::{
+            mocks::vanilla_voting_strategy::VanillaVotingStrategy,
+            voting_strategies::merkle_whitelist::merkle_utils::{
                 generate_merkle_data, generate_merkle_root, generate_proof
             },
             mocks::erc20_votes_preset::ERC20VotesPreset
@@ -34,7 +31,7 @@ mod tests {
         starknet::testing::set_block_timestamp(1);
 
         // deploy vanilla voting strategy
-        let (vanilla_contract, _) = deploy_syscall(
+        let (vanilla_contract, _) = syscalls::deploy_syscall(
             VanillaVotingStrategy::TEST_CLASS_HASH.try_into().unwrap(), 0, array![].span(), false
         )
             .unwrap();
@@ -42,7 +39,7 @@ mod tests {
         let vanilla_strategy = Strategy { address: vanilla_contract, params: array![], };
 
         // create a proposal validation strategy
-        let (proposal_validation_contract, _) = deploy_syscall(
+        let (proposal_validation_contract, _) = syscalls::deploy_syscall(
             PropositionPowerProposalValidationStrategy::TEST_CLASS_HASH.try_into().unwrap(),
             0,
             array![].span(),
@@ -66,7 +63,7 @@ mod tests {
             contract_address: proposal_validation_contract,
         };
 
-        let author = UserAddress::Starknet(contract_address_const::<0x123456789>());
+        let author = UserAddress::Starknet(starknet::contract_address_const::<0x123456789>());
 
         // Vanilla should return 1 so it should be fine
         let is_validated = contract.validate(author, params.span(), user_params.span());
@@ -107,7 +104,7 @@ mod tests {
         starknet::testing::set_block_timestamp(1);
 
         // deploy merkle whitelist contract
-        let (merkle_contract, _) = deploy_syscall(
+        let (merkle_contract, _) = syscalls::deploy_syscall(
             MerkleWhitelistVotingStrategy::TEST_CLASS_HASH.try_into().unwrap(),
             0,
             array![].span(),
@@ -116,7 +113,7 @@ mod tests {
             .unwrap();
 
         // create proposal validation strategy based on the deployed merkle whitelist contract
-        let (proposal_validation_contract, _) = deploy_syscall(
+        let (proposal_validation_contract, _) = syscalls::deploy_syscall(
             PropositionPowerProposalValidationStrategy::TEST_CLASS_HASH.try_into().unwrap(),
             0,
             array![].span(),
@@ -129,9 +126,9 @@ mod tests {
         };
 
         // Generate leaves
-        let voter1 = UserAddress::Starknet(contract_address_const::<0x111111>());
-        let voter2 = UserAddress::Starknet(contract_address_const::<0x111112>());
-        let voter3 = UserAddress::Starknet(contract_address_const::<0x111113>());
+        let voter1 = UserAddress::Starknet(starknet::contract_address_const::<0x111111>());
+        let voter2 = UserAddress::Starknet(starknet::contract_address_const::<0x111112>());
+        let voter3 = UserAddress::Starknet(starknet::contract_address_const::<0x111113>());
         let leaf1 = Leaf { address: voter1, voting_power: 1 };
         let leaf2 = Leaf { address: voter2, voting_power: 2 };
         let leaf3 = Leaf { address: voter3, voting_power: 3 };
@@ -202,7 +199,7 @@ mod tests {
         // -- Now let's mix merkle and vanilla voting strategies --
 
         // deploy vanilla voting strategy
-        let (vanilla_contract, _) = deploy_syscall(
+        let (vanilla_contract, _) = syscalls::deploy_syscall(
             VanillaVotingStrategy::TEST_CLASS_HASH.try_into().unwrap(), 0, array![].span(), false
         )
             .unwrap();
@@ -233,7 +230,7 @@ mod tests {
         assert(is_validated, 'should have enough VP2');
 
         // and a random voter that doesn't use the whitelist should not have enough VP
-        let author = UserAddress::Starknet(contract_address_const::<0x123456789>());
+        let author = UserAddress::Starknet(starknet::contract_address_const::<0x123456789>());
         let used_strategies = array![vanilla.clone()];
         let mut user_params = array![];
         used_strategies.serialize(ref user_params);
@@ -243,7 +240,7 @@ mod tests {
     }
 
     fn strategy_from_contract(token_contract: ContractAddress) -> Strategy {
-        let (contract, _) = deploy_syscall(
+        let (contract, _) = syscalls::deploy_syscall(
             ERC20VotesVotingStrategy::TEST_CLASS_HASH.try_into().unwrap(),
             0,
             array![].span(),
@@ -262,12 +259,12 @@ mod tests {
         let SUPPLY = 100_u256;
 
         // deploy erc20 voting strategy
-        let owner = contract_address_const::<'owner'>();
+        let owner = starknet::contract_address_const::<'owner'>();
         let mut constructor = array!['TEST', 'TST'];
         SUPPLY.serialize(ref constructor);
         owner.serialize(ref constructor);
 
-        let (erc20_contract, _) = deploy_syscall(
+        let (erc20_contract, _) = syscalls::deploy_syscall(
             ERC20VotesPreset::TEST_CLASS_HASH.try_into().unwrap(), 0, constructor.span(), false
         )
             .unwrap();
@@ -283,7 +280,7 @@ mod tests {
         starknet::testing::set_block_timestamp(1);
 
         // create a proposal validation strategy
-        let (proposal_validation_contract, _) = deploy_syscall(
+        let (proposal_validation_contract, _) = syscalls::deploy_syscall(
             PropositionPowerProposalValidationStrategy::TEST_CLASS_HASH.try_into().unwrap(),
             0,
             array![].span(),

@@ -1,9 +1,9 @@
 #[cfg(test)]
 mod tests {
+    use sx::tests::utils::i_quorum::{IQuorum, IQuorumDispatcher, IQuorumDispatcherTrait};
+    use sx::tests::mocks::vanilla_execution_strategy::{VanillaExecutionStrategy};
+    use sx::tests::mocks::simple_quorum::SimpleQuorumExecutionStrategy;
     use starknet::syscalls;
-    use sx::interfaces::{IQuorum, IQuorumDispatcher, IQuorumDispatcherTrait};
-    use sx::execution_strategies::vanilla::VanillaExecutionStrategy;
-    use sx::execution_strategies::SimpleQuorumExecutionStrategy;
 
     #[test]
     #[available_gas(10000000)]

@@ -1,8 +1,8 @@
 #[starknet::contract]
 mod VanillaExecutionStrategy {
-    use sx::interfaces::{IExecutionStrategy, IQuorum};
+    use sx::interfaces::{IExecutionStrategy};
     use sx::types::{Proposal, ProposalStatus};
-    use sx::execution_strategies::SimpleQuorumExecutionStrategy;
+    use sx::tests::{mocks::simple_quorum::SimpleQuorumExecutionStrategy, utils::i_quorum::IQuorum};
 
     #[storage]
     struct Storage {

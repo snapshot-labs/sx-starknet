@@ -13,7 +13,7 @@ mod tests {
     use sx::interfaces::{
         IVotingStrategy, IVotingStrategyDispatcher, IVotingStrategyDispatcherTrait
     };
-    use sx::authenticators::vanilla::{
+    use sx::tests::mocks::vanilla_authenticator::{
         VanillaAuthenticator, IVanillaAuthenticatorDispatcher, IVanillaAuthenticatorDispatcherTrait
     };
     use sx::voting_strategies::erc20_votes::ERC20VotesVotingStrategy;
@@ -23,7 +23,7 @@ mod tests {
     };
     use sx::tests::utils::strategy_trait::StrategyImpl;
     use sx::utils::constants::{PROPOSE_SELECTOR, VOTE_SELECTOR};
-    use sx::execution_strategies::vanilla::VanillaExecutionStrategy;
+    use sx::tests::mocks::vanilla_execution_strategy::VanillaExecutionStrategy;
 
     const NAME: felt252 = 'TEST';
     const SYMBOL: felt252 = 'TST';

@@ -2,10 +2,10 @@
 mod setup {
     use starknet::{ContractAddress, contract_address_const};
     use sx::types::Strategy;
-    use sx::authenticators::vanilla::{VanillaAuthenticator};
-    use sx::execution_strategies::vanilla::VanillaExecutionStrategy;
-    use sx::voting_strategies::vanilla::VanillaVotingStrategy;
-    use sx::proposal_validation_strategies::vanilla::VanillaProposalValidationStrategy;
+    use sx::tests::mocks::vanilla_authenticator::{VanillaAuthenticator};
+    use sx::tests::mocks::vanilla_execution_strategy::VanillaExecutionStrategy;
+    use sx::tests::mocks::vanilla_voting_strategy::VanillaVotingStrategy;
+    use sx::tests::mocks::vanilla_proposal_validation::VanillaProposalValidationStrategy;
     use sx::tests::utils::strategy_trait::StrategyImpl;
     use integer::u256_from_felt252;
     use starknet::testing;
