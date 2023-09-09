@@ -14,8 +14,7 @@ mod VanillaExecutionStrategy {
         fn quorum(self: @ContractState) -> u256 {
             let mut state: SimpleQuorumExecutionStrategy::ContractState =
                 SimpleQuorumExecutionStrategy::unsafe_new_contract_state();
-
-            SimpleQuorumExecutionStrategy::quorum(@state)
+            SimpleQuorumExecutionStrategy::InternalImpl::quorum(@state)
         }
     }
 
@@ -51,7 +50,7 @@ mod VanillaExecutionStrategy {
             let mut state: SimpleQuorumExecutionStrategy::ContractState =
                 SimpleQuorumExecutionStrategy::unsafe_new_contract_state();
 
-            SimpleQuorumExecutionStrategy::get_proposal_status(
+            SimpleQuorumExecutionStrategy::InternalImpl::get_proposal_status(
                 @state, @proposal, votes_for, votes_against, votes_abstain,
             )
         }
@@ -65,11 +64,14 @@ mod VanillaExecutionStrategy {
     fn constructor(ref self: ContractState, quorum: u256) {
         // TODO: temporary until components are released
         let mut state = SimpleQuorumExecutionStrategy::unsafe_new_contract_state();
-        SimpleQuorumExecutionStrategy::initializer(ref state, quorum);
+        SimpleQuorumExecutionStrategy::InternalImpl::initializer(ref state, quorum);
     }
 
-    #[view]
-    fn num_executed(self: @ContractState) -> felt252 {
-        self._num_executed.read()
+    #[external(v0)]
+    #[generate_trait]
+    impl NumExecutedImpl of NumExecutedTrait {
+        fn num_executed(self: @ContractState) -> felt252 {
+            self._num_executed.read()
+        }
     }
 }

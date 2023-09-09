@@ -89,7 +89,7 @@ mod EthSigAuthenticator {
     use starknet::{ContractAddress, EthAddress, syscalls::call_contract_syscall};
     use sx::space::space::{ISpaceDispatcher, ISpaceDispatcherTrait};
     use sx::types::{Strategy, IndexedStrategy, Choice, UserAddress};
-    use sx::utils::{eip712, legacy_hash::{LegacyHashEthAddress, LegacyHashUsedSalts}};
+    use sx::utils::{eip712::EIP712, legacy_hash::{LegacyHashEthAddress, LegacyHashUsedSalts}};
     use sx::utils::endian::{into_le_u64_array, ByteReverse};
 
     #[storage]
@@ -114,11 +114,12 @@ mod EthSigAuthenticator {
         ) {
             assert(!self._used_salts.read((author, salt)), 'Salt Already Used');
 
-            eip712::verify_propose_sig(
+            let state = EIP712::unsafe_new_contract_state();
+            EIP712::InternalImpl::verify_propose_sig(
+                @state,
                 r,
                 s,
                 v,
-                self._domain_hash.read(),
                 space,
                 author,
                 metadata_uri.span(),
@@ -150,11 +151,12 @@ mod EthSigAuthenticator {
         ) {
             // No need to check salts here, as double voting is prevented by the space itself.
 
-            eip712::verify_vote_sig(
+            let state = EIP712::unsafe_new_contract_state();
+            EIP712::InternalImpl::verify_vote_sig(
+                @state,
                 r,
                 s,
                 v,
-                self._domain_hash.read(),
                 space,
                 voter,
                 proposal_id,
@@ -187,11 +189,12 @@ mod EthSigAuthenticator {
         ) {
             assert(!self._used_salts.read((author, salt)), 'Salt Already Used');
 
-            eip712::verify_update_proposal_sig(
+            let state = EIP712::unsafe_new_contract_state();
+            EIP712::InternalImpl::verify_update_proposal_sig(
+                @state,
                 r,
                 s,
                 v,
-                self._domain_hash.read(),
                 space,
                 author,
                 proposal_id,
@@ -209,6 +212,7 @@ mod EthSigAuthenticator {
 
     #[constructor]
     fn constructor(ref self: ContractState) {
-        self._domain_hash.write(eip712::get_domain_hash());
+        let mut state = EIP712::unsafe_new_contract_state();
+        EIP712::InternalImpl::initializer(ref state);
     }
 }

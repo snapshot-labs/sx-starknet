@@ -90,7 +90,6 @@ mod utils {
     mod merkle;
     mod proposition_power;
     mod reinitializable;
-    use reinitializable::Reinitializable::Reinitializable as ReinitializableImpl;
     mod simple_majority;
     mod single_slot_proof;
     mod stark_eip712;
