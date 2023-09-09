@@ -15,12 +15,12 @@ mod tests {
         Space, Space::{ProposalCreated, VoteCast, ProposalUpdated}, ISpaceDispatcher,
         ISpaceDispatcherTrait
     };
-    use sx::authenticators::vanilla::{
+    use sx::tests::mocks::vanilla_authenticator::{
         VanillaAuthenticator, IVanillaAuthenticatorDispatcher, IVanillaAuthenticatorDispatcherTrait
     };
-    use sx::execution_strategies::vanilla::VanillaExecutionStrategy;
-    use sx::voting_strategies::vanilla::VanillaVotingStrategy;
-    use sx::proposal_validation_strategies::vanilla::VanillaProposalValidationStrategy;
+    use sx::tests::mocks::vanilla_execution_strategy::VanillaExecutionStrategy;
+    use sx::tests::mocks::vanilla_voting_strategy::VanillaVotingStrategy;
+    use sx::tests::mocks::vanilla_proposal_validation::VanillaProposalValidationStrategy;
     use sx::tests::mocks::proposal_validation_always_fail::AlwaysFailProposalValidationStrategy;
     use sx::tests::setup::setup::setup::{setup, deploy};
     use sx::types::{

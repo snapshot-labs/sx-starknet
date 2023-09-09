@@ -3,3 +3,8 @@ mod executor;
 mod no_voting_power;
 mod proposal_validation_always_fail;
 mod space_v2;
+mod simple_quorum;
+mod vanilla_authenticator;
+mod vanilla_execution_strategy;
+mod vanilla_proposal_validation;
+mod vanilla_voting_strategy;
