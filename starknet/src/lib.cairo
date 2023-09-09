@@ -138,12 +138,17 @@ mod utils {
     mod simple_majority;
 
     mod single_slot_proof;
+    use single_slot_proof::SingleSlotProof;
 
     mod stark_eip712;
     use stark_eip712::StarkEIP712;
 
     mod struct_hash;
     use struct_hash::StructHash;
+}
+
+mod external {
+    mod herodotus;
 }
 
 mod tests;
