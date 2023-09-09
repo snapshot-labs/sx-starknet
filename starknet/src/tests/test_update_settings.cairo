@@ -1,15 +1,11 @@
 #[cfg(test)]
 mod tests {
-    use sx::space::space::{Space, ISpaceDispatcher, ISpaceDispatcherTrait};
+    use starknet::{ContractAddress, info, testing};
+    use sx::interfaces::{ISpaceDispatcher, ISpaceDispatcherTrait};
+    use sx::space::space::Space;
     use sx::tests::setup::setup::setup::{setup, deploy, Config};
-    use sx::types::{UpdateSettingsCalldata};
+    use sx::types::UpdateSettingsCalldata;
     use sx::tests::utils::strategy_trait::{StrategyImpl, StrategyDefault};
-    use starknet::testing;
-    use starknet::info;
-    use starknet::{contract_address_const, ContractAddress};
-    use clone::Clone;
-    use array::{ArrayTrait, SpanTrait};
-    use serde::Serde;
     use openzeppelin::tests::utils;
     use sx::space::space::Space::{
         MinVotingDurationUpdated, MaxVotingDurationUpdated, VotingDelayUpdated, MetadataUriUpdated,
@@ -44,7 +40,7 @@ mod tests {
         let (config, space) = setup_update_settings();
         let mut input: UpdateSettingsCalldata = Default::default();
 
-        testing::set_contract_address(contract_address_const::<'unauthorized'>());
+        testing::set_contract_address(starknet::contract_address_const::<'unauthorized'>());
         space.update_settings(input);
     }
 
@@ -199,7 +195,7 @@ mod tests {
         let (config, space) = setup_update_settings();
         let mut input: UpdateSettingsCalldata = Default::default();
         let randomStrategy = StrategyImpl::from_address(
-            contract_address_const::<'randomStrategy'>()
+            starknet::contract_address_const::<'randomStrategy'>()
         );
         input.proposal_validation_strategy = randomStrategy;
         let mut arr = array![];
@@ -226,8 +222,8 @@ mod tests {
     fn add_authenticators() {
         let (config, space) = setup_update_settings();
         let mut input: UpdateSettingsCalldata = Default::default();
-        let auth1 = contract_address_const::<'authenticator1'>();
-        let auth2 = contract_address_const::<'authenticator2'>();
+        let auth1 = starknet::contract_address_const::<'authenticator1'>();
+        let auth2 = starknet::contract_address_const::<'authenticator2'>();
         let mut arr = array![auth1, auth2];
         input.authenticators_to_add = arr;
 
@@ -264,8 +260,12 @@ mod tests {
         let (config, space) = setup_update_settings();
         let mut input: UpdateSettingsCalldata = Default::default();
 
-        let vs1 = StrategyImpl::from_address(contract_address_const::<'votingStrategy1'>());
-        let vs2 = StrategyImpl::from_address(contract_address_const::<'votingStrategy2'>());
+        let vs1 = StrategyImpl::from_address(
+            starknet::contract_address_const::<'votingStrategy1'>()
+        );
+        let vs2 = StrategyImpl::from_address(
+            starknet::contract_address_const::<'votingStrategy2'>()
+        );
 
         let mut arr = array![vs1.clone(), vs2.clone()];
         input.voting_strategies_to_add = arr;
@@ -291,8 +291,12 @@ mod tests {
         let (config, space) = setup_update_settings();
         let mut input: UpdateSettingsCalldata = Default::default();
 
-        let vs1 = StrategyImpl::from_address(contract_address_const::<'votingStrategy1'>());
-        let vs2 = StrategyImpl::from_address(contract_address_const::<'votingStrategy2'>());
+        let vs1 = StrategyImpl::from_address(
+            starknet::contract_address_const::<'votingStrategy1'>()
+        );
+        let vs2 = StrategyImpl::from_address(
+            starknet::contract_address_const::<'votingStrategy2'>()
+        );
 
         let mut arr = array![vs1.clone(), vs2.clone()];
         input.voting_strategies_to_add = arr;
@@ -313,7 +317,9 @@ mod tests {
         let mut input: UpdateSettingsCalldata = Default::default();
 
         // First, add a new voting strategy
-        let vs1 = StrategyImpl::from_address(contract_address_const::<'votingStrategy1'>());
+        let vs1 = StrategyImpl::from_address(
+            starknet::contract_address_const::<'votingStrategy1'>()
+        );
         let mut arr = array![vs1.clone()];
         input.voting_strategies_to_add = arr;
         input.voting_strategies_metadata_uris_to_add = array![array![]];

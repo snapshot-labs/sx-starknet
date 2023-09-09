@@ -1,13 +1,7 @@
 #[cfg(test)]
 mod merkle_utils {
-    use array::{ArrayTrait, SpanTrait};
-    use clone::Clone;
-    use traits::Into;
-    use result::ResultTrait;
-    use option::OptionTrait;
     use hash::LegacyHash;
     use sx::utils::merkle::{Leaf, Hash};
-    use starknet::contract_address_try_from_felt252;
     use sx::types::UserAddress;
 
     impl SpanIntoArray<T, impl TClone: Clone<T>, impl TDrop: Drop<T>> of Into<Span<T>, Array<T>> {
@@ -143,7 +137,9 @@ mod merkle_utils {
                 address = UserAddress::Ethereum(starknet::EthAddress { address: i.into() });
             } else {
                 address =
-                    UserAddress::Starknet(contract_address_try_from_felt252(i.into()).unwrap());
+                    UserAddress::Starknet(
+                        starknet::contract_address_try_from_felt252(i.into()).unwrap()
+                    );
             }
             members.append(Leaf { address: address, voting_power: i.into() });
             i += 1;
