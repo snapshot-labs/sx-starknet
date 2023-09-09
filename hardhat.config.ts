@@ -63,7 +63,7 @@ const config: HardhatUserConfig = {
   paths: {
     starknetSources: './starknet',
     sources: 'ethereum/src/',
-    tests: './starknet/tests',
+    tests: './tests',
     cairoPaths: ['starknet/src/'],
   },
 };
