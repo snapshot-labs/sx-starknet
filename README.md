@@ -6,47 +6,45 @@ information.
 ## Architecture
 
 The repository is split into two different parts:
-1. The Cairo files are in a [Scarb](https://github.com/software-mansion/scarb) package under `./starknet`
-2. The Solidity files are in a [Foundry](https://github.com/foundry-rs/foundry) package under `./ethereum`
+1. The Cairo files are in a [Scarb](https://github.com/software-mansion/scarb) package under `./starknet`. (Tested with Scarb version 0.7.0)
+2. The Solidity files are in a [Forge](https://github.com/foundry-rs/foundry) package under `./ethereum`. (Tested with Forge version 0.2.0)
 
 There is also Hardhat Project in the root directory for crosschain tests. 
 
-### Install Python and Yarn requirements: 
+#### Run Cairo Tests
 
-```bash
-python3.9 -m venv ~/cairo_venv
-source ~/cairo_venv/bin/activate
-pip3 install -r requirements.txt
-yarn
+Enter directory: 
+```sh
+cd starknet
 ```
 
-
-#### To run the Scarb tests
-
-For the following commands, make sure you `cd starknet`.
-
-To build, simply run
+Build contracts:
 ```sh
 scarb build
 ```
 
-To test, run:
+Run tests:
 ```sh
 scarb test
 ```
 
-#### To run the Hardhat tests
+### Run Solidity Tests
 
-// First, you will need to  install [starknet-devnet](https://github.com/0xSpaceShard/starknet-devnet) ?
-TODO
+Enter directory: 
+```sh
+cd ethereum
+```
 
-### Ethereum
+Build contracts:
+```sh
+forge build
+```
 
-We use the [foundry](https://github.com/foundry-rs/foundry) toolkit for the `ethereum` folder.
-The source files are all under `ethereum/src`. `ethereum/src/mocks` contain mock implementations useful for testing.
+Run tests:
+```sh
+forge test
+```
 
-The tests are located in `ethereum/test`.
+#### Run Hardhat Tests
 
-#### To runt the `ethereum/test` tests
-
-TODO
+The Hardhat tests can be run following the procedure followed in the [CI](.github/workflows/test.yml). You will need local Starknet Devnet and Ethereum devnet instances running. 
