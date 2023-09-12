@@ -9,7 +9,7 @@ const UPDATE_PROPOSAL_SELECTOR: felt252 =
 
 const ETHEREUM_PREFIX: u128 = 0x1901;
 
-// keccak256("EIP712Domain()")
+// keccak256(abi.encode(keccak256("EIP712Domain()"))
 const DOMAIN_HASH_HIGH: u128 = 0x6192106f129ce05c9075d319c1fa6ea9;
 const DOMAIN_HASH_LOW: u128 = 0xb3ae37cbd0c1ef92e2be7137bb07baa1;
 
