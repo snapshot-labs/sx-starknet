@@ -9,27 +9,27 @@ const UPDATE_PROPOSAL_SELECTOR: felt252 =
 
 const ETHEREUM_PREFIX: u128 = 0x1901;
 
-// keccak256("EIP712Domain(uint256 chainId)")
-const DOMAIN_TYPEHASH_HIGH: u128 = 0xc49a8e302e3e5d6753b2bb3dbc3c28de;
-const DOMAIN_TYPEHASH_LOW: u128 = 0xba5e16e2572a92aef568063c963e3465;
+// keccak256("EIP712Domain()")
+const DOMAIN_HASH_HIGH: u128 = 0x6192106f129ce05c9075d319c1fa6ea9;
+const DOMAIN_HASH_LOW: u128 = 0xb3ae37cbd0c1ef92e2be7137bb07baa1;
 
 // keccak256(
-//    "Propose(uint256 authenticator,uint256 space,address author,uint256[] metadataUri,Strategy executionStrategy,uint256[] userProposalValidationParams,uint256 salt)Strategy(uint256 address,uint256[] params)"
+//    "Propose(uint256 chainId,uint256 authenticator,uint256 space,address author,uint256[] metadataUri,Strategy executionStrategy,uint256[] userProposalValidationParams,uint256 salt)Strategy(uint256 address,uint256[] params)"
 //         )
-const PROPOSE_TYPEHASH_HIGH: u128 = 0x4dfc61ed4ed6dbe067c67c4d27609650;
-const PROPOSE_TYPEHASH_LOW: u128 = 0xc15e92250dad00bce5b7a15d803f412c;
+const PROPOSE_TYPEHASH_HIGH: u128 = 0x04ede461dac4a3b480afeb3954345a3e;
+const PROPOSE_TYPEHASH_LOW: u128 = 0x86377d7136dad5401c9e3ff24c7a0f07;
 
 // keccak256(
-//    "Vote(uint256 authenticator,uint256 space,address voter,uint256 proposalId,uint256 choice,IndexedStrategy[] userVotingStrategies,uint256[] metadataUri)IndexedStrategy(uint256 index,uint256[] params)"
+//    "Vote(uint256 chainId,uint256 authenticator,uint256 space,address voter,uint256 proposalId,uint256 choice,IndexedStrategy[] userVotingStrategies,uint256[] metadataUri)IndexedStrategy(uint256 index,uint256[] params)"
 //         )
-const VOTE_TYPEHASH_HIGH: u128 = 0x3de8a6075852dd4e4b0b01cdd1c58ed6;
-const VOTE_TYPEHASH_LOW: u128 = 0x2e3bdd0734e744e68fbab937d9ec3663;
+const VOTE_TYPEHASH_HIGH: u128 = 0x9f141e8a6807fa0c11618a1232b75ba3;
+const VOTE_TYPEHASH_LOW: u128 = 0x298f2993575d81a3b6ec2d52ae694cb7;
 
 // keccak256(
-//    "UpdateProposal(uint256 authenticator,uint256 space,address author,uint256 proposalId,Strategy executionStrategy,uint256[] metadataUri,uint256 salt)Strategy(uint256 address,uint256[] params)"
+//    "UpdateProposal(uint256 chainId,uint256 authenticator,uint256 space,address author,uint256 proposalId,Strategy executionStrategy,uint256[] metadataUri,uint256 salt)Strategy(uint256 address,uint256[] params)"
 //         )
-const UPDATE_PROPOSAL_TYPEHASH_HIGH: u128 = 0xccae29691c0af6c4ee02ec442cb0ade3;
-const UPDATE_PROPOSAL_TYPEHASH_LOW: u128 = 0x3fc36989a73ba9357060d3eeac00b67f;
+const UPDATE_PROPOSAL_TYPEHASH_HIGH: u128 = 0x2df41899fffb50338812b0c6bb5db608;
+const UPDATE_PROPOSAL_TYPEHASH_LOW: u128 = 0x9503bccdcdb9a1ed596eea5bb5087f84;
 
 // keccak256("Strategy(uint256 address,uint256[] params)")
 const STRATEGY_TYPEHASH_HIGH: u128 = 0xa6cb034787a88e7219605b9db792cb9a;
