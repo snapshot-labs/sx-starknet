@@ -13,9 +13,7 @@ trait StructHash<T> {
 
 impl StructHashSpanFelt252 of StructHash<Span<felt252>> {
     fn struct_hash(self: @Span<felt252>) -> felt252 {
-        let mut call_data_state = LegacyHash::hash(0, *self);
-        call_data_state = LegacyHash::hash(call_data_state, (*self).len());
-        call_data_state
+        LegacyHash::hash(0, *self)
     }
 }
 

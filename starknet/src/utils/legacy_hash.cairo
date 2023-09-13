@@ -17,6 +17,7 @@ impl LegacyHashEthAddress of LegacyHash<EthAddress> {
 
 impl LegacyHashSpanFelt252 of LegacyHash<Span<felt252>> {
     fn hash(state: felt252, mut value: Span<felt252>) -> felt252 {
+        let len = value.len();
         let mut call_data_state: felt252 = 0;
         loop {
             match value.pop_front() {
@@ -24,7 +25,7 @@ impl LegacyHashSpanFelt252 of LegacyHash<Span<felt252>> {
                     call_data_state = LegacyHash::hash(call_data_state, *item);
                 },
                 Option::None(_) => {
-                    break call_data_state;
+                    break LegacyHash::hash(call_data_state, len);
                 },
             };
         }
