@@ -1,11 +1,12 @@
 /// SPDX-License-Identifier: MIT
 
-pragma solidity ^0.8.6;
+pragma solidity ^0.8.18;
 
 interface IStarknetCore {
-    function sendMessageToL2(uint256 to_address, uint256 selector, uint256[] calldata payload)
+    function sendMessageToL2(uint256 toAddress, uint256 selector, uint256[] calldata payload)
         external
-        returns (bytes32);
+        payable
+        returns (bytes32, uint256);
 
     function consumeMessageFromL2(uint256 fromAddress, uint256[] calldata payload) external returns (bytes32);
 
