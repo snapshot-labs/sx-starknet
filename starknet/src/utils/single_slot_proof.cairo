@@ -13,7 +13,7 @@ mod SingleSlotProof {
     struct Storage {
         _timestamp_remappers: ContractAddress,
         _facts_registry: ContractAddress,
-        _cached_timestamps: LegacyMap::<u32, u256>
+        _cached_remapped_timestamps: LegacyMap::<u32, u256>
     }
 
     #[external(v0)]
@@ -30,11 +30,13 @@ mod SingleSlotProof {
                 .expect('TimestampRemappers call failed')
                 .expect('Timestamp out of range');
 
-            self._cached_timestamps.write(timestamp, l1_block_number);
+            self._cached_remapped_timestamps.write(timestamp, l1_block_number);
         }
 
         fn cached_timestamps(self: @ContractState, timestamp: u32) -> u256 {
-            self._cached_timestamps.read(timestamp)
+            let l1_block_number = self._cached_remapped_timestamps.read(timestamp);
+            assert(l1_block_number.is_non_zero(), 'Timestamp not cached');
+            l1_block_number
         }
     }
 
@@ -58,7 +60,7 @@ mod SingleSlotProof {
             params: Span<felt252>
         ) -> u256 {
             // Checks if the timestamp is already cached.
-            let l1_block_number = self._cached_timestamps.read(timestamp);
+            let l1_block_number = self._cached_remapped_timestamps.read(timestamp);
             assert(l1_block_number.is_non_zero(), 'Timestamp not cached');
 
             let mut params = params;
