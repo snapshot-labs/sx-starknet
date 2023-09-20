@@ -1,5 +1,6 @@
 #[starknet::contract]
 mod SingleSlotProof {
+    use core::zeroable::Zeroable;
     use starknet::{ContractAddress, EthAddress};
     use sx::external::herodotus::{
         Words64, BinarySearchTree, ITimestampRemappersDispatcher,
@@ -11,7 +12,30 @@ mod SingleSlotProof {
     #[storage]
     struct Storage {
         _timestamp_remappers: ContractAddress,
-        _facts_registry: ContractAddress
+        _facts_registry: ContractAddress,
+        _cached_timestamps: LegacyMap::<u32, u256>
+    }
+
+    #[external(v0)]
+    #[generate_trait]
+    impl SingleSlotProofImpl of SingleSlotProofTrait {
+        fn cache_timestamp(ref self: ContractState, timestamp: u32, tree: BinarySearchTree) {
+            // Maps timestamp to closest L1 block number that occured before the timestamp. If the queried 
+            // timestamp is less than the earliest timestamp or larger than the latest timestamp in the mapper
+            // then the call will return Option::None and the transaction will revert.
+            let l1_block_number = ITimestampRemappersDispatcher {
+                contract_address: self._timestamp_remappers.read()
+            }
+                .get_closest_l1_block_number(tree, timestamp.into())
+                .expect('TimestampRemappers call failed')
+                .expect('Timestamp out of range');
+
+            self._cached_timestamps.write(timestamp, l1_block_number);
+        }
+
+        fn cached_timestamps(self: @ContractState, timestamp: u32) -> u256 {
+            self._cached_timestamps.read(timestamp)
+        }
     }
 
     #[generate_trait]
@@ -33,21 +57,12 @@ mod SingleSlotProof {
             mapping_key: u256,
             params: Span<felt252>
         ) -> u256 {
-            let mut params = params;
-            let (tree, mpt_proof) = Serde::<(
-                BinarySearchTree, Span<Words64>
-            )>::deserialize(ref params)
-                .unwrap();
+            // Checks if the timestamp is already cached.
+            let l1_block_number = self._cached_timestamps.read(timestamp);
+            assert(l1_block_number.is_non_zero(), 'Timestamp not cached');
 
-            // Maps timestamp to closest L1 block number that occured before the timestamp. If the queried 
-            // timestamp is less than the earliest timestamp or larger than the latest timestamp in the mapper
-            // then the call will return Option::None and the transaction will revert.
-            let l1_block_number = ITimestampRemappersDispatcher {
-                contract_address: self._timestamp_remappers.read()
-            }
-                .get_closest_l1_block_number(tree, timestamp.into())
-                .expect('TimestampRemappers call failed')
-                .expect('Timestamp out of range');
+            let mut params = params;
+            let mpt_proof = Serde::<Span<Words64>>::deserialize(ref params).unwrap();
 
             // Computes the key of the EVM storage slot from the index of the mapping in storage and the mapping key.
             let slot_key = InternalImpl::get_mapping_slot_key(slot_index, mapping_key);
