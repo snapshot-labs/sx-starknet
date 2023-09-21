@@ -19,6 +19,16 @@ mod SingleSlotProof {
     #[external(v0)]
     #[generate_trait]
     impl SingleSlotProofImpl of SingleSlotProofTrait {
+        /// Queries the Timestamp Remapper contract for the closest L1 block number that occured before
+        /// the given timestamp and then caches the result. If the queried timestamp is less than the earliest
+        /// timestamp or larger than the latest timestamp in the mapper then the transaction will revert.
+        /// This function should be used to cache a remapped timestamp before its used when calling the 
+        /// `get_storage_slot` function with the same timestamp.
+        ///
+        /// # Arguments
+        ///
+        /// * `timestamp` - The timestamp at which to query.
+        /// * `tree` - The tree proof required query the remapper.
         fn cache_timestamp(ref self: ContractState, timestamp: u32, tree: BinarySearchTree) {
             // Maps timestamp to closest L1 block number that occured before the timestamp. If the queried 
             // timestamp is less than the earliest timestamp or larger than the latest timestamp in the mapper
@@ -33,6 +43,15 @@ mod SingleSlotProof {
             self._cached_remapped_timestamps.write(timestamp, l1_block_number);
         }
 
+        /// View function exposing the cached remapped timestamps. Reverts if the timestamp is not cached.
+        ///
+        /// # Arguments
+        ///
+        /// * `timestamp` - The timestamp to query.
+        /// 
+        /// # Returns
+        ///
+        /// * `u256` - The cached L1 block number corresponding to the timestamp.
         fn cached_timestamps(self: @ContractState, timestamp: u32) -> u256 {
             let l1_block_number = self._cached_remapped_timestamps.read(timestamp);
             assert(l1_block_number.is_non_zero(), 'Timestamp not cached');
