@@ -1,6 +1,5 @@
 #[starknet::contract]
 mod SingleSlotProof {
-    use core::zeroable::Zeroable;
     use starknet::{ContractAddress, EthAddress};
     use sx::external::herodotus::{
         Words64, BinarySearchTree, ITimestampRemappersDispatcher,
