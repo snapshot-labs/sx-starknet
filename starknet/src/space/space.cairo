@@ -781,7 +781,7 @@ mod Space {
             let mut cachedActiveVotingStrategies = self._active_voting_strategies.read();
             let mut cachedNextVotingStrategyIndex = self._next_voting_strategy_index.read();
             assert(
-                cachedNextVotingStrategyIndex.into() < 256_u32 - _voting_strategies.len(),
+                cachedNextVotingStrategyIndex.into() <= 256_u32 - _voting_strategies.len(),
                 'Exceeds Voting Strategy Limit'
             );
             loop {
