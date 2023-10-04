@@ -42,7 +42,10 @@ mod mocks {
     mod vanilla_execution_strategy;
     mod vanilla_proposal_validation;
     mod vanilla_voting_strategy;
+    mod account;
 }
+
+use openzeppelin::account::Account;
 
 mod setup {
     mod setup;
