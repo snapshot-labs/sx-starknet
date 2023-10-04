@@ -7,12 +7,9 @@ mod StarkEIP712 {
     use sx::utils::StructHash;
     use sx::utils::constants::{
         STARKNET_MESSAGE, DOMAIN_TYPEHASH, PROPOSE_TYPEHASH, VOTE_TYPEHASH,
-        UPDATE_PROPOSAL_TYPEHASH, ERC165_ACCOUNT_INTERFACE_ID, ERC165_OLD_ACCOUNT_INTERFACE_ID
+        UPDATE_PROPOSAL_TYPEHASH, ERC165_ACCOUNT_INTERFACE_ID
     };
-    use sx::interfaces::{
-        AccountABIDispatcher, AccountABIDispatcherTrait, AccountCamelABIDispatcher,
-        AccountCamelABIDispatcherTrait
-    };
+    use sx::interfaces::{AccountABIDispatcher, AccountABIDispatcherTrait,};
 
     #[storage]
     struct Storage {

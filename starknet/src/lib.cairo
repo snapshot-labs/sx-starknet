@@ -47,10 +47,7 @@ mod factory {
 
 mod interfaces {
     mod i_account;
-    use i_account::{
-        AccountABI, AccountABIDispatcher, AccountABIDispatcherTrait, AccountCamelABI,
-        AccountCamelABIDispatcher, AccountCamelABIDispatcherTrait
-    };
+    use i_account::{AccountABI, AccountABIDispatcher, AccountABIDispatcherTrait};
 
     mod i_execution_strategy;
     use i_execution_strategy::{
