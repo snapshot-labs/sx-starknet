@@ -68,7 +68,7 @@ mod tests {
         array![
             IndexedStrategy { index: 0_u8, params: array![1, 2, 3, 4], },
             IndexedStrategy { index: 1_u8, params: array![1, 2, 3, 4], },
-            IndexedStrategy { index: 0_u8, params: array![1, 2, 3, 4], },
+            IndexedStrategy { index: 1_u8, params: array![1, 2, 3, 4], },
         ]
             .span()
             .assert_no_duplicate_indices();
