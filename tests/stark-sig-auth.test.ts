@@ -35,7 +35,7 @@ describe('Starknet Signature Authenticator', function () {
 
   before(async function () {
     account = await starknet.OpenZeppelinAccount.getAccountFromAddress(account_address, account_pk);
-    const accountFactory = await starknet.getContractFactory('sx_Account');
+    const accountFactory = await starknet.getContractFactory('openzeppelin_Account');
     const starkSigAuthenticatorFactory = await starknet.getContractFactory(
       'sx_StarkSigAuthenticator',
     );
