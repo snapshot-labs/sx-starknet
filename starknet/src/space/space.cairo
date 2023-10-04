@@ -361,7 +361,7 @@ mod Space {
             // Check that payload matches
             assert(recovered_hash == proposal.execution_payload_hash, 'Invalid payload hash');
 
-            // Check that finalization status is not pending
+            // Check that finalization status is pending
             assert(
                 proposal.finalization_status == FinalizationStatus::Pending(()), 'Already finalized'
             );
@@ -415,7 +415,7 @@ mod Space {
             assert(
                 proposal.finalization_status == FinalizationStatus::Pending(()), 'Already finalized'
             );
-            assert(proposal.author == author, 'Invalid caller');
+            assert(proposal.author == author, 'Invalid author');
             assert(
                 info::get_block_timestamp() < proposal.start_timestamp.into(),
                 'Voting period started'

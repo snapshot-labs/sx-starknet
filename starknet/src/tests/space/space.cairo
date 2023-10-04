@@ -898,8 +898,8 @@ mod tests {
 
     #[test]
     #[available_gas(10000000000)]
-    #[should_panic(expected: ('Invalid caller', 'ENTRYPOINT_FAILED'))]
-    fn update_invalid_caller() {
+    #[should_panic(expected: ('Invalid author', 'ENTRYPOINT_FAILED'))]
+    fn update_invalid_author() {
         let config = setup();
         let (factory, space) = deploy(@config);
 
