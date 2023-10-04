@@ -42,6 +42,7 @@ mod MerkleWhitelistVotingStrategy {
 
             let root = *params.at(0); // no need to deserialize because it's a simple value
 
+            assert(leaf.address == voter, 'Leaf and voter mismatch');
             merkle::assert_valid_proof(root, leaf, proofs.span());
             leaf.voting_power
         }
