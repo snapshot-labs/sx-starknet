@@ -34,8 +34,7 @@ mod StarkEIP712 {
             metadata_uri: Span<felt252>,
             execution_strategy: @Strategy,
             user_proposal_validation_params: Span<felt252>,
-            salt: felt252,
-            account_type: felt252,
+            salt: felt252
         ) {
             let digest: felt252 = self
                 .get_propose_digest(
@@ -47,7 +46,7 @@ mod StarkEIP712 {
                     salt
                 );
 
-            InternalImpl::verify_signature(digest, signature, author, account_type);
+            InternalImpl::verify_signature(digest, signature, author);
         }
 
         /// Verifies the signature of the vote calldata.
@@ -59,14 +58,13 @@ mod StarkEIP712 {
             proposal_id: u256,
             choice: Choice,
             user_voting_strategies: Span<IndexedStrategy>,
-            metadata_uri: Span<felt252>,
-            account_type: felt252,
+            metadata_uri: Span<felt252>
         ) {
             let digest: felt252 = self
                 .get_vote_digest(
                     target, voter, proposal_id, choice, user_voting_strategies, metadata_uri
                 );
-            InternalImpl::verify_signature(digest, signature, voter, account_type);
+            InternalImpl::verify_signature(digest, signature, voter);
         }
 
         /// Verifies the signature of the update proposal calldata.
@@ -78,14 +76,13 @@ mod StarkEIP712 {
             proposal_id: u256,
             execution_strategy: @Strategy,
             metadata_uri: Span<felt252>,
-            salt: felt252,
-            account_type: felt252,
+            salt: felt252
         ) {
             let digest: felt252 = self
                 .get_update_proposal_digest(
                     target, author, proposal_id, execution_strategy, metadata_uri, salt
                 );
-            InternalImpl::verify_signature(digest, signature, author, account_type);
+            InternalImpl::verify_signature(digest, signature, author);
         }
 
         /// Returns the digest of the propose calldata.
@@ -177,31 +174,19 @@ mod StarkEIP712 {
         }
 
         /// Verifies the signature of a message by calling the account contract.
-        fn verify_signature(
-            digest: felt252,
-            signature: Array<felt252>,
-            account: ContractAddress,
-            account_type: felt252
-        ) {
-            if account_type == 'snake' {
-                assert(
-                    AccountCamelABIDispatcher { contract_address: account }
-                        .supportsInterface(ERC165_ACCOUNT_INTERFACE_ID) == true,
-                    'Invalid Account'
-                );
-                AccountCamelABIDispatcher { contract_address: account }
-                    .isValidSignature(digest, signature);
-            } else if account_type == 'camel' {
-                assert(
-                    AccountABIDispatcher { contract_address: account }
-                        .supports_interface(ERC165_OLD_ACCOUNT_INTERFACE_ID) == true,
-                    'Invalid Account'
-                );
+        fn verify_signature(digest: felt252, signature: Array<felt252>, account: ContractAddress) {
+            // Only SNIP-6 compliant accounts are supported.
+            assert(
                 AccountABIDispatcher { contract_address: account }
-                    .is_valid_signature(digest, signature);
-            } else {
-                panic_with_felt252('Invalid Account Type');
-            }
+                    .supports_interface(ERC165_ACCOUNT_INTERFACE_ID) == true,
+                'Invalid Account'
+            );
+
+            assert(
+                AccountABIDispatcher { contract_address: account }
+                    .is_valid_signature(digest, signature) == 'VALID',
+                'Invalid Signature'
+            );
         }
     }
 }

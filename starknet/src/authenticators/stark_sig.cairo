@@ -4,6 +4,7 @@ use sx::types::{Strategy, IndexedStrategy, Choice};
 #[starknet::interface]
 trait IStarkSigAuthenticator<TContractState> {
     /// Authenticates a propose transaction using the starknet EIP712-equivalent signature scheme.
+    /// Note: Only SNIP-6 compliant accounts are supported.
     /// 
     /// # Arguments
     ///
@@ -14,7 +15,6 @@ trait IStarkSigAuthenticator<TContractState> {
     /// * `execution_strategy` - The execution strategy of the proposal.
     /// * `user_proposal_validation_params` - The user proposal validation params of the proposal.
     /// * `salt` - The salt, used for replay protection.
-    /// * `account_type` - The account type of the author ('snake' or 'camel').
     fn authenticate_propose(
         ref self: TContractState,
         signature: Array<felt252>,
@@ -23,13 +23,13 @@ trait IStarkSigAuthenticator<TContractState> {
         metadata_uri: Array<felt252>,
         execution_strategy: Strategy,
         user_proposal_validation_params: Array<felt252>,
-        salt: felt252,
-        account_type: felt252
+        salt: felt252
     );
 
 
     /// Authenticates a vote transaction using the starknet EIP712-equivalent signature scheme.
-    /// Salt is not needed because double voting is prevented by the space itself.
+    /// Note: Salt is not needed because double voting is prevented by the space itself.
+    /// Note: Only SNIP-6 compliant accounts are supported.
     ///
     /// # Arguments
     ///
@@ -40,8 +40,6 @@ trait IStarkSigAuthenticator<TContractState> {
     /// * `choice` - The choice of the voter.
     /// * `user_voting_strategies` - The user voting strategies of the voter.
     /// * `metadata_uri` - The URI of the proposal metadata.
-    /// * `account_type` - The account type of the voter ('snake' or 'camel').
-    ///
     fn authenticate_vote(
         ref self: TContractState,
         signature: Array<felt252>,
@@ -50,11 +48,11 @@ trait IStarkSigAuthenticator<TContractState> {
         proposal_id: u256,
         choice: Choice,
         user_voting_strategies: Array<IndexedStrategy>,
-        metadata_uri: Array<felt252>,
-        account_type: felt252
+        metadata_uri: Array<felt252>
     );
 
     /// Authenticates an update proposal transaction using the starknet EIP712-equivalent signature scheme.
+    /// Note: Only SNIP-6 compliant accounts are supported.
     ///
     /// # Arguments
     ///
@@ -65,7 +63,6 @@ trait IStarkSigAuthenticator<TContractState> {
     /// * `execution_strategy` - The execution strategy of the proposal.
     /// * `metadata_uri` - The URI of the proposal metadata.
     /// * `salt` - The salt, used for replay protection.
-    /// * `account_type` - The account type of the author ('snake' or 'camel').
     fn authenticate_update_proposal(
         ref self: TContractState,
         signature: Array<felt252>,
@@ -74,8 +71,7 @@ trait IStarkSigAuthenticator<TContractState> {
         proposal_id: u256,
         execution_strategy: Strategy,
         metadata_uri: Array<felt252>,
-        salt: felt252,
-        account_type: felt252
+        salt: felt252
     );
 }
 
@@ -103,8 +99,7 @@ mod StarkSigAuthenticator {
             metadata_uri: Array<felt252>,
             execution_strategy: Strategy,
             user_proposal_validation_params: Array<felt252>,
-            salt: felt252,
-            account_type: felt252
+            salt: felt252
         ) {
             assert(!self._used_salts.read((author, salt)), 'Salt Already Used');
 
@@ -117,8 +112,7 @@ mod StarkSigAuthenticator {
                 metadata_uri.span(),
                 @execution_strategy,
                 user_proposal_validation_params.span(),
-                salt,
-                account_type
+                salt
             );
 
             self._used_salts.write((author, salt), true);
@@ -139,8 +133,7 @@ mod StarkSigAuthenticator {
             proposal_id: u256,
             choice: Choice,
             user_voting_strategies: Array<IndexedStrategy>,
-            metadata_uri: Array<felt252>,
-            account_type: felt252
+            metadata_uri: Array<felt252>
         ) {
             // No need to check salts here, as double voting is prevented by the space itself.
 
@@ -153,8 +146,7 @@ mod StarkSigAuthenticator {
                 proposal_id,
                 choice,
                 user_voting_strategies.span(),
-                metadata_uri.span(),
-                account_type
+                metadata_uri.span()
             );
 
             ISpaceDispatcher { contract_address: target }
@@ -175,8 +167,7 @@ mod StarkSigAuthenticator {
             proposal_id: u256,
             execution_strategy: Strategy,
             metadata_uri: Array<felt252>,
-            salt: felt252,
-            account_type: felt252
+            salt: felt252
         ) {
             assert(!self._used_salts.read((author, salt)), 'Salt Already Used');
 
@@ -189,8 +180,7 @@ mod StarkSigAuthenticator {
                 proposal_id,
                 @execution_strategy,
                 metadata_uri.span(),
-                salt,
-                account_type
+                salt
             );
 
             self._used_salts.write((author, salt), true);
