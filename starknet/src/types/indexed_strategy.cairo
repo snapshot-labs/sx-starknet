@@ -27,7 +27,7 @@ impl IndexedStrategyImpl of IndexedStrategyTrait {
                     // Check that bit at index `strats[i].index` is not set.
                     let s = math::pow(2_u256, *indexed_strategy.index);
 
-                    assert((bit_map & s) != 1_u256, 'Duplicate Found');
+                    assert((bit_map & s) == 0_u256, 'Duplicate Found');
                     // Update aforementioned bit.
                     bit_map = bit_map | s;
                 },
@@ -36,5 +36,41 @@ impl IndexedStrategyImpl of IndexedStrategyTrait {
                 },
             };
         };
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::{IndexedStrategy, IndexedStrategyTrait};
+
+    #[test]
+    #[available_gas(100000000)]
+    fn no_duplicates() {
+        array![
+            IndexedStrategy { index: 0_u8, params: array![1, 2, 3, 4], },
+            IndexedStrategy { index: 1_u8, params: array![1, 2, 3, 4], },
+            IndexedStrategy { index: 2_u8, params: array![1, 2, 3, 4], },
+        ]
+            .span()
+            .assert_no_duplicate_indices();
+    }
+
+    #[test]
+    #[available_gas(100000000)]
+    fn empty_array() {
+        array![].span().assert_no_duplicate_indices();
+    }
+
+    #[test]
+    #[available_gas(100000000)]
+    #[should_panic(expected: ('Duplicate Found',))]
+    fn catch_duplicates() {
+        array![
+            IndexedStrategy { index: 0_u8, params: array![1, 2, 3, 4], },
+            IndexedStrategy { index: 1_u8, params: array![1, 2, 3, 4], },
+            IndexedStrategy { index: 0_u8, params: array![1, 2, 3, 4], },
+        ]
+            .span()
+            .assert_no_duplicate_indices();
     }
 }
