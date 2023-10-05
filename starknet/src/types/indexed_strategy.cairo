@@ -41,6 +41,8 @@ impl IndexedStrategyImpl of IndexedStrategyTrait {
 
 #[cfg(test)]
 mod tests {
+    use core::array::ArrayTrait;
+    use core::traits::TryInto;
     use super::{IndexedStrategy, IndexedStrategyTrait};
 
     #[test]
@@ -66,11 +68,34 @@ mod tests {
     #[should_panic(expected: ('Duplicate Found',))]
     fn catch_duplicates() {
         array![
+            IndexedStrategy { index: 1_u8, params: array![1, 2, 3, 4], },
+            IndexedStrategy { index: 1_u8, params: array![1, 2, 3, 4], },
             IndexedStrategy { index: 0_u8, params: array![1, 2, 3, 4], },
-            IndexedStrategy { index: 1_u8, params: array![1, 2, 3, 4], },
-            IndexedStrategy { index: 1_u8, params: array![1, 2, 3, 4], },
         ]
             .span()
             .assert_no_duplicate_indices();
+    }
+
+    #[test]
+    #[available_gas(10000000000)]
+    #[should_panic(expected: ('Duplicate Found',))]
+    fn duplicate_at_high_bound() {
+        let mut strats = array![];
+        let mut i = 0_usize;
+        loop {
+            if i == 255_usize {
+                break;
+            }
+            strats
+                .append(
+                    IndexedStrategy { index: i.try_into().unwrap(), params: array![1, 2, 3, 4], }
+                );
+            i += 1;
+        };
+
+        // Add a duplicate.
+        strats.append(IndexedStrategy { index: 77_u8, params: array![1, 2, 3, 4], });
+
+        strats.span().assert_no_duplicate_indices();
     }
 }
