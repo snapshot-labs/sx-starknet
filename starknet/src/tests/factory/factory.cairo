@@ -87,15 +87,15 @@ mod tests {
         let factory = IFactoryDispatcher { contract_address: factory_address };
 
         let space_class_hash: ClassHash = Space::TEST_CLASS_HASH.try_into().unwrap();
-        let contract_address_salt = 0;
+        let salt_nonce = 0;
 
         let config = setup();
         let constructor_calldata = config.get_initialize_calldata();
 
         let space_address = factory
-            .deploy(space_class_hash, constructor_calldata.span(), contract_address_salt);
+            .deploy(space_class_hash, constructor_calldata.span(), salt_nonce);
         let space_address_2 = factory
-            .deploy(space_class_hash, constructor_calldata.span(), contract_address_salt);
+            .deploy(space_class_hash, constructor_calldata.span(), salt_nonce);
     // TODO: this test should fail but doesn't fail currently because of how the test environment works
     }
 }
