@@ -129,7 +129,7 @@ describe('Ethereum Transaction Authenticator', function () {
 
     await starknetCommit.commit(ethTxAuthenticator.address, commit, { value: 18485000000000 });
 
-    // Checking that the L1 -> L2 message has been propogated
+    // Checking that the L1 -> L2 message has been propagated
     expect((await starknet.devnet.flush()).consumed_messages.from_l1).to.have.a.lengthOf(1);
 
     await account.invoke(
