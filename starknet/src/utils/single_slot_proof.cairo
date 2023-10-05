@@ -49,8 +49,8 @@ mod SingleSlotProof {
                 .expect('TimestampRemappers call failed')
                 .expect('Timestamp out of range');
 
-            // Computes the key of the EVM storage slot from the index of the mapping in storage and the mapping key.
-            let slot_key = InternalImpl::get_mapping_slot_key(slot_index, mapping_key);
+            // Computes the key of the EVM storage slot from the mapping key and the index of the mapping in storage.
+            let slot_key = InternalImpl::get_mapping_slot_key(mapping_key, slot_index);
 
             // Returns the value of the storage slot of account: `l1_contract_address` at key: `slot_key` and block number: `l1_block_number`.
             let slot_value = IEVMFactsRegistryDispatcher {
