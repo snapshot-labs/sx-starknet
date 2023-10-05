@@ -37,7 +37,9 @@ fn into_le_u64_array(self: Array<u256>) -> (Array<u64>, u64) {
                 out.append(low_high);
                 out.append(low_low);
             },
-            Option::None => {}
+            Option::None => {
+                break (0);
+            }
         };
     };
     (out, overflow)
