@@ -82,10 +82,6 @@ mod types {
     mod user_address;
     use user_address::{UserAddress, UserAddressTrait};
 
-    mod default;
-    use default::ContractAddressDefault;
-
-
     mod indexed_strategy;
     use indexed_strategy::{IndexedStrategy, IndexedStrategyImpl, IndexedStrategyTrait};
 
@@ -110,6 +106,9 @@ mod utils {
     use bits::BitSetter;
 
     mod constants;
+
+    mod default;
+    use default::ContractAddressDefault;
 
     mod eip712;
     use eip712::EIP712;

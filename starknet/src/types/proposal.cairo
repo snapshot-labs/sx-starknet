@@ -1,7 +1,7 @@
 use starknet::{ContractAddress, storage_access::StorePacking, Store, contract_address_const};
 use sx::{
-    utils::math::pow,
-    types::{ContractAddressDefault, FinalizationStatus, UserAddress, UserAddressTrait},
+    utils::math::pow, types::{FinalizationStatus, UserAddress, UserAddressTrait},
+    utils::ContractAddressDefault,
 };
 
 const BITMASK_32: u128 = 0xffffffff;

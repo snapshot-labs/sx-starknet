@@ -1,4 +1,5 @@
 use starknet::{ContractAddress, EthAddress, contract_address_const};
+use sx::utils::ContractAddressDefault;
 
 /// Enum to represent a user address.
 #[derive(Copy, Default, Drop, Serde, PartialEq, starknet::Store)]
@@ -10,13 +11,6 @@ enum UserAddress {
     Ethereum: EthAddress,
     /// Custom address type to provide compatibility with any address that can be represented as a u256.
     Custom: u256
-}
-
-// Required for the proposal derivation. Ideally, ContractAddress would impl Default in the corelib.
-impl ContractAddressDefault of Default<ContractAddress> {
-    fn default() -> ContractAddress {
-        contract_address_const::<0>()
-    }
 }
 
 trait UserAddressTrait {
