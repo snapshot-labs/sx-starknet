@@ -318,7 +318,7 @@ mod Space {
                 self._vote_registry.read((proposal_id, voter)) == false, 'Voter has already voted'
             );
 
-            // Written here to prevent re-entrency attacks via malicious voting strategies
+            // Written here to prevent reentrancy attacks via malicious voting strategies
             self._vote_registry.write((proposal_id, voter), true);
 
             let voting_power = self
@@ -366,7 +366,7 @@ mod Space {
                 proposal.finalization_status == FinalizationStatus::Pending(()), 'Already finalized'
             );
 
-            // We cache the proposal to prevent re-entrency attacks by setting
+            // We cache the proposal to prevent reentrancy attacks by setting
             // the finalization status to `Executed` before calling the `execute` function.
             let cached_proposal = proposal.clone();
             proposal.finalization_status = FinalizationStatus::Executed(());
