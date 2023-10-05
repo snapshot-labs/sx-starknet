@@ -93,9 +93,9 @@ mod tests {
         let constructor_calldata = config.get_initialize_calldata();
 
         let space_address = factory
-            .deploy(space_class_hash, contract_address_salt, constructor_calldata.span());
+            .deploy(space_class_hash, constructor_calldata.span(), contract_address_salt);
         let space_address_2 = factory
-            .deploy(space_class_hash, contract_address_salt, constructor_calldata.span());
+            .deploy(space_class_hash, constructor_calldata.span(), contract_address_salt);
     // TODO: this test should fail but doesn't fail currently because of how the test environment works
     }
 }

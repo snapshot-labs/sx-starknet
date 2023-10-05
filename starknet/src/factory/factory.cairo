@@ -5,8 +5,8 @@ trait IFactory<TContractState> {
     fn deploy(
         ref self: TContractState,
         class_hash: ClassHash,
+        initialize_calldata: Span<felt252>,
         contract_address_salt: felt252,
-        initialize_calldata: Span<felt252>
     ) -> SyscallResult<ContractAddress>;
 }
 
@@ -37,8 +37,8 @@ mod Factory {
         fn deploy(
             ref self: ContractState,
             class_hash: ClassHash,
+            initialize_calldata: Span<felt252>,
             contract_address_salt: felt252,
-            initialize_calldata: Span<felt252>
         ) -> SyscallResult<ContractAddress> {
             // We create the salt by hashing the user provided salt and the caller address
             // to avoid any frontrun attacks.

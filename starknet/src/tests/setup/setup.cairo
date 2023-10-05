@@ -137,7 +137,7 @@ mod setup {
         let mut initializer_calldata = config.get_initialize_calldata();
         let space_address =
             match factory
-                .deploy(space_class_hash, contract_address_salt, initializer_calldata.span()) {
+                .deploy(space_class_hash, initializer_calldata.span(), contract_address_salt) {
             Result::Ok(address) => address,
             Result::Err(e) => {
                 panic_with_felt252('deploy failed');
