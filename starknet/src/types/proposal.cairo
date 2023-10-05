@@ -1,6 +1,9 @@
 use starknet::{ContractAddress, storage_access::StorePacking, Store, contract_address_const};
 use sx::{
-    utils::math::pow, types::{FinalizationStatus, UserAddress, user_address::UserAddressTrait}
+    utils::math::pow,
+    types::{
+        FinalizationStatus, UserAddress, user_address::{UserAddressTrait, ContractAddressDefault}
+    }
 };
 
 const BITMASK_32: u128 = 0xffffffff;
@@ -41,13 +44,6 @@ struct Proposal {
     /// Bit array where the index of each each bit corresponds to whether the voting strategy at
     /// that index is active at the time of proposal creation.
     active_voting_strategies: u256
-}
-
-// Required for the proposal derivation. Ideally, ContractAddress would impl Default in the corelib.
-impl ContractAddressDefault of Default<ContractAddress> {
-    fn default() -> ContractAddress {
-        contract_address_const::<0>()
-    }
 }
 
 /// A packed version of the `Proposal` struct. Used to minimize storage costs.
