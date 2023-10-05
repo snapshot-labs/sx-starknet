@@ -40,7 +40,7 @@ mod Factory {
             initialize_calldata: Span<felt252>,
             salt_nonce: felt252,
         ) -> SyscallResult<ContractAddress> {
-            // We create the salt by hashing the user provided salt and the caller address
+            // We create the salt by hashing the user provided nonce and the caller address
             // to avoid any frontrun attacks.
             let caller_address = starknet::info::get_caller_address().into();
             let salt_input = array![caller_address, salt_nonce];
