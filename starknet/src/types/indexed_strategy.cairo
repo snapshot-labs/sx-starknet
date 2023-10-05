@@ -92,10 +92,8 @@ mod tests {
                 );
             i += 1;
         };
-
         // Add a duplicate.
         strats.append(IndexedStrategy { index: 77_u8, params: array![1, 2, 3, 4], });
-
         strats.span().assert_no_duplicate_indices();
     }
 }
