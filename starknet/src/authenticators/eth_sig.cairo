@@ -208,10 +208,4 @@ mod EthSigAuthenticator {
                 );
         }
     }
-
-    #[constructor]
-    fn constructor(ref self: ContractState) {
-        let mut state = EIP712::unsafe_new_contract_state();
-        EIP712::InternalImpl::initializer(ref state);
-    }
 }

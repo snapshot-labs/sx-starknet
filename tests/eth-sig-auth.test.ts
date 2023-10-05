@@ -19,9 +19,8 @@ const account_pk = process.env.PK || '';
 describe('Ethereum Signature Authenticator', function () {
   this.timeout(1000000);
 
-  const domain = {
-    chainId: '0x534e5f474f45524c49', // devnet id
-  };
+  // EIO712 Domain is empty.
+  const domain = {};
 
   let signer: ethers.HDNodeWallet;
 
@@ -90,6 +89,7 @@ describe('Ethereum Signature Authenticator', function () {
 
     // PROPOSE
     const proposeMsg: Propose = {
+      chainId: '0x534e5f474f45524c49',
       authenticator: ethSigAuthenticator.address,
       space: space.address,
       author: signer.address,
@@ -129,6 +129,7 @@ describe('Ethereum Signature Authenticator', function () {
     // UPDATE PROPOSAL
 
     const updateProposalMsg: UpdateProposal = {
+      chainId: '0x534e5f474f45524c49',
       authenticator: ethSigAuthenticator.address,
       space: space.address,
       author: signer.address,
@@ -169,6 +170,7 @@ describe('Ethereum Signature Authenticator', function () {
     // VOTE
 
     const voteMsg: Vote = {
+      chainId: '0x534e5f474f45524c49',
       authenticator: ethSigAuthenticator.address,
       space: space.address,
       voter: signer.address,
@@ -205,6 +207,7 @@ describe('Ethereum Signature Authenticator', function () {
 
     // PROPOSE
     const proposeMsg: Propose = {
+      chainId: '0x534e5f474f45524c49',
       authenticator: ethSigAuthenticator.address,
       space: space.address,
       author: signer.address,
@@ -270,6 +273,7 @@ describe('Ethereum Signature Authenticator', function () {
     // UPDATE PROPOSAL
 
     const updateProposalMsg: UpdateProposal = {
+      chainId: '0x534e5f474f45524c49',
       authenticator: ethSigAuthenticator.address,
       space: space.address,
       author: signer.address,
@@ -341,6 +345,7 @@ describe('Ethereum Signature Authenticator', function () {
     // VOTE
 
     const voteMsg: Vote = {
+      chainId: '0x534e5f474f45524c49',
       authenticator: ethSigAuthenticator.address,
       space: space.address,
       voter: signer.address,
@@ -403,6 +408,7 @@ describe('Ethereum Signature Authenticator', function () {
 
     // PROPOSE
     const proposeMsg: Propose = {
+      chainId: '0x534e5f474f45524c49',
       authenticator: ethSigAuthenticator.address,
       space: space.address,
       author: signer.address,
@@ -451,6 +457,7 @@ describe('Ethereum Signature Authenticator', function () {
     // UPDATE PROPOSAL
 
     const updateProposalMsg: UpdateProposal = {
+      chainId: '0x534e5f474f45524c49',
       authenticator: ethSigAuthenticator.address,
       space: space.address,
       author: signer.address,
@@ -504,6 +511,7 @@ describe('Ethereum Signature Authenticator', function () {
     // VOTE
 
     const voteMsg: Vote = {
+      chainId: '0x534e5f474f45524c49',
       authenticator: ethSigAuthenticator.address,
       space: space.address,
       voter: signer.address,

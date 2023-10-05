@@ -5,7 +5,7 @@ mod EIP712 {
     use sx::types::{Strategy, IndexedStrategy, Choice};
     use sx::utils::{endian, ByteReverse, KeccakStructHash, TIntoU256};
     use sx::utils::constants::{
-        DOMAIN_TYPEHASH_LOW, DOMAIN_TYPEHASH_HIGH, ETHEREUM_PREFIX, PROPOSE_TYPEHASH_LOW,
+        DOMAIN_HASH_LOW, DOMAIN_HASH_HIGH, ETHEREUM_PREFIX, PROPOSE_TYPEHASH_LOW,
         PROPOSE_TYPEHASH_HIGH, VOTE_TYPEHASH_LOW, VOTE_TYPEHASH_HIGH, UPDATE_PROPOSAL_TYPEHASH_LOW,
         UPDATE_PROPOSAL_TYPEHASH_HIGH, INDEXED_STRATEGY_TYPEHASH_LOW,
         INDEXED_STRATEGY_TYPEHASH_HIGH,
@@ -18,10 +18,6 @@ mod EIP712 {
 
     #[generate_trait]
     impl InternalImpl of InternalTrait {
-        fn initializer(ref self: ContractState) {
-            self._domain_hash.write(InternalImpl::get_domain_hash());
-        }
-
         /// Verifies the signature of the propose calldata.
         fn verify_propose_sig(
             self: @ContractState,
@@ -105,6 +101,7 @@ mod EIP712 {
         ) -> u256 {
             let encoded_data = array![
                 u256 { low: PROPOSE_TYPEHASH_LOW, high: PROPOSE_TYPEHASH_HIGH },
+                Felt252IntoU256::into(starknet::get_tx_info().unbox().chain_id),
                 starknet::get_contract_address().into(),
                 space.into(),
                 author.into(),
@@ -129,6 +126,7 @@ mod EIP712 {
         ) -> u256 {
             let encoded_data = array![
                 u256 { low: VOTE_TYPEHASH_LOW, high: VOTE_TYPEHASH_HIGH },
+                Felt252IntoU256::into(starknet::get_tx_info().unbox().chain_id),
                 starknet::get_contract_address().into(),
                 space.into(),
                 voter.into(),
@@ -153,6 +151,7 @@ mod EIP712 {
         ) -> u256 {
             let encoded_data = array![
                 u256 { low: UPDATE_PROPOSAL_TYPEHASH_LOW, high: UPDATE_PROPOSAL_TYPEHASH_HIGH },
+                Felt252IntoU256::into(starknet::get_tx_info().unbox().chain_id),
                 starknet::get_contract_address().into(),
                 space.into(),
                 author.into(),
@@ -165,21 +164,11 @@ mod EIP712 {
             self.hash_typed_data(message_hash)
         }
 
-        fn get_domain_hash() -> u256 {
-            // The ethers typed data encoder is not compatible with a Starknet address as the `verifyingContract`
-            // therefore we cannot use the `verifyingContract` field in the domain separator, instead we add the 
-            //  verifying contract address to the message itself.
-            let encoded_data = array![
-                u256 { low: DOMAIN_TYPEHASH_LOW, high: DOMAIN_TYPEHASH_HIGH },
-                Felt252IntoU256::into(starknet::get_tx_info().unbox().chain_id)
-            ];
-            keccak::keccak_u256s_be_inputs(encoded_data.span()).byte_reverse()
-        }
-
         /// Hashes typed data according to the EIP-712 specification.
         fn hash_typed_data(self: @ContractState, message_hash: u256) -> u256 {
             let encoded_data = InternalImpl::add_prefix_array(
-                array![self._domain_hash.read(), message_hash], ETHEREUM_PREFIX
+                array![u256 { low: DOMAIN_HASH_LOW, high: DOMAIN_HASH_HIGH }, message_hash],
+                ETHEREUM_PREFIX
             );
             let (mut u64_arr, overflow) = endian::into_le_u64_array(encoded_data);
             keccak::cairo_keccak(ref u64_arr, overflow, 2).byte_reverse()

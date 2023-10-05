@@ -11,6 +11,7 @@ export const sharedTypes = {
 
 export const proposeTypes = {
   Propose: [
+    { name: 'chainId', type: 'uint256' },
     { name: 'authenticator', type: 'uint256' },
     { name: 'space', type: 'uint256' },
     { name: 'author', type: 'address' },
@@ -24,6 +25,7 @@ export const proposeTypes = {
 
 export const voteTypes = {
   Vote: [
+    { name: 'chainId', type: 'uint256' },
     { name: 'authenticator', type: 'uint256' },
     { name: 'space', type: 'uint256' },
     { name: 'voter', type: 'address' },
@@ -37,6 +39,7 @@ export const voteTypes = {
 
 export const updateProposalTypes = {
   UpdateProposal: [
+    { name: 'chainId', type: 'uint256' },
     { name: 'authenticator', type: 'uint256' },
     { name: 'space', type: 'uint256' },
     { name: 'author', type: 'address' },
@@ -49,6 +52,7 @@ export const updateProposalTypes = {
 };
 
 export interface Propose {
+  chainId: string;
   authenticator: string;
   space: string;
   author: string;
@@ -59,6 +63,7 @@ export interface Propose {
 }
 
 export interface Vote {
+  chainId: string;
   authenticator: string;
   space: string;
   voter: string;
@@ -69,6 +74,7 @@ export interface Vote {
 }
 
 export interface UpdateProposal {
+  chainId: string;
   authenticator: string;
   space: string;
   author: string;
