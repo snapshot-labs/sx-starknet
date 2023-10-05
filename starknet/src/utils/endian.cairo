@@ -38,7 +38,7 @@ fn into_le_u64_array(self: Array<u256>) -> (Array<u64>, u64) {
                 out.append(low_low);
             },
             Option::None => {
-                break (0);
+                panic_with_felt252('Array should not be empty!');
             }
         };
     };
