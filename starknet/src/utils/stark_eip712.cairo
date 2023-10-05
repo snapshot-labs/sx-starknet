@@ -3,13 +3,13 @@
 #[starknet::contract]
 mod StarkEIP712 {
     use starknet::ContractAddress;
+    use openzeppelin::account::interface::{AccountABIDispatcher, AccountABIDispatcherTrait};
     use sx::types::{Strategy, IndexedStrategy, Choice};
     use sx::utils::StructHash;
     use sx::utils::constants::{
         STARKNET_MESSAGE, DOMAIN_TYPEHASH, PROPOSE_TYPEHASH, VOTE_TYPEHASH,
         UPDATE_PROPOSAL_TYPEHASH, ERC165_ACCOUNT_INTERFACE_ID
     };
-    use sx::interfaces::{AccountABIDispatcher, AccountABIDispatcherTrait,};
 
     #[storage]
     struct Storage {
