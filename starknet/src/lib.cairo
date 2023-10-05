@@ -80,7 +80,7 @@ mod types {
     use finalization_status::FinalizationStatus;
 
     mod user_address;
-    use user_address::{UserAddress, UserAddressTrait};
+    use user_address::{ContractAddressDefault, UserAddress, UserAddressTrait};
 
     mod indexed_strategy;
     use indexed_strategy::{IndexedStrategy, IndexedStrategyImpl, IndexedStrategyTrait};
