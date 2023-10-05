@@ -42,7 +42,7 @@ mod Factory {
         ) -> SyscallResult<ContractAddress> {
             // We create the salt by hashing the user provided salt and the caller address
             // to avoid any frontrun attacks.
-            let caller_address: felt252 = starknet::info::get_caller_address().into();
+            let caller_address = starknet::info::get_caller_address().into();
             let salt_input = array![caller_address, contract_address_salt];
             let salt = poseidon::poseidon_hash_span(salt_input.span());
 
