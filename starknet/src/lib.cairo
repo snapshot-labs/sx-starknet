@@ -107,6 +107,9 @@ mod utils {
 
     mod constants;
 
+    mod default;
+    use default::ContractAddressDefault;
+
     mod eip712;
     use eip712::EIP712;
 
