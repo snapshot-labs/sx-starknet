@@ -85,7 +85,6 @@ mod StarkSigAuthenticator {
 
     #[storage]
     struct Storage {
-        _domain_hash: felt252,
         _used_salts: LegacyMap::<(ContractAddress, felt252), bool>
     }
 

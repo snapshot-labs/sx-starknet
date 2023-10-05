@@ -12,9 +12,7 @@ mod EIP712 {
     };
 
     #[storage]
-    struct Storage {
-        _domain_hash: u256
-    }
+    struct Storage {}
 
     #[generate_trait]
     impl InternalImpl of InternalTrait {
