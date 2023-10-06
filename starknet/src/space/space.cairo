@@ -311,8 +311,7 @@ mod Space {
             assert(timestamp < proposal.max_end_timestamp, 'Voting period has ended');
             assert(timestamp >= proposal.start_timestamp, 'Voting period has not started');
             assert(
-                proposal.finalization_status == FinalizationStatus::Pending(()),
-                'Proposal has been finalized'
+                proposal.finalization_status == FinalizationStatus::Pending(()), 'Already finalized'
             );
             assert(
                 self._vote_registry.read((proposal_id, voter)) == false, 'Voter has already voted'
