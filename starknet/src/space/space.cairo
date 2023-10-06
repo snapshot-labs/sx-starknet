@@ -17,7 +17,7 @@ mod Space {
     };
     use sx::utils::{
         Reinitializable, BitSetter, LegacyHashChoice, LegacyHashUserAddress, LegacyHashVotePower,
-        LegacyHashVoteRegistry, constants::INITIALIZE_SELECTOR
+        LegacyHashVoteRegistry, constants::{INITIALIZE_SELECTOR, POST_UPGRADE_INITIALIZER_SELECTOR}
     };
 
     #[storage]
@@ -454,9 +454,11 @@ mod Space {
                 Reinitializable::unsafe_new_contract_state();
             Reinitializable::InternalImpl::reinitialize(ref state);
 
-            // Call initializer on the new version.
+            // Call `post_upgrade_initializer` on the new version.
             syscalls::call_contract_syscall(
-                info::get_contract_address(), INITIALIZE_SELECTOR, initialize_calldata.span()
+                info::get_contract_address(),
+                POST_UPGRADE_INITIALIZER_SELECTOR,
+                initialize_calldata.span()
             )?;
 
             self
@@ -468,6 +470,10 @@ mod Space {
                     )
                 );
             SyscallResult::Ok(())
+        }
+
+        fn post_upgrade_initializer(ref self: ContractState, initialize_calldata: Array<felt252>,) {// This contract being the first version, we don't expect anyone to upgrade to it.
+        // We leave the implementation empty.
         }
 
         fn owner(self: @ContractState) -> ContractAddress {
