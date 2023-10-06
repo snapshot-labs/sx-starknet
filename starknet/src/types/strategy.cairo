@@ -1,5 +1,4 @@
-use starknet::ContractAddress;
-use starknet::{StorageBaseAddress, Store, SyscallResult};
+use starknet::{ContractAddress, StorageBaseAddress, Store, SyscallResult};
 
 /// A strategy identified by an address
 #[derive(Clone, Drop, Option, Serde, starknet::Store)]
@@ -47,7 +46,7 @@ impl StoreFelt252Array of Store<Array<felt252>> {
         offset += 1;
 
         // Sequentially read all stored elements and append them to the array.
-        let exit = len + offset;
+        let exit = len * Store::<felt252>::size() + offset;
         loop {
             if offset >= exit {
                 break;
