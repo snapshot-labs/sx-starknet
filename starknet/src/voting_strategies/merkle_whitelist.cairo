@@ -4,8 +4,6 @@ mod MerkleWhitelistVotingStrategy {
     use sx::types::UserAddress;
     use sx::utils::{merkle, Leaf};
 
-    const LEAF_SIZE: usize = 4; // Serde::<Leaf>::serialize().len()
-
     #[storage]
     struct Storage {}
 
@@ -29,12 +27,9 @@ mod MerkleWhitelistVotingStrategy {
             self: @ContractState,
             timestamp: u32,
             voter: UserAddress,
-            params: Span<felt252>, // [root: felt252]
-            user_params: Span<felt252>, // [leaf: Leaf, proof: Array<felt252>]
+            mut params: Span<felt252>, // [root: felt252]
+            mut user_params: Span<felt252>, // [leaf: Leaf, proof: Array<felt252>]
         ) -> u256 {
-            let mut params = params;
-            let mut user_params = user_params;
-
             let root = Serde::<felt252>::deserialize(ref params).unwrap();
             let (leaf, proofs) = Serde::<(Leaf, Array<felt252>)>::deserialize(ref user_params)
                 .unwrap();
