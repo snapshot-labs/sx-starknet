@@ -22,11 +22,7 @@ mod NoExecutionSimpleMajorityExecutionStrategy {
         ) {
             let proposal_status = self
                 .get_proposal_status(proposal, votes_for, votes_against, votes_abstain,);
-            assert(
-                (proposal_status == ProposalStatus::Accepted(()))
-                    | (proposal_status == ProposalStatus::VotingPeriodAccepted(())),
-                'Invalid Proposal Status'
-            );
+            assert(proposal_status == ProposalStatus::Accepted(()), 'Invalid Proposal Status');
         }
 
         fn get_proposal_status(
