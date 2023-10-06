@@ -1,3 +1,4 @@
+use integer::BoundedU8;
 use starknet::{ContractAddress, StorageBaseAddress, Store, SyscallResult};
 
 /// A strategy identified by an address
@@ -90,7 +91,7 @@ impl StoreFelt252Array of Store<Array<felt252>> {
 
     fn size() -> u8 {
         /// Since the array is a dynamic type. We use its max size here. 
-        255_u8
+        BoundedU8::max()
     }
 }
 
