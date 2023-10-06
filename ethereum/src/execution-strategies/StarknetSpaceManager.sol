@@ -48,9 +48,9 @@ contract StarknetSpaceManager is OwnableUpgradeable {
 
     /// @notice Check if a space is enabled.
     /// @param space Address of the space.
-    /// @return uint256 whether the space is enabled.
-    function isSpaceEnabled(uint256 space) external view returns (uint256) {
-        return spaces[space];
+    /// @return bool whether the space is enabled.
+    function isSpaceEnabled(uint256 space) external view returns (bool) {
+        return spaces[space] == TRUE;
     }
 
     modifier onlySpace(uint256 space) {

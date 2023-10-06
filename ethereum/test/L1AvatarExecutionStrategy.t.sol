@@ -134,7 +134,7 @@ abstract contract L1AvatarExecutionStrategySettersTest is Test {
         vm.expectEmit(true, true, true, true);
         emit SpaceEnabled(space_);
         avatarExecutionStrategy.enableSpace(space_);
-        assertEq(avatarExecutionStrategy.isSpaceEnabled(space_), TRUE);
+        assertEq(avatarExecutionStrategy.isSpaceEnabled(space_), true);
     }
 
     function testEnableInvalidSpace() public {
@@ -163,7 +163,7 @@ abstract contract L1AvatarExecutionStrategySettersTest is Test {
         vm.expectEmit(true, true, true, true);
         emit SpaceDisabled(space);
         avatarExecutionStrategy.disableSpace(space);
-        assertEq(avatarExecutionStrategy.isSpaceEnabled(space), FALSE);
+        assertEq(avatarExecutionStrategy.isSpaceEnabled(space), false);
     }
 
     function testDisableInvalidSpace() public {
