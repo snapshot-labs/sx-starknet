@@ -787,7 +787,7 @@ mod Space {
             loop {
                 match _voting_strategies.pop_front() {
                     Option::Some(strategy) => {
-                        assert(!(*strategy.address).is_zero(), 'Invalid voting strategy');
+                        assert((*strategy.address).is_non_zero(), 'Invalid voting strategy');
                         cachedActiveVotingStrategies.set_bit(cachedNextVotingStrategyIndex, true);
                         self
                             ._voting_strategies
