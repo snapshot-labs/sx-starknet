@@ -41,8 +41,6 @@ impl IndexedStrategyImpl of IndexedStrategyTrait {
 
 #[cfg(test)]
 mod tests {
-    use core::array::ArrayTrait;
-    use core::traits::TryInto;
     use super::{IndexedStrategy, IndexedStrategyTrait};
 
     #[test]
