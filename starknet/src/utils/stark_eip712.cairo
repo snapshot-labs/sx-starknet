@@ -26,7 +26,7 @@ mod StarkEIP712 {
         fn verify_propose_sig(
             self: @ContractState,
             signature: Array<felt252>,
-            target: ContractAddress,
+            space: ContractAddress,
             author: ContractAddress,
             metadata_uri: Span<felt252>,
             execution_strategy: @Strategy,
@@ -35,7 +35,7 @@ mod StarkEIP712 {
         ) {
             let digest: felt252 = self
                 .get_propose_digest(
-                    target,
+                    space,
                     author,
                     metadata_uri,
                     execution_strategy,
@@ -50,7 +50,7 @@ mod StarkEIP712 {
         fn verify_vote_sig(
             self: @ContractState,
             signature: Array<felt252>,
-            target: ContractAddress,
+            space: ContractAddress,
             voter: ContractAddress,
             proposal_id: u256,
             choice: Choice,
@@ -59,7 +59,7 @@ mod StarkEIP712 {
         ) {
             let digest: felt252 = self
                 .get_vote_digest(
-                    target, voter, proposal_id, choice, user_voting_strategies, metadata_uri
+                    space, voter, proposal_id, choice, user_voting_strategies, metadata_uri
                 );
             InternalImpl::verify_signature(digest, signature, voter);
         }
@@ -68,7 +68,7 @@ mod StarkEIP712 {
         fn verify_update_proposal_sig(
             self: @ContractState,
             signature: Array<felt252>,
-            target: ContractAddress,
+            space: ContractAddress,
             author: ContractAddress,
             proposal_id: u256,
             execution_strategy: @Strategy,
@@ -77,7 +77,7 @@ mod StarkEIP712 {
         ) {
             let digest: felt252 = self
                 .get_update_proposal_digest(
-                    target, author, proposal_id, execution_strategy, metadata_uri, salt
+                    space, author, proposal_id, execution_strategy, metadata_uri, salt
                 );
             InternalImpl::verify_signature(digest, signature, author);
         }
