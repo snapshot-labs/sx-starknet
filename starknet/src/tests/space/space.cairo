@@ -244,7 +244,7 @@ mod tests {
     #[test]
     #[available_gas(100000000)]
     #[should_panic(expected: ('Already Initialized', 'ENTRYPOINT_FAILED'))]
-    fn reinitialize() {
+    fn reset() {
         let deployer = starknet::contract_address_const::<0xdead>();
 
         testing::set_caller_address(deployer);

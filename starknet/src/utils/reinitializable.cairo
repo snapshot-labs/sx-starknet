@@ -17,7 +17,7 @@ mod Reinitializable {
         }
 
         /// Re-initialize the contract, allowing it to be initialized again in the future.
-        fn reinitialize(ref self: ContractState) {
+        fn reset(ref self: ContractState) {
             self._initialized.write(false);
         }
 

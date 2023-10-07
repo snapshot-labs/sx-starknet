@@ -452,7 +452,7 @@ mod Space {
             // Allowing initializer to be called again.
             let mut state: Reinitializable::ContractState =
                 Reinitializable::unsafe_new_contract_state();
-            Reinitializable::InternalImpl::reinitialize(ref state);
+            Reinitializable::InternalImpl::reset(ref state);
 
             // Call initializer on the new version.
             syscalls::call_contract_syscall(
