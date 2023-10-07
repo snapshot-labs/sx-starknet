@@ -1,5 +1,5 @@
 #[starknet::contract]
-mod EthBalanceOfVotingStrategy {
+mod L1BalanceOfVotingStrategy {
     use starknet::{EthAddress, ContractAddress};
     use sx::types::{UserAddress, UserAddressTrait};
     use sx::interfaces::IVotingStrategy;
@@ -9,7 +9,7 @@ mod EthBalanceOfVotingStrategy {
     struct Storage {}
 
     #[external(v0)]
-    impl EthBalanceOfVotingStrategy of IVotingStrategy<ContractState> {
+    impl L1BalanceOfVotingStrategy of IVotingStrategy<ContractState> {
         /// Returns the layer 1 balance of the voter. The contract address and slot index is stored
         /// in the strategy parameters (defined by the space owner).
         /// The proof itself is supplied by the voter, in the `user_params` argument.
