@@ -37,7 +37,7 @@ mod EthBalanceOfVotingStrategy {
 
             // Decode params 
             let mut params = params;
-            let (l1_account_address, slot_index) = Serde::<(
+            let (l1_token_address, slot_index) = Serde::<(
                 EthAddress, u256
             )>::deserialize(ref params)
                 .unwrap();
@@ -46,7 +46,7 @@ mod EthBalanceOfVotingStrategy {
             // TODO: temporary until components are released
             let state = SingleSlotProof::unsafe_new_contract_state();
             let balance = SingleSlotProof::InternalImpl::get_storage_slot(
-                @state, timestamp, l1_account_address, slot_index, voter.into(), user_params
+                @state, timestamp, l1_token_address, slot_index, voter.into(), user_params
             );
             balance
         }
