@@ -473,7 +473,7 @@ describe('Ethereum Transaction Authenticator', function () {
       );
       expect.fail('Should have failed');
     } catch (err: any) {
-      expect(err.message).to.contain(shortString.encodeShortString('Invalid sender address'));
+      expect(err.message).to.contain(shortString.encodeShortString('Commit not found'));
     }
   }, 1000000);
 
