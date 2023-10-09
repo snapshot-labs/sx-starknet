@@ -69,12 +69,13 @@ mod EthTxAuthenticator {
     use starknet::{ContractAddress, EthAddress, Felt252TryIntoEthAddress, EthAddressIntoFelt252,};
     use sx::interfaces::{ISpaceDispatcher, ISpaceDispatcherTrait};
     use sx::types::{UserAddress, Strategy, IndexedStrategy, Choice};
+    use sx::utils::LegacyHashFelt252EthAddress;
     use sx::utils::constants::{PROPOSE_SELECTOR, VOTE_SELECTOR, UPDATE_PROPOSAL_SELECTOR};
 
     #[storage]
     struct Storage {
         _starknet_commit_address: EthAddress,
-        _commits: LegacyMap::<felt252, EthAddress>
+        _commits: LegacyMap::<(felt252, EthAddress), bool>
     }
 
     #[external(v0)]
@@ -176,19 +177,19 @@ mod EthTxAuthenticator {
         assert(
             from_address == self._starknet_commit_address.read().into(), 'Invalid commit address'
         );
+        let sender_address = sender_address.try_into().unwrap();
         // Prevents hash being overwritten by a different sender.
-        assert(self._commits.read(hash).into() == 0, 'Commit already exists');
-        self._commits.write(hash, sender_address.try_into().unwrap());
+        assert(self._commits.read((hash, sender_address)) == false, 'Commit already exists');
+        self._commits.write((hash, sender_address), true);
     }
 
     #[generate_trait]
     impl InternalImpl of InternalTrait {
         fn consume_commit(ref self: ContractState, hash: felt252, sender_address: EthAddress) {
-            let committer_address = self._commits.read(hash);
-            assert(!committer_address.is_zero(), 'Commit not found');
-            assert(committer_address == sender_address, 'Invalid sender address');
+            assert(self._commits.read((hash, sender_address)), 'Commit not found');
+            // assert(committer_address == sender_address, 'Invalid sender address');
             // Delete the commit to prevent replay attacks.
-            self._commits.write(hash, Zeroable::zero());
+            self._commits.write((hash, sender_address), false);
         }
     }
 }

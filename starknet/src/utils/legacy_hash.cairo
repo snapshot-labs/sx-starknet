@@ -15,6 +15,14 @@ impl LegacyHashEthAddress of LegacyHash<EthAddress> {
     }
 }
 
+impl LegacyHashFelt252EthAddress of LegacyHash<(felt252, EthAddress)> {
+    fn hash(state: felt252, value: (felt252, EthAddress)) -> felt252 {
+        let (_felt252, _eth_address) = value;
+        let state = LegacyHash::hash(state, _felt252);
+        LegacyHash::hash(state, _eth_address)
+    }
+}
+
 impl LegacyHashSpanFelt252 of LegacyHash<Span<felt252>> {
     fn hash(state: felt252, mut value: Span<felt252>) -> felt252 {
         let len = value.len();
