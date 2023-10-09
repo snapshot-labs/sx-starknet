@@ -178,7 +178,6 @@ mod EthTxAuthenticator {
             from_address == self._starknet_commit_address.read().into(), 'Invalid commit address'
         );
         let sender_address = sender_address.try_into().unwrap();
-        // Prevents hash being overwritten by a different sender.
         assert(self._commits.read((hash, sender_address)) == false, 'Commit already exists');
         self._commits.write((hash, sender_address), true);
     }
@@ -187,7 +186,6 @@ mod EthTxAuthenticator {
     impl InternalImpl of InternalTrait {
         fn consume_commit(ref self: ContractState, hash: felt252, sender_address: EthAddress) {
             assert(self._commits.read((hash, sender_address)), 'Commit not found');
-            // assert(committer_address == sender_address, 'Invalid sender address');
             // Delete the commit to prevent replay attacks.
             self._commits.write((hash, sender_address), false);
         }
