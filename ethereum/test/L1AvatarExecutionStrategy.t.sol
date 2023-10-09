@@ -24,8 +24,8 @@ abstract contract L1AvatarExecutionStrategySettersTest is Test {
     event StarknetCoreSet(address indexed newStarknetCore);
     event ExecutionRelayerSet(uint256 indexed newExecutionRelayer);
     event QuorumUpdated(uint256 newQuorum);
-    event SpaceEnabled(uint256 space);
-    event SpaceDisabled(uint256 space);
+    event SpaceEnabled(uint256 indexed space);
+    event SpaceDisabled(uint256 indexed space);
 
     L1AvatarExecutionStrategy public avatarExecutionStrategy;
     Avatar public avatar;

@@ -16,10 +16,10 @@ contract StarknetSpaceManager is OwnableUpgradeable {
     mapping(uint256 spaces => uint256 isEnabled) internal spaces;
 
     /// @notice Emitted when a space is enabled.
-    event SpaceEnabled(uint256 space);
+    event SpaceEnabled(uint256 indexed space);
 
     /// @notice Emitted when a space is disabled.
-    event SpaceDisabled(uint256 space);
+    event SpaceDisabled(uint256 indexed space);
 
     /// @notice Initialize the contract with a list of Starknet spaces. Called only once.
     /// @param _spaces List of spaces.
