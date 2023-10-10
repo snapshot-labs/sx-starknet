@@ -514,10 +514,11 @@ describe('Ethereum Transaction Authenticator', function () {
       .connect(invalidSigner)
       .commit(ethTxAuthenticator.address, commit, { value: 18485000000000 });
 
+    expect((await starknet.devnet.flush()).consumed_messages.from_l1).to.have.a.lengthOf(1);
+
     // Committing the same payload from the author
     await starknetCommit.commit(ethTxAuthenticator.address, commit, { value: 18485000000000 });
 
-    // Checking that the L1 -> L2 message has been propogated
     expect((await starknet.devnet.flush()).consumed_messages.from_l1).to.have.a.lengthOf(1);
 
     await account.invoke(
