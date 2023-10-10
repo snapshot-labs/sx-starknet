@@ -1,4 +1,4 @@
-use starknet::{ContractAddress, contract_address_const};
+use starknet::ContractAddress;
 use sx::types::Strategy;
 
 /// A struct representing the calldata of the update_settings function.
@@ -54,25 +54,25 @@ impl NoUpdateFelt252 of NoUpdateTrait<felt252> {
 impl NoUpdateContractAddress of NoUpdateTrait<ContractAddress> {
     fn no_update() -> ContractAddress {
         // First 248 bits
-        contract_address_const::<0xf2cda9b13ed04e585461605c0d6e804933ca828111bd94d4e6a96c75e8b048>()
+        starknet::contract_address_const::<0xf2cda9b13ed04e585461605c0d6e804933ca828111bd94d4e6a96c75e8b048>()
     }
 
     fn should_update(self: @ContractAddress) -> bool {
-        *self != contract_address_const::<0xf2cda9b13ed04e585461605c0d6e804933ca828111bd94d4e6a96c75e8b048>()
+        *self != starknet::contract_address_const::<0xf2cda9b13ed04e585461605c0d6e804933ca828111bd94d4e6a96c75e8b048>()
     }
 }
 
 impl NoUpdateStrategy of NoUpdateTrait<Strategy> {
     fn no_update() -> Strategy {
         Strategy {
-            address: contract_address_const::<0xf2cda9b13ed04e585461605c0d6e804933ca828111bd94d4e6a96c75e8b048>(),
+            address: starknet::contract_address_const::<0xf2cda9b13ed04e585461605c0d6e804933ca828111bd94d4e6a96c75e8b048>(),
             params: array![],
         }
     }
 
     fn should_update(self: @Strategy) -> bool {
         *self
-            .address != contract_address_const::<0xf2cda9b13ed04e585461605c0d6e804933ca828111bd94d4e6a96c75e8b048>()
+            .address != starknet::contract_address_const::<0xf2cda9b13ed04e585461605c0d6e804933ca828111bd94d4e6a96c75e8b048>()
     }
 }
 
