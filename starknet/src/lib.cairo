@@ -24,8 +24,8 @@ mod voting_strategies {
     mod erc20_votes;
     use erc20_votes::ERC20VotesVotingStrategy;
 
-    mod eth_balance_of;
-    use eth_balance_of::L1BalanceOfVotingStrategy;
+    mod l1_balance_of;
+    use l1_balance_of::L1BalanceOfVotingStrategy;
 
     mod merkle_whitelist;
     use merkle_whitelist::MerkleWhitelistVotingStrategy;
