@@ -27,7 +27,7 @@ mod SingleSlotProof {
         /// # Arguments
         ///
         /// * `timestamp` - The timestamp at which to query.
-        /// * `tree` - The tree proof required query the remapper.
+        /// * `tree` - The tree proof required to query the remapper.
         fn cache_timestamp(ref self: ContractState, timestamp: u32, tree: BinarySearchTree) {
             // Maps timestamp to closest L1 block number that occured before the timestamp. If the queried 
             // timestamp is less than the earliest timestamp or larger than the latest timestamp in the mapper
