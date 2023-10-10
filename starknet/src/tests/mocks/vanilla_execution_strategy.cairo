@@ -62,7 +62,8 @@ mod VanillaExecutionStrategy {
 
     #[constructor]
     fn constructor(ref self: ContractState, quorum: u256) {
-        // TODO: temporary until components are released
+        // Migration to components planned ; disregard the `unsafe` keyword,
+        // it is actually safe.
         let mut state = SimpleQuorumExecutionStrategy::unsafe_new_contract_state();
         SimpleQuorumExecutionStrategy::InternalImpl::initializer(ref state, quorum);
     }

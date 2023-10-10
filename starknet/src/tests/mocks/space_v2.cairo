@@ -17,7 +17,8 @@ mod SpaceV2 {
     #[external(v0)]
     impl SpaceV2 of ISpaceV2<ContractState> {
         fn initialize(ref self: ContractState, var: felt252) {
-            // TODO: Temp component syntax
+            // Migration to components planned ; disregard the `unsafe` keyword,
+            // it is actually safe.
             let mut state = Reinitializable::unsafe_new_contract_state();
             Reinitializable::InternalImpl::initialize(ref state);
             self._var.write(var);
