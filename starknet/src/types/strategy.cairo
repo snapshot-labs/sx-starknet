@@ -1,5 +1,5 @@
-use starknet::ContractAddress;
-use starknet::{StorageBaseAddress, Store, SyscallResult};
+use integer::BoundedU8;
+use starknet::{ContractAddress, StorageBaseAddress, Store, SyscallResult};
 
 /// A strategy identified by an address
 #[derive(Clone, Drop, Option, Serde, starknet::Store)]
@@ -44,10 +44,10 @@ impl StoreFelt252Array of Store<Array<felt252>> {
         // Read the stored array's length. If the length is superior to 255, the read will fail.
         let len: u8 = Store::<u8>::read_at_offset(address_domain, base, offset)
             .expect('Storage Span too large');
-        offset += 1;
+        offset += Store::<u8>::size();
 
         // Sequentially read all stored elements and append them to the array.
-        let exit = len + offset;
+        let exit = len * Store::<felt252>::size() + offset;
         loop {
             if offset >= exit {
                 break;
@@ -68,7 +68,7 @@ impl StoreFelt252Array of Store<Array<felt252>> {
         // // Store the length of the array in the first storage slot.
         let len: u8 = value.len().try_into().expect('Storage - Span too large');
         Store::<u8>::write_at_offset(address_domain, base, offset, len);
-        offset += 1;
+        offset += Store::<u8>::size();
 
         // Store the array elements sequentially
         loop {
@@ -91,7 +91,7 @@ impl StoreFelt252Array of Store<Array<felt252>> {
 
     fn size() -> u8 {
         /// Since the array is a dynamic type. We use its max size here. 
-        255_u8
+        BoundedU8::max()
     }
 }
 

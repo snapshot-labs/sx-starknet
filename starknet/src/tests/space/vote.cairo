@@ -256,7 +256,7 @@ mod tests {
 
     #[test]
     #[available_gas(10000000000)]
-    #[should_panic(expected: ('Proposal has been finalized', 'ENTRYPOINT_FAILED'))]
+    #[should_panic(expected: ('Already finalized', 'ENTRYPOINT_FAILED'))]
     fn vote_finalized_proposal() {
         let config = setup();
         let (factory, space) = deploy(@config);
