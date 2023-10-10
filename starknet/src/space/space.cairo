@@ -206,7 +206,8 @@ mod Space {
                 );
 
             // Checking that the contract is not already initialized
-            //TODO: temporary component syntax
+            // Migration to components planned ; disregard the `unsafe` keyword,
+            // it is actually safe.
             let mut state: Reinitializable::ContractState =
                 Reinitializable::unsafe_new_contract_state();
             Reinitializable::InternalImpl::initialize(ref state);
@@ -215,7 +216,8 @@ mod Space {
             assert(authenticators.len() != 0, 'empty authenticators');
             assert(voting_strategies.len() == voting_strategy_metadata_uris.len(), 'len mismatch');
 
-            //TODO: temporary component syntax
+            // Migration to components planned ; disregard the `unsafe` keyword,
+            // it is actually safe.
             let mut state = Ownable::unsafe_new_contract_state();
             Ownable::InternalImpl::initializer(ref state, owner);
             self.set_dao_uri(dao_uri);
@@ -385,7 +387,8 @@ mod Space {
         }
 
         fn cancel(ref self: ContractState, proposal_id: u256) {
-            //TODO: temporary component syntax
+            // Migration to components planned ; disregard the `unsafe` keyword,
+            // it is actually safe.
             let state = Ownable::unsafe_new_contract_state();
             Ownable::InternalImpl::assert_only_owner(@state);
 
@@ -470,7 +473,8 @@ mod Space {
         }
 
         fn owner(self: @ContractState) -> ContractAddress {
-            //TODO: temporary component syntax
+            // Migration to components planned ; disregard the `unsafe` keyword,
+            // it is actually safe.
             let state = Ownable::unsafe_new_contract_state();
             Ownable::OwnableImpl::owner(@state)
         }
@@ -532,7 +536,8 @@ mod Space {
         }
 
         fn update_settings(ref self: ContractState, input: UpdateSettingsCalldata) {
-            //TODO: temporary component syntax
+            // Migration to components planned ; disregard the `unsafe` keyword,
+            // it is actually safe.
             let state = Ownable::unsafe_new_contract_state();
             Ownable::InternalImpl::assert_only_owner(@state);
 
@@ -699,13 +704,15 @@ mod Space {
         }
 
         fn transfer_ownership(ref self: ContractState, new_owner: ContractAddress) {
-            //TODO: temporary component syntax
+            // Migration to components planned ; disregard the `unsafe` keyword,
+            // it is actually safe.
             let mut state = Ownable::unsafe_new_contract_state();
             Ownable::OwnableImpl::transfer_ownership(ref state, new_owner);
         }
 
         fn renounce_ownership(ref self: ContractState) {
-            //TODO: temporary component syntax
+            // Migration to components planned ; disregard the `unsafe` keyword,
+            // it is actually safe.
             let mut state = Ownable::unsafe_new_contract_state();
             Ownable::OwnableImpl::renounce_ownership(ref state);
         }
