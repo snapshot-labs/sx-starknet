@@ -62,8 +62,7 @@ mod tests {
         testing::set_contract_address(config.owner);
         space.transfer_ownership(execution_contract_address);
 
-        // keccak256("upgrade") & (2**250 - 1)
-        let selector = 0xf2f7c15cbe06c8d94597cd91fd7f3369eae842359235712def5584f8d270cd;
+        let selector = sx::utils::constants::UPGRADE_SELECTOR;
         let mut tx_calldata = array![];
         new_implem.serialize(ref tx_calldata);
         array![7].serialize(ref tx_calldata); // initialize calldata

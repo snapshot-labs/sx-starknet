@@ -47,7 +47,8 @@ mod EvmSlotValueVotingStrategy {
                 .unwrap();
 
             // Get the balance of the voter at the given block timestamp
-            // TODO: temporary until components are released
+            // Migration to components planned ; disregard the `unsafe` keyword,
+            // it is actually safe.
             let state = SingleSlotProof::unsafe_new_contract_state();
             let balance = SingleSlotProof::InternalImpl::get_storage_slot(
                 @state, timestamp, evm_contract_address, slot_index, voter.into(), user_params
@@ -62,7 +63,8 @@ mod EvmSlotValueVotingStrategy {
         timestamp_remappers: ContractAddress,
         facts_registry: ContractAddress
     ) {
-        // TODO: temporary until components are released
+        // Migration to components planned ; disregard the `unsafe` keyword,
+        // it is actually safe.
         let mut state = SingleSlotProof::unsafe_new_contract_state();
         SingleSlotProof::InternalImpl::initializer(ref state, timestamp_remappers, facts_registry);
     }

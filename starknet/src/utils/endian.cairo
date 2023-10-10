@@ -9,10 +9,10 @@ fn uint256_into_le_u64s(self: u256) -> (u64, u64, u64, u64) {
     let high_low = integer::u128_byte_reverse(self.high & MASK_LOW) / SHIFT_64;
     let high_high = integer::u128_byte_reverse(self.high & MASK_HIGH);
     (
+        high_high.try_into().unwrap(),
+        high_low.try_into().unwrap(),
         low_high.try_into().unwrap(),
         low_low.try_into().unwrap(),
-        high_high.try_into().unwrap(),
-        high_low.try_into().unwrap()
     )
 }
 
@@ -25,7 +25,7 @@ fn into_le_u64_array(self: Array<u256>) -> (Array<u64>, u64) {
     let overflow = loop {
         match self.pop_front() {
             Option::Some(num) => {
-                let (low_high, low_low, high_high, high_low) = uint256_into_le_u64s(num);
+                let (high_high, high_low, low_high, low_low) = uint256_into_le_u64s(num);
                 if self.len() == 0 {
                     assert(low_high == 0, 'Final u256 overflows u64');
                     assert(low_low == 0, 'Final u256 overflows u64');

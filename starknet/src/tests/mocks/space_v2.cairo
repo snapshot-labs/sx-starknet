@@ -1,6 +1,6 @@
 #[starknet::interface]
 trait ISpaceV2<TContractState> {
-    fn initialize(ref self: TContractState, var: felt252);
+    fn post_upgrade_initializer(ref self: TContractState, var: felt252);
     fn get_var(self: @TContractState) -> felt252;
 }
 
@@ -16,12 +16,14 @@ mod SpaceV2 {
 
     #[external(v0)]
     impl SpaceV2 of ISpaceV2<ContractState> {
-        fn initialize(ref self: ContractState, var: felt252) {
-            // TODO: Temp component syntax
+        fn post_upgrade_initializer(ref self: ContractState, var: felt252) {
+            // Migration to components planned ; disregard the `unsafe` keyword,
+            // it is actually safe.
             let mut state = Reinitializable::unsafe_new_contract_state();
             Reinitializable::InternalImpl::initialize(ref state);
             self._var.write(var);
         }
+
         fn get_var(self: @ContractState) -> felt252 {
             self._var.read()
         }

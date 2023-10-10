@@ -1,4 +1,4 @@
-use starknet::{ContractAddress, EthAddress, contract_address_const};
+use starknet::{ContractAddress, EthAddress};
 use sx::utils::ContractAddressDefault;
 
 /// Enum to represent a user address.

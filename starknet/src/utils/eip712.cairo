@@ -202,8 +202,7 @@ mod EIP712 {
 
         /// Adds a 16 bit prefix to a 128 bit input, returning the result and a carry.
         fn add_prefix_u128(input: u128, prefix: u128) -> (u128, u128) {
-            let with_prefix = u256 { low: input, high: 0_u128 }
-                + u256 { low: 0_u128, high: prefix };
+            let with_prefix = u256 { low: input, high: prefix };
             let carry = with_prefix & 0xffff;
             // Removing the carry and shifting back.
             let out = (with_prefix - carry) / 0x10000;
