@@ -477,6 +477,63 @@ describe('Ethereum Transaction Authenticator', function () {
     }
   }, 1000000);
 
+  it('should not revert if the same commit was made twice', async () => {
+    await starknet.devnet.restart();
+    await starknet.devnet.load('./dump.pkl');
+    await starknet.devnet.increaseTime(10);
+    await starknet.devnet.loadL1MessagingContract(eth_network, mockStarknetMessaging.address);
+
+    const proposal = {
+      author: signer.address,
+      metadataUri: ['0x1', '0x2', '0x3', '0x4'],
+      executionStrategy: {
+        address: '0x0000000000000000000000000000000000005678',
+        params: ['0x0'],
+      },
+      userProposalValidationParams: [
+        '0xffffffffffffffffffffffffffffffffffffffffff',
+        '0x1234',
+        '0x5678',
+        '0x9abc',
+      ],
+    };
+
+    const proposeCommitPreImage = CallData.compile({
+      target: space.address,
+      selector: selector.getSelectorFromName('propose'),
+      ...proposal,
+    });
+
+    // Commit hash of payload to the Starknet Commit L1 contract
+    const commit = `0x${poseidonHashMany(proposeCommitPreImage.map((v) => BigInt(v))).toString(
+      16,
+    )}`;
+
+    // Committing payload from a different address to the author
+    await starknetCommit
+      .connect(invalidSigner)
+      .commit(ethTxAuthenticator.address, commit, { value: 18485000000000 });
+
+    // Committing the same payload from the author
+    await starknetCommit.commit(ethTxAuthenticator.address, commit, { value: 18485000000000 });
+
+    // Checking that the L1 -> L2 message has been propogated
+    expect((await starknet.devnet.flush()).consumed_messages.from_l1).to.have.a.lengthOf(1);
+
+    await account.invoke(
+      ethTxAuthenticator,
+      'authenticate_propose',
+      CallData.compile({
+        target: space.address,
+        author: proposal.author,
+        metadataURI: proposal.metadataUri,
+        executionStrategy: proposal.executionStrategy,
+        userProposalValidationParams: proposal.userProposalValidationParams,
+      }),
+      { rawInput: true },
+    );
+  }, 1000000);
+
   it('a commit cannot be consumed twice', async () => {
     await starknet.devnet.restart();
     await starknet.devnet.load('./dump.pkl');
