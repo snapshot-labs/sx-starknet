@@ -93,7 +93,6 @@ mod EthSigAuthenticator {
 
     #[storage]
     struct Storage {
-        _domain_hash: u256,
         _used_salts: LegacyMap::<(EthAddress, u256), bool>
     }
 

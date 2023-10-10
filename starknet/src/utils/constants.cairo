@@ -76,5 +76,5 @@ const U256_TYPEHASH: felt252 = 0x1094260a770342332e6a73e9256b901d484a43892531620
 // ------ ERC165 Interface Ids ------
 // For more information, refer to: https://github.com/starknet-io/SNIPs/blob/main/SNIPS/snip-5.md
 
-const ERC165_ACCOUNT_INTERFACE_ID: felt252 = 0xa66bd575; // snake 
-const ERC165_OLD_ACCOUNT_INTERFACE_ID: felt252 = 0x3943f10f; // camel 
+const ERC165_ACCOUNT_INTERFACE_ID: felt252 =
+    0x2ceccef7f994940b3962a6c67e0ba4fcd37df7d131417c604f91e03caecc1cd; // SNIP-6 compliant account ID, functions are snake case
