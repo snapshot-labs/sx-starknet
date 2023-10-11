@@ -22,7 +22,7 @@ mod EIP712 {
             r: u256,
             s: u256,
             v: u32,
-            target: ContractAddress,
+            space: ContractAddress,
             author: EthAddress,
             metadata_uri: Span<felt252>,
             execution_strategy: @Strategy,
@@ -31,7 +31,7 @@ mod EIP712 {
         ) {
             let digest: u256 = self
                 .get_propose_digest(
-                    target,
+                    space,
                     author,
                     metadata_uri,
                     execution_strategy,
@@ -49,7 +49,7 @@ mod EIP712 {
             r: u256,
             s: u256,
             v: u32,
-            target: ContractAddress,
+            space: ContractAddress,
             voter: EthAddress,
             proposal_id: u256,
             choice: Choice,
@@ -58,7 +58,7 @@ mod EIP712 {
         ) {
             let digest: u256 = self
                 .get_vote_digest(
-                    target, voter, proposal_id, choice, user_voting_strategies, metadata_uri
+                    space, voter, proposal_id, choice, user_voting_strategies, metadata_uri
                 );
             secp256_trait::verify_eth_signature::<Secp256k1Point>(
                 digest, secp256_trait::signature_from_vrs(v, r, s), voter
@@ -71,7 +71,7 @@ mod EIP712 {
             r: u256,
             s: u256,
             v: u32,
-            target: ContractAddress,
+            space: ContractAddress,
             author: EthAddress,
             proposal_id: u256,
             execution_strategy: @Strategy,
@@ -80,7 +80,7 @@ mod EIP712 {
         ) {
             let digest: u256 = self
                 .get_update_proposal_digest(
-                    target, author, proposal_id, execution_strategy, metadata_uri, salt
+                    space, author, proposal_id, execution_strategy, metadata_uri, salt
                 );
             secp256_trait::verify_eth_signature::<Secp256k1Point>(
                 digest, secp256_trait::signature_from_vrs(v, r, s), author
