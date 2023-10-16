@@ -4,6 +4,7 @@ env:
   STARKNET_SIERRA_COMPILE_PATH: ./cairo/bin/starknet-sierra-compile
   OBJC_DISABLE_INITIALIZE_FORK_SAFETY: YES
   ADDRESS: "0x347be35996a21f6bf0623e75dbce52baba918ad5ae8d83b6f416045ab22961a"
+  PUBLIC_KEY: "0x674efe292c3c1125108916d6128bd6d1db4528db07322a84177551067aa2bef"
   PK: "0xbdd640fb06671ad11c80317fa3b1799d"
 
 on:
@@ -115,4 +116,4 @@ jobs:
         run: yarn hardhat starknet-build
 
       - name: run Hardhat tests
-        run:  yarn test:l1-execution; yarn test:eth-sig-auth; yarn test:stark-sig-auth
+        run:  yarn test:l1-execution; yarn test:eth-sig-auth; yarn test:stark-sig-auth;  yarn test:eth-tx-auth

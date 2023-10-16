@@ -9,6 +9,7 @@ allowed-libfuncs-list.name = "audited"
 sierra = true
 casm = true
 casm-add-pythonic-hints = true
+build-external-contracts = ["openzeppelin::account::account::Account", "openzeppelin::account::interface::AccountABI"]
 
 [dependencies]
 openzeppelin = { git = "https://github.com/ericnordelo/cairo-contracts", branch = "feat/erc20votes-#631" }

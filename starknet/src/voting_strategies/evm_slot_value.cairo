@@ -1,5 +1,5 @@
 #[starknet::contract]
-mod EthBalanceOfVotingStrategy {
+mod EvmSlotValueVotingStrategy {
     use starknet::{EthAddress, ContractAddress};
     use sx::types::{UserAddress, UserAddressTrait};
     use sx::interfaces::IVotingStrategy;
@@ -9,10 +9,14 @@ mod EthBalanceOfVotingStrategy {
     struct Storage {}
 
     #[external(v0)]
-    impl EthBalanceOfVotingStrategy of IVotingStrategy<ContractState> {
-        /// Returns the layer 1 balance of the voter. The contract address and slot index is stored
-        /// in the strategy parameters (defined by the space owner).
+    impl EvmSlotValueVotingStrategy of IVotingStrategy<ContractState> {
+        /// Returns the EVM slot value of contract `C` at slot index `I`, using `voter` as the mapping key.
+        /// The contract address and slot index is stored in the strategy parameters (defined by the space owner).
         /// The proof itself is supplied by the voter, in the `user_params` argument.
+        ///
+        /// # Notes
+        ///
+        /// This is most often used for proving a user balance on a different chain, such as a ERC20 token balance on L1.
         ///
         /// # Arguments
         ///
@@ -23,7 +27,7 @@ mod EthBalanceOfVotingStrategy {
         ///
         /// # Returns
         ///
-        /// `u256` - The voting power of the voter at the given timestamp.
+        /// `u256` - The slot value of the voter at the given timestamp.
         fn get_voting_power(
             self: @ContractState,
             timestamp: u32,
@@ -37,16 +41,17 @@ mod EthBalanceOfVotingStrategy {
 
             // Decode params 
             let mut params = params;
-            let (l1_account_address, slot_index) = Serde::<(
+            let (evm_contract_address, slot_index) = Serde::<(
                 EthAddress, u256
             )>::deserialize(ref params)
                 .unwrap();
 
             // Get the balance of the voter at the given block timestamp
-            // TODO: temporary until components are released
+            // Migration to components planned ; disregard the `unsafe` keyword,
+            // it is actually safe.
             let state = SingleSlotProof::unsafe_new_contract_state();
             let balance = SingleSlotProof::InternalImpl::get_storage_slot(
-                @state, timestamp, l1_account_address, slot_index, voter.into(), user_params
+                @state, timestamp, evm_contract_address, slot_index, voter.into(), user_params
             );
             balance
         }
@@ -58,7 +63,8 @@ mod EthBalanceOfVotingStrategy {
         timestamp_remappers: ContractAddress,
         facts_registry: ContractAddress
     ) {
-        // TODO: temporary until components are released
+        // Migration to components planned ; disregard the `unsafe` keyword,
+        // it is actually safe.
         let mut state = SingleSlotProof::unsafe_new_contract_state();
         SingleSlotProof::InternalImpl::initializer(ref state, timestamp_remappers, facts_registry);
     }

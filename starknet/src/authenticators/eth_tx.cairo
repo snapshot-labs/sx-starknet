@@ -8,14 +8,14 @@ trait IEthTxAuthenticator<TContractState> {
     ///
     /// # Arguments
     ///
-    /// * `target` - The address of the contract to which the transaction is sent.
+    /// * `space` - The address of the contract to which the transaction is sent.
     /// * `author` - The author of the proposal. Expected to be an ethereum address.
     /// * `metadata_uri` - The metadata URI of the proposal.
     /// * `execution_strategy` - The execution strategy of the proposal.
     /// * `user_proposal_validation_params` - The user proposal validation params of the proposal.
     fn authenticate_propose(
         ref self: TContractState,
-        target: ContractAddress,
+        space: ContractAddress,
         author: EthAddress,
         metadata_uri: Array<felt252>,
         execution_strategy: Strategy,
@@ -27,7 +27,7 @@ trait IEthTxAuthenticator<TContractState> {
     ///
     /// # Arguments
     ///
-    /// * `target` - The address of the contract to which the transaction is sent.
+    /// * `space` - The address of the contract to which the transaction is sent.
     /// * `voter` - The voter. Expected to be an ethereum address.
     /// * `proposal_id` - The id of the proposal.
     /// * `choice` - The choice of the vote.
@@ -35,7 +35,7 @@ trait IEthTxAuthenticator<TContractState> {
     /// * `metadata_uri` - The metadata URI of the vote.
     fn authenticate_vote(
         ref self: TContractState,
-        target: ContractAddress,
+        space: ContractAddress,
         voter: EthAddress,
         proposal_id: u256,
         choice: Choice,
@@ -48,14 +48,14 @@ trait IEthTxAuthenticator<TContractState> {
     ///
     /// # Arguments
     ///
-    /// * `target` - The address of the contract to which the transaction is sent.
+    /// * `space` - The address of the contract to which the transaction is sent.
     /// * `author` - The author of the proposal. Expected to be an ethereum address.
     /// * `proposal_id` - The id of the proposal.
     /// * `execution_strategy` - The execution strategy of the proposal.
     /// * `metadata_uri` - The metadata URI of the proposal.
     fn authenticate_update_proposal(
         ref self: TContractState,
-        target: ContractAddress,
+        space: ContractAddress,
         author: EthAddress,
         proposal_id: u256,
         execution_strategy: Strategy,
@@ -69,26 +69,27 @@ mod EthTxAuthenticator {
     use starknet::{ContractAddress, EthAddress, Felt252TryIntoEthAddress, EthAddressIntoFelt252,};
     use sx::interfaces::{ISpaceDispatcher, ISpaceDispatcherTrait};
     use sx::types::{UserAddress, Strategy, IndexedStrategy, Choice};
+    use sx::utils::LegacyHashFelt252EthAddress;
     use sx::utils::constants::{PROPOSE_SELECTOR, VOTE_SELECTOR, UPDATE_PROPOSAL_SELECTOR};
 
     #[storage]
     struct Storage {
         _starknet_commit_address: EthAddress,
-        _commits: LegacyMap::<felt252, EthAddress>
+        _commits: LegacyMap::<(felt252, EthAddress), bool>
     }
 
     #[external(v0)]
     impl EthTxAuthenticator of IEthTxAuthenticator<ContractState> {
         fn authenticate_propose(
             ref self: ContractState,
-            target: ContractAddress,
+            space: ContractAddress,
             author: EthAddress,
             metadata_uri: Array<felt252>,
             execution_strategy: Strategy,
             user_proposal_validation_params: Array<felt252>,
         ) {
             let mut payload = array![];
-            target.serialize(ref payload);
+            space.serialize(ref payload);
             PROPOSE_SELECTOR.serialize(ref payload);
             author.serialize(ref payload);
             metadata_uri.serialize(ref payload);
@@ -98,7 +99,7 @@ mod EthTxAuthenticator {
 
             self.consume_commit(payload_hash, author);
 
-            ISpaceDispatcher { contract_address: target }
+            ISpaceDispatcher { contract_address: space }
                 .propose(
                     UserAddress::Ethereum(author),
                     metadata_uri,
@@ -109,7 +110,7 @@ mod EthTxAuthenticator {
 
         fn authenticate_vote(
             ref self: ContractState,
-            target: ContractAddress,
+            space: ContractAddress,
             voter: EthAddress,
             proposal_id: u256,
             choice: Choice,
@@ -117,7 +118,7 @@ mod EthTxAuthenticator {
             metadata_uri: Array<felt252>
         ) {
             let mut payload = array![];
-            target.serialize(ref payload);
+            space.serialize(ref payload);
             VOTE_SELECTOR.serialize(ref payload);
             voter.serialize(ref payload);
             proposal_id.serialize(ref payload);
@@ -128,7 +129,7 @@ mod EthTxAuthenticator {
 
             self.consume_commit(payload_hash, voter);
 
-            ISpaceDispatcher { contract_address: target }
+            ISpaceDispatcher { contract_address: space }
                 .vote(
                     UserAddress::Ethereum(voter),
                     proposal_id,
@@ -140,14 +141,14 @@ mod EthTxAuthenticator {
 
         fn authenticate_update_proposal(
             ref self: ContractState,
-            target: ContractAddress,
+            space: ContractAddress,
             author: EthAddress,
             proposal_id: u256,
             execution_strategy: Strategy,
             metadata_uri: Array<felt252>
         ) {
             let mut payload = array![];
-            target.serialize(ref payload);
+            space.serialize(ref payload);
             UPDATE_PROPOSAL_SELECTOR.serialize(ref payload);
             author.serialize(ref payload);
             proposal_id.serialize(ref payload);
@@ -157,7 +158,7 @@ mod EthTxAuthenticator {
 
             self.consume_commit(payload_hash, author);
 
-            ISpaceDispatcher { contract_address: target }
+            ISpaceDispatcher { contract_address: space }
                 .update_proposal(
                     UserAddress::Ethereum(author), proposal_id, execution_strategy, metadata_uri
                 );
@@ -176,19 +177,17 @@ mod EthTxAuthenticator {
         assert(
             from_address == self._starknet_commit_address.read().into(), 'Invalid commit address'
         );
-        // Prevents hash being overwritten by a different sender.
-        assert(self._commits.read(hash).into() == 0, 'Commit already exists');
-        self._commits.write(hash, sender_address.try_into().unwrap());
+        let sender_address = sender_address.try_into().unwrap();
+        assert(self._commits.read((hash, sender_address)) == false, 'Commit already exists');
+        self._commits.write((hash, sender_address), true);
     }
 
     #[generate_trait]
     impl InternalImpl of InternalTrait {
         fn consume_commit(ref self: ContractState, hash: felt252, sender_address: EthAddress) {
-            let committer_address = self._commits.read(hash);
-            assert(!committer_address.is_zero(), 'Commit not found');
-            assert(committer_address == sender_address, 'Invalid sender address');
+            assert(self._commits.read((hash, sender_address)), 'Commit not found');
             // Delete the commit to prevent replay attacks.
-            self._commits.write(hash, Zeroable::zero());
+            self._commits.write((hash, sender_address), false);
         }
     }
 }

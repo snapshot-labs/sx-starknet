@@ -17,7 +17,7 @@ mod Space {
     };
     use sx::utils::{
         Reinitializable, BitSetter, LegacyHashChoice, LegacyHashUserAddress, LegacyHashVotePower,
-        LegacyHashVoteRegistry, constants::INITIALIZE_SELECTOR
+        LegacyHashVoteRegistry, constants::{INITIALIZE_SELECTOR, POST_UPGRADE_INITIALIZER_SELECTOR}
     };
 
     #[storage]
@@ -206,7 +206,8 @@ mod Space {
                 );
 
             // Checking that the contract is not already initialized
-            //TODO: temporary component syntax
+            // Migration to components planned ; disregard the `unsafe` keyword,
+            // it is actually safe.
             let mut state: Reinitializable::ContractState =
                 Reinitializable::unsafe_new_contract_state();
             Reinitializable::InternalImpl::initialize(ref state);
@@ -215,7 +216,8 @@ mod Space {
             assert(authenticators.len() != 0, 'empty authenticators');
             assert(voting_strategies.len() == voting_strategy_metadata_uris.len(), 'len mismatch');
 
-            //TODO: temporary component syntax
+            // Migration to components planned ; disregard the `unsafe` keyword,
+            // it is actually safe.
             let mut state = Ownable::unsafe_new_contract_state();
             Ownable::InternalImpl::initializer(ref state, owner);
             self.set_dao_uri(dao_uri);
@@ -311,14 +313,13 @@ mod Space {
             assert(timestamp < proposal.max_end_timestamp, 'Voting period has ended');
             assert(timestamp >= proposal.start_timestamp, 'Voting period has not started');
             assert(
-                proposal.finalization_status == FinalizationStatus::Pending(()),
-                'Proposal has been finalized'
+                proposal.finalization_status == FinalizationStatus::Pending(()), 'Already finalized'
             );
             assert(
                 self._vote_registry.read((proposal_id, voter)) == false, 'Voter has already voted'
             );
 
-            // Written here to prevent re-entrency attacks via malicious voting strategies
+            // Written here to prevent reentrancy attacks via malicious voting strategies
             self._vote_registry.write((proposal_id, voter), true);
 
             let voting_power = self
@@ -361,12 +362,12 @@ mod Space {
             // Check that payload matches
             assert(recovered_hash == proposal.execution_payload_hash, 'Invalid payload hash');
 
-            // Check that finalization status is not pending
+            // Check that finalization status is pending
             assert(
                 proposal.finalization_status == FinalizationStatus::Pending(()), 'Already finalized'
             );
 
-            // We cache the proposal to prevent re-entrency attacks by setting
+            // We cache the proposal to prevent reentrancy attacks by setting
             // the finalization status to `Executed` before calling the `execute` function.
             let cached_proposal = proposal.clone();
             proposal.finalization_status = FinalizationStatus::Executed(());
@@ -386,7 +387,8 @@ mod Space {
         }
 
         fn cancel(ref self: ContractState, proposal_id: u256) {
-            //TODO: temporary component syntax
+            // Migration to components planned ; disregard the `unsafe` keyword,
+            // it is actually safe.
             let state = Ownable::unsafe_new_contract_state();
             Ownable::InternalImpl::assert_only_owner(@state);
 
@@ -415,7 +417,7 @@ mod Space {
             assert(
                 proposal.finalization_status == FinalizationStatus::Pending(()), 'Already finalized'
             );
-            assert(proposal.author == author, 'Invalid caller');
+            assert(proposal.author == author, 'Invalid author');
             assert(
                 info::get_block_timestamp() < proposal.start_timestamp.into(),
                 'Voting period started'
@@ -452,11 +454,13 @@ mod Space {
             // Allowing initializer to be called again.
             let mut state: Reinitializable::ContractState =
                 Reinitializable::unsafe_new_contract_state();
-            Reinitializable::InternalImpl::reinitialize(ref state);
+            Reinitializable::InternalImpl::reset(ref state);
 
-            // Call initializer on the new version.
+            // Call `post_upgrade_initializer` on the new version.
             syscalls::call_contract_syscall(
-                info::get_contract_address(), INITIALIZE_SELECTOR, initialize_calldata.span()
+                info::get_contract_address(),
+                POST_UPGRADE_INITIALIZER_SELECTOR,
+                initialize_calldata.span()
             )?;
 
             self
@@ -470,8 +474,15 @@ mod Space {
             SyscallResult::Ok(())
         }
 
+        fn post_upgrade_initializer(
+            ref self: ContractState, initialize_calldata: Array<felt252>,
+        ) { // This contract being the first version, we don't expect anyone to upgrade to it.
+        // We leave the implementation empty.
+        }
+
         fn owner(self: @ContractState) -> ContractAddress {
-            //TODO: temporary component syntax
+            // Migration to components planned ; disregard the `unsafe` keyword,
+            // it is actually safe.
             let state = Ownable::unsafe_new_contract_state();
             Ownable::OwnableImpl::owner(@state)
         }
@@ -533,7 +544,8 @@ mod Space {
         }
 
         fn update_settings(ref self: ContractState, input: UpdateSettingsCalldata) {
-            //TODO: temporary component syntax
+            // Migration to components planned ; disregard the `unsafe` keyword,
+            // it is actually safe.
             let state = Ownable::unsafe_new_contract_state();
             Ownable::InternalImpl::assert_only_owner(@state);
 
@@ -700,13 +712,15 @@ mod Space {
         }
 
         fn transfer_ownership(ref self: ContractState, new_owner: ContractAddress) {
-            //TODO: temporary component syntax
+            // Migration to components planned ; disregard the `unsafe` keyword,
+            // it is actually safe.
             let mut state = Ownable::unsafe_new_contract_state();
             Ownable::OwnableImpl::transfer_ownership(ref state, new_owner);
         }
 
         fn renounce_ownership(ref self: ContractState) {
-            //TODO: temporary component syntax
+            // Migration to components planned ; disregard the `unsafe` keyword,
+            // it is actually safe.
             let mut state = Ownable::unsafe_new_contract_state();
             Ownable::OwnableImpl::renounce_ownership(ref state);
         }
@@ -781,13 +795,13 @@ mod Space {
             let mut cachedActiveVotingStrategies = self._active_voting_strategies.read();
             let mut cachedNextVotingStrategyIndex = self._next_voting_strategy_index.read();
             assert(
-                cachedNextVotingStrategyIndex.into() < 256_u32 - _voting_strategies.len(),
+                cachedNextVotingStrategyIndex.into() <= 256_u32 - _voting_strategies.len(),
                 'Exceeds Voting Strategy Limit'
             );
             loop {
                 match _voting_strategies.pop_front() {
                     Option::Some(strategy) => {
-                        assert(!(*strategy.address).is_zero(), 'Invalid voting strategy');
+                        assert((*strategy.address).is_non_zero(), 'Invalid voting strategy');
                         cachedActiveVotingStrategies.set_bit(cachedNextVotingStrategyIndex, true);
                         self
                             ._voting_strategies

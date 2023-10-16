@@ -1,5 +1,8 @@
 const INITIALIZE_SELECTOR: felt252 =
     0x79dc0da7c54b95f10aa182ad0a46400db63156920adb65eca2654c0945a463;
+const UPGRADE_SELECTOR: felt252 = 0xf2f7c15cbe06c8d94597cd91fd7f3369eae842359235712def5584f8d270cd;
+const POST_UPGRADE_INITIALIZER_SELECTOR: felt252 =
+    0x394c078a9c6f355ad9fc59c3fa40825dfd9db2a41802a486f1492c16d2739e6;
 const PROPOSE_SELECTOR: felt252 = 0x1bfd596ae442867ef71ca523061610682af8b00fc2738329422f4ad8d220b81;
 const VOTE_SELECTOR: felt252 = 0x132bdf85fc8aa10ac3c22f02317f8f53d4b4f52235ed1eabb3a4cbbe08b5c41;
 const UPDATE_PROPOSAL_SELECTOR: felt252 =
@@ -9,27 +12,27 @@ const UPDATE_PROPOSAL_SELECTOR: felt252 =
 
 const ETHEREUM_PREFIX: u128 = 0x1901;
 
-// keccak256("EIP712Domain(uint256 chainId)")
-const DOMAIN_TYPEHASH_HIGH: u128 = 0xc49a8e302e3e5d6753b2bb3dbc3c28de;
-const DOMAIN_TYPEHASH_LOW: u128 = 0xba5e16e2572a92aef568063c963e3465;
+// keccak256(abi.encode(keccak256("EIP712Domain()"))
+const DOMAIN_HASH_HIGH: u128 = 0x6192106f129ce05c9075d319c1fa6ea9;
+const DOMAIN_HASH_LOW: u128 = 0xb3ae37cbd0c1ef92e2be7137bb07baa1;
 
 // keccak256(
-//    "Propose(uint256 authenticator,uint256 space,address author,uint256[] metadataUri,Strategy executionStrategy,uint256[] userProposalValidationParams,uint256 salt)Strategy(uint256 address,uint256[] params)"
+//    "Propose(uint256 chainId,uint256 authenticator,uint256 space,address author,uint256[] metadataUri,Strategy executionStrategy,uint256[] userProposalValidationParams,uint256 salt)Strategy(uint256 address,uint256[] params)"
 //         )
-const PROPOSE_TYPEHASH_HIGH: u128 = 0x4dfc61ed4ed6dbe067c67c4d27609650;
-const PROPOSE_TYPEHASH_LOW: u128 = 0xc15e92250dad00bce5b7a15d803f412c;
+const PROPOSE_TYPEHASH_HIGH: u128 = 0x04ede461dac4a3b480afeb3954345a3e;
+const PROPOSE_TYPEHASH_LOW: u128 = 0x86377d7136dad5401c9e3ff24c7a0f07;
 
 // keccak256(
-//    "Vote(uint256 authenticator,uint256 space,address voter,uint256 proposalId,uint256 choice,IndexedStrategy[] userVotingStrategies,uint256[] metadataUri)IndexedStrategy(uint256 index,uint256[] params)"
+//    "Vote(uint256 chainId,uint256 authenticator,uint256 space,address voter,uint256 proposalId,uint256 choice,IndexedStrategy[] userVotingStrategies,uint256[] metadataUri)IndexedStrategy(uint256 index,uint256[] params)"
 //         )
-const VOTE_TYPEHASH_HIGH: u128 = 0x3de8a6075852dd4e4b0b01cdd1c58ed6;
-const VOTE_TYPEHASH_LOW: u128 = 0x2e3bdd0734e744e68fbab937d9ec3663;
+const VOTE_TYPEHASH_HIGH: u128 = 0x9f141e8a6807fa0c11618a1232b75ba3;
+const VOTE_TYPEHASH_LOW: u128 = 0x298f2993575d81a3b6ec2d52ae694cb7;
 
 // keccak256(
-//    "UpdateProposal(uint256 authenticator,uint256 space,address author,uint256 proposalId,Strategy executionStrategy,uint256[] metadataUri,uint256 salt)Strategy(uint256 address,uint256[] params)"
+//    "UpdateProposal(uint256 chainId,uint256 authenticator,uint256 space,address author,uint256 proposalId,Strategy executionStrategy,uint256[] metadataUri,uint256 salt)Strategy(uint256 address,uint256[] params)"
 //         )
-const UPDATE_PROPOSAL_TYPEHASH_HIGH: u128 = 0xccae29691c0af6c4ee02ec442cb0ade3;
-const UPDATE_PROPOSAL_TYPEHASH_LOW: u128 = 0x3fc36989a73ba9357060d3eeac00b67f;
+const UPDATE_PROPOSAL_TYPEHASH_HIGH: u128 = 0x2df41899fffb50338812b0c6bb5db608;
+const UPDATE_PROPOSAL_TYPEHASH_LOW: u128 = 0x9503bccdcdb9a1ed596eea5bb5087f84;
 
 // keccak256("Strategy(uint256 address,uint256[] params)")
 const STRATEGY_TYPEHASH_HIGH: u128 = 0xa6cb034787a88e7219605b9db792cb9a;
@@ -73,5 +76,5 @@ const U256_TYPEHASH: felt252 = 0x1094260a770342332e6a73e9256b901d484a43892531620
 // ------ ERC165 Interface Ids ------
 // For more information, refer to: https://github.com/starknet-io/SNIPs/blob/main/SNIPS/snip-5.md
 
-const ERC165_ACCOUNT_INTERFACE_ID: felt252 = 0xa66bd575; // snake 
-const ERC165_OLD_ACCOUNT_INTERFACE_ID: felt252 = 0x3943f10f; // camel 
+const ERC165_ACCOUNT_INTERFACE_ID: felt252 =
+    0x2ceccef7f994940b3962a6c67e0ba4fcd37df7d131417c604f91e03caecc1cd; // SNIP-6 compliant account ID, functions are snake case

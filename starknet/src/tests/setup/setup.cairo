@@ -119,7 +119,7 @@ mod setup {
 
     fn deploy(config: @Config) -> (IFactoryDispatcher, ISpaceDispatcher) {
         let space_class_hash: ClassHash = Space::TEST_CLASS_HASH.try_into().unwrap();
-        let contract_address_salt = 0;
+        let salt_nonce = 0;
 
         let factory_address =
             match deploy_syscall(
@@ -136,8 +136,7 @@ mod setup {
 
         let mut initializer_calldata = config.get_initialize_calldata();
         let space_address =
-            match factory
-                .deploy(space_class_hash, contract_address_salt, initializer_calldata.span()) {
+            match factory.deploy(space_class_hash, initializer_calldata.span(), salt_nonce) {
             Result::Ok(address) => address,
             Result::Err(e) => {
                 panic_with_felt252('deploy failed');

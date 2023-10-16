@@ -93,7 +93,6 @@ mod EthSigAuthenticator {
 
     #[storage]
     struct Storage {
-        _domain_hash: u256,
         _used_salts: LegacyMap::<(EthAddress, u256), bool>
     }
 
@@ -207,11 +206,5 @@ mod EthSigAuthenticator {
                     UserAddress::Ethereum(author), proposal_id, execution_strategy, metadata_uri
                 );
         }
-    }
-
-    #[constructor]
-    fn constructor(ref self: ContractState) {
-        let mut state = EIP712::unsafe_new_contract_state();
-        EIP712::InternalImpl::initializer(ref state);
     }
 }

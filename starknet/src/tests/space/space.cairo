@@ -244,7 +244,7 @@ mod tests {
     #[test]
     #[available_gas(100000000)]
     #[should_panic(expected: ('Already Initialized', 'ENTRYPOINT_FAILED'))]
-    fn reinitialize() {
+    fn reset() {
         let deployer = starknet::contract_address_const::<0xdead>();
 
         testing::set_caller_address(deployer);
@@ -654,7 +654,7 @@ mod tests {
 
     #[test]
     #[available_gas(10000000000)]
-    #[should_panic(expected: ('Proposal has been finalized', 'ENTRYPOINT_FAILED'))]
+    #[should_panic(expected: ('Already finalized', 'ENTRYPOINT_FAILED'))]
     fn cancel() {
         let relayer = starknet::contract_address_const::<0x1234>();
         let config = setup();
@@ -898,8 +898,8 @@ mod tests {
 
     #[test]
     #[available_gas(10000000000)]
-    #[should_panic(expected: ('Invalid caller', 'ENTRYPOINT_FAILED'))]
-    fn update_invalid_caller() {
+    #[should_panic(expected: ('Invalid author', 'ENTRYPOINT_FAILED'))]
+    fn update_invalid_author() {
         let config = setup();
         let (factory, space) = deploy(@config);
 

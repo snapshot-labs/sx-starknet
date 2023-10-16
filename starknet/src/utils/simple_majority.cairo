@@ -3,7 +3,7 @@ use sx::types::{Proposal, FinalizationStatus, ProposalStatus};
 
 /// Returns the status of a proposal, according to a 'Simple Majority' rule.
 /// 'Simple Majority' is defined like so: a proposal is accepted if there are more `votes_for` than `votes_against`.
-/// So, a proposal will return Accepted if `max_end_timestamp` has been reached, and `votes_for > votes_agasint`.
+/// So, a proposal will return Accepted if `max_end_timestamp` has been reached, and `votes_for > votes_against`.
 fn get_proposal_status(
     proposal: @Proposal, votes_for: u256, votes_against: u256, votes_abstain: u256,
 ) -> ProposalStatus {

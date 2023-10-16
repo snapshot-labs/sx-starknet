@@ -14,6 +14,7 @@
     "chain": "yarn chain:l1 & yarn chain:l2",
     "test:stark-sig-auth": "bash './scripts/stark-sig-auth-test.sh'",
     "test:eth-sig-auth": "bash './scripts/eth-sig-auth-test.sh'",
+    "test:eth-tx-auth": "bash './scripts/eth-tx-auth-test.sh'",
     "test:l1-execution": "bash './scripts/l1-avatar-execution-test.sh'"
   },
   "devDependencies": {
@@ -44,6 +45,7 @@
     "fs": "^0.0.1-security",
     "hardhat": "^2.17.2",
     "hardhat-gas-reporter": "^1.0.9",
+    "micro-starknet": "^0.2.3",
     "prettier": "^3.0.0",
     "starknet": "^5.19.5",
     "ts-node": "^10.9.1",

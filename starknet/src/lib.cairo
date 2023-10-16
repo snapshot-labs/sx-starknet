@@ -24,8 +24,8 @@ mod voting_strategies {
     mod erc20_votes;
     use erc20_votes::ERC20VotesVotingStrategy;
 
-    mod eth_balance_of;
-    use eth_balance_of::EthBalanceOfVotingStrategy;
+    mod evm_slot_value;
+    use evm_slot_value::EvmSlotValueVotingStrategy;
 
     mod merkle_whitelist;
     use merkle_whitelist::MerkleWhitelistVotingStrategy;
@@ -46,12 +46,6 @@ mod factory {
 }
 
 mod interfaces {
-    mod i_account;
-    use i_account::{
-        AccountABI, AccountABIDispatcher, AccountABIDispatcherTrait, AccountCamelABI,
-        AccountCamelABIDispatcher, AccountCamelABIDispatcherTrait
-    };
-
     mod i_execution_strategy;
     use i_execution_strategy::{
         IExecutionStrategy, IExecutionStrategyDispatcher, IExecutionStrategyDispatcherTrait
@@ -107,6 +101,9 @@ mod utils {
 
     mod constants;
 
+    mod default;
+    use default::ContractAddressDefault;
+
     mod eip712;
     use eip712::EIP712;
 
@@ -121,8 +118,8 @@ mod utils {
 
     mod legacy_hash;
     use legacy_hash::{
-        LegacyHashEthAddress, LegacyHashUsedSalts, LegacyHashChoice, LegacyHashUserAddress,
-        LegacyHashVotePower, LegacyHashVoteRegistry, LegacyHashSpanFelt252
+        LegacyHashEthAddress, LegacyHashFelt252EthAddress, LegacyHashUsedSalts, LegacyHashChoice,
+        LegacyHashUserAddress, LegacyHashVotePower, LegacyHashVoteRegistry, LegacyHashSpanFelt252
     };
 
     mod math;

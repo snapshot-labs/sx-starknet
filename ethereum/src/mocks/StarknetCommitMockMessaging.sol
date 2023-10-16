@@ -2,13 +2,13 @@
 
 pragma solidity ^0.8.19;
 
-import "./interfaces/IStarknetCore.sol";
+import "./MockStarknetMessaging.sol";
 
 /// @title Starknet Commit Contract
 /// @notice Allows data to be committed to Starknet via a transaction on L1. The contract works in combination with a corresponding authenticator contract on Starknet.
-contract StarknetCommit {
+contract StarknetCommitMockMessaging {
     /// @notice The Starknet core contract.
-    IStarknetCore public immutable starknetCore;
+    MockStarknetMessaging public immutable starknetCore;
 
     /// @dev Selector for the L1 handler in the authenticator on Starknet:
     uint256 private constant L1_COMMIT_HANDLER =
@@ -17,7 +17,7 @@ contract StarknetCommit {
     /// @notice Emitted when a hash is committed.
     event Commit(uint256 starknetAuthenticator, uint256 _hash, bytes32 msgHash, uint256 msgNonce);
 
-    constructor(IStarknetCore _starknetCore) {
+    constructor(MockStarknetMessaging _starknetCore) {
         starknetCore = _starknetCore;
     }
 

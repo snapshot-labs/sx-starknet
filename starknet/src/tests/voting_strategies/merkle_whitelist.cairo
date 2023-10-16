@@ -349,7 +349,7 @@ mod merkle_whitelist_voting_power {
     #[test]
     #[available_gas(1000000000)]
     #[should_panic(expected: ('Merkle: Invalid proof', 'ENTRYPOINT_FAILED'))]
-    fn lying_voting_power() {
+    fn invalid_leaf_voting_power() {
         let members = generate_n_members(20);
 
         let (contract, _) = deploy_syscall(
@@ -384,8 +384,8 @@ mod merkle_whitelist_voting_power {
 
     #[test]
     #[available_gas(1000000000)]
-    #[should_panic(expected: ('Merkle: Invalid proof', 'ENTRYPOINT_FAILED'))]
-    fn lying_address_power() {
+    #[should_panic(expected: ('Leaf and voter mismatch', 'ENTRYPOINT_FAILED'))]
+    fn invalid_leaf_address() {
         let members = generate_n_members(20);
 
         let (contract, _) = deploy_syscall(
@@ -410,12 +410,46 @@ mod merkle_whitelist_voting_power {
 
         let mut user_params = array![];
         let fake_leaf = Leaf {
-            address: UserAddress::Starknet(contract_address_const::<0x1337>()),
+            address: UserAddress::Starknet(contract_address_const::<'lying'>()),
             voting_power: leaf.voting_power,
         }; // lying about address here
         fake_leaf.serialize(ref user_params);
         proof.serialize(ref user_params);
 
         voting_strategy.get_voting_power(timestamp, voter, params.span(), user_params.span());
+    }
+
+    #[test]
+    #[available_gas(1000000000)]
+    #[should_panic(expected: ('Leaf and voter mismatch', 'ENTRYPOINT_FAILED'))]
+    fn valid_proof_but_invalid_voter() {
+        let members = generate_n_members(20);
+
+        let (contract, _) = deploy_syscall(
+            MerkleWhitelistVotingStrategy::TEST_CLASS_HASH.try_into().unwrap(),
+            0,
+            array![].span(),
+            false,
+        )
+            .unwrap();
+        let voting_strategy = IVotingStrategyDispatcher { contract_address: contract };
+        let timestamp = 0x1234;
+        let index = 2;
+        let leaf = *members.at(index);
+        let voter = leaf.address;
+
+        let merkle_data = generate_merkle_data(members.span());
+        let root = generate_merkle_root(merkle_data.span());
+        let proof = generate_proof(merkle_data.span(), index);
+
+        let mut params = array![];
+        root.serialize(ref params);
+
+        let mut user_params = array![];
+        leaf.serialize(ref user_params);
+        proof.serialize(ref user_params);
+
+        let fake_voter = UserAddress::Starknet(contract_address_const::<'fake'>());
+        voting_strategy.get_voting_power(timestamp, fake_voter, params.span(), user_params.span());
     }
 }

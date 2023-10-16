@@ -14,16 +14,17 @@ import {
 dotenv.config();
 
 const account_address = process.env.ADDRESS || '';
+const account_public_key = process.env.PUBLIC_KEY || '';
 const account_pk = process.env.PK || '';
 const network = process.env.STARKNET_NETWORK_URL || '';
 
 describe('Starknet Signature Authenticator', function () {
   this.timeout(1000000);
 
-  // Need a starknet.js account for signing
-  let accountWithSigner: Account;
   let account: starknet.starknetAccount;
-  let accountType: string;
+
+  // SNIP-6 compliant account (the defaults deployed on the devnet are not SNIP-6 compliant and therefore cannot be used for s)
+  let accountWithSigner: Account;
 
   let starkSigAuthenticator: starknet.StarknetContract;
   let vanillaVotingStrategy: starknet.StarknetContract;
@@ -33,14 +34,8 @@ describe('Starknet Signature Authenticator', function () {
   let domain: any;
 
   before(async function () {
-    accountWithSigner = new Account(
-      new Provider({ sequencer: { baseUrl: network } }),
-      account_address,
-      account_pk,
-    );
     account = await starknet.OpenZeppelinAccount.getAccountFromAddress(account_address, account_pk);
-    // change this to 'camel' if the account interface uses camel case
-    accountType = shortString.encodeShortString('snake');
+    const accountFactory = await starknet.getContractFactory('openzeppelin_Account');
     const starkSigAuthenticatorFactory = await starknet.getContractFactory(
       'sx_StarkSigAuthenticator',
     );
@@ -54,11 +49,22 @@ describe('Starknet Signature Authenticator', function () {
 
     try {
       // If the contracts are already declared, this will be skipped
+      await account.declare(accountFactory);
       await account.declare(starkSigAuthenticatorFactory);
       await account.declare(vanillaVotingStrategyFactory);
       await account.declare(vanillaProposalValidationStrategyFactory);
       await account.declare(spaceFactory);
     } catch {}
+
+    const accountObj = await account.deploy(accountFactory, {
+      _public_key: account_public_key,
+    });
+
+    accountWithSigner = new Account(
+      new Provider({ sequencer: { baseUrl: network } }),
+      accountObj.address,
+      account_pk,
+    );
 
     starkSigAuthenticator = await account.deploy(starkSigAuthenticatorFactory, {
       name: shortString.encodeShortString('sx-sn'),
@@ -109,7 +115,7 @@ describe('Starknet Signature Authenticator', function () {
     // PROPOSE
     const proposeMsg: Propose = {
       space: space.address,
-      author: account.address,
+      author: accountWithSigner.address,
       metadataUri: ['0x1', '0x2', '0x3', '0x4'],
       executionStrategy: {
         address: '0x0000000000000000000000000000000000005678',
@@ -134,7 +140,6 @@ describe('Starknet Signature Authenticator', function () {
     const proposeCalldata = CallData.compile({
       signature: [proposeSig.r, proposeSig.s],
       ...proposeMsg,
-      accountType: accountType,
     });
 
     await account.invoke(starkSigAuthenticator, 'authenticate_propose', proposeCalldata, {
@@ -145,7 +150,7 @@ describe('Starknet Signature Authenticator', function () {
 
     const updateProposalMsg: UpdateProposal = {
       space: space.address,
-      author: account.address,
+      author: accountWithSigner.address,
       proposalId: { low: '0x1', high: '0x0' },
       executionStrategy: {
         address: '0x0000000000000000000000000000000000005678',
@@ -165,7 +170,6 @@ describe('Starknet Signature Authenticator', function () {
     const updateProposalCalldata = CallData.compile({
       signature: [updateProposalSig.r, updateProposalSig.s],
       ...updateProposalMsg,
-      accountType: accountType,
     });
 
     await account.invoke(
@@ -184,7 +188,7 @@ describe('Starknet Signature Authenticator', function () {
 
     const voteMsg: Vote = {
       space: space.address,
-      voter: account.address,
+      voter: accountWithSigner.address,
       proposalId: { low: '0x1', high: '0x0' },
       choice: '0x1',
       userVotingStrategies: [{ index: '0x0', params: ['0x1', '0x2', '0x3', '0x4'] }],
@@ -201,7 +205,6 @@ describe('Starknet Signature Authenticator', function () {
     const voteCalldata = CallData.compile({
       signature: [voteSig.r, voteSig.s],
       ...voteMsg,
-      accountType: accountType,
     });
 
     await account.invoke(starkSigAuthenticator, 'authenticate_vote', voteCalldata, {
@@ -224,7 +227,7 @@ describe('Starknet Signature Authenticator', function () {
     // PROPOSE
     const proposeMsg: Propose = {
       space: space.address,
-      author: account.address,
+      author: accountWithSigner.address,
       metadataUri: ['0x1', '0x2', '0x3', '0x4'],
       executionStrategy: {
         address: '0x0000000000000000000000000000000000005678',
@@ -249,7 +252,6 @@ describe('Starknet Signature Authenticator', function () {
     const invalidProposeCalldata = CallData.compile({
       signature: [invalidProposeSig.r, invalidProposeSig.s],
       ...proposeMsg,
-      accountType: accountType,
     });
 
     try {
@@ -258,8 +260,7 @@ describe('Starknet Signature Authenticator', function () {
       });
       expect.fail('Should have failed');
     } catch (err: any) {
-      // snippet of error message thrown when signature is invalid
-      expect(err.message).to.contain('is invalid, with respect to the public key');
+      expect(err.message).to.contain(shortString.encodeShortString('Invalid Signature'));
     }
 
     const proposeSig = (await accountWithSigner.signMessage({
@@ -272,7 +273,6 @@ describe('Starknet Signature Authenticator', function () {
     const proposeCalldata = CallData.compile({
       signature: [proposeSig.r, proposeSig.s],
       ...proposeMsg,
-      accountType: accountType,
     });
 
     await account.invoke(starkSigAuthenticator, 'authenticate_propose', proposeCalldata, {
@@ -283,7 +283,7 @@ describe('Starknet Signature Authenticator', function () {
 
     const updateProposalMsg: UpdateProposal = {
       space: space.address,
-      author: account.address,
+      author: accountWithSigner.address,
       proposalId: { low: '0x1', high: '0x0' },
       executionStrategy: {
         address: '0x0000000000000000000000000000000000005678',
@@ -303,7 +303,6 @@ describe('Starknet Signature Authenticator', function () {
     const invalidUpdateProposalCalldata = CallData.compile({
       signature: [invalidUpdateProposalSig.r, invalidUpdateProposalSig.s],
       ...updateProposalMsg,
-      accountType: accountType,
     });
 
     try {
@@ -317,8 +316,7 @@ describe('Starknet Signature Authenticator', function () {
       );
       expect.fail('Should have failed');
     } catch (err: any) {
-      // snippet of error message thrown when signature is invalid
-      expect(err.message).to.contain('is invalid, with respect to the public key');
+      expect(err.message).to.contain(shortString.encodeShortString('Invalid Signature'));
     }
 
     const updateProposalSig = (await accountWithSigner.signMessage({
@@ -331,7 +329,6 @@ describe('Starknet Signature Authenticator', function () {
     const updateProposalCalldata = CallData.compile({
       signature: [updateProposalSig.r, updateProposalSig.s],
       ...updateProposalMsg,
-      accountType: accountType,
     });
 
     await account.invoke(
@@ -350,7 +347,7 @@ describe('Starknet Signature Authenticator', function () {
 
     const voteMsg: Vote = {
       space: space.address,
-      voter: account.address,
+      voter: accountWithSigner.address,
       proposalId: { low: '0x1', high: '0x0' },
       choice: '0x1',
       userVotingStrategies: [{ index: '0x0', params: ['0x1', '0x2', '0x3', '0x4'] }],
@@ -367,7 +364,6 @@ describe('Starknet Signature Authenticator', function () {
     const invalidVoteCalldata = CallData.compile({
       signature: [invalidVoteSig.r, invalidVoteSig.s],
       ...voteMsg,
-      accountType: accountType,
     });
 
     try {
@@ -376,8 +372,7 @@ describe('Starknet Signature Authenticator', function () {
       });
       expect.fail('Should have failed');
     } catch (err: any) {
-      // snippet of error message thrown when signature is invalid
-      expect(err.message).to.contain('is invalid, with respect to the public key');
+      expect(err.message).to.contain(shortString.encodeShortString('Invalid Signature'));
     }
 
     const voteSig = (await accountWithSigner.signMessage({
@@ -390,7 +385,6 @@ describe('Starknet Signature Authenticator', function () {
     const voteCalldata = CallData.compile({
       signature: [voteSig.r, voteSig.s],
       ...voteMsg,
-      accountType: accountType,
     });
 
     await account.invoke(starkSigAuthenticator, 'authenticate_vote', voteCalldata, {
@@ -406,7 +400,7 @@ describe('Starknet Signature Authenticator', function () {
     // PROPOSE
     const proposeMsg: Propose = {
       space: space.address,
-      author: account.address,
+      author: accountWithSigner.address,
       metadataUri: ['0x1', '0x2', '0x3', '0x4'],
       executionStrategy: {
         address: '0x0000000000000000000000000000000000005678',
@@ -431,7 +425,6 @@ describe('Starknet Signature Authenticator', function () {
     const proposeCalldata = CallData.compile({
       signature: [proposeSig.r, proposeSig.s],
       ...proposeMsg,
-      accountType: accountType,
     });
 
     await account.invoke(starkSigAuthenticator, 'authenticate_propose', proposeCalldata, {
@@ -451,7 +444,7 @@ describe('Starknet Signature Authenticator', function () {
 
     const updateProposalMsg: UpdateProposal = {
       space: space.address,
-      author: account.address,
+      author: accountWithSigner.address,
       proposalId: { low: '0x1', high: '0x0' },
       executionStrategy: {
         address: '0x0000000000000000000000000000000000005678',
@@ -471,7 +464,6 @@ describe('Starknet Signature Authenticator', function () {
     const updateProposalCalldata = CallData.compile({
       signature: [updateProposalSig.r, updateProposalSig.s],
       ...updateProposalMsg,
-      accountType: accountType,
     });
 
     await account.invoke(

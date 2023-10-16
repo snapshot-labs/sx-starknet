@@ -151,4 +151,13 @@ trait ISpace<TContractState> {
     fn upgrade(
         ref self: TContractState, class_hash: ClassHash, initialize_calldata: Array<felt252>
     ) -> SyscallResult<()>;
+
+    /// Initializes the contract after an upgrade. This is different from the `initialize` function
+    /// in that it is called after the upgrade, which means the contract already has a state and storage
+    /// associated to it.
+    ///
+    /// # Arguments
+    ///
+    /// * `initialize_calldata` - The calldata to use to perform a post-upgrade initialization.
+    fn post_upgrade_initializer(ref self: TContractState, initialize_calldata: Array<felt252>,);
 }
