@@ -8,17 +8,16 @@ type Words64 = Span<u64>;
 struct ProofElement {
     index: usize,
     value: u256,
-    peaks: Peaks,
     proof: Proof,
-    last_pos: usize,
 }
 
 #[derive(Drop, Serde)]
 struct BinarySearchTree {
     mapper_id: usize,
-    last_pos: usize,
-    proofs: Span<ProofElement>,
-    left_neighbor: Option<ProofElement>,
+    peaks: Peaks,
+    last_pos: usize, // last_pos in mapper's MMR
+    proofs: Span<ProofElement>, // Midpoint elements inclusion proofs
+    left_neighbor: ProofElement, // Left neighbor inclusion proof
 }
 
 #[starknet::interface]
