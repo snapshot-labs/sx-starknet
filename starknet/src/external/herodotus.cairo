@@ -11,7 +11,6 @@ struct ProofElement {
     proof: Proof,
 }
 
-
 #[derive(Drop, Serde)]
 struct BinarySearchTree {
     mapper_id: usize,
@@ -20,7 +19,6 @@ struct BinarySearchTree {
     proofs: Span<ProofElement>, // Midpoint elements inclusion proofs
     left_neighbor: ProofElement, // Left neighbor inclusion proof
 }
-
 
 #[starknet::interface]
 trait ITimestampRemappers<TContractState> {
