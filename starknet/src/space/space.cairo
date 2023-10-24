@@ -479,9 +479,8 @@ mod Space {
             // function should be called only once!
             let state = Reinitializable::unsafe_new_contract_state();
             Reinitializable::InternalImpl::initialized(@state);
-
-            // This contract being the first version, we don't expect anyone to upgrade to it.
-            // We leave the implementation empty.
+        // This contract being the first version, we don't expect anyone to upgrade to it.
+        // We leave the implementation empty.
         }
 
         fn owner(self: @ContractState) -> ContractAddress {
