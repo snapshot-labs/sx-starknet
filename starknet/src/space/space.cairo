@@ -478,7 +478,7 @@ mod Space {
             // This code is left here to indicate to future developers that this
             // function should be called only once!
             let state = Reinitializable::unsafe_new_contract_state();
-            Reinitializable::InternalImpl::initialized(@state);
+            Reinitializable::InternalImpl::not_initialized(@state);
         // This contract being the first version, we don't expect anyone to upgrade to it.
         // We leave the implementation empty.
         }
