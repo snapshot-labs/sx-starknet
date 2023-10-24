@@ -481,7 +481,6 @@ mod Space {
             // you might not want to re-initialize the WHOLE contract state!
             let mut state = Reinitializable::unsafe_new_contract_state();
             Reinitializable::InternalImpl::initialize(ref state);
-
         // This contract being the first version, we don't expect anyone to upgrade to it.
         // We leave the implementation empty.
         }
