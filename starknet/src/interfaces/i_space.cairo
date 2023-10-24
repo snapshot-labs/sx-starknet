@@ -154,7 +154,11 @@ trait ISpace<TContractState> {
 
     /// Initializes the contract after an upgrade. This is different from the `initialize` function
     /// in that it is called after the upgrade, which means the contract already has a state and storage
-    /// associated to it.
+    /// associated to it. 
+    ///
+    /// # Note
+    ///
+    /// Should have a lock mechanism to ensure it is only called once!
     ///
     /// # Arguments
     ///
