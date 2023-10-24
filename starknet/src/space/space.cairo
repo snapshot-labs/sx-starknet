@@ -477,13 +477,11 @@ mod Space {
         fn post_upgrade_initializer(ref self: ContractState, initialize_calldata: Array<felt252>,) {
             // This code is left here to indicate to future developers that this
             // function should be called only once!
-            assert(
-                Reinitializable::InternalImpl::initialized(@state) == false, 'Already initialized'
-            );
-            let mut state = Reinitializable::unsafe_new_contract_state();
-            Reinitializable::InternalImpl::initialize(ref state);
-        // This contract being the first version, we don't expect anyone to upgrade to it.
-        // We leave the implementation empty.
+            let state = Reinitializable::unsafe_new_contract_state();
+            Reinitializable::InternalImpl::initialized(@state);
+
+            // This contract being the first version, we don't expect anyone to upgrade to it.
+            // We leave the implementation empty.
         }
 
         fn owner(self: @ContractState) -> ContractAddress {
