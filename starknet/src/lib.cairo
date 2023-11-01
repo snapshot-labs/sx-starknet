@@ -18,6 +18,9 @@ mod execution_strategies {
 
     mod no_execution_simple_majority;
     use no_execution_simple_majority::NoExecutionSimpleMajorityExecutionStrategy;
+
+    mod timelock;
+    use timelock::TimelockExecutionStrategy;
 }
 
 mod voting_strategies {
@@ -136,6 +139,8 @@ mod utils {
     use reinitializable::Reinitializable;
 
     mod simple_majority;
+
+    mod simple_quorum;
 
     mod single_slot_proof;
     use single_slot_proof::SingleSlotProof;
