@@ -154,6 +154,9 @@ mod utils {
 
     mod struct_hash;
     use struct_hash::StructHash;
+
+    mod space_manager;
+    use space_manager::SpaceManager;
 }
 
 mod external {
