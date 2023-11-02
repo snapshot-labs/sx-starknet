@@ -10,16 +10,21 @@ trait ITimelockExecutionStrategy<TContractState> {
     fn set_veto_guardian(ref self: TContractState, new_veto_guardian: ContractAddress);
 
     fn set_timelock_delay(ref self: TContractState, new_timelock_delay: u32);
+
+    fn enable_space(ref self: TContractState, space: ContractAddress);
+
+    fn disable_space(ref self: TContractState, space: ContractAddress);
 }
 
 #[starknet::contract]
 mod TimelockExecutionStrategy {
+    use core::zeroable::Zeroable;
     use starknet::{ContractAddress, info, syscalls};
     use openzeppelin::access::ownable::Ownable;
     use sx::interfaces::IExecutionStrategy;
     use super::ITimelockExecutionStrategy;
     use sx::types::{Proposal, ProposalStatus};
-    use sx::utils::SimpleQuorum;
+    use sx::utils::{SimpleQuorum, SpaceManager};
 
     #[storage]
     struct Storage {
@@ -27,8 +32,6 @@ mod TimelockExecutionStrategy {
         _veto_guardian: ContractAddress,
         _proposal_execution_time: LegacyMap::<felt252, u32>
     }
-
-    // Events
 
     #[event]
     #[derive(Drop, starknet::Event)]
@@ -101,6 +104,7 @@ mod TimelockExecutionStrategy {
         ref self: ContractState,
         owner: ContractAddress,
         veto_guardian: ContractAddress,
+        spaces: Span<ContractAddress>,
         timelock_delay: u32,
         quorum: u256
     ) {
@@ -112,9 +116,11 @@ mod TimelockExecutionStrategy {
         let mut state = SimpleQuorum::unsafe_new_contract_state();
         SimpleQuorum::InternalImpl::initializer(ref state, quorum);
 
+        let mut state = SpaceManager::unsafe_new_contract_state();
+        SpaceManager::InternalImpl::initializer(ref state, spaces);
+
         self._timelock_delay.write(timelock_delay);
         self._veto_guardian.write(veto_guardian);
-    // TODO: Add spaces whitelist
     }
 
     #[external(v0)]
@@ -127,6 +133,8 @@ mod TimelockExecutionStrategy {
             votes_abstain: u256,
             payload: Array<felt252>
         ) {
+            let state = SpaceManager::unsafe_new_contract_state();
+            SpaceManager::InternalImpl::assert_only_spaces(@state);
             let state = SimpleQuorum::unsafe_new_contract_state();
             let proposal_status = SimpleQuorum::InternalImpl::get_proposal_status(
                 @state, @proposal, votes_for, votes_against, votes_abstain
@@ -138,7 +146,7 @@ mod TimelockExecutionStrategy {
             );
 
             assert(
-                self._proposal_execution_time.read(proposal.execution_payload_hash) == 0,
+                self._proposal_execution_time.read(proposal.execution_payload_hash).is_zero(),
                 'Duplicate Hash'
             );
 
@@ -189,7 +197,7 @@ mod TimelockExecutionStrategy {
         fn execute_queued_proposal(ref self: ContractState, mut payload: Span<felt252>) {
             let execution_payload_hash = poseidon::poseidon_hash_span(payload);
             let execution_time = self._proposal_execution_time.read(execution_payload_hash);
-            assert(execution_time != 0, 'Proposal Not Queued');
+            assert(execution_time.is_non_zero(), 'Proposal Not Queued');
             assert(
                 info::get_block_timestamp().try_into().unwrap() >= execution_time, 'Delay Not Met'
             );
@@ -225,7 +233,7 @@ mod TimelockExecutionStrategy {
         fn veto(ref self: ContractState, execution_payload_hash: felt252) {
             self.assert_only_veto_guardian();
             assert(
-                self._proposal_execution_time.read(execution_payload_hash) != 0,
+                self._proposal_execution_time.read(execution_payload_hash).is_non_zero(),
                 'Proposal Not Queued'
             );
             self._proposal_execution_time.write(execution_payload_hash, 0);
@@ -259,6 +267,20 @@ mod TimelockExecutionStrategy {
                         TimelockDelaySet { new_timelock_delay: new_timelock_delay }
                     )
                 );
+        }
+
+        fn enable_space(ref self: ContractState, space: ContractAddress) {
+            let state = Ownable::unsafe_new_contract_state();
+            Ownable::InternalImpl::assert_only_owner(@state);
+            let mut state = SpaceManager::unsafe_new_contract_state();
+            SpaceManager::InternalImpl::enable_space(ref state, space);
+        }
+
+        fn disable_space(ref self: ContractState, space: ContractAddress) {
+            let state = Ownable::unsafe_new_contract_state();
+            Ownable::InternalImpl::assert_only_owner(@state);
+            let mut state = SpaceManager::unsafe_new_contract_state();
+            SpaceManager::InternalImpl::disable_space(ref state, space);
         }
     }
 
