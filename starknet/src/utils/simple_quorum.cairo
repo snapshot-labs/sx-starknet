@@ -34,7 +34,6 @@ mod SimpleQuorum {
             votes_against: u256,
             votes_abstain: u256,
         ) -> ProposalStatus {
-
             let quorum_reached = votes_for + votes_abstain >= self._quorum.read();
             let supported = votes_for > votes_against;
             let accepted = quorum_reached && supported;
