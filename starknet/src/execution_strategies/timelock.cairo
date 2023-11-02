@@ -27,15 +27,73 @@ mod TimelockExecutionStrategy {
         _proposal_execution_time: LegacyMap::<felt252, u32>
     }
 
-    #[derive(Drop, Serde, Clone)]
+    // Events
+
+    #[event]
+    #[derive(Drop, starknet::Event)]
+    enum Event {
+        TimelockExecutionStrategySetUp: TimelockExecutionStrategySetUp,
+        TimelockDelaySet: TimelockDelaySet,
+        VetoGuardianSet: VetoGuardianSet,
+        CallQueued: CallQueued,
+        ProposalQueued: ProposalQueued,
+        CallExecuted: CallExecuted,
+        ProposalExecuted: ProposalExecuted,
+        ProposalVetoed: ProposalVetoed
+    }
+
+    #[derive(Drop, PartialEq, starknet::Event)]
+    struct TimelockExecutionStrategySetUp {
+        owner: ContractAddress,
+        veto_guardian: ContractAddress,
+        timelock_delay: u32,
+        quorum: u256
+    }
+
+    #[derive(Drop, PartialEq, starknet::Event)]
+    struct TimelockDelaySet {
+        new_timelock_delay: u32
+    }
+
+    #[derive(Drop, PartialEq, starknet::Event)]
+    struct VetoGuardianSet {
+        new_veto_guardian: ContractAddress
+    }
+
+    #[derive(Drop, PartialEq, starknet::Event)]
+    struct CallQueued {
+        call: CallWithSalt,
+        execution_time: u32
+    }
+
+    #[derive(Drop, PartialEq, starknet::Event)]
+    struct ProposalQueued {
+        proposal: Proposal,
+        execution_time: u32
+    }
+
+    #[derive(Drop, PartialEq, starknet::Event)]
+    struct CallExecuted {
+        call: CallWithSalt
+    }
+
+    #[derive(Drop, PartialEq, starknet::Event)]
+    struct ProposalExecuted {
+        proposal: Proposal
+    }
+
+    #[derive(Drop, PartialEq, starknet::Event)]
+    struct ProposalVetoed {
+        proposal: Proposal
+    }
+
+    #[derive(Drop, PartialEq, Serde)]
     struct CallWithSalt {
         to: ContractAddress,
         selector: felt252,
         calldata: Array<felt252>,
         salt: felt252
     }
-
-    // Events
 
     #[constructor]
     fn constructor(
@@ -88,20 +146,20 @@ mod TimelockExecutionStrategy {
 
             let mut payload = payload.span();
             let mut calls = Serde::<Array<CallWithSalt>>::deserialize(ref payload).unwrap();
+        // loop {
+        //     match calls.pop_front() {
+        //         Option::Some(call) => {
+        //             syscalls::call_contract_syscall(
+        //                 call.to, call.selector, call.calldata.span()
+        //             )
+        //                 .expect('Call Failed');
+        //         },
+        //         Option::None(()) => {
+        //             break;
+        //         }
+        //     };
+        // }
 
-            loop {
-                match calls.pop_front() {
-                    Option::Some(call) => {
-                        syscalls::call_contract_syscall(
-                            call.to, call.selector, call.calldata.span()
-                        )
-                            .expect('Call Failed');
-                    },
-                    Option::None(()) => {
-                        break;
-                    }
-                };
-            }
         }
 
         fn get_proposal_status(
