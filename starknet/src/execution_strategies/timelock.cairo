@@ -14,16 +14,15 @@ trait ITimelockExecutionStrategy<TContractState> {
 
 #[starknet::contract]
 mod TimelockExecutionStrategy {
-    use core::result::ResultTrait;
     use starknet::{ContractAddress, info, syscalls};
+    use openzeppelin::access::ownable::Ownable;
     use sx::interfaces::IExecutionStrategy;
     use super::ITimelockExecutionStrategy;
     use sx::types::{Proposal, ProposalStatus};
-    use sx::utils::simple_quorum;
+    use sx::utils::SimpleQuorum;
 
     #[storage]
     struct Storage {
-        _quorum: u256,
         _timelock_delay: u32,
         _proposal_execution_time: LegacyMap::<felt252, u32>
     }
@@ -36,6 +35,28 @@ mod TimelockExecutionStrategy {
         salt: felt252
     }
 
+    // Events
+
+    #[constructor]
+    fn constructor(
+        ref self: ContractState,
+        owner: ContractAddress,
+        veto_guardian: ContractAddress,
+        timelock_delay: u32,
+        quorum: u256
+    ) {
+        // Migration to components planned ; disregard the `unsafe` keyword,
+        // it is actually safe.
+        let mut state = Ownable::unsafe_new_contract_state();
+        Ownable::InternalImpl::initializer(ref state, owner);
+
+        let mut state = SimpleQuorum::unsafe_new_contract_state();
+        SimpleQuorum::InternalImpl::initializer(ref state, quorum);
+
+        self._timelock_delay.write(timelock_delay);
+    // TODO: Add spaces whitelist, veto guardian
+    }
+
     #[external(v0)]
     impl ExecutionStrategy of IExecutionStrategy<ContractState> {
         fn execute(
@@ -46,6 +67,16 @@ mod TimelockExecutionStrategy {
             votes_abstain: u256,
             payload: Array<felt252>
         ) {
+            let state = SimpleQuorum::unsafe_new_contract_state();
+            let proposal_status = SimpleQuorum::InternalImpl::get_proposal_status(
+                @state, @proposal, votes_for, votes_against, votes_abstain
+            );
+            assert(
+                proposal_status == ProposalStatus::Accepted(())
+                    || proposal_status == ProposalStatus::VotingPeriodAccepted(()),
+                'Invalid Proposal Status'
+            );
+
             assert(
                 self._proposal_execution_time.read(proposal.execution_payload_hash) == 0,
                 'Duplicate Hash'
@@ -54,14 +85,6 @@ mod TimelockExecutionStrategy {
             let execution_time = info::get_block_timestamp().try_into().unwrap()
                 + self._timelock_delay.read();
             self._proposal_execution_time.write(proposal.execution_payload_hash, execution_time);
-
-            let proposal_status = self
-                .get_proposal_status(proposal, votes_for, votes_against, votes_abstain);
-            assert(
-                proposal_status == ProposalStatus::Accepted(())
-                    || proposal_status == ProposalStatus::VotingPeriodAccepted(()),
-                'Invalid Proposal Status'
-            );
 
             let mut payload = payload.span();
             let mut calls = Serde::<Array<CallWithSalt>>::deserialize(ref payload).unwrap();
@@ -88,8 +111,9 @@ mod TimelockExecutionStrategy {
             votes_against: u256,
             votes_abstain: u256,
         ) -> ProposalStatus {
-            simple_quorum::get_proposal_status(
-                @proposal, self._quorum.read(), votes_for, votes_against, votes_abstain
+            let state = SimpleQuorum::unsafe_new_contract_state();
+            SimpleQuorum::InternalImpl::get_proposal_status(
+                @state, @proposal, votes_for, votes_against, votes_abstain
             )
         }
 
