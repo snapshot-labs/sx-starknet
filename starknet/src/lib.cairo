@@ -70,6 +70,9 @@ mod interfaces {
 
     mod i_space;
     use i_space::{ISpace, ISpaceDispatcher, ISpaceDispatcherTrait};
+
+    mod i_quorum;
+    use i_quorum::{IQuorum, IQuorumDispatcher, IQuorumDispatcherTrait};
 }
 
 mod types {
@@ -141,6 +144,7 @@ mod utils {
     mod simple_majority;
 
     mod simple_quorum;
+    use simple_quorum::SimpleQuorum;
 
     mod single_slot_proof;
     use single_slot_proof::SingleSlotProof;
