@@ -14,7 +14,8 @@ mod EthRelayerExecutionStrategy {
     ///
     /// # Arguments
     ///
-    /// * proposal - The proposal to execute.
+    /// * proposal_id - The id of the proposal to execute.
+    /// * proposal - The struct of the proposal to execute.
     /// * votes_for - The number of votes for the proposal.
     /// * votes_against - The number of votes against the proposal.
     /// * votes_abstain - The number of votes abstaining from the proposal.
@@ -23,6 +24,7 @@ mod EthRelayerExecutionStrategy {
     impl EthRelayerExecutionStrategy of IExecutionStrategy<ContractState> {
         fn execute(
             ref self: ContractState,
+            proposal_id: u256,
             proposal: Proposal,
             votes_for: u256,
             votes_against: u256,
