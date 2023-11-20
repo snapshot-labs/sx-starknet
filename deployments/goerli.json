@@ -1,0 +1,14 @@
+{
+    "vanillaAuthenticator": "0x046ad946f22ac4e14e271f24309f14ac36f0fde92c6831a605813fefa46e0893",
+    "ethSigAuthenticator": "0x048b33fe56e9b9354d4278ffdd5f6d546b13aa3d8c33149db2e2e2fdb48a369e",
+    "ethTxAuthenticator": "0xd6f14d3df9ea2db12ed9572ab41d527f18dd24192e1744d3c100b2cd470812",
+    "starkSigAuthenticator": "0x5280813396bf63dd47531ccdbfa5887099d44421d3f62db3de8f7bed68794f5",
+    "starkTxAuthenticator": "0x573a7fc4d8dd3a860b376741c251772cd4d15508dd94564ff23a645d28042d",
+    "ethRelayerExecutionStrategy": "0xa0a4bcf464e29f46dfb103521f33807271b4300ac5cd3118b15f31f89ecd94",
+    "noExecutionSimpleMajorityExecutionStrategy": "0x4a5658d6b9fe62283147719a8b13d72f96e8959afacc716569b936c91089147",
+    "vanillaProposalValidationStrategy": "0x2247f5d86a60833da9dd8224d8f35c60bde7f4ca3b2a6583d4918d48750f69",
+    "propositionPowerProposalValidationStrategy": "0x3ff398ab4e0aa9109c0cc889ff968c6215053a5e2176519b59f8ba87927c631",
+    "erc20VotesVotingStrategy": "0x30258c0b5832763b16f4e5d2ddbf97b3d61b8ff3368a3e3f112533b8549dd29",
+    "merkleWhitelistVotingStrategy": "0xe3ca14dcb7862116bbbe4331a9927c6693b141aa8936bb76e2bdfa4b551a52",
+    "factory": "0x63c62258e1ba4d9ad72eab809ea5c3d1a4545b721bc444d6068ced6246c2f3c",
+}
