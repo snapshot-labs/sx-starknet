@@ -8,6 +8,7 @@
   "main": "index.js",
   "scripts": {
     "format:ts": "eslint . --ext .ts --fix",
+    "format:json": "json-format ./tests/data/*.json",
     "test:sig-auths": "jest -c jest.config.ts --runInBand",
     "chain:l1": "hardhat node",
     "chain:l2": "bash './scripts/chain-l2.sh'",
@@ -45,9 +46,10 @@
     "fs": "^0.0.1-security",
     "hardhat": "^2.17.2",
     "hardhat-gas-reporter": "^1.0.9",
+    "json-format-cli": "^1.1.1",
     "micro-starknet": "^0.2.3",
     "prettier": "^3.0.0",
-    "starknet": "^5.19.5",
+    "starknet": "^5.24.1",
     "ts-node": "^10.9.1",
     "typescript": "^5.1.6",
     "wait-on": "^7.0.1"
