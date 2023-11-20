@@ -16,7 +16,8 @@
     "test:stark-sig-auth": "bash './scripts/stark-sig-auth-test.sh'",
     "test:eth-sig-auth": "bash './scripts/eth-sig-auth-test.sh'",
     "test:eth-tx-auth": "bash './scripts/eth-tx-auth-test.sh'",
-    "test:l1-execution": "bash './scripts/l1-avatar-execution-test.sh'"
+    "test:l1-execution": "bash './scripts/l1-avatar-execution-test.sh'",
+    "deploy-protocol": "yarn ts-node ./scripts/deploy-protocol.ts",
   },
   "devDependencies": {
     "@gnosis.pm/safe-contracts": "^1.3.0",
