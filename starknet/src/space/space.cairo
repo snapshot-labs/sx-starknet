@@ -376,6 +376,7 @@ mod Space {
 
             IExecutionStrategyDispatcher { contract_address: cached_proposal.execution_strategy }
                 .execute(
+                    proposal_id,
                     cached_proposal,
                     self._vote_power.read((proposal_id, Choice::For(()))),
                     self._vote_power.read((proposal_id, Choice::Against(()))),

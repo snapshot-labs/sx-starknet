@@ -9,13 +9,15 @@ trait IExecutionStrategy<TContractState> {
     ///
     /// # Arguments
     ///
-    /// * `proposal` - The proposal to execute.
+    /// * `proposal_id` - The id of the proposal to execute.
+    /// * `proposal` - The struct of the proposal to execute.
     /// * `votes_for` - The number of votes for the proposal.
     /// * `votes_against` - The number of votes against the proposal.
     /// * `votes_abstain` - The number of votes abstaining from the proposal.
     /// * `payload` - The payload of the proposal.
     fn execute(
         ref self: TContractState,
+        proposal_id: u256,
         proposal: Proposal,
         votes_for: u256,
         votes_against: u256,
