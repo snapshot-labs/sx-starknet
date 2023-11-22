@@ -22,9 +22,9 @@ async function main() {
   const l1TokenAddress = '0xd96844c9B21CB6cCf2c236257c7fc703E43BA071'; //OZ token 18 decimals
   const slotIndex = cairo.uint256(0);
 
-  const factsRegistryAddress = '0x57e6ac564b898df3501f5c7d42801ad14d49c2889f29eaec0e0e552fb32ef7f';
+  const factsRegistryAddress = '0x01b2111317EB693c3EE46633edd45A4876db14A3a53ACDBf4E5166976d8e869d';
   const timestampsRemapperAddress =
-    '0x047b9a752a0a1fd25c311f6b85c4bafead66a3784b9ccc8d666300d91efca604';
+    '0x2ee57d848297bc7dfc8675111b9aa3bd3085e4038e475250770afe303b772af';
 
   const evmSlotValueVotingStrategySierra = json.parse(
     fs
@@ -90,7 +90,7 @@ async function main() {
   //     facts_registry: factsRegistryAddress,
   //   }),
   // });
-  const evmSlotValueVotingStrategyAddress = "0x01a46b1377e24153a0de0a22dc72a55c25cc3ead01b3c98f55eef2c3ad206de5" //deployResponse.deploy.contract_address;
+  const evmSlotValueVotingStrategyAddress = "0x07e95f740a049896784969d61389f119291a2de37186f7cfa8ba9d2f3037b32a" //deployResponse.deploy.contract_address;
   console.log('Voting Strategy Address: ', evmSlotValueVotingStrategyAddress);
 
   // const spaceDeployResponse = await account.declareAndDeploy({
@@ -98,7 +98,7 @@ async function main() {
   //   casm: spaceCasm,
   //   constructorCalldata: CallData.compile({}),
   // });
-  const spaceAddress = "0x07ad2ef0b2100b37b62c5c132ceefd060c78170c761a56cd0a795ffc4f922fc1" //spaceDeployResponse.deploy.contract_address;
+  const spaceAddress = "0x02b9ac7cb47a57ca4144fd0da74203bc8c4aaf411f438b08770bac3680a066cb" //spaceDeployResponse.deploy.contract_address;
   console.log('Space Address: ', spaceAddress);
 
   // initialize space
