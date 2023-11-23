@@ -16,7 +16,11 @@
         }
     },
     "ethTxAuthenticator": {
-        "address": "0xd6f14d3df9ea2db12ed9572ab41d527f18dd24192e1744d3c100b2cd470812"
+        "address": "0x063c89d1c6b938b68e88db2719cf2546a121c23642974c268515238b442b0ea0",
+        "class-hash": "0x02e25598c32a13ee7aa5f807aa7e36aba1fe623b4c02d87f1d403287903438f4",
+        "params": {
+            "starknetCommitAddress": "0xF1EC7b0276aA5aF11eceFE56efb0F198A77016E9"
+        }
     },
     "factory": {
         "address": "0x0250e28c97e729842190c3672f9fcf8db0fc78b8080e87a894831dc69e4f4439",
