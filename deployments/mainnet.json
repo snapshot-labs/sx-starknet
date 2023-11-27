@@ -9,11 +9,7 @@
     },
     "ethSigAuthenticator": {
         "address": "0x00b610082a0f39458e03a96663767ec25d6fb259f32c1e0dd19bf2be7a52532c",
-        "class-hash": "0x07c2680d397168aec487597e9ac5283a426f783210a0f1d88c17a53a99a46327",
-        "params": {
-            "name": "sx-starknet",
-            "version": "0.1.0"
-        }
+        "class-hash": "0x07c2680d397168aec487597e9ac5283a426f783210a0f1d88c17a53a99a46327"
     },
     "ethTxAuthenticator": {
         "address": "0x063c89d1c6b938b68e88db2719cf2546a121c23642974c268515238b442b0ea0",
@@ -43,7 +39,11 @@
     },
     "starkSigAuthenticator": {
         "address": "0x06e9de29d8c3551e7f845888f323e864ff214359b56a137633bf7e191035b442",
-        "class-hash": "0x06cd9cbb9ec3d8b9b65bfe957ec5a8554baeadb931e9b73dfbd9cdecc7268c8e"
+        "class-hash": "0x06cd9cbb9ec3d8b9b65bfe957ec5a8554baeadb931e9b73dfbd9cdecc7268c8e",
+        "params": {
+            "name": "sx-starknet",
+            "version": "0.1.0"
+        }
     },
     "starkTxAuthenticator": {
         "address": "0x0687b57bc5459d05d9575483be8ed8e623c379484fdb1aad18b073ffd4602099",
