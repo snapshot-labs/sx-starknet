@@ -4,6 +4,8 @@ mod authenticators {
 
 mod execution_strategies {
     mod vanilla;
+
+    mod timelock;
 }
 
 
