@@ -9,11 +9,22 @@ trait ITimelockExecutionStrategy<TContractState> {
 
     fn set_veto_guardian(ref self: TContractState, new_veto_guardian: ContractAddress);
 
+    fn veto_guardian(self: @TContractState) -> ContractAddress;
+
     fn set_timelock_delay(ref self: TContractState, new_timelock_delay: u32);
 
     fn enable_space(ref self: TContractState, space: ContractAddress);
 
     fn disable_space(ref self: TContractState, space: ContractAddress);
+
+    fn is_space_enabled(self: @TContractState, space: ContractAddress) -> bool;
+
+    /// Transfers the ownership to `new_owner`.
+    fn transfer_ownership(ref self: TContractState, new_owner: ContractAddress);
+    /// Renounces the ownership of the contract. CAUTION: This is a one-way operation.
+    fn renounce_ownership(ref self: TContractState);
+
+    fn owner(self: @TContractState) -> ContractAddress;
 }
 
 #[starknet::contract]
@@ -257,6 +268,10 @@ mod TimelockExecutionStrategy {
                 );
         }
 
+        fn veto_guardian(self: @ContractState) -> ContractAddress {
+            self._veto_guardian.read()
+        }
+
         fn set_timelock_delay(ref self: ContractState, new_timelock_delay: u32) {
             let state = Ownable::unsafe_new_contract_state();
             Ownable::InternalImpl::assert_only_owner(@state);
@@ -282,6 +297,32 @@ mod TimelockExecutionStrategy {
             Ownable::InternalImpl::assert_only_owner(@state);
             let mut state = SpaceManager::unsafe_new_contract_state();
             SpaceManager::InternalImpl::disable_space(ref state, space);
+        }
+
+        fn is_space_enabled(self: @ContractState, space: ContractAddress) -> bool {
+            let state = SpaceManager::unsafe_new_contract_state();
+            SpaceManager::InternalImpl::is_space_enabled(@state, space)
+        }
+
+        fn owner(self: @ContractState) -> ContractAddress {
+            // Migration to components planned ; disregard the `unsafe` keyword,
+            // it is actually safe.
+            let state = Ownable::unsafe_new_contract_state();
+            Ownable::OwnableImpl::owner(@state)
+        }
+
+        fn transfer_ownership(ref self: ContractState, new_owner: ContractAddress) {
+            // Migration to components planned ; disregard the `unsafe` keyword,
+            // it is actually safe.
+            let mut state = Ownable::unsafe_new_contract_state();
+            Ownable::OwnableImpl::transfer_ownership(ref state, new_owner);
+        }
+
+        fn renounce_ownership(ref self: ContractState) {
+            // Migration to components planned ; disregard the `unsafe` keyword,
+            // it is actually safe.
+            let mut state = Ownable::unsafe_new_contract_state();
+            Ownable::OwnableImpl::renounce_ownership(ref state);
         }
     }
 

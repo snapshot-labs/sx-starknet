@@ -51,16 +51,12 @@ mod SpaceManager {
             self.emit(Event::SpaceDisabled(SpaceDisabled { space: space }));
         }
 
-        fn assert_only_spaces(self: @ContractState) {
-            assert(self._spaces.read(info::get_caller_address()), 'Unauthorized Space');
-        }
-    }
-
-    #[external(v0)]
-    #[generate_trait]
-    impl ExternalImpl of ExternalTrait {
         fn is_space_enabled(self: @ContractState, space: ContractAddress) -> bool {
             return self._spaces.read(space);
+        }
+
+        fn assert_only_spaces(self: @ContractState) {
+            assert(self._spaces.read(info::get_caller_address()), 'Unauthorized Space');
         }
     }
 }
