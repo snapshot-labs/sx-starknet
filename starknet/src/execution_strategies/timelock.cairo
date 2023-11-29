@@ -13,6 +13,8 @@ trait ITimelockExecutionStrategy<TContractState> {
 
     fn set_timelock_delay(ref self: TContractState, new_timelock_delay: u32);
 
+    fn timelock_delay(self: @TContractState) -> u32;
+
     fn enable_space(ref self: TContractState, space: ContractAddress);
 
     fn disable_space(ref self: TContractState, space: ContractAddress);
@@ -283,6 +285,10 @@ mod TimelockExecutionStrategy {
                         TimelockDelaySet { new_timelock_delay: new_timelock_delay }
                     )
                 );
+        }
+
+        fn timelock_delay(self: @ContractState) -> u32 {
+            self._timelock_delay.read()
         }
 
         fn enable_space(ref self: ContractState, space: ContractAddress) {
