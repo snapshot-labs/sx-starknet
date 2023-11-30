@@ -56,5 +56,9 @@
     "vanillaProposalValidationStrategy": {
         "address": "0x054883d24fe788f72181101372a2fc171bc73152c399f195fdcabc94e743dcf3",
         "class-hash": "0x0156a0db2f92fe7d0850f7487c040a3bce3e1ce7bc6f630f5f6cd194956b4828"
+    },
+    "vanillaVotingStrategy": {
+        "address": "0x0790772fb61f58630d5418016aea41a64a45b4ffc39a9adf66e6446fdc0e8088",
+        "class-hash": "0x00995129dccbef6bf6d8ee3c6dbd0ce51ac6d9cda038da661b27a6b015c570f8"
     }
 }
