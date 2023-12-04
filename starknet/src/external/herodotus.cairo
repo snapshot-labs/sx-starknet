@@ -34,11 +34,6 @@ trait ITimestampRemappers<TContractState> {
 #[starknet::interface]
 trait IEVMFactsRegistry<TContractState> {
     fn get_storage(
-        self: @TContractState,
-        block: u256,
-        account: felt252,
-        slot: u256,
-        slot_len: usize,
-        mpt_proof: Span<Words64>
+        self: @TContractState, block: u256, account: felt252, slot: u256, mpt_proof: Span<Words64>
     ) -> u256;
 }

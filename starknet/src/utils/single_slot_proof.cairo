@@ -39,7 +39,8 @@ mod SingleSlotProof {
             assert(l1_block_number.is_non_zero(), 'Timestamp not cached');
 
             let mut params = params;
-            let mpt_proof = Serde::<Span<Words64>>::deserialize(ref params).unwrap();
+            // let mpt_proof = Serde::<Span<Words64>>::deserialize(ref params).unwrap();
+            let mpt_proof = Serde::<Span<Span<u64>>>::deserialize(ref params).unwrap();
 
             // Computes the key of the EVM storage slot from the mapping key and the index of the mapping in storage.
             let slot_key = InternalImpl::get_mapping_slot_key(mapping_key, slot_index);
@@ -48,7 +49,7 @@ mod SingleSlotProof {
             let slot_value = IEVMFactsRegistryDispatcher {
                 contract_address: self._facts_registry.read()
             }
-                .get_storage(l1_block_number, l1_contract_address.into(), slot_key, 1, mpt_proof);
+                .get_storage(l1_block_number, l1_contract_address.into(), slot_key, mpt_proof);
 
             assert(slot_value.is_non_zero(), 'Slot is zero');
 
@@ -83,11 +84,54 @@ mod SingleSlotProof {
 
 #[cfg(test)]
 mod tests {
+    use core::clone::Clone;
     use super::SingleSlotProof;
+    use debug::PrintTrait;
+
+    type Words64 = Span<u64>;
 
     #[test]
     #[available_gas(10000000)]
     fn get_mapping_slot_key() {
+        let proof = array![
+            array![
+                0x5c0b6aa0808051f8,
+                0x9720a2845ec292e7,
+                0xdde909402854fc40,
+                0x8b0ff9103babb578,
+                0x808080c17ea1cc35,
+                0xf86ba08080808080,
+                0x652dee110f0a9fd1,
+                0x98195bc1e2e398a8,
+                0xcb959918a8d08b95,
+                0x8080d2e4ec07dcfc,
+                0x808080
+            ]
+                .span(),
+            array![
+                0x76522d0e31a043f8,
+                0x71fdcdee263b0712,
+                0xfa4a4bf40c326a7e,
+                0xb7e2cb9f2d73b0c2,
+                0x636f4da0a1f60cfa,
+                0x000000000000006b,
+                0x0000000000000000,
+                0x0000000000000000,
+                0x0800000000
+            ]
+                .span()
+        ];
+
+        let mut serial = array![];
+        proof.serialize(ref serial);
+        serial.clone().print();
+
+        let mut params = serial.span();
+        let mpt_proof = Serde::<Span<Words64>>::deserialize(ref params).unwrap();
+        let mut serial2 = array![];
+        mpt_proof.serialize(ref serial2);
+        serial2.print();
+
         assert(
             SingleSlotProof::InternalImpl::get_mapping_slot_key(
                 0x0_u256, 0x0_u256
