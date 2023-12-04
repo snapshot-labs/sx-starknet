@@ -29,6 +29,7 @@
     "@nomiclabs/hardhat-waffle": "^2.0.6",
     "@safe-global/safe-contracts": "^1.4.1-build.0",
     "@shardlabs/starknet-hardhat-plugin": "0.8.0-alpha.4",
+    "@snapshot-labs/sx": "^0.1.0-beta.46",
     "@typechain/ethers-v6": "^0.5.0",
     "@typechain/hardhat": "^9.0.0",
     "@types/node": "^20.4.5",
@@ -47,7 +48,7 @@
     "hardhat-gas-reporter": "^1.0.9",
     "micro-starknet": "^0.2.3",
     "prettier": "^3.0.0",
-    "starknet": "^5.19.5",
+    "starknet": "^5.24.3",
     "ts-node": "^10.9.1",
     "typescript": "^5.1.6",
     "wait-on": "^7.0.1"
