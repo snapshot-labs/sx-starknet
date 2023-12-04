@@ -39,8 +39,7 @@ mod SingleSlotProof {
             assert(l1_block_number.is_non_zero(), 'Timestamp not cached');
 
             let mut params = params;
-            // let mpt_proof = Serde::<Span<Words64>>::deserialize(ref params).unwrap();
-            let mpt_proof = Serde::<Span<Span<u64>>>::deserialize(ref params).unwrap();
+            let mpt_proof = Serde::<Span<Words64>>::deserialize(ref params).unwrap();
 
             // Computes the key of the EVM storage slot from the mapping key and the index of the mapping in storage.
             let slot_key = InternalImpl::get_mapping_slot_key(mapping_key, slot_index);
