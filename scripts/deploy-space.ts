@@ -12,12 +12,13 @@ import {
   cairo,
 } from 'starknet';
 
+const accountAddress = process.env.ADDRESS || '';
+const accountPk = process.env.PK || '';
+const starknetNetworkUrl = process.env.STARKNET_NETWORK_URL || '';
+
 async function main() {
-  const account_address = '0x0071399180e89305007c030004d68ebbed03e2b6d780de66ba36c64630acca52';
-  const account_pk = '0x2587FB9D2FE799E759769D7DB115018C4FDF8F0F4047AE5E0A6C17B56B8B224';
-  const network = 'https://starknet-goerli.g.alchemy.com/v2/2rHwIyOetFjUsdM4M_SBXpj1ejkck6lr';
-  const provider = new RpcProvider({ nodeUrl: network });
-  const account = new Account(provider, account_address, account_pk);
+  const provider = new RpcProvider({ nodeUrl: starknetNetworkUrl });
+  const account = new Account(provider, accountAddress, accountPk);
 
   const l1TokenAddress = '0xd96844c9B21CB6cCf2c236257c7fc703E43BA071'; //OZ token 18 decimals
   const slotIndex = cairo.uint256(0);
@@ -90,7 +91,11 @@ async function main() {
   //     facts_registry: factsRegistryAddress,
   //   }),
   // });
-  const evmSlotValueVotingStrategyAddress = "0x07e95f740a049896784969d61389f119291a2de37186f7cfa8ba9d2f3037b32a" //deployResponse.deploy.contract_address;
+  // const evmSlotValueVotingStrategyAddress =
+  //   '0x07e95f740a049896784969d61389f119291a2de37186f7cfa8ba9d2f3037b32a'; //deployResponse.deploy.contract_address;
+
+  const evmSlotValueVotingStrategyAddress =
+    '0x06cf32ad42d1c6ee98758b00c6a7c7f293d9efb30f2afea370019a88f8e252be';
   console.log('Voting Strategy Address: ', evmSlotValueVotingStrategyAddress);
 
   // const spaceDeployResponse = await account.declareAndDeploy({
@@ -98,8 +103,10 @@ async function main() {
   //   casm: spaceCasm,
   //   constructorCalldata: CallData.compile({}),
   // });
-  const spaceAddress = "0x02b9ac7cb47a57ca4144fd0da74203bc8c4aaf411f438b08770bac3680a066cb" //spaceDeployResponse.deploy.contract_address;
-  console.log('Space Address: ', spaceAddress);
+  // const spaceAddress = '0x02b9ac7cb47a57ca4144fd0da74203bc8c4aaf411f438b08770bac3680a066cb'; //spaceDeployResponse.deploy.contract_address;
+  // console.log('Space Address: ', spaceAddress);
+
+  const spaceAddress = '0x040e53631973b92651746b4905655b0d797323fd2f47eb80cf6fad521a5ac87d';
 
   // initialize space
   const result = await account.execute({
