@@ -12,6 +12,10 @@ function delay(ms: number) {
   return new Promise((resolve) => setTimeout(resolve, ms));
 }
 
+const factsRegistryAddress = '0x01b2111317eb693c3ee46633edd45a4876db14a3a53acdbf4e5166976d8e869d';
+const timestampsRemapperAddress =
+  '0x2ee57d848297bc7dfc8675111b9aa3bd3085e4038e475250770afe303b772af';
+
 const vanillaAuthenticatorSierra = json.parse(
   fs.readFileSync('starknet/target/dev/sx_VanillaAuthenticator.sierra.json').toString('ascii'),
 );
@@ -116,6 +120,16 @@ const merkleWhitelistVotingStrategyCasm = json.parse(
     .toString('ascii'),
 );
 
+const evmSlotValueVotingStrategySierra = json.parse(
+  fs
+    .readFileSync('starknet/target/dev/sx_EvmSlotValueVotingStrategy.sierra.json')
+    .toString('ascii'),
+);
+
+const evmSlotValueVotingStrategyCasm = json.parse(
+  fs.readFileSync('starknet/target/dev/sx_EvmSlotValueVotingStrategy.casm.json').toString('ascii'),
+);
+
 const factorySierra = json.parse(
   fs.readFileSync('starknet/target/dev/sx_Factory.sierra.json').toString('ascii'),
 );
@@ -136,7 +150,10 @@ async function main() {
   const wait = 20000;
   let response;
 
-  // let response = await account.declareAndDeploy({
+  // Uncomment the following code in sections to deploy the contracts
+  // Due to rate limiting, you cannot deploy all the contracts at once.
+
+  //  response = await account.declareAndDeploy({
   //   contract: vanillaAuthenticatorSierra,
   //   casm: vanillaAuthenticatorCasm,
   //   constructorCalldata: CallData.compile({}),
@@ -238,14 +255,14 @@ async function main() {
   // );
   // delay(wait);
 
-  response = await account.declareAndDeploy({
-    contract: vanillaVotingStrategySierra,
-    casm: vanillaVotingStrategyCasm,
-    constructorCalldata: CallData.compile({}),
-  });
+  // response = await account.declareAndDeploy({
+  //   contract: vanillaVotingStrategySierra,
+  //   casm: vanillaVotingStrategyCasm,
+  //   constructorCalldata: CallData.compile({}),
+  // });
 
-  const vanillaVotingStrategyAddress = response.deploy.contract_address;
-  console.log('vanillaVotingStrategyAddress: ', vanillaVotingStrategyAddress);
+  // const vanillaVotingStrategyAddress = response.deploy.contract_address;
+  // console.log('vanillaVotingStrategyAddress: ', vanillaVotingStrategyAddress);
 
   // response = await account.declareAndDeploy({
   //   contract: erc20VotesVotingStrategySierra,
@@ -272,6 +289,18 @@ async function main() {
   //   casm: factoryCasm,
   //   constructorCalldata: CallData.compile({}),
   // });
+
+  response = await account.declareAndDeploy({
+    contract: evmSlotValueVotingStrategySierra,
+    casm: evmSlotValueVotingStrategyCasm,
+    constructorCalldata: CallData.compile({
+      timestamp_remappers: timestampsRemapperAddress,
+      facts_registry: factsRegistryAddress,
+    }),
+  });
+
+  const evmSlotValueVotingStrategyAddress = response.deploy.contract_address;
+  console.log('evmSlotValueVotingStrategyAddress: ', evmSlotValueVotingStrategyAddress);
 
   // const factoryAddress = response.deploy.contract_address;
   // console.log('factoryAddress: ', factoryAddress);
