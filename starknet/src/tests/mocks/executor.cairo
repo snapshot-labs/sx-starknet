@@ -20,6 +20,7 @@ mod ExecutorExecutionStrategy {
         // Dummy function that will just execute the `Transaction` in the payload, without needing any quorum.
         fn execute(
             ref self: ContractState,
+            proposal_id: u256,
             proposal: Proposal,
             votes_for: u256,
             votes_against: u256,
@@ -66,6 +67,7 @@ mod ExecutorWithoutTxExecutionStrategy {
         // Dummy function that will do nothing
         fn execute(
             ref self: ContractState,
+            proposal_id: u256,
             proposal: Proposal,
             votes_for: u256,
             votes_against: u256,

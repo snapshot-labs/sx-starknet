@@ -14,6 +14,7 @@ mod NoExecutionSimpleMajorityExecutionStrategy {
     impl NoExecutionSimpleMajorityExecutionStrategy of IExecutionStrategy<ContractState> {
         fn execute(
             ref self: ContractState,
+            proposal_id: u256,
             proposal: Proposal,
             votes_for: u256,
             votes_against: u256,
