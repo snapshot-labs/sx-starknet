@@ -14,10 +14,10 @@ struct ProofElement {
 #[derive(Drop, Serde)]
 struct BinarySearchTree {
     mapper_id: usize,
-    peaks: Peaks,
     last_pos: usize, // last_pos in mapper's MMR
+    peaks: Peaks,
     proofs: Span<ProofElement>, // Midpoint elements inclusion proofs
-    left_neighbor: ProofElement, // Left neighbor inclusion proof
+    left_neighbor: Option<ProofElement>, // Optional left neighbor inclusion proof
 }
 
 #[starknet::interface]
@@ -34,11 +34,6 @@ trait ITimestampRemappers<TContractState> {
 #[starknet::interface]
 trait IEVMFactsRegistry<TContractState> {
     fn get_storage(
-        self: @TContractState,
-        block: u256,
-        account: felt252,
-        slot: u256,
-        slot_len: usize,
-        mpt_proof: Span<Words64>
+        self: @TContractState, block: u256, account: felt252, slot: u256, mpt_proof: Span<Words64>
     ) -> u256;
 }

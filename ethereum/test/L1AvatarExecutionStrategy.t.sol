@@ -207,9 +207,8 @@ contract AvatarExecutionStrategyTestProxy is L1AvatarExecutionStrategySettersTes
         spaces[0] = space;
         vm.expectEmit(true, true, true, true);
         emit L1AvatarExecutionStrategySetUp(owner, address(avatar), starknetCore, ethRelayer, spaces, quorum);
-        L1AvatarExecutionStrategy masterAvatarExecutionStrategy = new L1AvatarExecutionStrategy(
-            owner, address(avatar), starknetCore, ethRelayer, spaces, quorum
-        );
+        L1AvatarExecutionStrategy masterAvatarExecutionStrategy =
+            new L1AvatarExecutionStrategy(owner, address(avatar), starknetCore, ethRelayer, spaces, quorum);
 
         avatarExecutionStrategy = L1AvatarExecutionStrategy(
             address(
