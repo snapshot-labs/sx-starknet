@@ -33,7 +33,7 @@ mod EvmSlotValueVotingStrategy {
             self: @ContractState,
             timestamp: u32,
             voter: UserAddress,
-            params: Span<felt252>, // [contract_address: address, slot_index: u32]
+            params: Span<felt252>, // [contract_address: address, slot_index: u256]
             user_params: Span<felt252>, // encoded proofs
         ) -> u256 {
             // Cast voter address to an Ethereum address
