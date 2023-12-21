@@ -1,44 +1,52 @@
 {
     "erc20VotesVotingStrategy": {
-        "address": "0x02429becc80a90bbeb38c6566617c584f79c60f684e8e73313af58b109b7d637",
+        "address": "0x72067addfebbaf2d20ed07303a2c9b8e19154e8797e6e9d6819b37fea2a2963",
         "classHash": "0x073d2613af4c68f4cffeedd5ed07610a5fd5bb560606a51f034af9aac65fb86c"
     },
     "ethRelayerExecutionStrategy": {
-        "address": "0x041c679daa4de984c72e2671405294b6064da964d1cee9db2fb26ba974f99fed",
+        "address": "0x72a0e53450c9c297225042d26b05ad62bf417c33ea30775e663538c0a29143a",
         "classHash": "0x01cbb577fa06b452701a62c7428ed72dcaf0e7d67375e436aad6b3789001a687"
     },
     "ethSigAuthenticator": {
-        "address": "0x00b610082a0f39458e03a96663767ec25d6fb259f32c1e0dd19bf2be7a52532c",
+        "address": "0x053d98050a9738da0eac7498d909ea03f6eb03d07fb95877b54ff8acf7712276",
         "classHash": "0x07c2680d397168aec487597e9ac5283a426f783210a0f1d88c17a53a99a46327"
     },
     "ethTxAuthenticator": {
-        "address": "0x063c89d1c6b938b68e88db2719cf2546a121c23642974c268515238b442b0ea0",
+        "address": "0x47ee3743ce7ad0ffcdb1ba51c9730a77cafd0ca51539714e711258f86c9f8af",
         "classHash": "0x02e25598c32a13ee7aa5f807aa7e36aba1fe623b4c02d87f1d403287903438f4",
         "params": {
-            "starknetCommitAddress": "0xF1EC7b0276aA5aF11eceFE56efb0F198A77016E9"
+            "starknetCommitAddress": "0xf1ec7b0276aa5af11ecefe56efb0f198a77016e9"
+        }
+    },
+    "evmSlotValueVotingStrategy": {
+        "address": "NEED HERODOTUS DEPLOYMENT",
+        "classHash": "0x0153ce0a7fed79b6a655eac427ed420f01ccca7fc44c09dc6e6c5c1b7a0d32fe",
+        "params": {
+            "factsRegistry": "",
+            "timestampRemapper": ""
         }
     },
     "factory": {
-        "address": "0x0250e28c97e729842190c3672f9fcf8db0fc78b8080e87a894831dc69e4f4439",
+        "address": "0x63c62258e1ba4d9ad72eab809ea5c3d1a4545b721bc444d6068ced6246c2f3c",
         "classHash": "0x031288bda2c55c988f582a3c8cd81798bc936081f592c66c5084c25fb2fb3d3b"
     },
     "merkleWhitelistVotingStrategy": {
-        "address": "0x0528b83a6af52c56cb2134fd9190a441e930831af437c1cb0fa6e459ad1435ba",
+        "address": "0x13bcbe7318fb8aa219d264dcf5916feb873e596389ba93d923f9a23378cb743",
         "classHash": "0x013d1b3a970113cbf7027ecfd117e2805deddcc588e1ad064e5272533da27f27"
     },
     "noExecutionSimpleMajorityExecutionStrategy": {
-        "address": "0x0477fadae876724682a6b0716a01ad5564f106b85bc373067e7c6975e9db9c26",
+        "address": "0x5327bdc6522d531b7770cd51aa641fb91c280a30cdece29edbf9edd970167f6",
         "classHash": "0x012b2958bc28e88c6474599ed4efdd859196c4abf48cac33679a4dd7e908c272"
     },
     "propositionPowerProposalValidationStrategy": {
-        "address": "0x01b28f95cbc5bcbe52014ef974d609f14497517f31d3c9e079a2464edf988751",
+        "address": "0x296e1a5ad28c9bf32b9570d6e1bedae77917866cd5d92aea4ef9271905ef549",
         "classHash": "0x032880a1385677b921be41172ef3308335c7e2c63d14cc7d6c9c6496d3c651de"
     },
     "space": {
         "classHash": "0x04b61126a7def0956cb4ff342ba72d850ea6b78b0ddb3e0b45f3a99bc9eb5995"
     },
     "starkSigAuthenticator": {
-        "address": "0x06e9de29d8c3551e7f845888f323e864ff214359b56a137633bf7e191035b442",
+        "address": "0x213bb25044b189ccfda9882999dba32e011781dc11b2a6efa2b3d232824378e",
         "classHash": "0x06cd9cbb9ec3d8b9b65bfe957ec5a8554baeadb931e9b73dfbd9cdecc7268c8e",
         "params": {
             "name": "sx-starknet",
@@ -46,19 +54,19 @@
         }
     },
     "starkTxAuthenticator": {
-        "address": "0x0687b57bc5459d05d9575483be8ed8e623c379484fdb1aad18b073ffd4602099",
+        "address": "0x2b63a8a92b7c67484ab99c4307c7db41b15b9a3c33359cd2b2459fd7f543a9c",
         "classHash": "0x0074bed8a722e660589c8caa9409aec16497ea270104c8b3b4763f173e4bdf23"
     },
     "vanillaAuthenticator": {
-        "address": "0x00c4b0a7d8626638e7dd410b16ccbc48fe36e68f864dec75b23ef41e3732d5d2",
+        "address": "0x051a4a1eb5ce28fc95edf408a847efccfb030d27314d9fbe82d82cb998ec1a0b",
         "classHash": "0x07b14f6390f7f386d28190ae21c4b30812fbc11f47d6786994879c39b16995ad"
     },
     "vanillaProposalValidationStrategy": {
-        "address": "0x054883d24fe788f72181101372a2fc171bc73152c399f195fdcabc94e743dcf3",
+        "address": "0x4cf6363ce975ef50ed813113432d3118957db79881d0c2e822aa72067b3f1ff",
         "classHash": "0x0156a0db2f92fe7d0850f7487c040a3bce3e1ce7bc6f630f5f6cd194956b4828"
     },
     "vanillaVotingStrategy": {
-        "address": "0x0790772fb61f58630d5418016aea41a64a45b4ffc39a9adf66e6446fdc0e8088",
+        "address": "0x1b8abdeb07c4f96c5e44229626d4b2f3673c7a1364b7208329c983bfc9fd69f",
         "classHash": "0x00995129dccbef6bf6d8ee3c6dbd0ce51ac6d9cda038da661b27a6b015c570f8"
     }
 }
