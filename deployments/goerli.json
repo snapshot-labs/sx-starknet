@@ -5,7 +5,7 @@
     },
     "ethRelayerExecutionStrategy": {
         "address": "0xa0a4bcf464e29f46dfb103521f33807271b4300ac5cd3118b15f31f89ecd94",
-        "classHash": "0x0421cfc898e304facc717b86ad4f4b1822b72fc89c04cca72f343b79420d97b2"
+        "classHash": "0x01cbb577fa06b452701a62c7428ed72dcaf0e7d67375e436aad6b3789001a687"
     },
     "ethSigAuthenticator": {
         "address": "0x048b33fe56e9b9354d4278ffdd5f6d546b13aa3d8c33149db2e2e2fdb48a369e",
@@ -36,14 +36,14 @@
     },
     "noExecutionSimpleMajorityExecutionStrategy": {
         "address": "0x4a5658d6b9fe62283147719a8b13d72f96e8959afacc716569b936c91089147",
-        "classHash": "0x042384c25d4c2f6c333404b870d5f0b67b91186dfe9495f66a742626cc680c73"
+        "classHash": "0x012b2958bc28e88c6474599ed4efdd859196c4abf48cac33679a4dd7e908c272"
     },
     "propositionPowerProposalValidationStrategy": {
         "address": "0x3ff398ab4e0aa9109c0cc889ff968c6215053a5e2176519b59f8ba87927c631",
         "classHash": "0x032880a1385677b921be41172ef3308335c7e2c63d14cc7d6c9c6496d3c651de"
     },
     "space": {
-        "classHash": "0x00f20287bef9f46c6051e425a84094d2436bcc1fef804db353e60f93661961ac"
+        "classHash": "0x04b61126a7def0956cb4ff342ba72d850ea6b78b0ddb3e0b45f3a99bc9eb5995"
     },
     "starkSigAuthenticator": {
         "address": "0x5280813396bf63dd47531ccdbfa5887099d44421d3f62db3de8f7bed68794f5",
