@@ -1,6 +1,6 @@
 import fs from 'fs';
 import dotenv from 'dotenv';
-import { RpcProvider, Account, ec, json, CallData } from 'starknet';
+import { RpcProvider, Account, json, CallData } from 'starknet';
 
 dotenv.config();
 
@@ -8,13 +8,16 @@ const network = process.env.STARKNET_NETWORK_URL || '';
 const account_address = process.env.ADDRESS || '';
 const account_pk = process.env.PK || '';
 
+const starknetCommitAddress = process.env.STARKNET_COMMIT_ADDRESS || '';
+const factsRegistryAddress = process.env.FACTS_REGISTRY_ADDRESS || '';
+const timestampRemappersAddress = process.env.TIMESTAMP_REMAPPERS_ADDRESS || '';
+
+const SIGNED_MSG_NAME = 'sx-starknet';
+const SIGNED_MSG_VERSION = '0.1.0';
+
 function delay(ms: number) {
   return new Promise((resolve) => setTimeout(resolve, ms));
 }
-
-const factsRegistryAddress = '0x01b2111317eb693c3ee46633edd45a4876db14a3a53acdbf4e5166976d8e869d';
-const timestampsRemapperAddress =
-  '0x2ee57d848297bc7dfc8675111b9aa3bd3085e4038e475250770afe303b772af';
 
 const vanillaAuthenticatorSierra = json.parse(
   fs.readFileSync('starknet/target/dev/sx_VanillaAuthenticator.sierra.json').toString('ascii'),
@@ -153,148 +156,142 @@ async function main() {
   // Uncomment the following code in sections to deploy the contracts
   // Due to rate limiting, you cannot deploy all the contracts at once.
 
-  //  response = await account.declareAndDeploy({
-  //   contract: vanillaAuthenticatorSierra,
-  //   casm: vanillaAuthenticatorCasm,
-  //   constructorCalldata: CallData.compile({}),
-  // });
+   response = await account.declareAndDeploy({
+    contract: vanillaAuthenticatorSierra,
+    casm: vanillaAuthenticatorCasm,
+    constructorCalldata: CallData.compile({}),
+  });
 
-  // const vanillaAuthenticatorAddress = response.deploy.contract_address;
-  // console.log('vanillaAuthenticatorAddress: ', vanillaAuthenticatorAddress);
-  // delay(wait);
+  const vanillaAuthenticatorAddress = response.deploy.contract_address;
+  console.log('vanillaAuthenticatorAddress: ', vanillaAuthenticatorAddress);
+  delay(wait);
 
-  // response = await account.declareAndDeploy({
-  //   contract: ethSigAuthenticatorSierra,
-  //   casm: ethSigAuthenticatorCasm,
-  //   constructorCalldata: CallData.compile({}),
-  // });
+  response = await account.declareAndDeploy({
+    contract: ethSigAuthenticatorSierra,
+    casm: ethSigAuthenticatorCasm,
+    constructorCalldata: CallData.compile({}),
+  });
 
-  // const ethSigAuthenticatorAddress = response.deploy.contract_address;
-  // console.log('ethSigAuthenticatorAddress: ', ethSigAuthenticatorAddress);
-  // delay(wait);
+  const ethSigAuthenticatorAddress = response.deploy.contract_address;
+  console.log('ethSigAuthenticatorAddress: ', ethSigAuthenticatorAddress);
+  delay(wait);
 
-  // response = await account.declareAndDeploy({
-  //   contract: ethTxAuthenticatorSierra,
-  //   casm: ethTxAuthenticatorCasm,
-  //   constructorCalldata: CallData.compile({
-  //     starknet_commit_address: '0xF1EC7b0276aA5aF11eceFE56efb0F198A77016E9',
-  //   }),
-  // });
+  response = await account.declareAndDeploy({
+    contract: ethTxAuthenticatorSierra,
+    casm: ethTxAuthenticatorCasm,
+    constructorCalldata: CallData.compile({
+      starknet_commit_address: starknetCommitAddress,
+    }),
+  });
 
-  // const ethTxAuthenticatorAddress = response.deploy.contract_address;
-  // console.log('ethTxAuthenticatorAddress: ', ethTxAuthenticatorAddress);
+  const ethTxAuthenticatorAddress = response.deploy.contract_address;
+  console.log('ethTxAuthenticatorAddress: ', ethTxAuthenticatorAddress);
 
-  // delay(wait);
+  delay(wait);
 
-  // response = await account.declareAndDeploy({
-  //   contract: starkSigAuthenticatorSierra,
-  //   casm: starkSigAuthenticatorCasm,
-  //   constructorCalldata: CallData.compile({ name: 'sx-starknet', version: '0.1.0' }),
-  // });
+  response = await account.declareAndDeploy({
+    contract: starkSigAuthenticatorSierra,
+    casm: starkSigAuthenticatorCasm,
+    constructorCalldata: CallData.compile({ name: SIGNED_MSG_NAME, version: SIGNED_MSG_VERSION}),
+  });
 
-  // const starkSigAuthenticatorAddress = response.deploy.contract_address;
-  // console.log('starkSigAuthenticatorAddress: ', starkSigAuthenticatorAddress);
-  // delay(wait);
+  const starkSigAuthenticatorAddress = response.deploy.contract_address;
+  console.log('starkSigAuthenticatorAddress: ', starkSigAuthenticatorAddress);
+  delay(wait);
 
-  // response = await account.declareAndDeploy({
-  //   contract: starkTxAuthenticatorSierra,
-  //   casm: starkTxAuthenticatorCasm,
-  //   constructorCalldata: CallData.compile({}),
-  // });
+  response = await account.declareAndDeploy({
+    contract: starkTxAuthenticatorSierra,
+    casm: starkTxAuthenticatorCasm,
+    constructorCalldata: CallData.compile({}),
+  });
 
-  // const starkTxAuthenticatorAddress = response.deploy.contract_address;
-  // console.log('starkTxAuthenticatorAddress: ', starkTxAuthenticatorAddress);
-  // delay(wait);
+  const starkTxAuthenticatorAddress = response.deploy.contract_address;
+  console.log('starkTxAuthenticatorAddress: ', starkTxAuthenticatorAddress);
+  delay(wait);
 
-  // response = await account.declareAndDeploy({
-  //   contract: ethRelayerExecutionStrategySierra,
-  //   casm: ethRelayerExecutionStrategyCasm,
-  //   constructorCalldata: CallData.compile({}),
-  // });
+  response = await account.declareAndDeploy({
+    contract: ethRelayerExecutionStrategySierra,
+    casm: ethRelayerExecutionStrategyCasm,
+    constructorCalldata: CallData.compile({}),
+  });
 
-  // const ethRelayerExecutionStrategyAddress = response.deploy.contract_address;
-  // console.log('ethRelayerExecutionStrategyAddress: ', ethRelayerExecutionStrategyAddress);
-  // delay(wait);
+  const ethRelayerExecutionStrategyAddress = response.deploy.contract_address;
+  console.log('ethRelayerExecutionStrategyAddress: ', ethRelayerExecutionStrategyAddress);
+  delay(wait);
 
-  // response = await account.declareAndDeploy({
-  //   contract: noExecutionSimpleMajorityExecutionStrategySierra,
-  //   casm: noExecutionSimpleMajorityExecutionStrategyCasm,
-  //   constructorCalldata: CallData.compile({}),
-  // });
+  response = await account.declareAndDeploy({
+    contract: noExecutionSimpleMajorityExecutionStrategySierra,
+    casm: noExecutionSimpleMajorityExecutionStrategyCasm,
+    constructorCalldata: CallData.compile({}),
+  });
 
-  // const noExecutionSimpleMajorityExecutionStrategyAddress = response.deploy.contract_address;
-  // console.log(
-  //   'noExecutionSimpleMajorityExecutionStrategyAddress: ',
-  //   noExecutionSimpleMajorityExecutionStrategyAddress,
-  // );
-  // delay(wait);
+  const noExecutionSimpleMajorityExecutionStrategyAddress = response.deploy.contract_address;
+  console.log(
+    'noExecutionSimpleMajorityExecutionStrategyAddress: ',
+    noExecutionSimpleMajorityExecutionStrategyAddress,
+  );
+  delay(wait);
 
-  // response = await account.declareAndDeploy({
-  //   contract: vanillaProposalValidationStrategySierra,
-  //   casm: vanillaProposalValidationStrategyCasm,
-  //   constructorCalldata: CallData.compile({}),
-  // });
+  response = await account.declareAndDeploy({
+    contract: vanillaProposalValidationStrategySierra,
+    casm: vanillaProposalValidationStrategyCasm,
+    constructorCalldata: CallData.compile({}),
+  });
 
-  // const vanillaProposalValidationStrategyAddress = response.deploy.contract_address;
-  // console.log(
-  //   'vanillaProposalValidationStrategyAddress: ',
-  //   vanillaProposalValidationStrategyAddress,
-  // );
-  // delay(wait);
+  const vanillaProposalValidationStrategyAddress = response.deploy.contract_address;
+  console.log(
+    'vanillaProposalValidationStrategyAddress: ',
+    vanillaProposalValidationStrategyAddress,
+  );
+  delay(wait);
 
-  // response = await account.declareAndDeploy({
-  //   contract: propositionPowerProposalValidationStrategySierra,
-  //   casm: propositionPowerProposalValidationStrategyCasm,
-  //   constructorCalldata: CallData.compile({}),
-  // });
+  response = await account.declareAndDeploy({
+    contract: propositionPowerProposalValidationStrategySierra,
+    casm: propositionPowerProposalValidationStrategyCasm,
+    constructorCalldata: CallData.compile({}),
+  });
 
-  // const propositionPowerProposalValidationStrategyAddress = response.deploy.contract_address;
-  // console.log(
-  //   'propositionPowerProposalValidationStrategyAddress: ',
-  //   propositionPowerProposalValidationStrategyAddress,
-  // );
-  // delay(wait);
+  const propositionPowerProposalValidationStrategyAddress = response.deploy.contract_address;
+  console.log(
+    'propositionPowerProposalValidationStrategyAddress: ',
+    propositionPowerProposalValidationStrategyAddress,
+  );
+  delay(wait);
 
-  // response = await account.declareAndDeploy({
-  //   contract: vanillaVotingStrategySierra,
-  //   casm: vanillaVotingStrategyCasm,
-  //   constructorCalldata: CallData.compile({}),
-  // });
+  response = await account.declareAndDeploy({
+    contract: vanillaVotingStrategySierra,
+    casm: vanillaVotingStrategyCasm,
+    constructorCalldata: CallData.compile({}),
+  });
 
-  // const vanillaVotingStrategyAddress = response.deploy.contract_address;
-  // console.log('vanillaVotingStrategyAddress: ', vanillaVotingStrategyAddress);
+  const vanillaVotingStrategyAddress = response.deploy.contract_address;
+  console.log('vanillaVotingStrategyAddress: ', vanillaVotingStrategyAddress);
 
-  // response = await account.declareAndDeploy({
-  //   contract: erc20VotesVotingStrategySierra,
-  //   casm: erc20VotesVotingStrategyCasm,
-  //   constructorCalldata: CallData.compile({}),
-  // });
+  response = await account.declareAndDeploy({
+    contract: erc20VotesVotingStrategySierra,
+    casm: erc20VotesVotingStrategyCasm,
+    constructorCalldata: CallData.compile({}),
+  });
 
-  // const erc20VotesVotingStrategyAddress = response.deploy.contract_address;
-  // console.log('erc20VotesVotingStrategyAddress: ', erc20VotesVotingStrategyAddress);
-  // delay(wait);
+  const erc20VotesVotingStrategyAddress = response.deploy.contract_address;
+  console.log('erc20VotesVotingStrategyAddress: ', erc20VotesVotingStrategyAddress);
+  delay(wait);
 
-  // response = await account.declareAndDeploy({
-  //   contract: merkleWhitelistVotingStrategySierra,
-  //   casm: merkleWhitelistVotingStrategyCasm,
-  //   constructorCalldata: CallData.compile({}),
-  // });
+  response = await account.declareAndDeploy({
+    contract: merkleWhitelistVotingStrategySierra,
+    casm: merkleWhitelistVotingStrategyCasm,
+    constructorCalldata: CallData.compile({}),
+  });
 
-  // const merkleWhitelistVotingStrategyAddress = response.deploy.contract_address;
-  // console.log('merkleWhitelistVotingStrategyAddress: ', merkleWhitelistVotingStrategyAddress);
-  // delay(wait);
-
-  // response = await account.declareAndDeploy({
-  //   contract: factorySierra,
-  //   casm: factoryCasm,
-  //   constructorCalldata: CallData.compile({}),
-  // });
+  const merkleWhitelistVotingStrategyAddress = response.deploy.contract_address;
+  console.log('merkleWhitelistVotingStrategyAddress: ', merkleWhitelistVotingStrategyAddress);
+  delay(wait);
 
   response = await account.declareAndDeploy({
     contract: evmSlotValueVotingStrategySierra,
     casm: evmSlotValueVotingStrategyCasm,
     constructorCalldata: CallData.compile({
-      timestamp_remappers: timestampsRemapperAddress,
+      timestamp_remappers: timestampRemappersAddress,
       facts_registry: factsRegistryAddress,
     }),
   });
@@ -302,35 +299,23 @@ async function main() {
   const evmSlotValueVotingStrategyAddress = response.deploy.contract_address;
   console.log('evmSlotValueVotingStrategyAddress: ', evmSlotValueVotingStrategyAddress);
 
-  // const factoryAddress = response.deploy.contract_address;
-  // console.log('factoryAddress: ', factoryAddress);
+  response = await account.declareAndDeploy({
+    contract: factorySierra,
+    casm: factoryCasm,
+    constructorCalldata: CallData.compile({}),
+  });
 
-  // response = await account.declareAndDeploy({
-  //   contract: spaceSierra,
-  //   casm: spaceCasm,
-  //   constructorCalldata: CallData.compile({}),
-  // });
+  const factoryAddress = response.deploy.contract_address;
+  console.log('factoryAddress: ', factoryAddress);
 
-  // const spaceAddress = response.deploy.contract_address;
-  // console.log('spaceAddress: ', spaceAddress);
+  response = await account.declareAndDeploy({
+    contract: spaceSierra,
+    casm: spaceCasm,
+    constructorCalldata: CallData.compile({}),
+  });
 
-  //   const deployments = {
-  //     vanillaAuthenticator: vanillaAuthenticatorAddress,
-  //     ethSigAuthenticator: ethSigAuthenticatorAddress,
-  //     ethTxAuthenticator: ethTxAuthenticatorAddress,
-  //     starkSigAuthenticator: starkSigAuthenticatorAddress,
-  //     starkTxAuthenticator: starkTxAuthenticatorAddress,
-  //     ethRelayerExecutionStrategy: ethRelayerExecutionStrategyAddress,
-  //     noExecutionSimpleMajorityExecutionStrategy: noExecutionSimpleMajorityExecutionStrategyAddress,
-  //     vanillaProposalValidationStrategy: vanillaProposalValidationStrategyAddress,
-  //     propositionPowerProposalValidationStrategy: propositionPowerProposalValidationStrategyAddress,
-  //     erc20VotesVotingStrategy: erc20VotesVotingStrategyAddress,
-  //     merkleWhitelistVotingStrategy: merkleWhitelistVotingStrategyAddress,
-  //     factory: factoryAddress,
-  //     space: spaceAddress,
-  //   };
-
-  //   fs.writeFileSync('./deployments/goerli.json', JSON.stringify(deployments));
+  const spaceAddress = response.deploy.contract_address;
+  console.log('spaceAddress: ', spaceAddress);
 }
 
 main();
