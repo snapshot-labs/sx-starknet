@@ -19,11 +19,11 @@
         }
     },
     "evmSlotValueVotingStrategy": {
-        "address": "NEED HERODOTUS DEPLOYMENT",
+        "address": "0x1f8544918b5d9b4833fb2ba2d0c7ceb0d699ae7f2b8b23ea129c9a10fe8046c",
         "classHash": "0x0153ce0a7fed79b6a655eac427ed420f01ccca7fc44c09dc6e6c5c1b7a0d32fe",
         "params": {
-            "factsRegistry": "",
-            "timestampRemapper": ""
+            "factsRegistry": "0x07d3550237ecf2d6ddef9b78e59b38647ee511467fe000ce276f245a006b40bc",
+            "timestampRemapper": "0x00cdd51fbc4e008f4ef807eaf26f5043521ef5931bbb1e04032a25bd845d286b"
         }
     },
     "factory": {
