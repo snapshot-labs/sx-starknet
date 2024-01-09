@@ -28,7 +28,7 @@
     },
     "factory": {
         "address": "0x63c62258e1ba4d9ad72eab809ea5c3d1a4545b721bc444d6068ced6246c2f3c",
-        "classHash": "0x031288bda2c55c988f582a3c8cd81798bc936081f592c66c5084c25fb2fb3d3b"
+        "classHash": "0x0302d332e9aceb184e5f301cb62c85181e7fc3b30559935c5736e987de579f6e"
     },
     "merkleWhitelistVotingStrategy": {
         "address": "0x13bcbe7318fb8aa219d264dcf5916feb873e596389ba93d923f9a23378cb743",
