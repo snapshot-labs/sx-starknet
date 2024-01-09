@@ -20,8 +20,7 @@ contract Deployer is Script {
 
         // Using the CREATE3 factory maintained by lififinance: https://github.com/lifinance/create3-factory
         ICREATE3Factory(0x93FEC2C00BfE902F733B57c5a6CeeD7CD1384AE1).deploy(
-            salt,
-            abi.encodePacked(type(StarknetCommit).creationCode, abi.encode(STARKNET_CORE_CONTRACT_MAINNET))
+            salt, abi.encodePacked(type(StarknetCommit).creationCode, abi.encode(STARKNET_COMMIT_CONTRACT_SEPOLIA))
         );
 
         vm.stopBroadcast();
