@@ -37,19 +37,11 @@ mod SingleSlotProof {
             let l1_block_number = self._cached_remapped_timestamps.read(timestamp);
             assert(l1_block_number.is_non_zero(), 'Timestamp not cached');
 
-            // let mut params = params;
-            // let mpt_proof = Serde::<Span<Words64>>::deserialize(ref params).unwrap();
-
-            // Computes the key of the EVM storage slot from the mapping key and the index of the mapping in storage.
-            // let slot_key = InternalImpl::get_mapping_slot_key(mapping_key, slot_index); // X
-
             // Returns the value of the storage slot of account: `l1_contract_address` at key: `slot_key` and block number: `l1_block_number`.
             let slot_value = IEVMFactsRegistryDispatcher {
                 contract_address: self._facts_registry.read()
             }
                 .get_storage(l1_block_number, l1_contract_address.into(), slot_key, mpt_proof);
-
-            assert(slot_value.is_non_zero(), 'Slot is zero');
 
             slot_value
         }
