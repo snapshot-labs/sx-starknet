@@ -71,8 +71,9 @@ mod EvmSlotValueVotingStrategy {
             let checkpoint = SingleSlotProof::InternalImpl::get_storage_slot(
                 @state, timestamp, evm_contract_address, slot_key, checkpoint_mpt_proof
             );
+            assert(checkpoint.is_non_zero(), 'Slot is zero');
 
-            // Verify the checkpoint is indeed the final checkpoint by checking the next slot is zero
+            // Verify the checkpoint is indeed the final checkpoint by checking the next slot is zero.
             let state = SingleSlotProof::unsafe_new_contract_state();
             assert(
                 SingleSlotProof::InternalImpl::get_storage_slot(
@@ -82,7 +83,7 @@ mod EvmSlotValueVotingStrategy {
                 'Invalid Checkpoint'
             );
 
-            // Decode into block number and vp 
+            // Extract voting power from the encoded checkpoint slot. 
             let (_, vp) = InternalImpl::decode_checkpoint_slot(checkpoint);
 
             vp
