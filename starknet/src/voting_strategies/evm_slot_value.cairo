@@ -1,10 +1,5 @@
 #[starknet::contract]
 mod EvmSlotValueVotingStrategy {
-    use core::option::OptionTrait;
-    use core::traits::TryInto;
-    use core::traits::Into;
-    use core::traits::AddEq;
-    use core::zeroable::Zeroable;
     use starknet::{EthAddress, ContractAddress};
     use sx::external::herodotus::BinarySearchTree;
     use sx::types::{UserAddress, UserAddressTrait};
@@ -17,9 +12,7 @@ mod EvmSlotValueVotingStrategy {
 
     #[external(v0)]
     impl EvmSlotValueVotingStrategy of IVotingStrategy<ContractState> {
-        /// Returns the EVM slot value of contract `C` at slot index `I`, using `voter` as the mapping key.
-        /// The contract address and slot index is stored in the strategy parameters (defined by the space owner).
-        /// The proof itself is supplied by the voter, in the `user_params` argument.
+        /// Returns the value of a slot in a mapping in an EVM contract at the block number corresponding to the given timestamp.
         ///
         /// # Notes
         ///
@@ -39,54 +32,33 @@ mod EvmSlotValueVotingStrategy {
             self: @ContractState,
             timestamp: u32,
             voter: UserAddress,
-            params: Span<felt252>, // [contract_address: address, slot_index: u256]
-            user_params: Span<felt252>, // encoded proofs
+            mut params: Span<felt252>, // [contract_address: address, slot_index: u256]
+            mut user_params: Span<felt252>, // [mpt_proof: u64[][]]
         ) -> u256 {
             // Cast voter address to an Ethereum address
             // Will revert if the address is not a valid Ethereum address
             let voter = voter.to_ethereum_address();
 
-            // Decode params 
-            let mut params = params;
+            // Decode params and user_params
             let (evm_contract_address, slot_index) = Serde::<(
                 EthAddress, u256
             )>::deserialize(ref params)
                 .unwrap();
+            let mpt_proof = Serde::<Span<Span<u64>>>::deserialize(ref user_params).unwrap();
 
-            let mut user_params = user_params;
-            let (checkpoint_index, checkpoint_mpt_proof, exclusion_mpt_proof) = Serde::<(
-                u32, Span<Span<u64>>, Span<Span<u64>>
-            )>::deserialize(ref user_params)
-                .unwrap();
+            // Computes the key of the EVM storage slot from the mapping key and the index of the mapping in storage.
+            let slot_key = InternalImpl::get_mapping_slot_key(voter.into(), slot_index);
 
-            // Get the slot key for the final checkpoint
-            let slot_key = InternalImpl::get_mapping_slot_key(
-                voter.into(), slot_index, checkpoint_index
-            );
-
-            // Get the slot containing the final checkpoint
+            // Returns the value of the storage slot at the block number corresponding to the given timestamp.
             // Migration to components planned ; disregard the `unsafe` keyword,
             // it is actually safe.
             let state = SingleSlotProof::unsafe_new_contract_state();
-            let checkpoint = SingleSlotProof::InternalImpl::get_storage_slot(
-                @state, timestamp, evm_contract_address, slot_key, checkpoint_mpt_proof
+            let slot_value = SingleSlotProof::InternalImpl::get_storage_slot(
+                @state, timestamp, evm_contract_address, slot_key, mpt_proof
             );
-            assert(checkpoint.is_non_zero(), 'Slot is zero');
+            assert(slot_value.is_non_zero(), 'Slot is zero');
 
-            // Verify the checkpoint is indeed the final checkpoint by checking the next slot is zero.
-            let state = SingleSlotProof::unsafe_new_contract_state();
-            assert(
-                SingleSlotProof::InternalImpl::get_storage_slot(
-                    @state, timestamp, evm_contract_address, slot_key + 1, exclusion_mpt_proof
-                )
-                    .is_zero(),
-                'Invalid Checkpoint'
-            );
-
-            // Extract voting power from the encoded checkpoint slot. 
-            let (_, vp) = InternalImpl::decode_checkpoint_slot(checkpoint);
-
-            vp
+            slot_value
         }
     }
 
@@ -125,22 +97,8 @@ mod EvmSlotValueVotingStrategy {
 
     #[generate_trait]
     impl InternalImpl of InternalTrait {
-        fn get_mapping_slot_key(mapping_key: u256, slot_index: u256, offset: u32) -> u256 {
-            keccak::keccak_u256s_be_inputs(
-                array![
-                    keccak::keccak_u256s_be_inputs(array![mapping_key, slot_index].span())
-                        .byte_reverse()
-                ]
-                    .span()
-            )
-                .byte_reverse()
-                + integer::U32IntoU256::into(offset)
-        }
-
-        fn decode_checkpoint_slot(slot: u256) -> (u32, u256) {
-            let block_number = slot.low & 0xffffffff;
-            let vp = slot / 0x100000000;
-            (block_number.try_into().unwrap(), vp)
+        fn get_mapping_slot_key(mapping_key: u256, slot_index: u256) -> u256 {
+            keccak::keccak_u256s_be_inputs(array![mapping_key, slot_index].span()).byte_reverse()
         }
     }
 
@@ -166,48 +124,27 @@ mod tests {
     fn get_mapping_slot_key() {
         assert(
             EvmSlotValueVotingStrategy::InternalImpl::get_mapping_slot_key(
-                0x0_u256, 0x0_u256, 0
+                0x0_u256, 0x0_u256
             ) == u256 {
-                low: 0x1e019e72ec816e127a59e7195f2cd7f5, high: 0xf0df3dcda05b4fbd9c655cde3d5ceb21
+                low: 0x2b36e491b30a40b2405849e597ba5fb5, high: 0xad3228b676f7d3cd4284a5443f17f196
             },
             'Incorrect slot key'
         );
         assert(
             EvmSlotValueVotingStrategy::InternalImpl::get_mapping_slot_key(
-                0x106b1F88867D99840CaaCAC2dA91265BA6E93e2B_u256, 0x8_u256, 0
+                0x1_u256, 0x0_u256
             ) == u256 {
-                low: 0xe29cc80a3c50310ba7fddc5044149d44, high: 0x87c554e6c4e8f9242420b8d1db45854c
+                low: 0x10426056ef8ca54750cb9bb552a59e7d, high: 0xada5013122d395ba3c54772283fb069b
             },
             'Incorrect slot key'
         );
         assert(
             EvmSlotValueVotingStrategy::InternalImpl::get_mapping_slot_key(
-                0x106b1F88867D99840CaaCAC2dA91265BA6E93e2B_u256, 0x8_u256, 4
+                0xd8dA6BF26964aF9D7eEd9e03E53415D37aA96045_u256, 0x1_u256
             ) == u256 {
-                low: 0xe29cc80a3c50310ba7fddc5044149d48, high: 0x87c554e6c4e8f9242420b8d1db45854c
+                low: 0xad9172e102b3af1e07a10cc29003beb2, high: 0xb931be0b3d1fb06daf0d92e2b8dfe49e
             },
             'Incorrect slot key'
-        );
-    }
-
-    #[test]
-    #[available_gas(10000000)]
-    fn decode_checkpoint_slot() {
-        assert(
-            EvmSlotValueVotingStrategy::InternalImpl::decode_checkpoint_slot(
-                0xffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff_u256
-            ) == (0xffffffff, 0xffffffffffffffffffffffffffffffffffffffffffffffffffffffff_u256),
-            'Incorrect checkpoint slot'
-        );
-        assert(
-            EvmSlotValueVotingStrategy::InternalImpl::decode_checkpoint_slot(0x0_u256) == (0, 0),
-            'Incorrect checkpoint slot'
-        );
-        assert(
-            EvmSlotValueVotingStrategy::InternalImpl::decode_checkpoint_slot(
-                0x000000056bc75e2d631f4240009c3685_u256
-            ) == (10237573, 100000000000001000000),
-            'Incorrect checkpoint slot'
         );
     }
 }
