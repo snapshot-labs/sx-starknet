@@ -185,7 +185,7 @@ async function main() {
     }),
   });
 
-  // Query the node for the storage proof of the desired slot at the snapshot L1 block number
+  // Query the node for the storage proofs of the 2 slots at the snapshot block number
   response = await axios({
     method: 'post',
     url: ethNetworkUrl,
