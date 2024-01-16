@@ -7,7 +7,6 @@ mod SingleSlotProof {
         IEVMFactsRegistryDispatcherTrait
     };
 
-
     #[storage]
     struct Storage {
         _timestamp_remappers: ContractAddress,
