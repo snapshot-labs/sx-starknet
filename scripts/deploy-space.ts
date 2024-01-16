@@ -23,21 +23,25 @@ async function main() {
   const provider = new RpcProvider({ nodeUrl: starknetNetworkUrl });
   const account = new Account(provider, accountAddress, accountPk);
 
-  const l1TokenAddress = '0xd96844c9B21CB6cCf2c236257c7fc703E43BA071'; //OZ token 18 decimals
-  const slotIndex = cairo.uint256(8);
+  // OZ Votes token 18 decimals
+  const l1TokenAddress = '0xd96844c9B21CB6cCf2c236257c7fc703E43BA071'; 
 
+  // Slot index of the checkpoints mapping in the token contract, 
+  // obtained using Foundry's Cast Storage Layout tool. 
+  const slotIndex = cairo.uint256(8); 
+  
   const factsRegistryAddress = '0x01b2111317EB693c3EE46633edd45A4876db14A3a53ACDBf4E5166976d8e869d';
   const timestampsRemapperAddress =
     '0x2ee57d848297bc7dfc8675111b9aa3bd3085e4038e475250770afe303b772af';
 
   const evmSlotValueVotingStrategySierra = json.parse(
     fs
-      .readFileSync('starknet/target/dev/sx_EvmSlotValueVotingStrategy.sierra.json')
+      .readFileSync('starknet/target/dev/sx_OZVotesStorageProofVotingStrategy.sierra.json')
       .toString('ascii'),
   );
   const evmSlotValueVotingStrategyCasm = json.parse(
     fs
-      .readFileSync('starknet/target/dev/sx_EvmSlotValueVotingStrategy.casm.json')
+      .readFileSync('starknet/target/dev/sx_OZVotesStorageProofVotingStrategy.casm.json')
       .toString('ascii'),
   );
   const spaceSierra = json.parse(

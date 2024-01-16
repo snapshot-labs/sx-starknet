@@ -37,8 +37,12 @@ async function main() {
   const evmSlotValueVotingStrategyAddress =
     '0x474edaba6e88a1478d0680bb97f43f01e6a311593ddc496da58d5a7e7a647cf';
 
-  const l1TokenAddress = '0xd96844c9B21CB6cCf2c236257c7fc703E43BA071'; //OZ token 18 decimals
-  const slotIndex = 8; // Slot index of the checkpoints mapping in the token contract
+  // OZ Votes token 18 decimals
+  const l1TokenAddress = '0xd96844c9B21CB6cCf2c236257c7fc703E43BA071';
+  // Slot index of the checkpoints mapping in the token contract,
+  //obtained using Foundry's Cast Storage Layout tool.
+  const slotIndex = 8;
+
   const voterAddress = '0x1fb824f4a6f82de72ae015931e5cf6923f9acb0f';
 
   const { abi: spaceAbi } = await provider.getClassAt(spaceAddress);
