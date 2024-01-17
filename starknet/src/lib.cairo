@@ -27,6 +27,9 @@ mod voting_strategies {
     mod evm_slot_value;
     use evm_slot_value::EvmSlotValueVotingStrategy;
 
+    mod oz_votes_storage_proof;
+    use oz_votes_storage_proof::OZVotesStorageProofVotingStrategy;
+
     mod merkle_whitelist;
     use merkle_whitelist::MerkleWhitelistVotingStrategy;
 }

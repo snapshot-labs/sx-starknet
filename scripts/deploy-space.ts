@@ -1,3 +1,4 @@
+import dotenv from 'dotenv';
 import fs from 'fs';
 import {
   defaultProvider,
@@ -12,6 +13,8 @@ import {
   cairo,
 } from 'starknet';
 
+dotenv.config();
+
 const accountAddress = process.env.ADDRESS || '';
 const accountPk = process.env.PK || '';
 const starknetNetworkUrl = process.env.STARKNET_NETWORK_URL || '';
@@ -20,40 +23,27 @@ async function main() {
   const provider = new RpcProvider({ nodeUrl: starknetNetworkUrl });
   const account = new Account(provider, accountAddress, accountPk);
 
-  const l1TokenAddress = '0xd96844c9B21CB6cCf2c236257c7fc703E43BA071'; //OZ token 18 decimals
-  const slotIndex = cairo.uint256(0);
+  // OZ Votes token 18 decimals
+  const l1TokenAddress = '0xd96844c9B21CB6cCf2c236257c7fc703E43BA071'; 
 
+  // Slot index of the checkpoints mapping in the token contract, 
+  // obtained using Foundry's Cast Storage Layout tool. 
+  const slotIndex = cairo.uint256(8); 
+  
   const factsRegistryAddress = '0x01b2111317EB693c3EE46633edd45A4876db14A3a53ACDBf4E5166976d8e869d';
   const timestampsRemapperAddress =
     '0x2ee57d848297bc7dfc8675111b9aa3bd3085e4038e475250770afe303b772af';
 
   const evmSlotValueVotingStrategySierra = json.parse(
     fs
-      .readFileSync('starknet/target/dev/sx_EvmSlotValueVotingStrategy.sierra.json')
+      .readFileSync('starknet/target/dev/sx_OZVotesStorageProofVotingStrategy.sierra.json')
       .toString('ascii'),
   );
   const evmSlotValueVotingStrategyCasm = json.parse(
     fs
-      .readFileSync('starknet/target/dev/sx_EvmSlotValueVotingStrategy.casm.json')
+      .readFileSync('starknet/target/dev/sx_OZVotesStorageProofVotingStrategy.casm.json')
       .toString('ascii'),
   );
-  const vanillaAuthenticatorSierra = json.parse(
-    fs.readFileSync('starknet/target/dev/sx_VanillaAuthenticator.sierra.json').toString('ascii'),
-  );
-  const vanillaAuthenticatorCasm = json.parse(
-    fs.readFileSync('starknet/target/dev/sx_VanillaAuthenticator.casm.json').toString('ascii'),
-  );
-  const vanillaProposalValidationStrategySierra = json.parse(
-    fs
-      .readFileSync('starknet/target/dev/sx_VanillaProposalValidationStrategy.sierra.json')
-      .toString('ascii'),
-  );
-  const vanillaProposalValidationStrategyCasm = json.parse(
-    fs
-      .readFileSync('starknet/target/dev/sx_VanillaProposalValidationStrategy.casm.json')
-      .toString('ascii'),
-  );
-
   const spaceSierra = json.parse(
     fs.readFileSync('starknet/target/dev/sx_Space.sierra.json').toString('ascii'),
   );
@@ -61,27 +51,11 @@ async function main() {
     fs.readFileSync('starknet/target/dev/sx_Space.casm.json').toString('ascii'),
   );
 
-  //   const vanillaAuthenticatorDeployResponse = await account.declareAndDeploy({
-  //     contract: vanillaAuthenticatorSierra,
-  //     casm: vanillaAuthenticatorCasm,
-  //     constructorCalldata: CallData.compile({}),
-  //   });
   const vanillaAuthenticatorAddress =
-    '0x6fa12cffc11ba775ccf99bad7249f06ec5fc605d002716b2f5c7f5561d28081'; //vanillaAuthenticatorDeployResponse.deploy.contract_address;
-  console.log('Vanilla Authenticator Address: ', vanillaAuthenticatorAddress);
+    '0x046ad946f22ac4e14e271f24309f14ac36f0fde92c6831a605813fefa46e0893';
 
-  //   const vanillaProposalValidationStrategyDeployResponse = await account.declareAndDeploy({
-  //     contract: vanillaProposalValidationStrategySierra,
-  //     casm: vanillaProposalValidationStrategyCasm,
-  //     constructorCalldata: CallData.compile({}),
-  //   });
   const vanillaProposalValidationStrategyAddress =
-    '0x18f74b960aeea1b8b8c14eb1834f37fd6e52daed66e983e7364d1f69dc7dbfb';
-  // vanillaProposalValidationStrategyDeployResponse.deploy.contract_address;
-  console.log(
-    'Vanilla Proposal Validation Strategy Address: ',
-    vanillaProposalValidationStrategyAddress,
-  );
+    '0x2247f5d86a60833da9dd8224d8f35c60bde7f4ca3b2a6583d4918d48750f69';
 
   // const deployResponse = await account.declareAndDeploy({
   //   contract: evmSlotValueVotingStrategySierra,
@@ -91,22 +65,19 @@ async function main() {
   //     facts_registry: factsRegistryAddress,
   //   }),
   // });
-  // const evmSlotValueVotingStrategyAddress =
-  //   '0x07e95f740a049896784969d61389f119291a2de37186f7cfa8ba9d2f3037b32a'; //deployResponse.deploy.contract_address;
+  // const evmSlotValueVotingStrategyAddress = deployResponse.deploy.contract_address;
 
   const evmSlotValueVotingStrategyAddress =
-    '0x06cf32ad42d1c6ee98758b00c6a7c7f293d9efb30f2afea370019a88f8e252be';
+    '0x474edaba6e88a1478d0680bb97f43f01e6a311593ddc496da58d5a7e7a647cf';
   console.log('Voting Strategy Address: ', evmSlotValueVotingStrategyAddress);
 
-  // const spaceDeployResponse = await account.declareAndDeploy({
-  //   contract: spaceSierra,
-  //   casm: spaceCasm,
-  //   constructorCalldata: CallData.compile({}),
-  // });
-  // const spaceAddress = '0x02b9ac7cb47a57ca4144fd0da74203bc8c4aaf411f438b08770bac3680a066cb'; //spaceDeployResponse.deploy.contract_address;
-  // console.log('Space Address: ', spaceAddress);
-
-  const spaceAddress = '0x040e53631973b92651746b4905655b0d797323fd2f47eb80cf6fad521a5ac87d';
+  const spaceDeployResponse = await account.declareAndDeploy({
+    contract: spaceSierra,
+    casm: spaceCasm,
+    constructorCalldata: CallData.compile({}),
+  });
+  const spaceAddress = spaceDeployResponse.deploy.contract_address;
+  console.log('Space Address: ', spaceAddress);
 
   // initialize space
   const result = await account.execute({

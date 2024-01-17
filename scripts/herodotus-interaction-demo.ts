@@ -11,6 +11,7 @@ import {
   CairoOptionVariant,
 } from 'starknet';
 import { utils } from '@snapshot-labs/sx';
+import { check } from 'prettier';
 
 dotenv.config();
 
@@ -30,15 +31,19 @@ async function main() {
   const provider = new RpcProvider({ nodeUrl: starknetNetworkUrl });
   const account = new Account(provider, accountAddress, accountPk);
 
-  const spaceAddress = '0x040e53631973b92651746b4905655b0d797323fd2f47eb80cf6fad521a5ac87d';
+  const spaceAddress = '0x2f998d51f78d2b23fea4e8af8306d67095fafaa2a6f76e7e328db6ba3e87bcd';
   const vanillaAuthenticatorAddress =
-    '0x6fa12cffc11ba775ccf99bad7249f06ec5fc605d002716b2f5c7f5561d28081';
+    '0x046ad946f22ac4e14e271f24309f14ac36f0fde92c6831a605813fefa46e0893';
   const evmSlotValueVotingStrategyAddress =
-    '0x06cf32ad42d1c6ee98758b00c6a7c7f293d9efb30f2afea370019a88f8e252be';
+    '0x474edaba6e88a1478d0680bb97f43f01e6a311593ddc496da58d5a7e7a647cf';
 
-  const l1TokenAddress = '0xd96844c9B21CB6cCf2c236257c7fc703E43BA071'; //OZ token 18 decimals
-  const slotIndex = 0; // Slot index of the balances mapping in the token contract
-  const voterAddress = '0x2842c82E20ab600F443646e1BC8550B44a513D82';
+  // OZ Votes token 18 decimals
+  const l1TokenAddress = '0xd96844c9B21CB6cCf2c236257c7fc703E43BA071';
+  // Slot index of the checkpoints mapping in the token contract,
+  //obtained using Foundry's Cast Storage Layout tool.
+  const slotIndex = 8;
+
+  const voterAddress = '0x1fb824f4a6f82de72ae015931e5cf6923f9acb0f';
 
   const { abi: spaceAbi } = await provider.getClassAt(spaceAddress);
   const space = new Contract(spaceAbi, spaceAddress, provider);
@@ -51,9 +56,27 @@ async function main() {
   );
   vanillaAuthenticator.connect(account);
 
-  const slotKey = ethers.utils.keccak256(
-    `0x${voterAddress.slice(2).padStart(64, '0')}${slotIndex.toString(16).padStart(64, '0')}`,
+  const l1Token = new ethers.Contract(
+    l1TokenAddress,
+    ['function numCheckpoints(address account) public view returns (uint256)'],
+    new ethers.JsonRpcProvider(ethNetworkUrl),
   );
+  const numCheckpoints = await l1Token.numCheckpoints(voterAddress);
+  console.log(numCheckpoints);
+
+  // Deriving the keys of the final slot in the checkpoints array for the voter and the next empty slot
+  const checkpointSlotKey =
+    BigInt(
+      ethers.keccak256(
+        ethers.keccak256(
+          `0x${voterAddress.slice(2).padStart(64, '0')}${slotIndex.toString(16).padStart(64, '0')}`,
+        ),
+      ),
+    ) +
+    BigInt(numCheckpoints) -
+    BigInt(1);
+  const nextEmptySlotKey = checkpointSlotKey + BigInt(1);
+
   let response;
 
   // Create a proposal
@@ -142,8 +165,9 @@ async function main() {
 
   // This is the snapshot L1 block number
   const l1BlockNumber = response.data.path[1].blockNumber;
+  console.log(l1BlockNumber);
 
-  // cache block number in single slot proof voting strategy
+  // cache block number in voting strategy
   await account.execute({
     contractAddress: evmSlotValueVotingStrategyAddress,
     entrypoint: 'cache_timestamp',
@@ -165,7 +189,7 @@ async function main() {
     }),
   });
 
-  // Query the node for the storage proof of the desired slot at the snapshot L1 block number
+  // Query the node for the storage proofs of the 2 slots at the snapshot block number
   response = await axios({
     method: 'post',
     url: ethNetworkUrl,
@@ -177,24 +201,31 @@ async function main() {
       id: 1,
       jsonrpc: '2.0',
       method: 'eth_getProof',
-      params: [l1TokenAddress, [slotKey], `0x${l1BlockNumber.toString(16)}`],
+      params: [
+        l1TokenAddress,
+        [`0x${checkpointSlotKey.toString(16)}`, `0x${nextEmptySlotKey.toString(16)}`],
+        `0x${l1BlockNumber.toString(16)}`,
+      ],
     },
   });
 
-  // This takes the proof from the response and converts it to a list of 64 bit little endian words
-  const storageProofLittleEndianWords64 = response.data.result.storageProof[0].proof.map(
-    (node: string) =>
-      node
-        .slice(2)
-        .match(/.{1,16}/g)
-        ?.map(
-          (word: string) =>
-            `0x${word
-              .replace(/^(.(..)*)$/, '0$1')
-              .match(/../g)
-              ?.reverse()
-              .join('')}`,
-        ),
+  // This takes the proofs from the response and converts them to a list of 64 bit little endian words
+  const storageProofsLittleEndianWords64 = response.data.result.storageProof.map(
+    (proofWrapper: any) =>
+      proofWrapper.proof.map(
+        (node: string) =>
+          node
+            .slice(2)
+            .match(/.{1,16}/g)
+            ?.map(
+              (word: string) =>
+                `0x${word
+                  .replace(/^(.(..)*)$/, '0$1')
+                  .match(/../g)
+                  ?.reverse()
+                  .join('')}`,
+            ),
+      ),
   );
 
   // Cast Vote
@@ -212,7 +243,9 @@ async function main() {
           {
             index: '0x0',
             params: CallData.compile({
-              storageProof: storageProofLittleEndianWords64,
+              checkpoint_index: numCheckpoints - BigInt(1),
+              checkpoint_mpt_proof: storageProofsLittleEndianWords64[0],
+              exclusion_mpt_proof: storageProofsLittleEndianWords64[1],
             }),
           },
         ],

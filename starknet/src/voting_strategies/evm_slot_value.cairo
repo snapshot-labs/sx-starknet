@@ -5,15 +5,14 @@ mod EvmSlotValueVotingStrategy {
     use sx::types::{UserAddress, UserAddressTrait};
     use sx::interfaces::IVotingStrategy;
     use sx::utils::{SingleSlotProof, TIntoU256};
+    use sx::utils::endian::ByteReverse;
 
     #[storage]
     struct Storage {}
 
     #[external(v0)]
     impl EvmSlotValueVotingStrategy of IVotingStrategy<ContractState> {
-        /// Returns the EVM slot value of contract `C` at slot index `I`, using `voter` as the mapping key.
-        /// The contract address and slot index is stored in the strategy parameters (defined by the space owner).
-        /// The proof itself is supplied by the voter, in the `user_params` argument.
+        /// Returns the value of a slot in a mapping in an EVM contract at the block number corresponding to the given timestamp.
         ///
         /// # Notes
         ///
@@ -33,28 +32,33 @@ mod EvmSlotValueVotingStrategy {
             self: @ContractState,
             timestamp: u32,
             voter: UserAddress,
-            params: Span<felt252>, // [contract_address: address, slot_index: u256]
-            user_params: Span<felt252>, // encoded proofs
+            mut params: Span<felt252>, // [contract_address: address, slot_index: u256]
+            mut user_params: Span<felt252>, // [mpt_proof: u64[][]]
         ) -> u256 {
             // Cast voter address to an Ethereum address
             // Will revert if the address is not a valid Ethereum address
             let voter = voter.to_ethereum_address();
 
-            // Decode params 
-            let mut params = params;
+            // Decode params and user_params
             let (evm_contract_address, slot_index) = Serde::<(
                 EthAddress, u256
             )>::deserialize(ref params)
                 .unwrap();
+            let mpt_proof = Serde::<Span<Span<u64>>>::deserialize(ref user_params).unwrap();
 
-            // Get the balance of the voter at the given block timestamp
+            // Computes the key of the EVM storage slot from the mapping key and the index of the mapping in storage.
+            let slot_key = InternalImpl::get_mapping_slot_key(voter.into(), slot_index);
+
+            // Returns the value of the storage slot at the block number corresponding to the given timestamp.
             // Migration to components planned ; disregard the `unsafe` keyword,
             // it is actually safe.
             let state = SingleSlotProof::unsafe_new_contract_state();
-            let balance = SingleSlotProof::InternalImpl::get_storage_slot(
-                @state, timestamp, evm_contract_address, slot_index, voter.into(), user_params
+            let slot_value = SingleSlotProof::InternalImpl::get_storage_slot(
+                @state, timestamp, evm_contract_address, slot_key, mpt_proof
             );
-            balance
+            assert(slot_value.is_non_zero(), 'Slot is zero');
+
+            slot_value
         }
     }
 
@@ -91,6 +95,13 @@ mod EvmSlotValueVotingStrategy {
         }
     }
 
+    #[generate_trait]
+    impl InternalImpl of InternalTrait {
+        fn get_mapping_slot_key(mapping_key: u256, slot_index: u256) -> u256 {
+            keccak::keccak_u256s_be_inputs(array![mapping_key, slot_index].span()).byte_reverse()
+        }
+    }
+
     #[constructor]
     fn constructor(
         ref self: ContractState,
@@ -101,5 +112,39 @@ mod EvmSlotValueVotingStrategy {
         // it is actually safe.
         let mut state = SingleSlotProof::unsafe_new_contract_state();
         SingleSlotProof::InternalImpl::initializer(ref state, timestamp_remappers, facts_registry);
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::EvmSlotValueVotingStrategy;
+
+    #[test]
+    #[available_gas(10000000)]
+    fn get_mapping_slot_key() {
+        assert(
+            EvmSlotValueVotingStrategy::InternalImpl::get_mapping_slot_key(
+                0x0_u256, 0x0_u256
+            ) == u256 {
+                low: 0x2b36e491b30a40b2405849e597ba5fb5, high: 0xad3228b676f7d3cd4284a5443f17f196
+            },
+            'Incorrect slot key'
+        );
+        assert(
+            EvmSlotValueVotingStrategy::InternalImpl::get_mapping_slot_key(
+                0x1_u256, 0x0_u256
+            ) == u256 {
+                low: 0x10426056ef8ca54750cb9bb552a59e7d, high: 0xada5013122d395ba3c54772283fb069b
+            },
+            'Incorrect slot key'
+        );
+        assert(
+            EvmSlotValueVotingStrategy::InternalImpl::get_mapping_slot_key(
+                0xd8dA6BF26964aF9D7eEd9e03E53415D37aA96045_u256, 0x1_u256
+            ) == u256 {
+                low: 0xad9172e102b3af1e07a10cc29003beb2, high: 0xb931be0b3d1fb06daf0d92e2b8dfe49e
+            },
+            'Incorrect slot key'
+        );
     }
 }
