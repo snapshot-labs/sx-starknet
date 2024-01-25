@@ -9,9 +9,10 @@ import {
   Contract,
   CairoOption,
   CairoOptionVariant,
+  shortString,
 } from 'starknet';
 import { utils } from '@snapshot-labs/sx';
-import { check } from 'prettier';
+import { voteTypes, Vote } from '../tests/eth-sig-types';
 
 dotenv.config();
 
@@ -21,8 +22,19 @@ type ProofElement = {
   proof: string[];
 };
 
+function getRSVFromSig(sig: string) {
+  if (sig.startsWith('0x')) {
+    sig = sig.substring(2);
+  }
+  const r = `0x${sig.substring(0, 64)}`;
+  const s = `0x${sig.substring(64, 64 * 2)}`;
+  const v = `0x${sig.substring(64 * 2)}`;
+  return { r, s, v };
+}
+
 const accountAddress = process.env.ADDRESS || '';
 const accountPk = process.env.PK || '';
+const ethPk = process.env.ETH_PK || '';
 const starknetNetworkUrl = process.env.STARKNET_NETWORK_URL || '';
 const ethNetworkUrl = process.env.ETH_NETWORK_URL || '';
 const herodotusApiKey = process.env.HERODOTUS_API_KEY || '';
@@ -31,19 +43,21 @@ async function main() {
   const provider = new RpcProvider({ nodeUrl: starknetNetworkUrl });
   const account = new Account(provider, accountAddress, accountPk);
 
-  const spaceAddress = '0x2f998d51f78d2b23fea4e8af8306d67095fafaa2a6f76e7e328db6ba3e87bcd';
+  const spaceAddress = '0x154d44960097ab0373a349f182ccde27dba99507b908146fd5a3f2e2bdabd7';
   const vanillaAuthenticatorAddress =
-    '0x046ad946f22ac4e14e271f24309f14ac36f0fde92c6831a605813fefa46e0893';
-  const evmSlotValueVotingStrategyAddress =
-    '0x474edaba6e88a1478d0680bb97f43f01e6a311593ddc496da58d5a7e7a647cf';
+    '0x00c4b0a7d8626638e7dd410b16ccbc48fe36e68f864dec75b23ef41e3732d5d2';
+  const ethSigAuthenticatorAddress =
+    '0x00b610082a0f39458e03a96663767ec25d6fb259f32c1e0dd19bf2be7a52532c';
+  const OZVotesStorageProofVotingStrategy =
+    '0x6b66f8e377a8879e8ac48cb0a4e368e8eac2dd4edae2f5d1621080f3fcfcc16';
 
   // OZ Votes token 18 decimals
-  const l1TokenAddress = '0xd96844c9B21CB6cCf2c236257c7fc703E43BA071';
+  const l1TokenAddress = '0x7421B0f131c32876c0eF305F9e4B2591bfbFF472';
   // Slot index of the checkpoints mapping in the token contract,
   //obtained using Foundry's Cast Storage Layout tool.
   const slotIndex = 8;
 
-  const voterAddress = '0x1fb824f4a6f82de72ae015931e5cf6923f9acb0f';
+  const voterAddress = '0x02c7BFfEDBBaFa1244dBDd5338b303e7DeD4115D';
 
   const { abi: spaceAbi } = await provider.getClassAt(spaceAddress);
   const space = new Contract(spaceAbi, spaceAddress, provider);
@@ -61,21 +75,6 @@ async function main() {
     ['function numCheckpoints(address account) public view returns (uint256)'],
     new ethers.JsonRpcProvider(ethNetworkUrl),
   );
-  const numCheckpoints = await l1Token.numCheckpoints(voterAddress);
-  console.log(numCheckpoints);
-
-  // Deriving the keys of the final slot in the checkpoints array for the voter and the next empty slot
-  const checkpointSlotKey =
-    BigInt(
-      ethers.keccak256(
-        ethers.keccak256(
-          `0x${voterAddress.slice(2).padStart(64, '0')}${slotIndex.toString(16).padStart(64, '0')}`,
-        ),
-      ),
-    ) +
-    BigInt(numCheckpoints) -
-    BigInt(1);
-  const nextEmptySlotKey = checkpointSlotKey + BigInt(1);
 
   let response;
 
@@ -102,6 +101,7 @@ async function main() {
   const proposalId = Number(await space.call('next_proposal_id', [])) - 1;
   const proposalStruct = (await space.call('proposals', [proposalId])) as any;
   const snapshotTimestamp = proposalStruct.start_timestamp;
+  console.log(snapshotTimestamp);
 
   // Proving the token storage root of the token at the snapshot timestamp
   // Webhook here is just a random address, can update
@@ -113,10 +113,10 @@ async function main() {
       'content-type': 'application/json',
     },
     data: {
-      destinationChainId: 'SN_GOERLI',
-      fee: '0',
+      destinationChainId: 'STARKNET',
+      fee: '900719925474099',
       data: {
-        '5': {
+        '1': {
           [`${'timestamp:'}${snapshotTimestamp}`]: {
             accounts: {
               [l1TokenAddress]: {
@@ -157,7 +157,7 @@ async function main() {
     url:
       'https://ds-indexer.api.herodotus.cloud/binsearch-path?timestamp=' +
       snapshotTimestamp +
-      '&deployed_on_chain=SN_GOERLI&accumulates_chain=5',
+      '&deployed_on_chain=STARKNET&accumulates_chain=1',
     headers: {
       accept: 'application/json',
     },
@@ -169,7 +169,7 @@ async function main() {
 
   // cache block number in voting strategy
   await account.execute({
-    contractAddress: evmSlotValueVotingStrategyAddress,
+    contractAddress: OZVotesStorageProofVotingStrategy,
     entrypoint: 'cache_timestamp',
     calldata: CallData.compile({
       timestamp: snapshotTimestamp,
@@ -188,6 +188,23 @@ async function main() {
       },
     }),
   });
+
+  // Need to query the state of the checkpoints array at the snapshot block number
+  const numCheckpoints = await l1Token.numCheckpoints(voterAddress, { blockTag: l1BlockNumber });
+  console.log(numCheckpoints);
+
+  // Deriving the keys of the final slot in the checkpoints array for the voter and the next empty slot
+  const checkpointSlotKey =
+    BigInt(
+      ethers.keccak256(
+        ethers.keccak256(
+          `0x${voterAddress.slice(2).padStart(64, '0')}${slotIndex.toString(16).padStart(64, '0')}`,
+        ),
+      ),
+    ) +
+    BigInt(numCheckpoints) -
+    BigInt(1);
+  const nextEmptySlotKey = checkpointSlotKey + BigInt(1);
 
   // Query the node for the storage proofs of the 2 slots at the snapshot block number
   response = await axios({
@@ -228,7 +245,7 @@ async function main() {
       ),
   );
 
-  // Cast Vote
+  // Cast Vote via vanilla authenticator
   await account.execute({
     contractAddress: vanillaAuthenticatorAddress,
     entrypoint: 'authenticate',
@@ -251,6 +268,46 @@ async function main() {
         ],
         metadataUri: ['0x1', '0x2', '0x3', '0x4'],
       }),
+    }),
+  });
+
+  // Cast vote via ethSigAuthenticator
+  let signer = new ethers.Wallet(ethPk);
+  const voteMsg: Vote = {
+    chainId: shortString.encodeShortString('SN_MAIN'),
+    authenticator: ethSigAuthenticatorAddress,
+    space: spaceAddress,
+    voter: signer.address,
+    proposalId: `0x${proposalId.toString(16)}`,
+    choice: '0x1',
+    userVotingStrategies: [
+      {
+        index: '0x0',
+        params: CallData.compile({
+          checkpoint_index: numCheckpoints - BigInt(1),
+          checkpoint_mpt_proof: storageProofsLittleEndianWords64[0],
+          exclusion_mpt_proof: storageProofsLittleEndianWords64[1],
+        }),
+      },
+    ],
+    metadataUri: ['0x1', '0x2', '0x3', '0x4'],
+  };
+  let sig = await signer.signTypedData({}, voteTypes, voteMsg);
+  let splitSig = getRSVFromSig(sig);
+
+  await account.execute({
+    contractAddress: ethSigAuthenticatorAddress,
+    entrypoint: 'authenticate_vote',
+    calldata: CallData.compile({
+      r: cairo.uint256(splitSig.r),
+      s: cairo.uint256(splitSig.s),
+      v: splitSig.v,
+      space: voteMsg.space,
+      voter: voteMsg.voter,
+      proposalId: cairo.uint256(voteMsg.proposalId),
+      choice: voteMsg.choice,
+      userVotingStrategies: voteMsg.userVotingStrategies,
+      metadataUri: voteMsg.metadataUri,
     }),
   });
 }

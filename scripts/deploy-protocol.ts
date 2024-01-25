@@ -9,8 +9,9 @@ const account_address = process.env.ADDRESS || '';
 const account_pk = process.env.PK || '';
 
 const starknetCommitAddress = process.env.STARKNET_COMMIT_ADDRESS || '';
-const factsRegistryAddress = process.env.FACTS_REGISTRY_ADDRESS || '';
-const timestampRemappersAddress = process.env.TIMESTAMP_REMAPPERS_ADDRESS || '';
+const factsRegistryAddress = '0x014bf62fadb41d8f899bb5afeeb2da486fcfd8431852def56c5f10e45ae72765'; //process.env.FACTS_REGISTRY_ADDRESS || '';
+const timestampRemappersAddress =
+  '0x0050e1a1a352049b29103d8b42cf00f6faa2d5e88e94ed71962a1bfb24e5b0b2'; //process.env.TIMESTAMP_REMAPPERS_ADDRESS || '';
 
 const SIGNED_MSG_NAME = 'sx-starknet';
 const SIGNED_MSG_VERSION = '0.1.0';
@@ -123,14 +124,16 @@ const merkleWhitelistVotingStrategyCasm = json.parse(
     .toString('ascii'),
 );
 
-const evmSlotValueVotingStrategySierra = json.parse(
+const OZVotesStorageProofVotingStrategySierra = json.parse(
   fs
-    .readFileSync('starknet/target/dev/sx_EvmSlotValueVotingStrategy.sierra.json')
+    .readFileSync('starknet/target/dev/sx_OZVotesStorageProofVotingStrategy.sierra.json')
     .toString('ascii'),
 );
 
-const evmSlotValueVotingStrategyCasm = json.parse(
-  fs.readFileSync('starknet/target/dev/sx_EvmSlotValueVotingStrategy.casm.json').toString('ascii'),
+const OZVotesStorageProofVotingStrategyCasm = json.parse(
+  fs
+    .readFileSync('starknet/target/dev/sx_OZVotesStorageProofVotingStrategy.casm.json')
+    .toString('ascii'),
 );
 
 const factorySierra = json.parse(
@@ -156,7 +159,7 @@ async function main() {
   // Uncomment the following code in sections to deploy the contracts
   // Due to rate limiting, you cannot deploy all the contracts at once.
 
-   response = await account.declareAndDeploy({
+  response = await account.declareAndDeploy({
     contract: vanillaAuthenticatorSierra,
     casm: vanillaAuthenticatorCasm,
     constructorCalldata: CallData.compile({}),
@@ -192,7 +195,7 @@ async function main() {
   response = await account.declareAndDeploy({
     contract: starkSigAuthenticatorSierra,
     casm: starkSigAuthenticatorCasm,
-    constructorCalldata: CallData.compile({ name: SIGNED_MSG_NAME, version: SIGNED_MSG_VERSION}),
+    constructorCalldata: CallData.compile({ name: SIGNED_MSG_NAME, version: SIGNED_MSG_VERSION }),
   });
 
   const starkSigAuthenticatorAddress = response.deploy.contract_address;
@@ -288,16 +291,16 @@ async function main() {
   delay(wait);
 
   response = await account.declareAndDeploy({
-    contract: evmSlotValueVotingStrategySierra,
-    casm: evmSlotValueVotingStrategyCasm,
+    contract: OZVotesStorageProofVotingStrategySierra,
+    casm: OZVotesStorageProofVotingStrategyCasm,
     constructorCalldata: CallData.compile({
       timestamp_remappers: timestampRemappersAddress,
       facts_registry: factsRegistryAddress,
     }),
   });
 
-  const evmSlotValueVotingStrategyAddress = response.deploy.contract_address;
-  console.log('evmSlotValueVotingStrategyAddress: ', evmSlotValueVotingStrategyAddress);
+  const OZVotesStorageProofVotingStrategy = response.deploy.contract_address;
+  console.log('OZVotesStorageProofVotingStrategy: ', OZVotesStorageProofVotingStrategy);
 
   response = await account.declareAndDeploy({
     contract: factorySierra,
