@@ -26,6 +26,14 @@
       "timestampRemapper": "0x2ee57d848297bc7dfc8675111b9aa3bd3085e4038e475250770afe303b772af"
     }
   },
+  "evmSlotValueVotingStrategy": {
+    "address": "0x035dbd4e4f46a059557e1b299d17f4568b49488bad5da9a003b171d90052139e",
+    "classHash": "0x0153ce0a7fed79b6a655eac427ed420f01ccca7fc44c09dc6e6c5c1b7a0d32fe",
+    "params": {
+      "factsRegistry": "0x01b2111317eb693c3ee46633edd45a4876db14a3a53acdbf4e5166976d8e869d",
+      "timestampRemapper": "0x2ee57d848297bc7dfc8675111b9aa3bd3085e4038e475250770afe303b772af"
+    }
+  },
   "factory": {
     "address": "0x63c62258e1ba4d9ad72eab809ea5c3d1a4545b721bc444d6068ced6246c2f3c",
     "classHash": "0x031288bda2c55c988f582a3c8cd81798bc936081f592c66c5084c25fb2fb3d3b"
