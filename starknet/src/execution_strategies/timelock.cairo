@@ -147,6 +147,8 @@ mod TimelockExecutionStrategy {
             votes_abstain: u256,
             payload: Array<felt252>
         ) {
+            // Migration to components planned ; disregard the `unsafe` keyword,
+            // it is actually safe.
             let state = SpaceManager::unsafe_new_contract_state();
             SpaceManager::InternalImpl::assert_only_spaces(@state);
             let state = SimpleQuorum::unsafe_new_contract_state();
@@ -260,6 +262,8 @@ mod TimelockExecutionStrategy {
         }
 
         fn set_veto_guardian(ref self: ContractState, new_veto_guardian: ContractAddress) {
+            // Migration to components planned ; disregard the `unsafe` keyword,
+            // it is actually safe.
             let state = Ownable::unsafe_new_contract_state();
             Ownable::InternalImpl::assert_only_owner(@state);
             self._veto_guardian.write(new_veto_guardian);
@@ -275,6 +279,8 @@ mod TimelockExecutionStrategy {
         }
 
         fn set_timelock_delay(ref self: ContractState, new_timelock_delay: u32) {
+            // Migration to components planned ; disregard the `unsafe` keyword,
+            // it is actually safe.
             let state = Ownable::unsafe_new_contract_state();
             Ownable::InternalImpl::assert_only_owner(@state);
             self._timelock_delay.write(new_timelock_delay);
@@ -292,6 +298,8 @@ mod TimelockExecutionStrategy {
         }
 
         fn enable_space(ref self: ContractState, space: ContractAddress) {
+            // Migration to components planned ; disregard the `unsafe` keyword,
+            // it is actually safe.
             let state = Ownable::unsafe_new_contract_state();
             Ownable::InternalImpl::assert_only_owner(@state);
             let mut state = SpaceManager::unsafe_new_contract_state();
@@ -299,6 +307,8 @@ mod TimelockExecutionStrategy {
         }
 
         fn disable_space(ref self: ContractState, space: ContractAddress) {
+            // Migration to components planned ; disregard the `unsafe` keyword,
+            // it is actually safe.
             let state = Ownable::unsafe_new_contract_state();
             Ownable::InternalImpl::assert_only_owner(@state);
             let mut state = SpaceManager::unsafe_new_contract_state();
@@ -306,6 +316,8 @@ mod TimelockExecutionStrategy {
         }
 
         fn is_space_enabled(self: @ContractState, space: ContractAddress) -> bool {
+            // Migration to components planned ; disregard the `unsafe` keyword,
+            // it is actually safe.
             let state = SpaceManager::unsafe_new_contract_state();
             SpaceManager::InternalImpl::is_space_enabled(@state, space)
         }
