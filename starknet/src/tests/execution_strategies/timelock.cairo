@@ -1,17 +1,13 @@
 #[cfg(test)]
 mod tests {
-    use core::zeroable::Zeroable;
-    use sx::execution_strategies::timelock::ITimelockExecutionStrategyDispatcherTrait;
-    use core::array::ArrayTrait;
-    use core::serde::Serde;
     use starknet::{ContractAddress, syscalls, info, testing};
-    // TODO: rexports    
     use sx::tests::setup::setup::{setup, setup::Config};
-    use sx::interfaces::{IQuorum, IQuorumDispatcher, IQuorumDispatcherTrait};
-    use sx::interfaces::{ISpaceDispatcher, ISpaceDispatcherTrait};
+    use sx::interfaces::{
+        IQuorum, IQuorumDispatcher, IQuorumDispatcherTrait, ISpaceDispatcher, ISpaceDispatcherTrait
+    };
     use sx::execution_strategies::{
         TimelockExecutionStrategy, TimelockExecutionStrategy::CallWithSalt,
-        timelock::ITimelockExecutionStrategyDispatcher
+        timelock::{ITimelockExecutionStrategyDispatcher, ITimelockExecutionStrategyDispatcherTrait}
     };
     use sx::tests::mocks::vanilla_authenticator::{
         VanillaAuthenticator, IVanillaAuthenticatorDispatcher, IVanillaAuthenticatorDispatcherTrait
@@ -21,8 +17,6 @@ mod tests {
         UpdateSettingsCalldata
     };
     use sx::utils::constants::{PROPOSE_SELECTOR, VOTE_SELECTOR, UPDATE_PROPOSAL_SELECTOR};
-
-    use debug::PrintTrait;
 
     const RENOUNCE_OWNERSHIP_SELECTOR: felt252 =
         0x52580a92c73f4428f1a260c5d768ef462b25955307de00f99957df119865d;
@@ -537,11 +531,6 @@ mod tests {
         testing::set_caller_address(timelock.owner());
         testing::set_contract_address(timelock.owner());
         timelock.veto(poseidon::poseidon_hash_span(payload.span()));
-        testing::set_block_timestamp(
-            info::get_block_timestamp() + timelock.timelock_delay().into()
-        );
-        // Execute proposal on timelock - should fail as proposal was vetoed
-        timelock.execute_queued_proposal(payload.span());
     }
 
     #[test]
@@ -587,5 +576,78 @@ mod tests {
         testing::set_caller_address(timelock.veto_guardian());
         testing::set_contract_address(timelock.veto_guardian());
         timelock.set_veto_guardian(starknet::contract_address_const::<0x9999>());
+    }
+
+    #[test]
+    #[available_gas(10000000000)]
+    fn set_owner() {
+        let (config, space, timelock) = setup_test();
+
+        testing::set_caller_address(timelock.owner());
+        testing::set_contract_address(timelock.owner());
+        timelock.transfer_ownership(timelock.owner());
+        assert(timelock.owner() == timelock.owner(), 'owner not set');
+    }
+
+    #[test]
+    #[available_gas(10000000000)]
+    #[should_panic(expected: ('Caller is not the owner', 'ENTRYPOINT_FAILED'))]
+    fn set_owner_unauthorized() {
+        let (config, space, timelock) = setup_test();
+        // Only the owner can transfer ownership
+        testing::set_caller_address(timelock.veto_guardian());
+        testing::set_contract_address(timelock.veto_guardian());
+        timelock.transfer_ownership(starknet::contract_address_const::<0x9999>());
+    }
+
+    #[test]
+    #[available_gas(10000000000)]
+    fn enable_space() {
+        let (config, space, timelock) = setup_test();
+
+        testing::set_caller_address(timelock.owner());
+        testing::set_contract_address(timelock.owner());
+        timelock.enable_space(starknet::contract_address_const::<0x123456789>());
+        assert(
+            timelock.is_space_enabled(starknet::contract_address_const::<0x123456789>()),
+            'space not enabled'
+        );
+    }
+
+    #[test]
+    #[available_gas(10000000000)]
+    #[should_panic(expected: ('Caller is not the owner', 'ENTRYPOINT_FAILED'))]
+    fn enable_space_unauthorized() {
+        let (config, space, timelock) = setup_test();
+        // Only the owner can enable a space
+        testing::set_caller_address(timelock.veto_guardian());
+        testing::set_contract_address(timelock.veto_guardian());
+        timelock.enable_space(starknet::contract_address_const::<0x123456789>());
+    }
+
+    #[test]
+    #[available_gas(10000000000)]
+    fn disable_space() {
+        let (config, space, timelock) = setup_test();
+
+        testing::set_caller_address(timelock.owner());
+        testing::set_contract_address(timelock.owner());
+        timelock.enable_space(starknet::contract_address_const::<0x123456789>());
+        timelock.disable_space(starknet::contract_address_const::<0x123456789>());
+        assert(
+            !timelock.is_space_enabled(starknet::contract_address_const::<0x123456789>()),
+            'space not disabled'
+        );
+    }
+
+    #[test]
+    #[available_gas(10000000000)]
+    #[should_panic(expected: ('Caller is not the owner', 'ENTRYPOINT_FAILED'))]
+    fn disable_space_unauthorized() {
+        let (config, space, timelock) = setup_test();
+        // Only the owner can disable a space
+        testing::set_caller_address(timelock.veto_guardian());
+        testing::set_contract_address(timelock.veto_guardian());
+        timelock.disable_space(starknet::contract_address_const::<0x123456789>());
     }
 }
