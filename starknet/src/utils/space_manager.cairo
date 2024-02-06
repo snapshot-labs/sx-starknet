@@ -30,6 +30,9 @@ mod SpaceManager {
             loop {
                 match spaces.pop_front() {
                     Option::Some(space) => {
+                        assert(
+                            (*space).is_non_zero() && !self._spaces.read(*space), 'Invalid Space'
+                        );
                         self._spaces.write(*space, true);
                     },
                     Option::None(()) => {
