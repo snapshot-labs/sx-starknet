@@ -294,4 +294,22 @@ mod tests {
         );
         assert(result == ProposalStatus::Rejected(()), 'failed quorum_not_reached');
     }
+
+    #[test]
+    #[available_gas(10000000)]
+    fn quorum_not_reached_with_against_votes() {
+        let mut state = SimpleQuorum::unsafe_new_contract_state();
+        let quorum = 6;
+        SimpleQuorum::InternalImpl::initializer(ref state, quorum);
+
+        let mut proposal: Proposal = Default::default();
+        // quorum only takes into account for and abstain votes
+        let votes_for = 3;
+        let votes_against = 2;
+        let votes_abstain = 1;
+        let result = SimpleQuorum::InternalImpl::get_proposal_status(
+            @state, @proposal, votes_for, votes_against, votes_abstain
+        );
+        assert(result == ProposalStatus::Rejected(()), 'failed quorum_not_reached');
+    }
 }
