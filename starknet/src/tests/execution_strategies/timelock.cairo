@@ -384,7 +384,7 @@ mod tests {
         testing::set_block_timestamp(
             info::get_block_timestamp() + timelock.timelock_delay().into()
         );
-        // Execute proposal on timelock - should fail because the timelock delay hasn't passed
+        // Execute proposal on timelock - should fail because the proposal is not queued
         timelock.execute_queued_proposal(payload.span());
     }
 
