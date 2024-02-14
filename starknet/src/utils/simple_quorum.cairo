@@ -1,6 +1,7 @@
 #[starknet::contract]
-mod SimpleQuorumExecutionStrategy {
+mod SimpleQuorum {
     use starknet::{ContractAddress, info};
+    use sx::interfaces::IQuorum;
     use sx::types::{Proposal, FinalizationStatus, ProposalStatus};
 
     #[storage]
@@ -20,7 +21,7 @@ mod SimpleQuorumExecutionStrategy {
 
         /// Returns the status of a proposal.
         /// To be accepted, a proposal must be supported by a majority of votes, have reached the quorum,
-        /// and have the current timetsamp must be greater or equal to `max_end_timestamp`.
+        /// and have the current timestamp be greater or equal to `max_end_timestamp`.
         /// If the proposal is has a majority of votes and have reached the quorum,
         /// then it can be early accepted (it will return `VotingPeriodAccepted`) provided the current timestamp is
         /// between `min_end_timestamp` and `max_end_timestamp`.
@@ -33,10 +34,9 @@ mod SimpleQuorumExecutionStrategy {
             votes_against: u256,
             votes_abstain: u256,
         ) -> ProposalStatus {
-            let accepted = InternalImpl::quorum_reached(
-                self._quorum.read(), votes_for, votes_against, votes_abstain
-            )
-                & InternalImpl::supported(votes_for, votes_against);
+            let quorum_reached = votes_for + votes_abstain >= self._quorum.read();
+            let supported = votes_for > votes_against;
+            let accepted = quorum_reached && supported;
 
             let timestamp = info::get_block_timestamp().try_into().unwrap();
             if *proposal.finalization_status == FinalizationStatus::Cancelled(()) {
@@ -59,36 +59,32 @@ mod SimpleQuorumExecutionStrategy {
                 ProposalStatus::Rejected(())
             }
         }
+    }
 
-        fn quorum_reached(
-            quorum: u256, votes_for: u256, votes_against: u256, votes_abstain: u256
-        ) -> bool {
-            let total_votes = votes_for + votes_against + votes_abstain;
-            total_votes >= quorum
-        }
-
-        fn supported(votes_for: u256, votes_against: u256) -> bool {
-            votes_for > votes_against
+    #[external(v0)]
+    impl Quorum of IQuorum<ContractState> {
+        fn quorum(self: @ContractState) -> u256 {
+            self._quorum.read()
         }
     }
 }
 
 #[cfg(test)]
 mod tests {
-    use super::SimpleQuorumExecutionStrategy;
+    use super::SimpleQuorum;
     use sx::types::{Proposal, proposal::ProposalDefault, FinalizationStatus, ProposalStatus};
 
     #[test]
     #[available_gas(10000000)]
     fn cancelled() {
-        let mut state = SimpleQuorumExecutionStrategy::unsafe_new_contract_state();
+        let mut state = SimpleQuorum::unsafe_new_contract_state();
 
         let mut proposal: Proposal = Default::default();
         proposal.finalization_status = FinalizationStatus::Cancelled(());
         let votes_for = 0;
         let votes_against = 0;
         let votes_abstain = 0;
-        let result = SimpleQuorumExecutionStrategy::InternalImpl::get_proposal_status(
+        let result = SimpleQuorum::InternalImpl::get_proposal_status(
             @state, @proposal, votes_for, votes_against, votes_abstain
         );
         assert(result == ProposalStatus::Cancelled(()), 'failed cancelled');
@@ -97,14 +93,14 @@ mod tests {
     #[test]
     #[available_gas(10000000)]
     fn executed() {
-        let mut state = SimpleQuorumExecutionStrategy::unsafe_new_contract_state();
+        let mut state = SimpleQuorum::unsafe_new_contract_state();
 
         let mut proposal: Proposal = Default::default();
         proposal.finalization_status = FinalizationStatus::Executed(());
         let votes_for = 0;
         let votes_against = 0;
         let votes_abstain = 0;
-        let result = SimpleQuorumExecutionStrategy::InternalImpl::get_proposal_status(
+        let result = SimpleQuorum::InternalImpl::get_proposal_status(
             @state, @proposal, votes_for, votes_against, votes_abstain
         );
         assert(result == ProposalStatus::Executed(()), 'failed executed');
@@ -113,14 +109,14 @@ mod tests {
     #[test]
     #[available_gas(10000000)]
     fn voting_delay() {
-        let mut state = SimpleQuorumExecutionStrategy::unsafe_new_contract_state();
+        let mut state = SimpleQuorum::unsafe_new_contract_state();
 
         let mut proposal: Proposal = Default::default();
         proposal.start_timestamp = 42424242;
         let votes_for = 0;
         let votes_against = 0;
         let votes_abstain = 0;
-        let result = SimpleQuorumExecutionStrategy::InternalImpl::get_proposal_status(
+        let result = SimpleQuorum::InternalImpl::get_proposal_status(
             @state, @proposal, votes_for, votes_against, votes_abstain
         );
         assert(result == ProposalStatus::VotingDelay(()), 'failed voting_delay');
@@ -129,14 +125,14 @@ mod tests {
     #[test]
     #[available_gas(10000000)]
     fn voting_period() {
-        let mut state = SimpleQuorumExecutionStrategy::unsafe_new_contract_state();
+        let mut state = SimpleQuorum::unsafe_new_contract_state();
 
         let mut proposal: Proposal = Default::default();
         proposal.min_end_timestamp = 42424242;
         let votes_for = 0;
         let votes_against = 0;
         let votes_abstain = 0;
-        let result = SimpleQuorumExecutionStrategy::InternalImpl::get_proposal_status(
+        let result = SimpleQuorum::InternalImpl::get_proposal_status(
             @state, @proposal, votes_for, votes_against, votes_abstain
         );
         assert(result == ProposalStatus::VotingPeriod(()), 'failed min_end_timestamp');
@@ -145,16 +141,16 @@ mod tests {
     #[test]
     #[available_gas(10000000)]
     fn shortcut_accepted() {
-        let mut state = SimpleQuorumExecutionStrategy::unsafe_new_contract_state();
+        let mut state = SimpleQuorum::unsafe_new_contract_state();
         let quorum = 2;
-        SimpleQuorumExecutionStrategy::InternalImpl::initializer(ref state, quorum);
+        SimpleQuorum::InternalImpl::initializer(ref state, quorum);
 
         let mut proposal: Proposal = Default::default();
         proposal.max_end_timestamp = 10;
         let votes_for = quorum;
         let votes_against = 0;
         let votes_abstain = 0;
-        let result = SimpleQuorumExecutionStrategy::InternalImpl::get_proposal_status(
+        let result = SimpleQuorum::InternalImpl::get_proposal_status(
             @state, @proposal, votes_for, votes_against, votes_abstain
         );
         assert(result == ProposalStatus::VotingPeriodAccepted(()), 'failed shortcut_accepted');
@@ -163,16 +159,16 @@ mod tests {
     #[test]
     #[available_gas(10000000)]
     fn shortcut_only_abstains() {
-        let mut state = SimpleQuorumExecutionStrategy::unsafe_new_contract_state();
+        let mut state = SimpleQuorum::unsafe_new_contract_state();
         let quorum = 2;
-        SimpleQuorumExecutionStrategy::InternalImpl::initializer(ref state, quorum);
+        SimpleQuorum::InternalImpl::initializer(ref state, quorum);
 
         let mut proposal: Proposal = Default::default();
         proposal.max_end_timestamp = 10;
         let votes_for = 0;
         let votes_against = 0;
         let votes_abstain = quorum;
-        let result = SimpleQuorumExecutionStrategy::InternalImpl::get_proposal_status(
+        let result = SimpleQuorum::InternalImpl::get_proposal_status(
             @state, @proposal, votes_for, votes_against, votes_abstain
         );
         assert(result == ProposalStatus::VotingPeriod(()), 'failed shortcut_only_abstains');
@@ -181,16 +177,16 @@ mod tests {
     #[test]
     #[available_gas(10000000)]
     fn shortcut_only_againsts() {
-        let mut state = SimpleQuorumExecutionStrategy::unsafe_new_contract_state();
+        let mut state = SimpleQuorum::unsafe_new_contract_state();
         let quorum = 2;
-        SimpleQuorumExecutionStrategy::InternalImpl::initializer(ref state, quorum);
+        SimpleQuorum::InternalImpl::initializer(ref state, quorum);
 
         let mut proposal: Proposal = Default::default();
         proposal.max_end_timestamp = 10;
         let votes_for = 0;
         let votes_against = quorum;
         let votes_abstain = 0;
-        let result = SimpleQuorumExecutionStrategy::InternalImpl::get_proposal_status(
+        let result = SimpleQuorum::InternalImpl::get_proposal_status(
             @state, @proposal, votes_for, votes_against, votes_abstain
         );
         assert(result == ProposalStatus::VotingPeriod(()), 'failed shortcut_only_againsts');
@@ -199,16 +195,16 @@ mod tests {
     #[test]
     #[available_gas(10000000)]
     fn shortcut_balanced() {
-        let mut state = SimpleQuorumExecutionStrategy::unsafe_new_contract_state();
+        let mut state = SimpleQuorum::unsafe_new_contract_state();
         let quorum = 2;
-        SimpleQuorumExecutionStrategy::InternalImpl::initializer(ref state, quorum);
+        SimpleQuorum::InternalImpl::initializer(ref state, quorum);
 
         let mut proposal: Proposal = Default::default();
         proposal.max_end_timestamp = 10;
         let votes_for = quorum;
         let votes_against = quorum;
         let votes_abstain = 0;
-        let result = SimpleQuorumExecutionStrategy::InternalImpl::get_proposal_status(
+        let result = SimpleQuorum::InternalImpl::get_proposal_status(
             @state, @proposal, votes_for, votes_against, votes_abstain
         );
         assert(result == ProposalStatus::VotingPeriod(()), 'failed shortcut_balanced');
@@ -217,15 +213,15 @@ mod tests {
     #[test]
     #[available_gas(10000000)]
     fn balanced() {
-        let mut state = SimpleQuorumExecutionStrategy::unsafe_new_contract_state();
+        let mut state = SimpleQuorum::unsafe_new_contract_state();
         let quorum = 2;
-        SimpleQuorumExecutionStrategy::InternalImpl::initializer(ref state, quorum);
+        SimpleQuorum::InternalImpl::initializer(ref state, quorum);
 
         let mut proposal: Proposal = Default::default();
         let votes_for = quorum;
         let votes_against = quorum;
         let votes_abstain = 0;
-        let result = SimpleQuorumExecutionStrategy::InternalImpl::get_proposal_status(
+        let result = SimpleQuorum::InternalImpl::get_proposal_status(
             @state, @proposal, votes_for, votes_against, votes_abstain
         );
         assert(result == ProposalStatus::Rejected(()), 'failed balanced');
@@ -234,15 +230,15 @@ mod tests {
     #[test]
     #[available_gas(10000000)]
     fn accepted() {
-        let mut state = SimpleQuorumExecutionStrategy::unsafe_new_contract_state();
+        let mut state = SimpleQuorum::unsafe_new_contract_state();
         let quorum = 2;
-        SimpleQuorumExecutionStrategy::InternalImpl::initializer(ref state, quorum);
+        SimpleQuorum::InternalImpl::initializer(ref state, quorum);
 
         let mut proposal: Proposal = Default::default();
         let votes_for = quorum;
         let votes_against = quorum - 1;
         let votes_abstain = 0;
-        let result = SimpleQuorumExecutionStrategy::InternalImpl::get_proposal_status(
+        let result = SimpleQuorum::InternalImpl::get_proposal_status(
             @state, @proposal, votes_for, votes_against, votes_abstain
         );
         assert(result == ProposalStatus::Accepted(()), 'failed accepted');
@@ -251,15 +247,15 @@ mod tests {
     #[test]
     #[available_gas(10000000)]
     fn accepted_with_abstains() {
-        let mut state = SimpleQuorumExecutionStrategy::unsafe_new_contract_state();
+        let mut state = SimpleQuorum::unsafe_new_contract_state();
         let quorum = 5;
-        SimpleQuorumExecutionStrategy::InternalImpl::initializer(ref state, quorum);
+        SimpleQuorum::InternalImpl::initializer(ref state, quorum);
 
         let mut proposal: Proposal = Default::default();
         let votes_for = 2;
         let votes_against = 1;
         let votes_abstain = 10;
-        let result = SimpleQuorumExecutionStrategy::InternalImpl::get_proposal_status(
+        let result = SimpleQuorum::InternalImpl::get_proposal_status(
             @state, @proposal, votes_for, votes_against, votes_abstain
         );
         assert(result == ProposalStatus::Accepted(()), 'failed accepted abstains');
@@ -268,15 +264,15 @@ mod tests {
     #[test]
     #[available_gas(10000000)]
     fn rejected_only_againsts() {
-        let mut state = SimpleQuorumExecutionStrategy::unsafe_new_contract_state();
+        let mut state = SimpleQuorum::unsafe_new_contract_state();
         let quorum = 0;
-        SimpleQuorumExecutionStrategy::InternalImpl::initializer(ref state, quorum);
+        SimpleQuorum::InternalImpl::initializer(ref state, quorum);
 
         let mut proposal: Proposal = Default::default();
         let votes_for = 0;
         let votes_against = 1;
         let votes_abstain = 0;
-        let result = SimpleQuorumExecutionStrategy::InternalImpl::get_proposal_status(
+        let result = SimpleQuorum::InternalImpl::get_proposal_status(
             @state, @proposal, votes_for, votes_against, votes_abstain
         );
         assert(result == ProposalStatus::Rejected(()), 'failed rejected');
@@ -285,15 +281,33 @@ mod tests {
     #[test]
     #[available_gas(10000000)]
     fn quorum_not_reached() {
-        let mut state = SimpleQuorumExecutionStrategy::unsafe_new_contract_state();
+        let mut state = SimpleQuorum::unsafe_new_contract_state();
         let quorum = 3;
-        SimpleQuorumExecutionStrategy::InternalImpl::initializer(ref state, quorum);
+        SimpleQuorum::InternalImpl::initializer(ref state, quorum);
 
         let mut proposal: Proposal = Default::default();
         let votes_for = 2;
         let votes_against = 0;
         let votes_abstain = 0;
-        let result = SimpleQuorumExecutionStrategy::InternalImpl::get_proposal_status(
+        let result = SimpleQuorum::InternalImpl::get_proposal_status(
+            @state, @proposal, votes_for, votes_against, votes_abstain
+        );
+        assert(result == ProposalStatus::Rejected(()), 'failed quorum_not_reached');
+    }
+
+    #[test]
+    #[available_gas(10000000)]
+    fn quorum_not_reached_with_against_votes() {
+        let mut state = SimpleQuorum::unsafe_new_contract_state();
+        let quorum = 6;
+        SimpleQuorum::InternalImpl::initializer(ref state, quorum);
+
+        let mut proposal: Proposal = Default::default();
+        // quorum only takes into account for and abstain votes
+        let votes_for = 3;
+        let votes_against = 2;
+        let votes_abstain = 1;
+        let result = SimpleQuorum::InternalImpl::get_proposal_status(
             @state, @proposal, votes_for, votes_against, votes_abstain
         );
         assert(result == ProposalStatus::Rejected(()), 'failed quorum_not_reached');

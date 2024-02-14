@@ -1,8 +1,9 @@
 #[starknet::contract]
 mod VanillaExecutionStrategy {
-    use sx::interfaces::{IExecutionStrategy};
+    use sx::interfaces::{IExecutionStrategy, IQuorum};
     use sx::types::{Proposal, ProposalStatus};
-    use sx::tests::{mocks::simple_quorum::SimpleQuorumExecutionStrategy, utils::i_quorum::IQuorum};
+    use sx::utils::SimpleQuorum;
+
 
     #[storage]
     struct Storage {
@@ -12,9 +13,8 @@ mod VanillaExecutionStrategy {
     #[external(v0)]
     impl QuorumImpl of IQuorum<ContractState> {
         fn quorum(self: @ContractState) -> u256 {
-            let mut state: SimpleQuorumExecutionStrategy::ContractState =
-                SimpleQuorumExecutionStrategy::unsafe_new_contract_state();
-            SimpleQuorumExecutionStrategy::InternalImpl::quorum(@state)
+            let mut state: SimpleQuorum::ContractState = SimpleQuorum::unsafe_new_contract_state();
+            SimpleQuorum::InternalImpl::quorum(@state)
         }
     }
 
@@ -48,10 +48,9 @@ mod VanillaExecutionStrategy {
             votes_against: u256,
             votes_abstain: u256,
         ) -> ProposalStatus {
-            let mut state: SimpleQuorumExecutionStrategy::ContractState =
-                SimpleQuorumExecutionStrategy::unsafe_new_contract_state();
+            let mut state: SimpleQuorum::ContractState = SimpleQuorum::unsafe_new_contract_state();
 
-            SimpleQuorumExecutionStrategy::InternalImpl::get_proposal_status(
+            SimpleQuorum::InternalImpl::get_proposal_status(
                 @state, @proposal, votes_for, votes_against, votes_abstain,
             )
         }
@@ -65,8 +64,8 @@ mod VanillaExecutionStrategy {
     fn constructor(ref self: ContractState, quorum: u256) {
         // Migration to components planned ; disregard the `unsafe` keyword,
         // it is actually safe.
-        let mut state = SimpleQuorumExecutionStrategy::unsafe_new_contract_state();
-        SimpleQuorumExecutionStrategy::InternalImpl::initializer(ref state, quorum);
+        let mut state = SimpleQuorum::unsafe_new_contract_state();
+        SimpleQuorum::InternalImpl::initializer(ref state, quorum);
     }
 
     #[external(v0)]

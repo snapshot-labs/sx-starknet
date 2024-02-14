@@ -18,6 +18,9 @@ mod execution_strategies {
 
     mod no_execution_simple_majority;
     use no_execution_simple_majority::NoExecutionSimpleMajorityExecutionStrategy;
+
+    mod timelock;
+    use timelock::TimelockExecutionStrategy;
 }
 
 mod voting_strategies {
@@ -67,6 +70,9 @@ mod interfaces {
 
     mod i_space;
     use i_space::{ISpace, ISpaceDispatcher, ISpaceDispatcherTrait};
+
+    mod i_quorum;
+    use i_quorum::{IQuorum, IQuorumDispatcher, IQuorumDispatcherTrait};
 }
 
 mod types {
@@ -137,6 +143,9 @@ mod utils {
 
     mod simple_majority;
 
+    mod simple_quorum;
+    use simple_quorum::SimpleQuorum;
+
     mod single_slot_proof;
     use single_slot_proof::SingleSlotProof;
 
@@ -145,6 +154,9 @@ mod utils {
 
     mod struct_hash;
     use struct_hash::StructHash;
+
+    mod space_manager;
+    use space_manager::SpaceManager;
 }
 
 mod external {
