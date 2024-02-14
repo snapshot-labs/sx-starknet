@@ -75,6 +75,14 @@ const noExecutionSimpleMajorityExecutionStrategyCasm = json.parse(
     .toString('ascii'),
 );
 
+const timelockExecutionStrategySierra = json.parse(
+  fs.readFileSync('starknet/target/dev/sx_TimelockExecutionStrategy.sierra.json').toString('ascii'),
+);
+
+const timelockExecutionStrategyCasm = json.parse(
+  fs.readFileSync('starknet/target/dev/sx_TimelockExecutionStrategy.casm.json').toString('ascii'),
+);
+
 const vanillaProposalValidationStrategySierra = json.parse(
   fs
     .readFileSync('starknet/target/dev/sx_VanillaProposalValidationStrategy.sierra.json')
@@ -233,6 +241,22 @@ async function main() {
     'noExecutionSimpleMajorityExecutionStrategyAddress: ',
     noExecutionSimpleMajorityExecutionStrategyAddress,
   );
+  delay(wait);
+
+  response = await account.declareAndDeploy({
+    contract: timelockExecutionStrategySierra,
+    casm: timelockExecutionStrategyCasm,
+    constructorCalldata: CallData.compile({
+      owner: 0,
+      veto_guardian: 0,
+      spaces: [],
+      timelock_delay: 0,
+      quorum: 0,
+    }),
+  });
+
+  const timelockExecutionStrategyAddress = response.deploy.contract_address;
+  console.log('timelockExecutionStrategyAddress: ', timelockExecutionStrategyAddress);
   delay(wait);
 
   response = await account.declareAndDeploy({
