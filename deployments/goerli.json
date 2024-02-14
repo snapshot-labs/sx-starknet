@@ -7,6 +7,9 @@
     "address": "0xa0a4bcf464e29f46dfb103521f33807271b4300ac5cd3118b15f31f89ecd94",
     "classHash": "0x01cbb577fa06b452701a62c7428ed72dcaf0e7d67375e436aad6b3789001a687"
   },
+  "timeLockExecutionStrategy": {
+    "classHash": "0x070cea434b3bdcf9f74f0bf25007e16806ceb8e5dbbcace68033f2a9302dc200"
+  },
   "ethSigAuthenticator": {
     "address": "0x048b33fe56e9b9354d4278ffdd5f6d546b13aa3d8c33149db2e2e2fdb48a369e",
     "classHash": "0x07c2680d397168aec487597e9ac5283a426f783210a0f1d88c17a53a99a46327"
