@@ -141,6 +141,9 @@ mod utils {
     mod reinitializable;
     use reinitializable::Reinitializable;
 
+    mod session_key;
+    use session_key::SessionKey;
+
     mod simple_majority;
 
     mod simple_quorum;
