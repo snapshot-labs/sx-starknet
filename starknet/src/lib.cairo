@@ -10,6 +10,9 @@ mod authenticators {
 
     mod stark_tx;
     use stark_tx::StarkTxAuthenticator;
+
+    mod eth_sig_session_key;
+    use eth_sig_session_key::EthSigSessionKeyAuthenticator;
 }
 
 mod execution_strategies {
