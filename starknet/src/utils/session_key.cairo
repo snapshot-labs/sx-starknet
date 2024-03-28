@@ -61,7 +61,8 @@ mod SessionKey {
                 );
         }
 
-        fn revoke(ref self: ContractState, session_public_key: felt252) {
+        fn revoke(ref self: ContractState, owner: UserAddress, session_public_key: felt252) {
+            assert(self._owner.read(session_public_key) == owner, 'Invalid owner');
             // Writing the zero address to the session key owner store
             self
                 ._owner
