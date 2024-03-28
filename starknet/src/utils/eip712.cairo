@@ -1,5 +1,6 @@
 #[starknet::contract]
 mod EIP712 {
+    use integer::U32IntoU256;
     use starknet::{EthAddress, ContractAddress, secp256_trait};
     use starknet::secp256k1::Secp256k1Point;
     use sx::types::{Strategy, IndexedStrategy, Choice};
@@ -94,10 +95,11 @@ mod EIP712 {
             v: u32,
             owner: EthAddress,
             session_public_key: felt252,
-            session_duration: u32
+            session_duration: u32,
+            salt: u256
         ) {
             let digest: u256 = self
-                .get_session_key_auth_digest(owner, session_public_key, session_duration);
+                .get_session_key_auth_digest(owner, session_public_key, session_duration, salt);
             secp256_trait::verify_eth_signature::<Secp256k1Point>(
                 digest, secp256_trait::signature_from_vrs(v, r, s), owner
             );
@@ -109,9 +111,10 @@ mod EIP712 {
             s: u256,
             v: u32,
             owner: EthAddress,
-            session_public_key: felt252
+            session_public_key: felt252,
+            salt: u256
         ) {
-            let digest: u256 = self.get_session_key_revoke_digest(owner, session_public_key);
+            let digest: u256 = self.get_session_key_revoke_digest(owner, session_public_key, salt);
             secp256_trait::verify_eth_signature::<Secp256k1Point>(
                 digest, secp256_trait::signature_from_vrs(v, r, s), owner
             );
@@ -196,29 +199,34 @@ mod EIP712 {
             self: @ContractState,
             owner: EthAddress,
             session_public_key: felt252,
-            session_duration: u32
+            session_duration: u32,
+            salt: u256
         ) -> u256 {
+            // TODO: TYPEHASH
             let encoded_data = array![
                 u256 { low: 1, high: 1 },
                 Felt252IntoU256::into(starknet::get_tx_info().unbox().chain_id),
                 starknet::get_contract_address().into(),
                 owner.into(),
-                integer::Felt252IntoU256::into(session_public_key),
-                integer::U32IntoU256::into(session_duration)
+                Felt252IntoU256::into(session_public_key),
+                U32IntoU256::into(session_duration),
+                salt
             ];
             let message_hash = keccak::keccak_u256s_be_inputs(encoded_data.span()).byte_reverse();
             self.hash_typed_data(message_hash)
         }
 
         fn get_session_key_revoke_digest(
-            self: @ContractState, owner: EthAddress, session_public_key: felt252
+            self: @ContractState, owner: EthAddress, session_public_key: felt252, salt: u256
         ) -> u256 {
+            // TODO: TYPEHASH
             let encoded_data = array![
                 u256 { low: 2, high: 2 },
                 Felt252IntoU256::into(starknet::get_tx_info().unbox().chain_id),
                 starknet::get_contract_address().into(),
                 owner.into(),
-                integer::Felt252IntoU256::into(session_public_key)
+                Felt252IntoU256::into(session_public_key),
+                salt
             ];
             let message_hash = keccak::keccak_u256s_be_inputs(encoded_data.span()).byte_reverse();
             self.hash_typed_data(message_hash)
@@ -261,7 +269,6 @@ mod EIP712 {
             };
             out
         }
-
 
         /// Adds a 16 bit prefix to a 128 bit input, returning the result and a carry.
         fn add_prefix_u128(input: u128, prefix: u128) -> (u128, u128) {
