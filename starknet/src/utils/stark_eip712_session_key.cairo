@@ -50,7 +50,7 @@ mod StarkEIP712SessionKey {
         /// Verifies the signature of the vote calldata.
         fn verify_vote_sig(
             self: @ContractState,
-            signature: Array<felt252>,
+            signature: Span<felt252>,
             space: ContractAddress,
             voter: EthAddress,
             proposal_id: u256,
@@ -63,13 +63,13 @@ mod StarkEIP712SessionKey {
                 .get_vote_digest(
                     space, voter, proposal_id, choice, user_voting_strategies, metadata_uri
                 );
-            InternalImpl::is_valid_stark_signature(digest, session_public_key, signature.span());
+            InternalImpl::is_valid_stark_signature(digest, session_public_key, signature);
         }
 
         /// Verifies the signature of the update proposal calldata.
         fn verify_update_proposal_sig(
             self: @ContractState,
-            signature: Array<felt252>,
+            signature: Span<felt252>,
             space: ContractAddress,
             author: EthAddress,
             proposal_id: u256,
@@ -82,7 +82,18 @@ mod StarkEIP712SessionKey {
                 .get_update_proposal_digest(
                     space, author, proposal_id, execution_strategy, metadata_uri, salt
                 );
-            InternalImpl::is_valid_stark_signature(digest, session_public_key, signature.span());
+            InternalImpl::is_valid_stark_signature(digest, session_public_key, signature);
+        }
+
+        /// Verifies the signature of a session key revokation.
+        fn verify_session_key_revoke_sig(
+            self: @ContractState,
+            signature: Span<felt252>,
+            salt: felt252,
+            session_public_key: felt252
+        ) {
+            let digest: felt252 = self.get_session_key_revoke_digest(salt);
+            InternalImpl::is_valid_stark_signature(digest, session_public_key, signature);
         }
 
         /// Returns the digest of the propose calldata.
@@ -149,6 +160,13 @@ mod StarkEIP712SessionKey {
             self.hash_typed_data(encoded_data.span().struct_hash())
         }
 
+        fn get_session_key_revoke_digest(self: @ContractState, salt: felt252) -> felt252 {
+            let mut encoded_data = array![];
+            // TODO: Typehash
+            // SESSION_KEY_REVOKE_TYPEHASH.serialize(ref encoded_data);
+            salt.serialize(ref encoded_data);
+            self.hash_typed_data(encoded_data.span().struct_hash())
+        }
 
         /// Returns the domain hash of the contract.
         fn get_domain_hash(name: felt252, version: felt252) -> felt252 {

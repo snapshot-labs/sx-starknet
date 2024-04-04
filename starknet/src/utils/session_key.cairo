@@ -3,11 +3,16 @@ mod SessionKey {
     use starknet::{info, EthAddress};
     use sx::types::UserAddress;
 
+    #[derive(Clone, Drop, Option, PartialEq, Serde, starknet::Store)]
+    struct Session {
+        // We use a general address type so we can handle EVM, Starknet, and other address types.
+        owner: UserAddress,
+        end_timestamp: u32,
+    }
+
     #[storage]
     struct Storage {
-        // We use a general address type so we can handle EVM, Starknet, and other address types.
-        _owner: LegacyMap::<felt252, UserAddress>,
-        _end_timestamp: LegacyMap::<felt252, u32>,
+        _sessions: LegacyMap::<felt252, Session>,
     }
 
     #[event]
@@ -19,27 +24,40 @@ mod SessionKey {
 
     #[derive(Drop, PartialEq, starknet::Event)]
     struct SessionKeyRegistered {
-        owner: UserAddress,
         session_public_key: felt252,
-        end_timestamp: u32,
+        session: Session,
     }
 
     #[derive(Drop, PartialEq, starknet::Event)]
     struct SessionKeyRevoked {
         session_public_key: felt252,
+        session: Session,
     }
 
     #[generate_trait]
     impl InternalImpl of InternalTrait {
-        fn assert_valid_session_key(
+        // Reverts if a session key is invalid or the owner is not the address specified.
+        fn assert_session_key_owner(
             self: @ContractState, session_public_key: felt252, owner: UserAddress
         ) {
+            let session = self._sessions.read(session_public_key);
+            self.assert_valid(@session);
             // If the session key has been revoked, the owner will be the zero address.
-            assert(self._owner.read(session_public_key) == owner, 'Invalid owner');
+            assert(session.owner == owner, 'Invalid owner');
+        }
 
+        /// Returns the owner of the session key if it is valid.
+        fn get_owner_if_valid(self: @ContractState, session_public_key: felt252) -> UserAddress {
+            let session = self._sessions.read(session_public_key);
+            self.assert_valid(@session);
+            session.owner
+        }
+
+        /// Reverts if the session is invalid. 
+        /// This occurs if the session does not exist (end timestamp is 0) or has expired.
+        fn assert_valid(self: @ContractState, session: @Session) {
             let current_timestamp: u32 = info::get_block_timestamp().try_into().unwrap();
-            let end_timestamp = self._end_timestamp.read(session_public_key);
-            assert(current_timestamp < end_timestamp, 'Session key expired');
+            assert(current_timestamp < *session.end_timestamp, 'Session key expired');
         }
 
         fn register(
@@ -50,28 +68,34 @@ mod SessionKey {
         ) {
             let current_timestamp = info::get_block_timestamp().try_into().unwrap();
             let end_timestamp = current_timestamp + session_duration; // Will revert on overflow
-            self._owner.write(session_public_key, owner);
-            self._end_timestamp.write(session_public_key, end_timestamp);
+            let session = Session { owner, end_timestamp };
+
+            self._sessions.write(session_public_key, session.clone());
 
             self
                 .emit(
                     Event::SessionKeyRegistered(
-                        SessionKeyRegistered { owner, session_public_key, end_timestamp, }
+                        SessionKeyRegistered { session_public_key, session }
                     )
                 );
         }
 
-        fn revoke(ref self: ContractState, owner: UserAddress, session_public_key: felt252) {
-            assert(self._owner.read(session_public_key) == owner, 'Invalid owner');
-            // Writing the zero address to the session key owner store
+        fn revoke(ref self: ContractState, session_public_key: felt252) {
+            let session = self._sessions.read(session_public_key);
+            self.assert_valid(@session);
+
+            // Writing the session state to zero.
             self
-                ._owner
+                ._sessions
                 .write(
                     session_public_key,
-                    UserAddress::Starknet(starknet::contract_address_const::<0>())
+                    Session {
+                        owner: UserAddress::Starknet(starknet::contract_address_const::<0>()),
+                        end_timestamp: 0
+                    }
                 );
 
-            self.emit(Event::SessionKeyRevoked(SessionKeyRevoked { session_public_key }));
+            self.emit(Event::SessionKeyRevoked(SessionKeyRevoked { session_public_key, session }));
         }
     }
 }
