@@ -158,6 +158,9 @@ mod utils {
     mod stark_eip712;
     use stark_eip712::StarkEIP712;
 
+    mod stark_eip712_session_key;
+    use stark_eip712_session_key::StarkEIP712SessionKey;
+
     mod struct_hash;
     use struct_hash::StructHash;
 
