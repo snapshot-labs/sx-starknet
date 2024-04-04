@@ -5,15 +5,13 @@ use sx::types::{Strategy, IndexedStrategy, Choice};
 trait IEthSigSessionKeyAuthenticator<TContractState> {
     fn authenticate_propose(
         ref self: TContractState,
-        r: u256,
-        s: u256,
-        v: u32,
+        signature: Array<felt252>,
         space: ContractAddress,
         author: EthAddress,
         metadata_uri: Array<felt252>,
         execution_strategy: Strategy,
         user_proposal_validation_params: Array<felt252>,
-        salt: u256,
+        salt: felt252,
         session_public_key: felt252
     );
     // fn authenticate_vote(
@@ -71,38 +69,50 @@ mod EthSigSessionKeyAuthenticator {
     use starknet::{ContractAddress, EthAddress};
     use sx::interfaces::{ISpaceDispatcher, ISpaceDispatcherTrait};
     use sx::types::{Strategy, IndexedStrategy, Choice, UserAddress};
-    use sx::utils::{EIP712, SessionKey, LegacyHashEthAddress, LegacyHashUsedSalts, ByteReverse};
+    use sx::utils::{
+        EIP712, SessionKey, StarkEIP712SessionKey, LegacyHashEthAddress, LegacyHashUsedSalts,
+        ByteReverse
+    };
 
     #[storage]
     struct Storage {
-        _used_salts: LegacyMap::<(EthAddress, u256), bool>
+        _used_salts: LegacyMap::<(EthAddress, u256), bool>,
     }
 
     #[external(v0)]
     impl EthSigSessionKeyAuthenticator of IEthSigSessionKeyAuthenticator<ContractState> {
         fn authenticate_propose(
             ref self: ContractState,
-            r: u256,
-            s: u256,
-            v: u32,
+            signature: Array<felt252>,
             space: ContractAddress,
             author: EthAddress,
             metadata_uri: Array<felt252>,
             execution_strategy: Strategy,
             user_proposal_validation_params: Array<felt252>,
-            salt: u256,
+            salt: felt252,
             session_public_key: felt252
         ) {
-            assert(!self._used_salts.read((author, salt)), 'Salt Already Used');
-
-            // TODO: Verify session key sig 
-
             let state = SessionKey::unsafe_new_contract_state();
             SessionKey::InternalImpl::assert_valid_session_key(
                 @state, session_public_key, UserAddress::Ethereum(author)
             );
 
-            self._used_salts.write((author, salt), true);
+            assert(!self._used_salts.read((author, salt.into())), 'Salt Already Used');
+
+            let state = StarkEIP712SessionKey::unsafe_new_contract_state();
+            StarkEIP712SessionKey::InternalImpl::verify_propose_sig(
+                @state,
+                signature.span(),
+                space,
+                author,
+                metadata_uri.span(),
+                @execution_strategy,
+                user_proposal_validation_params.span(),
+                salt,
+                session_public_key
+            );
+
+            self._used_salts.write((author, salt.into()), true);
 
             ISpaceDispatcher { contract_address: space }
                 .propose(
