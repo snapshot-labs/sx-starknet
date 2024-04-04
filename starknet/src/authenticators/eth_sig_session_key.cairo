@@ -38,7 +38,7 @@ trait IEthSigSessionKeyAuthenticator<TContractState> {
     //     session_public_key: felt252
     // );
 
-    fn authorize_with_owner_sig(
+    fn register_with_owner_sig(
         ref self: TContractState,
         r: u256,
         s: u256,
@@ -58,9 +58,14 @@ trait IEthSigSessionKeyAuthenticator<TContractState> {
         session_public_key: felt252,
         salt: u256,
     );
-// fn revoke_with_session_key_sig(
-//     ref self: TContractState, sig: Array<felt252>, salt: felt252, session_public_key: felt252
-// );
+
+    fn revoke_with_session_key_sig(
+        ref self: TContractState,
+        signature: Array<felt252>,
+        owner: EthAddress,
+        salt: felt252,
+        session_public_key: felt252
+    );
 }
 
 #[starknet::contract]
@@ -93,7 +98,7 @@ mod EthSigSessionKeyAuthenticator {
             session_public_key: felt252
         ) {
             let state = SessionKey::unsafe_new_contract_state();
-            SessionKey::InternalImpl::assert_valid_session_key(
+            SessionKey::InternalImpl::assert_session_key_owner(
                 @state, session_public_key, UserAddress::Ethereum(author)
             );
 
@@ -123,7 +128,7 @@ mod EthSigSessionKeyAuthenticator {
                 );
         }
 
-        fn authorize_with_owner_sig(
+        fn register_with_owner_sig(
             ref self: ContractState,
             r: u256,
             s: u256,
@@ -157,6 +162,10 @@ mod EthSigSessionKeyAuthenticator {
             session_public_key: felt252,
             salt: u256,
         ) {
+            let state = SessionKey::unsafe_new_contract_state();
+            SessionKey::InternalImpl::assert_session_key_owner(
+                @state, session_public_key, UserAddress::Ethereum(owner)
+            );
             assert(!self._used_salts.read((owner, salt)), 'Salt Already Used');
 
             let state = EIP712::unsafe_new_contract_state();
@@ -167,9 +176,31 @@ mod EthSigSessionKeyAuthenticator {
             self._used_salts.write((owner, salt), true);
 
             let mut state = SessionKey::unsafe_new_contract_state();
-            SessionKey::InternalImpl::revoke(
-                ref state, UserAddress::Ethereum(owner), session_public_key
+            SessionKey::InternalImpl::revoke(ref state, session_public_key);
+        }
+
+        fn revoke_with_session_key_sig(
+            ref self: ContractState,
+            signature: Array<felt252>,
+            owner: EthAddress,
+            salt: felt252,
+            session_public_key: felt252
+        ) {
+            let state = SessionKey::unsafe_new_contract_state();
+            SessionKey::InternalImpl::assert_session_key_owner(
+                @state, session_public_key, UserAddress::Ethereum(owner)
             );
+            assert(!self._used_salts.read((owner, salt.into())), 'Salt Already Used');
+
+            let state = StarkEIP712SessionKey::unsafe_new_contract_state();
+            StarkEIP712SessionKey::InternalImpl::verify_session_key_revoke_sig(
+                @state, signature.span(), salt, session_public_key
+            );
+
+            self._used_salts.write((owner, salt.into()), true);
+
+            let mut state = SessionKey::unsafe_new_contract_state();
+            SessionKey::InternalImpl::revoke(ref state, session_public_key);
         }
     }
 }
