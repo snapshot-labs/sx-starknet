@@ -13,6 +13,9 @@ mod authenticators {
 
     mod eth_sig_session_key;
     use eth_sig_session_key::EthSigSessionKeyAuthenticator;
+
+    mod eth_tx_session_key;
+    use eth_tx_session_key::IEthTxSessionKeyAuthenticator;
 }
 
 mod execution_strategies {
