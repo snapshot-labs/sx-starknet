@@ -81,9 +81,7 @@ mod EthSigSessionKeyAuthenticator {
     };
 
     #[storage]
-    struct Storage {
-        _used_salts: LegacyMap::<(EthAddress, u256), bool>,
-    }
+    struct Storage {}
 
     #[external(v0)]
     impl EthSigSessionKeyAuthenticator of IEthSigSessionKeyAuthenticator<ContractState> {
@@ -98,35 +96,18 @@ mod EthSigSessionKeyAuthenticator {
             salt: felt252,
             session_public_key: felt252
         ) {
-            let state = SessionKey::unsafe_new_contract_state();
-            SessionKey::InternalImpl::assert_session_key_owner(
-                @state, session_public_key, UserAddress::Ethereum(author)
-            );
-
-            assert(!self._used_salts.read((author, salt.into())), 'Salt Already Used');
-
-            let state = StarkEIP712SessionKey::unsafe_new_contract_state();
-            StarkEIP712SessionKey::InternalImpl::verify_propose_sig(
-                @state,
-                signature.span(),
+            let mut state = SessionKey::unsafe_new_contract_state();
+            SessionKey::InternalImpl::authenticate_propose(
+                ref state,
+                signature,
                 space,
                 author,
-                metadata_uri.span(),
-                @execution_strategy,
-                user_proposal_validation_params.span(),
+                metadata_uri,
+                execution_strategy,
+                user_proposal_validation_params,
                 salt,
                 session_public_key
             );
-
-            self._used_salts.write((author, salt.into()), true);
-
-            ISpaceDispatcher { contract_address: space }
-                .propose(
-                    UserAddress::Ethereum(author),
-                    metadata_uri,
-                    execution_strategy,
-                    user_proposal_validation_params,
-                );
         }
 
         fn authenticate_vote(
@@ -140,34 +121,18 @@ mod EthSigSessionKeyAuthenticator {
             metadata_uri: Array<felt252>,
             session_public_key: felt252
         ) {
-            // No need to check salts here, as double voting is prevented by the space itself.
-
-            let state = SessionKey::unsafe_new_contract_state();
-            SessionKey::InternalImpl::assert_session_key_owner(
-                @state, session_public_key, UserAddress::Ethereum(voter)
-            );
-
-            let state = StarkEIP712SessionKey::unsafe_new_contract_state();
-            StarkEIP712SessionKey::InternalImpl::verify_vote_sig(
-                @state,
-                signature.span(),
+            let mut state = SessionKey::unsafe_new_contract_state();
+            SessionKey::InternalImpl::authenticate_vote(
+                ref state,
+                signature,
                 space,
                 voter,
                 proposal_id,
                 choice,
-                user_voting_strategies.span(),
-                metadata_uri.span(),
+                user_voting_strategies,
+                metadata_uri,
                 session_public_key
             );
-
-            ISpaceDispatcher { contract_address: space }
-                .vote(
-                    UserAddress::Ethereum(voter),
-                    proposal_id,
-                    choice,
-                    user_voting_strategies,
-                    metadata_uri
-                );
         }
 
         fn authenticate_update_proposal(
@@ -181,32 +146,18 @@ mod EthSigSessionKeyAuthenticator {
             salt: felt252,
             session_public_key: felt252
         ) {
-            assert(!self._used_salts.read((author, salt.into())), 'Salt Already Used');
-
-            let state = SessionKey::unsafe_new_contract_state();
-            SessionKey::InternalImpl::assert_session_key_owner(
-                @state, session_public_key, UserAddress::Ethereum(author)
-            );
-
-            let state = StarkEIP712SessionKey::unsafe_new_contract_state();
-            StarkEIP712SessionKey::InternalImpl::verify_update_proposal_sig(
-                @state,
-                signature.span(),
+            let mut state = SessionKey::unsafe_new_contract_state();
+            SessionKey::InternalImpl::authenticate_update_proposal(
+                ref state,
+                signature,
                 space,
                 author,
                 proposal_id,
-                @execution_strategy,
-                metadata_uri.span(),
+                execution_strategy,
+                metadata_uri,
                 salt,
                 session_public_key
             );
-
-            self._used_salts.write((author, salt.into()), true);
-
-            ISpaceDispatcher { contract_address: space }
-                .update_proposal(
-                    UserAddress::Ethereum(author), proposal_id, execution_strategy, metadata_uri
-                );
         }
 
 
@@ -220,18 +171,9 @@ mod EthSigSessionKeyAuthenticator {
             session_duration: u32,
             salt: u256,
         ) {
-            assert(!self._used_salts.read((owner, salt)), 'Salt Already Used');
-
-            let state = EIP712::unsafe_new_contract_state();
-            EIP712::InternalImpl::verify_session_key_auth_sig(
-                @state, r, s, v, owner, session_public_key, session_duration, salt
-            );
-
-            self._used_salts.write((owner, salt), true);
-
             let mut state = SessionKey::unsafe_new_contract_state();
-            SessionKey::InternalImpl::register(
-                ref state, UserAddress::Ethereum(owner), session_public_key, session_duration
+            SessionKey::InternalImpl::register_with_owner_sig(
+                ref state, r, s, v, owner, session_public_key, session_duration, salt
             );
         }
 
@@ -244,21 +186,10 @@ mod EthSigSessionKeyAuthenticator {
             session_public_key: felt252,
             salt: u256,
         ) {
-            let state = SessionKey::unsafe_new_contract_state();
-            SessionKey::InternalImpl::assert_session_key_owner(
-                @state, session_public_key, UserAddress::Ethereum(owner)
-            );
-            assert(!self._used_salts.read((owner, salt)), 'Salt Already Used');
-
-            let state = EIP712::unsafe_new_contract_state();
-            EIP712::InternalImpl::verify_session_key_revoke_sig(
-                @state, r, s, v, owner, session_public_key, salt
-            );
-
-            self._used_salts.write((owner, salt), true);
-
             let mut state = SessionKey::unsafe_new_contract_state();
-            SessionKey::InternalImpl::revoke(ref state, session_public_key);
+            SessionKey::InternalImpl::revoke_with_owner_sig(
+                ref state, r, s, v, owner, session_public_key, salt
+            );
         }
 
         fn revoke_with_session_key_sig(
@@ -268,21 +199,16 @@ mod EthSigSessionKeyAuthenticator {
             salt: felt252,
             session_public_key: felt252
         ) {
-            let state = SessionKey::unsafe_new_contract_state();
-            SessionKey::InternalImpl::assert_session_key_owner(
-                @state, session_public_key, UserAddress::Ethereum(owner)
-            );
-            assert(!self._used_salts.read((owner, salt.into())), 'Salt Already Used');
-
-            let state = StarkEIP712SessionKey::unsafe_new_contract_state();
-            StarkEIP712SessionKey::InternalImpl::verify_session_key_revoke_sig(
-                @state, signature.span(), salt, session_public_key
-            );
-
-            self._used_salts.write((owner, salt.into()), true);
-
             let mut state = SessionKey::unsafe_new_contract_state();
-            SessionKey::InternalImpl::revoke(ref state, session_public_key);
+            SessionKey::InternalImpl::revoke_with_session_key_sig(
+                ref state, signature, owner, salt, session_public_key
+            );
         }
+    }
+
+    #[constructor]
+    fn constructor(ref self: ContractState, name: felt252, version: felt252,) {
+        let mut state = SessionKey::unsafe_new_contract_state();
+        SessionKey::InternalImpl::eth_sig_initializer(ref state, name, version);
     }
 }
