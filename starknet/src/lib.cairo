@@ -19,6 +19,9 @@ mod authenticators {
 
     mod stark_sig_session_key;
     use stark_sig_session_key::StarkSigSessionKeyAuthenticator;
+
+    mod stark_tx_session_key;
+    use stark_tx_session_key::StarkTxSessionKeyAuthenticator;
 }
 
 mod execution_strategies {
