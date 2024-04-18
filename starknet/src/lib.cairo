@@ -16,6 +16,9 @@ mod authenticators {
 
     mod eth_tx_session_key;
     use eth_tx_session_key::IEthTxSessionKeyAuthenticator;
+
+    mod stark_sig_session_key;
+    use stark_sig_session_key::StarkSigSessionKeyAuthenticator;
 }
 
 mod execution_strategies {
@@ -134,7 +137,8 @@ mod utils {
     mod legacy_hash;
     use legacy_hash::{
         LegacyHashEthAddress, LegacyHashFelt252EthAddress, LegacyHashUsedSalts, LegacyHashChoice,
-        LegacyHashUserAddress, LegacyHashVotePower, LegacyHashVoteRegistry, LegacyHashSpanFelt252
+        LegacyHashUserAddress, LegacyHashVotePower, LegacyHashVoteRegistry, LegacyHashSpanFelt252,
+        LegacyHashUserAddressU256
     };
 
     mod math;
@@ -160,9 +164,6 @@ mod utils {
 
     mod stark_eip712;
     use stark_eip712::StarkEIP712;
-
-    mod stark_eip712_session_key;
-    use stark_eip712_session_key::StarkEIP712SessionKey;
 
     mod struct_hash;
     use struct_hash::StructHash;

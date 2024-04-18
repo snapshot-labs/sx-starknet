@@ -4,7 +4,8 @@ mod SessionKey {
     use sx::types::{Strategy, IndexedStrategy, Choice, UserAddress};
     use sx::interfaces::{ISpaceDispatcher, ISpaceDispatcherTrait};
     use sx::utils::{
-        EIP712, StructHash, LegacyHashEthAddress, LegacyHashUsedSalts, LegacyHashFelt252EthAddress
+        EIP712, StarkEIP712, StructHash, LegacyHashEthAddress, LegacyHashUserAddressU256,
+        LegacyHashFelt252EthAddress
     };
     use sx::utils::constants::{
         STARKNET_MESSAGE, DOMAIN_TYPEHASH, PROPOSE_TYPEHASH, VOTE_TYPEHASH,
@@ -22,7 +23,7 @@ mod SessionKey {
     #[storage]
     struct Storage {
         _domain_hash: felt252,
-        _used_salts: LegacyMap::<(EthAddress, u256), bool>,
+        _used_salts: LegacyMap::<(UserAddress, u256), bool>,
         _sessions: LegacyMap::<felt252, Session>,
         _starknet_commit_address: EthAddress,
         _commits: LegacyMap::<(felt252, EthAddress), bool>
@@ -53,14 +54,14 @@ mod SessionKey {
             ref self: ContractState,
             signature: Array<felt252>,
             space: ContractAddress,
-            author: EthAddress,
+            author: UserAddress,
             metadata_uri: Array<felt252>,
             execution_strategy: Strategy,
             user_proposal_validation_params: Array<felt252>,
             salt: felt252,
             session_public_key: felt252
         ) {
-            self.assert_session_key_owner(session_public_key, UserAddress::Ethereum(author));
+            self.assert_session_key_owner(session_public_key, author);
 
             assert(!self._used_salts.read((author, salt.into())), 'Salt Already Used');
 
@@ -80,10 +81,7 @@ mod SessionKey {
 
             ISpaceDispatcher { contract_address: space }
                 .propose(
-                    UserAddress::Ethereum(author),
-                    metadata_uri,
-                    execution_strategy,
-                    user_proposal_validation_params,
+                    author, metadata_uri, execution_strategy, user_proposal_validation_params,
                 );
         }
 
@@ -91,7 +89,7 @@ mod SessionKey {
             ref self: ContractState,
             signature: Array<felt252>,
             space: ContractAddress,
-            voter: EthAddress,
+            voter: UserAddress,
             proposal_id: u256,
             choice: Choice,
             user_voting_strategies: Array<IndexedStrategy>,
@@ -100,7 +98,7 @@ mod SessionKey {
         ) {
             // No need to check salts here, as double voting is prevented by the space itself.
 
-            self.assert_session_key_owner(session_public_key, UserAddress::Ethereum(voter));
+            self.assert_session_key_owner(session_public_key, voter);
 
             self
                 .verify_vote_sig(
@@ -115,20 +113,14 @@ mod SessionKey {
                 );
 
             ISpaceDispatcher { contract_address: space }
-                .vote(
-                    UserAddress::Ethereum(voter),
-                    proposal_id,
-                    choice,
-                    user_voting_strategies,
-                    metadata_uri
-                );
+                .vote(voter, proposal_id, choice, user_voting_strategies, metadata_uri);
         }
 
         fn authenticate_update_proposal(
             ref self: ContractState,
             signature: Array<felt252>,
             space: ContractAddress,
-            author: EthAddress,
+            author: UserAddress,
             proposal_id: u256,
             execution_strategy: Strategy,
             metadata_uri: Array<felt252>,
@@ -137,7 +129,7 @@ mod SessionKey {
         ) {
             assert(!self._used_salts.read((author, salt.into())), 'Salt Already Used');
 
-            self.assert_session_key_owner(session_public_key, UserAddress::Ethereum(author));
+            self.assert_session_key_owner(session_public_key, author);
 
             self
                 .verify_update_proposal_sig(
@@ -154,12 +146,10 @@ mod SessionKey {
             self._used_salts.write((author, salt.into()), true);
 
             ISpaceDispatcher { contract_address: space }
-                .update_proposal(
-                    UserAddress::Ethereum(author), proposal_id, execution_strategy, metadata_uri
-                );
+                .update_proposal(author, proposal_id, execution_strategy, metadata_uri);
         }
 
-        fn register_with_owner_sig(
+        fn register_with_owner_eth_sig(
             ref self: ContractState,
             r: u256,
             s: u256,
@@ -169,19 +159,21 @@ mod SessionKey {
             session_duration: u32,
             salt: u256,
         ) {
-            assert(!self._used_salts.read((owner, salt)), 'Salt Already Used');
+            assert(
+                !self._used_salts.read((UserAddress::Ethereum(owner), salt)), 'Salt Already Used'
+            );
 
             let state = EIP712::unsafe_new_contract_state();
             EIP712::InternalImpl::verify_session_key_auth_sig(
                 @state, r, s, v, owner, session_public_key, session_duration, salt
             );
 
-            self._used_salts.write((owner, salt), true);
+            self._used_salts.write((UserAddress::Ethereum(owner), salt), true);
 
             self.register(UserAddress::Ethereum(owner), session_public_key, session_duration);
         }
 
-        fn revoke_with_owner_sig(
+        fn revoke_with_owner_eth_sig(
             ref self: ContractState,
             r: u256,
             s: u256,
@@ -191,19 +183,21 @@ mod SessionKey {
             salt: u256,
         ) {
             self.assert_session_key_owner(session_public_key, UserAddress::Ethereum(owner));
-            assert(!self._used_salts.read((owner, salt)), 'Salt Already Used');
+            assert(
+                !self._used_salts.read((UserAddress::Ethereum(owner), salt)), 'Salt Already Used'
+            );
 
             let state = EIP712::unsafe_new_contract_state();
             EIP712::InternalImpl::verify_session_key_revoke_sig(
                 @state, r, s, v, owner, session_public_key, salt
             );
 
-            self._used_salts.write((owner, salt), true);
+            self._used_salts.write((UserAddress::Ethereum(owner), salt), true);
 
             self.revoke(session_public_key);
         }
 
-        fn register_with_owner_tx(
+        fn register_with_owner_eth_tx(
             ref self: ContractState,
             owner: EthAddress,
             session_public_key: felt252,
@@ -221,7 +215,7 @@ mod SessionKey {
             self.register(UserAddress::Ethereum(owner), session_public_key, session_duration);
         }
 
-        fn revoke_with_owner_tx(
+        fn revoke_with_owner_eth_tx(
             ref self: ContractState, owner: EthAddress, session_public_key: felt252
         ) {
             let mut payload = array![];
@@ -235,6 +229,71 @@ mod SessionKey {
             self.revoke(session_public_key);
         }
 
+        fn register_with_owner_stark_sig(
+            ref self: ContractState,
+            signature: Array<felt252>,
+            owner: ContractAddress,
+            session_public_key: felt252,
+            session_duration: u32,
+            salt: felt252,
+        ) {
+            assert(
+                !self._used_salts.read((UserAddress::Starknet(owner), salt.into())),
+                'Salt Already Used'
+            );
+
+            let state = StarkEIP712::unsafe_new_contract_state();
+            StarkEIP712::InternalImpl::verify_session_key_auth_sig(
+                @state, signature, owner, session_public_key, session_duration, salt
+            );
+
+            self._used_salts.write((UserAddress::Starknet(owner), salt.into()), true);
+
+            self.register(UserAddress::Starknet(owner), session_public_key, session_duration);
+        }
+
+        fn revoke_with_owner_stark_sig(
+            ref self: ContractState,
+            signature: Array<felt252>,
+            owner: ContractAddress,
+            session_public_key: felt252,
+            salt: felt252,
+        ) {
+            self.assert_session_key_owner(session_public_key, UserAddress::Starknet(owner));
+            assert(
+                !self._used_salts.read((UserAddress::Starknet(owner), salt.into())),
+                'Salt Already Used'
+            );
+
+            let state = StarkEIP712::unsafe_new_contract_state();
+            StarkEIP712::InternalImpl::verify_session_key_revoke_sig(
+                @state, signature, owner, session_public_key, salt
+            );
+
+            self._used_salts.write((UserAddress::Starknet(owner), salt.into()), true);
+
+            self.revoke(session_public_key);
+        }
+
+        fn register_with_owner_stark_tx(
+            ref self: ContractState,
+            owner: ContractAddress,
+            session_public_key: felt252,
+            session_duration: u32,
+        ) {
+            assert(info::get_caller_address() == owner, 'Invalid Caller');
+
+            self.register(UserAddress::Starknet(owner), session_public_key, session_duration);
+        }
+
+        fn revoke_with_owner_stark_tx(
+            ref self: ContractState, owner: ContractAddress, session_public_key: felt252
+        ) {
+            assert(info::get_caller_address() == owner, 'Invalid Caller');
+
+            self.revoke(session_public_key);
+        }
+
         fn revoke_with_session_key_sig(
             ref self: ContractState,
             signature: Array<felt252>,
@@ -243,11 +302,14 @@ mod SessionKey {
             session_public_key: felt252
         ) {
             self.assert_session_key_owner(session_public_key, UserAddress::Ethereum(owner));
-            assert(!self._used_salts.read((owner, salt.into())), 'Salt Already Used');
+            assert(
+                !self._used_salts.read((UserAddress::Ethereum(owner), salt.into())),
+                'Salt Already Used'
+            );
 
             self.verify_session_key_revoke_sig(signature.span(), salt, session_public_key);
 
-            self._used_salts.write((owner, salt.into()), true);
+            self._used_salts.write((UserAddress::Ethereum(owner), salt.into()), true);
 
             self.revoke(session_public_key);
         }
@@ -334,7 +396,7 @@ mod SessionKey {
             self: @ContractState,
             signature: Span<felt252>,
             space: ContractAddress,
-            author: EthAddress,
+            author: UserAddress,
             metadata_uri: Span<felt252>,
             execution_strategy: @Strategy,
             user_proposal_validation_params: Span<felt252>,
@@ -359,7 +421,7 @@ mod SessionKey {
             self: @ContractState,
             signature: Span<felt252>,
             space: ContractAddress,
-            voter: EthAddress,
+            voter: UserAddress,
             proposal_id: u256,
             choice: Choice,
             user_voting_strategies: Span<IndexedStrategy>,
@@ -378,7 +440,7 @@ mod SessionKey {
             self: @ContractState,
             signature: Span<felt252>,
             space: ContractAddress,
-            author: EthAddress,
+            author: UserAddress,
             proposal_id: u256,
             execution_strategy: @Strategy,
             metadata_uri: Span<felt252>,
@@ -407,7 +469,7 @@ mod SessionKey {
         fn get_propose_digest(
             self: @ContractState,
             space: ContractAddress,
-            author: EthAddress,
+            author: UserAddress,
             metadata_uri: Span<felt252>,
             execution_strategy: @Strategy,
             user_proposal_validation_params: Span<felt252>,
@@ -428,7 +490,7 @@ mod SessionKey {
         fn get_vote_digest(
             self: @ContractState,
             space: ContractAddress,
-            voter: EthAddress,
+            voter: UserAddress,
             proposal_id: u256,
             choice: Choice,
             user_voting_strategies: Span<IndexedStrategy>,
@@ -450,7 +512,7 @@ mod SessionKey {
         fn get_update_proposal_digest(
             self: @ContractState,
             space: ContractAddress,
-            author: EthAddress,
+            author: UserAddress,
             proposal_id: u256,
             execution_strategy: @Strategy,
             metadata_uri: Span<felt252>,

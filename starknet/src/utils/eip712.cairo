@@ -232,7 +232,6 @@ mod EIP712 {
             self.hash_typed_data(message_hash)
         }
 
-
         /// Hashes typed data according to the EIP-712 specification.
         fn hash_typed_data(self: @ContractState, message_hash: u256) -> u256 {
             let encoded_data = InternalImpl::add_prefix_array(

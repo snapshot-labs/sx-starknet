@@ -75,10 +75,7 @@ mod EthSigSessionKeyAuthenticator {
     use starknet::{ContractAddress, EthAddress};
     use sx::interfaces::{ISpaceDispatcher, ISpaceDispatcherTrait};
     use sx::types::{Strategy, IndexedStrategy, Choice, UserAddress};
-    use sx::utils::{
-        EIP712, SessionKey, StarkEIP712SessionKey, LegacyHashEthAddress, LegacyHashUsedSalts,
-        ByteReverse
-    };
+    use sx::utils::{EIP712, SessionKey, LegacyHashEthAddress, LegacyHashUsedSalts, ByteReverse};
 
     #[storage]
     struct Storage {}
@@ -101,7 +98,7 @@ mod EthSigSessionKeyAuthenticator {
                 ref state,
                 signature,
                 space,
-                author,
+                UserAddress::Ethereum(author),
                 metadata_uri,
                 execution_strategy,
                 user_proposal_validation_params,
@@ -126,7 +123,7 @@ mod EthSigSessionKeyAuthenticator {
                 ref state,
                 signature,
                 space,
-                voter,
+                UserAddress::Ethereum(voter),
                 proposal_id,
                 choice,
                 user_voting_strategies,
@@ -151,7 +148,7 @@ mod EthSigSessionKeyAuthenticator {
                 ref state,
                 signature,
                 space,
-                author,
+                UserAddress::Ethereum(author),
                 proposal_id,
                 execution_strategy,
                 metadata_uri,
@@ -172,7 +169,7 @@ mod EthSigSessionKeyAuthenticator {
             salt: u256,
         ) {
             let mut state = SessionKey::unsafe_new_contract_state();
-            SessionKey::InternalImpl::register_with_owner_sig(
+            SessionKey::InternalImpl::register_with_owner_eth_sig(
                 ref state, r, s, v, owner, session_public_key, session_duration, salt
             );
         }
@@ -187,7 +184,7 @@ mod EthSigSessionKeyAuthenticator {
             salt: u256,
         ) {
             let mut state = SessionKey::unsafe_new_contract_state();
-            SessionKey::InternalImpl::revoke_with_owner_sig(
+            SessionKey::InternalImpl::revoke_with_owner_eth_sig(
                 ref state, r, s, v, owner, session_public_key, salt
             );
         }

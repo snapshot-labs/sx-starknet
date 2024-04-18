@@ -67,9 +67,7 @@ mod EthSigSessionKeyAuthenticator {
     use starknet::{ContractAddress, EthAddress};
     use sx::interfaces::{ISpaceDispatcher, ISpaceDispatcherTrait};
     use sx::types::{Strategy, IndexedStrategy, Choice, UserAddress};
-    use sx::utils::{
-        SessionKey, StarkEIP712SessionKey, LegacyHashFelt252EthAddress, LegacyHashUsedSalts
-    };
+    use sx::utils::{SessionKey, LegacyHashFelt252EthAddress, LegacyHashUsedSalts};
     use sx::utils::constants::{
         REGISTER_SESSION_WITH_OWNER_TX_SELECTOR, REVOKE_SESSION_WITH_OWNER_TX_SELECTOR
     };
@@ -98,7 +96,7 @@ mod EthSigSessionKeyAuthenticator {
                 ref state,
                 signature,
                 space,
-                author,
+                UserAddress::Ethereum(author),
                 metadata_uri,
                 execution_strategy,
                 user_proposal_validation_params,
@@ -123,7 +121,7 @@ mod EthSigSessionKeyAuthenticator {
                 ref state,
                 signature,
                 space,
-                voter,
+                UserAddress::Ethereum(voter),
                 proposal_id,
                 choice,
                 user_voting_strategies,
@@ -148,7 +146,7 @@ mod EthSigSessionKeyAuthenticator {
                 ref state,
                 signature,
                 space,
-                author,
+                UserAddress::Ethereum(author),
                 proposal_id,
                 execution_strategy,
                 metadata_uri,
@@ -164,7 +162,7 @@ mod EthSigSessionKeyAuthenticator {
             session_duration: u32,
         ) {
             let mut state = SessionKey::unsafe_new_contract_state();
-            SessionKey::InternalImpl::register_with_owner_tx(
+            SessionKey::InternalImpl::register_with_owner_eth_tx(
                 ref state, owner, session_public_key, session_duration
             );
         }
@@ -173,7 +171,9 @@ mod EthSigSessionKeyAuthenticator {
             ref self: ContractState, owner: EthAddress, session_public_key: felt252
         ) {
             let mut state = SessionKey::unsafe_new_contract_state();
-            SessionKey::InternalImpl::revoke_with_owner_tx(ref state, owner, session_public_key);
+            SessionKey::InternalImpl::revoke_with_owner_eth_tx(
+                ref state, owner, session_public_key
+            );
         }
 
         fn revoke_with_session_key_sig(
