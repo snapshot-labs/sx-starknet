@@ -297,19 +297,16 @@ mod SessionKey {
         fn revoke_with_session_key_sig(
             ref self: ContractState,
             signature: Array<felt252>,
-            owner: EthAddress,
+            owner: UserAddress,
+            session_public_key: felt252,
             salt: felt252,
-            session_public_key: felt252
         ) {
-            self.assert_session_key_owner(session_public_key, UserAddress::Ethereum(owner));
-            assert(
-                !self._used_salts.read((UserAddress::Ethereum(owner), salt.into())),
-                'Salt Already Used'
-            );
+            self.assert_session_key_owner(session_public_key, owner);
+            assert(!self._used_salts.read((owner, salt.into())), 'Salt Already Used');
 
             self.verify_session_key_revoke_sig(signature.span(), salt, session_public_key);
 
-            self._used_salts.write((UserAddress::Ethereum(owner), salt.into()), true);
+            self._used_salts.write((owner, salt.into()), true);
 
             self.revoke(session_public_key);
         }

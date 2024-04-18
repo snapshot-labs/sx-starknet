@@ -185,7 +185,7 @@ mod EthSigSessionKeyAuthenticator {
         ) {
             let mut state = SessionKey::unsafe_new_contract_state();
             SessionKey::InternalImpl::revoke_with_session_key_sig(
-                ref state, signature, owner, salt, session_public_key
+                ref state, signature, UserAddress::Ethereum(owner), salt, session_public_key
             );
         }
     }

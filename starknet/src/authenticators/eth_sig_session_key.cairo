@@ -64,8 +64,8 @@ trait IEthSigSessionKeyAuthenticator<TContractState> {
         ref self: TContractState,
         signature: Array<felt252>,
         owner: EthAddress,
-        salt: felt252,
-        session_public_key: felt252
+        session_public_key: felt252,
+        salt: felt252
     );
 }
 
@@ -193,12 +193,12 @@ mod EthSigSessionKeyAuthenticator {
             ref self: ContractState,
             signature: Array<felt252>,
             owner: EthAddress,
-            salt: felt252,
-            session_public_key: felt252
+            session_public_key: felt252,
+            salt: felt252
         ) {
             let mut state = SessionKey::unsafe_new_contract_state();
             SessionKey::InternalImpl::revoke_with_session_key_sig(
-                ref state, signature, owner, salt, session_public_key
+                ref state, signature, UserAddress::Ethereum(owner), session_public_key, salt
             );
         }
     }
