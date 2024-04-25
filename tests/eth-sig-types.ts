@@ -51,6 +51,27 @@ export const updateProposalTypes = {
   Strategy: sharedTypes.Strategy,
 };
 
+export const sessionKeyAuthTypes = {
+  SessionKeyAuth: [
+    { name: 'chainId', type: 'uint256' },
+    { name: 'authenticator', type: 'uint256' },
+    { name: 'owner', type: 'address' },
+    { name: 'sessionPublicKey', type: 'uint256' },
+    { name: 'sessionDuration', type: 'uint256' },
+    { name: 'salt', type: 'uint256' },
+  ],
+};
+
+export const sessionKeyRevokeTypes = {
+  SessionKeyRevoke: [
+    { name: 'chainId', type: 'uint256' },
+    { name: 'authenticator', type: 'uint256' },
+    { name: 'owner', type: 'address' },
+    { name: 'sessionPublicKey', type: 'uint256' },
+    { name: 'salt', type: 'uint256' },
+  ],
+};
+
 export interface Propose {
   chainId: string;
   authenticator: string;
@@ -81,6 +102,23 @@ export interface UpdateProposal {
   proposalId: string;
   executionStrategy: Strategy;
   metadataUri: string[];
+  salt: string;
+}
+
+export interface SessionKeyAuth {
+  chainId: string;
+  authenticator: string;
+  owner: string;
+  sessionPublicKey: string;
+  sessionDuration: string;
+  salt: string;
+}
+
+export interface SessionKeyRevoke {
+  chainId: string;
+  authenticator: string;
+  owner: string;
+  sessionPublicKey: string;
   salt: string;
 }
 
