@@ -8,7 +8,9 @@ mod EIP712 {
     use sx::utils::constants::{
         DOMAIN_HASH_LOW, DOMAIN_HASH_HIGH, ETHEREUM_PREFIX, PROPOSE_TYPEHASH_LOW,
         PROPOSE_TYPEHASH_HIGH, VOTE_TYPEHASH_LOW, VOTE_TYPEHASH_HIGH, UPDATE_PROPOSAL_TYPEHASH_LOW,
-        UPDATE_PROPOSAL_TYPEHASH_HIGH, INDEXED_STRATEGY_TYPEHASH_LOW,
+        UPDATE_PROPOSAL_TYPEHASH_HIGH, SESSION_KEY_AUTH_TYPEHASH_HIGH,
+        SESSION_KEY_AUTH_TYPEHASH_LOW, SESSION_KEY_REVOKE_TYPEHASH_HIGH,
+        SESSION_KEY_REVOKE_TYPEHASH_LOW, INDEXED_STRATEGY_TYPEHASH_LOW,
         INDEXED_STRATEGY_TYPEHASH_HIGH,
     };
 
@@ -204,7 +206,7 @@ mod EIP712 {
         ) -> u256 {
             // TODO: TYPEHASH
             let encoded_data = array![
-                u256 { low: 1, high: 1 },
+                u256 { low: SESSION_KEY_AUTH_TYPEHASH_LOW, high: SESSION_KEY_AUTH_TYPEHASH_HIGH },
                 Felt252IntoU256::into(starknet::get_tx_info().unbox().chain_id),
                 starknet::get_contract_address().into(),
                 owner.into(),
@@ -221,7 +223,9 @@ mod EIP712 {
         ) -> u256 {
             // TODO: TYPEHASH
             let encoded_data = array![
-                u256 { low: 2, high: 2 },
+                u256 {
+                    low: SESSION_KEY_REVOKE_TYPEHASH_LOW, high: SESSION_KEY_REVOKE_TYPEHASH_HIGH
+                },
                 Felt252IntoU256::into(starknet::get_tx_info().unbox().chain_id),
                 starknet::get_contract_address().into(),
                 owner.into(),

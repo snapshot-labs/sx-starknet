@@ -34,6 +34,18 @@ const VOTE_TYPEHASH_LOW: u128 = 0x298f2993575d81a3b6ec2d52ae694cb7;
 const UPDATE_PROPOSAL_TYPEHASH_HIGH: u128 = 0x2df41899fffb50338812b0c6bb5db608;
 const UPDATE_PROPOSAL_TYPEHASH_LOW: u128 = 0x9503bccdcdb9a1ed596eea5bb5087f84;
 
+// keccak256(
+//     "SessionKeyAuth(uint256 chainId,uint256 authenticator,address owner,uint256 sessionPublicKey,uint256 sessionDuration,uint256 salt)"
+//         )
+const SESSION_KEY_AUTH_TYPEHASH_HIGH: u128 = 0xbf6f5331c3a2c744889ff780cad3d0f2;
+const SESSION_KEY_AUTH_TYPEHASH_LOW: u128 = 0x550df4038acab427712b5b0b38e43c3d;
+
+// keccak256(
+//     "SessionKeyRevoke(uint256 chainId,uint256 authenticator,address owner,uint256 sessionPublicKey,uint256 salt)"
+//         )
+const SESSION_KEY_REVOKE_TYPEHASH_HIGH: u128 = 0xf607352669f95230a0602015a636355d;
+const SESSION_KEY_REVOKE_TYPEHASH_LOW: u128 = 0x1ef75bc12feec22425baac28de317513;
+
 // keccak256("Strategy(uint256 address,uint256[] params)")
 const STRATEGY_TYPEHASH_HIGH: u128 = 0xa6cb034787a88e7219605b9db792cb9a;
 const STRATEGY_TYPEHASH_LOW: u128 = 0x312314462975078b4bdad10feee486d9;
