@@ -12,8 +12,8 @@ mod OZVotesTrace208StorageProofVotingStrategy {
 
     #[external(v0)]
     impl OZVotesTrace208StorageProofVotingStrategy of IVotingStrategy<ContractState> {
-        /// Returns the delegated voting power of `voter` at the block number corresponding to `timestamp` for tokens that implement OZVotes.
-        ///
+        /// Returns the delegated voting power of `voter` at the block number corresponding to `timestamp` for tokens that implement OZVotes with Trace 208 Checkpoints.
+        /// 
         /// # Arguments
         ///
         /// * `timestamp` - The timestamp of the block at which the voting power is calculated. This will be mapped to an L1 block number by 
