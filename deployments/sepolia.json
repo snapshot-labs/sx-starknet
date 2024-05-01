@@ -30,10 +30,18 @@
     }
   },
   "OZVotesStorageProofVotingStrategy": {
-    "address": "0x6df976878be613837f120529c6f630374f1fd65a9bd4ffdbc2b0f135b5edd2e",
-    "classHash": "0x017f352f6e4e3e1c15a43b85bb36851a877419f3e0a9a27ef6048538eded8f9f",
+    "address": "0xfefaf2dd8aa036a9142d07468414d66da9a22fdaa77c9885bccd3ce8c2f535",
+    "classHash": "0x17f352f6e4e3e1c15a43b85bb36851a877419f3e0a9a27ef6048538eded8f9f",
     "params": {
-      "factsRegistry": "0x07d3550237ecf2d6ddef9b78e59b38647ee511467fe000ce276f245a006b40bc",
+      "factsRegistry": "0x008ec19768587f3d7362d83b644253de560c9d46eda096619df5942d56079abb",
+      "timestampRemapper": "0x00cdd51fbc4e008f4ef807eaf26f5043521ef5931bbb1e04032a25bd845d286b"
+    }
+  },
+  "OZVotesTrace208StorageProofVotingStrategy": {
+    "address": "0xa5cf9a95d2e164ab7807654b9810eb8f15a394f2a9077b3a8fc392bbfc305c",
+    "classHash": "0x045d9774a3de7a9506d7cfa256584a9feee96a3243388de4d5bb31a5c70f5125",
+    "params": {
+      "factsRegistry": "0x008ec19768587f3d7362d83b644253de560c9d46eda096619df5942d56079abb",
       "timestampRemapper": "0x00cdd51fbc4e008f4ef807eaf26f5043521ef5931bbb1e04032a25bd845d286b"
     }
   },
