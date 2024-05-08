@@ -63,6 +63,15 @@ export const updateProposalTypes = {
   u256: sharedTypes.u256,
 };
 
+export const sessionKeyRevokeTypes = {
+  StarkNetDomain: domainTypes.StarkNetDomain,
+  SessionKeyRevoke: [
+    { name: 'owner', type: 'felt252' },
+    { name: 'sessionPublicKey', type: 'felt252' },
+    { name: 'salt', type: 'felt252' },
+  ],
+};
+
 export interface Strategy {
   address: string;
   params: string[];
@@ -102,6 +111,12 @@ export interface UpdateProposal {
   proposalId: u256;
   executionStrategy: Strategy;
   metadataUri: string[];
+  salt: string;
+}
+
+export interface SessionKeyRevoke {
+  owner: string;
+  sessionPublicKey: string;
   salt: string;
 }
 
