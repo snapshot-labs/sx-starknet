@@ -127,333 +127,333 @@ describe('Ethereum Signature Authenticator', function () {
   }, 10000000);
 
   it('can register a session then authenticate a proposal, a vote, and a proposal update with that session', async () => {
-    // await starknet.devnet.restart();
-    // await starknet.devnet.load('./dump.pkl');
-    // await starknet.devnet.increaseTime(10);
-    // // Register Session
-    // const sessionKeyAuthMsg: SessionKeyAuth = {
-    //   chainId: '0x534e5f474f45524c49',
-    //   authenticator: ethSigSessionKeyAuthenticator.address,
-    //   owner: ethSigner.address,
-    //   sessionPublicKey: '0x123',
-    //   sessionDuration: '0x123',
-    //   salt: '0x0',
-    // };
-    // let sig = await ethSigner._signTypedData(ethDomain, sessionKeyAuthTypes, sessionKeyAuthMsg);
-    // let splitSig = getRSVFromSig(sig);
-    // const sessionKeyAuthCalldata = CallData.compile({
-    //   r: cairo.uint256(splitSig.r),
-    //   s: cairo.uint256(splitSig.s),
-    //   v: splitSig.v,
-    //   owner: sessionKeyAuthMsg.owner,
-    //   sessionPublicKey: sessionKeyAuthMsg.sessionPublicKey,
-    //   sessionDuration: sessionKeyAuthMsg.sessionDuration,
-    //   salt: cairo.uint256(sessionKeyAuthMsg.salt),
-    // });
-    // await sessionAccount.invoke(
-    //   ethSigSessionKeyAuthenticator,
-    //   'register_with_owner_sig',
-    //   sessionKeyAuthCalldata,
-    //   {
-    //     rawInput: true,
-    //   },
-    // );
-    // // Propose
-    // const proposeMsg: Propose = {
-    //   space: space.address,
-    //   author: sessionKeyAuthMsg.owner,
-    //   metadataUri: ['0x1', '0x2', '0x3', '0x4'],
-    //   executionStrategy: {
-    //     address: '0x0000000000000000000000000000000000005678',
-    //     params: ['0x0'],
-    //   },
-    //   userProposalValidationParams: [
-    //     '0xffffffffffffffffffffffffffffffffffffffffff',
-    //     '0x1234',
-    //     '0x5678',
-    //     '0x9abc',
-    //   ],
-    //   salt: '0x1',
-    // };
-    // const proposeSig = (await sessionAccountWithSigner.signMessage({
-    //   types: proposeTypes,
-    //   primaryType: 'Propose',
-    //   domain: starkDomain,
-    //   message: proposeMsg as any,
-    // } as typedData.TypedData)) as any;
-    // const proposeCalldata = CallData.compile({
-    //   signature: [proposeSig.r, proposeSig.s],
-    //   ...proposeMsg,
-    //   session_public_key: sessionKeyAuthMsg.sessionPublicKey,
-    // });
-    // await sessionAccount.invoke(
-    //   ethSigSessionKeyAuthenticator,
-    //   'authenticate_propose',
-    //   proposeCalldata,
-    //   {
-    //     rawInput: true,
-    //   },
-    // );
-    // // UPDATE PROPOSAL
-    // const updateProposalMsg: UpdateProposal = {
-    //   space: space.address,
-    //   author: sessionKeyAuthMsg.owner,
-    //   proposalId: { low: '0x1', high: '0x0' },
-    //   executionStrategy: {
-    //     address: '0x0000000000000000000000000000000000005678',
-    //     params: ['0x5', '0x6', '0x7', '0x8'],
-    //   },
-    //   metadataUri: ['0x1', '0x2', '0x3', '0x4'],
-    //   salt: '0x2',
-    // };
-    // const updateProposalSig = (await sessionAccountWithSigner.signMessage({
-    //   types: updateProposalTypes,
-    //   primaryType: 'UpdateProposal',
-    //   domain: starkDomain,
-    //   message: updateProposalMsg as any,
-    // } as typedData.TypedData)) as any;
-    // const updateProposalCalldata = CallData.compile({
-    //   signature: [updateProposalSig.r, updateProposalSig.s],
-    //   ...updateProposalMsg,
-    //   session_public_key: sessionKeyAuthMsg.sessionPublicKey,
-    // });
-    // await sessionAccount.invoke(
-    //   ethSigSessionKeyAuthenticator,
-    //   'authenticate_update_proposal',
-    //   updateProposalCalldata,
-    //   {
-    //     rawInput: true,
-    //   },
-    // );
-    // // Increase time so voting period begins
-    // await starknet.devnet.increaseTime(100);
-    // // VOTE
-    // const voteMsg: Vote = {
-    //   space: space.address,
-    //   voter: sessionKeyAuthMsg.owner,
-    //   proposalId: { low: '0x1', high: '0x0' },
-    //   choice: '0x1',
-    //   userVotingStrategies: [{ index: '0x0', params: ['0x1', '0x2', '0x3', '0x4'] }],
-    //   metadataUri: ['0x1', '0x2', '0x3', '0x4'],
-    // };
-    // const voteSig = (await sessionAccountWithSigner.signMessage({
-    //   types: voteTypes,
-    //   primaryType: 'Vote',
-    //   domain: starkDomain,
-    //   message: voteMsg as any,
-    // } as typedData.TypedData)) as any;
-    // const voteCalldata = CallData.compile({
-    //   signature: [voteSig.r, voteSig.s],
-    //   ...voteMsg,
-    //   session_public_key: sessionKeyAuthMsg.sessionPublicKey,
-    // });
-    // await sessionAccount.invoke(ethSigSessionKeyAuthenticator, 'authenticate_vote', voteCalldata, {
-    //   rawInput: true,
-    // });
+    await starknet.devnet.restart();
+    await starknet.devnet.load('./dump.pkl');
+    await starknet.devnet.increaseTime(10);
+    // Register Session
+    const sessionKeyAuthMsg: SessionKeyAuth = {
+      chainId: '0x534e5f474f45524c49',
+      authenticator: ethSigSessionKeyAuthenticator.address,
+      owner: ethSigner.address,
+      sessionPublicKey: '0x123',
+      sessionDuration: '0x123',
+      salt: '0x0',
+    };
+    let sig = await ethSigner._signTypedData(ethDomain, sessionKeyAuthTypes, sessionKeyAuthMsg);
+    let splitSig = getRSVFromSig(sig);
+    const sessionKeyAuthCalldata = CallData.compile({
+      r: cairo.uint256(splitSig.r),
+      s: cairo.uint256(splitSig.s),
+      v: splitSig.v,
+      owner: sessionKeyAuthMsg.owner,
+      sessionPublicKey: sessionKeyAuthMsg.sessionPublicKey,
+      sessionDuration: sessionKeyAuthMsg.sessionDuration,
+      salt: cairo.uint256(sessionKeyAuthMsg.salt),
+    });
+    await sessionAccount.invoke(
+      ethSigSessionKeyAuthenticator,
+      'register_with_owner_sig',
+      sessionKeyAuthCalldata,
+      {
+        rawInput: true,
+      },
+    );
+    // Propose
+    const proposeMsg: Propose = {
+      space: space.address,
+      author: sessionKeyAuthMsg.owner,
+      metadataUri: ['0x1', '0x2', '0x3', '0x4'],
+      executionStrategy: {
+        address: '0x0000000000000000000000000000000000005678',
+        params: ['0x0'],
+      },
+      userProposalValidationParams: [
+        '0xffffffffffffffffffffffffffffffffffffffffff',
+        '0x1234',
+        '0x5678',
+        '0x9abc',
+      ],
+      salt: '0x1',
+    };
+    const proposeSig = (await sessionAccountWithSigner.signMessage({
+      types: proposeTypes,
+      primaryType: 'Propose',
+      domain: starkDomain,
+      message: proposeMsg as any,
+    } as typedData.TypedData)) as any;
+    const proposeCalldata = CallData.compile({
+      signature: [proposeSig.r, proposeSig.s],
+      ...proposeMsg,
+      session_public_key: sessionKeyAuthMsg.sessionPublicKey,
+    });
+    await sessionAccount.invoke(
+      ethSigSessionKeyAuthenticator,
+      'authenticate_propose',
+      proposeCalldata,
+      {
+        rawInput: true,
+      },
+    );
+    // UPDATE PROPOSAL
+    const updateProposalMsg: UpdateProposal = {
+      space: space.address,
+      author: sessionKeyAuthMsg.owner,
+      proposalId: { low: '0x1', high: '0x0' },
+      executionStrategy: {
+        address: '0x0000000000000000000000000000000000005678',
+        params: ['0x5', '0x6', '0x7', '0x8'],
+      },
+      metadataUri: ['0x1', '0x2', '0x3', '0x4'],
+      salt: '0x2',
+    };
+    const updateProposalSig = (await sessionAccountWithSigner.signMessage({
+      types: updateProposalTypes,
+      primaryType: 'UpdateProposal',
+      domain: starkDomain,
+      message: updateProposalMsg as any,
+    } as typedData.TypedData)) as any;
+    const updateProposalCalldata = CallData.compile({
+      signature: [updateProposalSig.r, updateProposalSig.s],
+      ...updateProposalMsg,
+      session_public_key: sessionKeyAuthMsg.sessionPublicKey,
+    });
+    await sessionAccount.invoke(
+      ethSigSessionKeyAuthenticator,
+      'authenticate_update_proposal',
+      updateProposalCalldata,
+      {
+        rawInput: true,
+      },
+    );
+    // Increase time so voting period begins
+    await starknet.devnet.increaseTime(100);
+    // VOTE
+    const voteMsg: Vote = {
+      space: space.address,
+      voter: sessionKeyAuthMsg.owner,
+      proposalId: { low: '0x1', high: '0x0' },
+      choice: '0x1',
+      userVotingStrategies: [{ index: '0x0', params: ['0x1', '0x2', '0x3', '0x4'] }],
+      metadataUri: ['0x1', '0x2', '0x3', '0x4'],
+    };
+    const voteSig = (await sessionAccountWithSigner.signMessage({
+      types: voteTypes,
+      primaryType: 'Vote',
+      domain: starkDomain,
+      message: voteMsg as any,
+    } as typedData.TypedData)) as any;
+    const voteCalldata = CallData.compile({
+      signature: [voteSig.r, voteSig.s],
+      ...voteMsg,
+      session_public_key: sessionKeyAuthMsg.sessionPublicKey,
+    });
+    await sessionAccount.invoke(ethSigSessionKeyAuthenticator, 'authenticate_vote', voteCalldata, {
+      rawInput: true,
+    });
   }, 1000000);
 
   it('can revoke a session with an owner sig', async () => {
-    // await starknet.devnet.restart();
-    // await starknet.devnet.load('./dump.pkl');
-    // await starknet.devnet.increaseTime(10);
-    // // Register Session
-    // const sessionKeyAuthMsg: SessionKeyAuth = {
-    //   chainId: '0x534e5f474f45524c49',
-    //   authenticator: ethSigSessionKeyAuthenticator.address,
-    //   owner: ethSigner.address,
-    //   sessionPublicKey: '0x123',
-    //   sessionDuration: '0x123',
-    //   salt: '0x0',
-    // };
-    // let sig = await ethSigner._signTypedData(ethDomain, sessionKeyAuthTypes, sessionKeyAuthMsg);
-    // let splitSig = getRSVFromSig(sig);
-    // const sessionKeyAuthCalldata = CallData.compile({
-    //   r: cairo.uint256(splitSig.r),
-    //   s: cairo.uint256(splitSig.s),
-    //   v: splitSig.v,
-    //   owner: sessionKeyAuthMsg.owner,
-    //   sessionPublicKey: sessionKeyAuthMsg.sessionPublicKey,
-    //   sessionDuration: sessionKeyAuthMsg.sessionDuration,
-    //   salt: cairo.uint256(sessionKeyAuthMsg.salt),
-    // });
-    // await sessionAccount.invoke(
-    //   ethSigSessionKeyAuthenticator,
-    //   'register_with_owner_sig',
-    //   sessionKeyAuthCalldata,
-    //   {
-    //     rawInput: true,
-    //   },
-    // );
-    // // Revoke Session with owner sig
-    // const revokeSessionMsg: SessionKeyRevoke = {
-    //   chainId: '0x534e5f474f45524c49',
-    //   authenticator: ethSigSessionKeyAuthenticator.address,
-    //   owner: ethSigner.address,
-    //   sessionPublicKey: '0x123',
-    //   salt: '0x1',
-    // };
-    // sig = await ethSigner._signTypedData(ethDomain, sessionKeyRevokeTypes, revokeSessionMsg);
-    // splitSig = getRSVFromSig(sig);
-    // const revokeSessionCalldata = CallData.compile({
-    //   r: cairo.uint256(splitSig.r),
-    //   s: cairo.uint256(splitSig.s),
-    //   v: splitSig.v,
-    //   owner: revokeSessionMsg.owner,
-    //   sessionPublicKey: revokeSessionMsg.sessionPublicKey,
-    //   salt: cairo.uint256(revokeSessionMsg.salt),
-    // });
-    // await sessionAccount.invoke(
-    //   ethSigSessionKeyAuthenticator,
-    //   'revoke_with_owner_sig',
-    //   revokeSessionCalldata,
-    //   {
-    //     rawInput: true,
-    //   },
-    // );
-    // // Try to Propose
-    // const proposeMsg: Propose = {
-    //   space: space.address,
-    //   author: sessionKeyAuthMsg.owner,
-    //   metadataUri: ['0x1', '0x2', '0x3', '0x4'],
-    //   executionStrategy: {
-    //     address: '0x0000000000000000000000000000000000005678',
-    //     params: ['0x0'],
-    //   },
-    //   userProposalValidationParams: [
-    //     '0xffffffffffffffffffffffffffffffffffffffffff',
-    //     '0x1234',
-    //     '0x5678',
-    //     '0x9abc',
-    //   ],
-    //   salt: '0x1',
-    // };
-    // const proposeSig = (await sessionAccountWithSigner.signMessage({
-    //   types: proposeTypes,
-    //   primaryType: 'Propose',
-    //   domain: starkDomain,
-    //   message: proposeMsg as any,
-    // } as typedData.TypedData)) as any;
-    // const proposeCalldata = CallData.compile({
-    //   signature: [proposeSig.r, proposeSig.s],
-    //   ...proposeMsg,
-    //   session_public_key: sessionKeyAuthMsg.sessionPublicKey,
-    // });
-    // // Proposing should fail because the session is revoked
-    // try {
-    //   await sessionAccount.invoke(
-    //     ethSigSessionKeyAuthenticator,
-    //     'authenticate_propose',
-    //     proposeCalldata,
-    //     {
-    //       rawInput: true,
-    //     },
-    //   );
-    //   expect.fail('Should have failed');
-    // } catch (err: any) {
-    //   expect(err.message).to.contain(shortString.encodeShortString('Session key expired'));
-    // }
+    await starknet.devnet.restart();
+    await starknet.devnet.load('./dump.pkl');
+    await starknet.devnet.increaseTime(10);
+    // Register Session
+    const sessionKeyAuthMsg: SessionKeyAuth = {
+      chainId: '0x534e5f474f45524c49',
+      authenticator: ethSigSessionKeyAuthenticator.address,
+      owner: ethSigner.address,
+      sessionPublicKey: '0x123',
+      sessionDuration: '0x123',
+      salt: '0x0',
+    };
+    let sig = await ethSigner._signTypedData(ethDomain, sessionKeyAuthTypes, sessionKeyAuthMsg);
+    let splitSig = getRSVFromSig(sig);
+    const sessionKeyAuthCalldata = CallData.compile({
+      r: cairo.uint256(splitSig.r),
+      s: cairo.uint256(splitSig.s),
+      v: splitSig.v,
+      owner: sessionKeyAuthMsg.owner,
+      sessionPublicKey: sessionKeyAuthMsg.sessionPublicKey,
+      sessionDuration: sessionKeyAuthMsg.sessionDuration,
+      salt: cairo.uint256(sessionKeyAuthMsg.salt),
+    });
+    await sessionAccount.invoke(
+      ethSigSessionKeyAuthenticator,
+      'register_with_owner_sig',
+      sessionKeyAuthCalldata,
+      {
+        rawInput: true,
+      },
+    );
+    // Revoke Session with owner sig
+    const revokeSessionMsg: SessionKeyRevoke = {
+      chainId: '0x534e5f474f45524c49',
+      authenticator: ethSigSessionKeyAuthenticator.address,
+      owner: ethSigner.address,
+      sessionPublicKey: '0x123',
+      salt: '0x1',
+    };
+    sig = await ethSigner._signTypedData(ethDomain, sessionKeyRevokeTypes, revokeSessionMsg);
+    splitSig = getRSVFromSig(sig);
+    const revokeSessionCalldata = CallData.compile({
+      r: cairo.uint256(splitSig.r),
+      s: cairo.uint256(splitSig.s),
+      v: splitSig.v,
+      owner: revokeSessionMsg.owner,
+      sessionPublicKey: revokeSessionMsg.sessionPublicKey,
+      salt: cairo.uint256(revokeSessionMsg.salt),
+    });
+    await sessionAccount.invoke(
+      ethSigSessionKeyAuthenticator,
+      'revoke_with_owner_sig',
+      revokeSessionCalldata,
+      {
+        rawInput: true,
+      },
+    );
+    // Try to Propose
+    const proposeMsg: Propose = {
+      space: space.address,
+      author: sessionKeyAuthMsg.owner,
+      metadataUri: ['0x1', '0x2', '0x3', '0x4'],
+      executionStrategy: {
+        address: '0x0000000000000000000000000000000000005678',
+        params: ['0x0'],
+      },
+      userProposalValidationParams: [
+        '0xffffffffffffffffffffffffffffffffffffffffff',
+        '0x1234',
+        '0x5678',
+        '0x9abc',
+      ],
+      salt: '0x1',
+    };
+    const proposeSig = (await sessionAccountWithSigner.signMessage({
+      types: proposeTypes,
+      primaryType: 'Propose',
+      domain: starkDomain,
+      message: proposeMsg as any,
+    } as typedData.TypedData)) as any;
+    const proposeCalldata = CallData.compile({
+      signature: [proposeSig.r, proposeSig.s],
+      ...proposeMsg,
+      session_public_key: sessionKeyAuthMsg.sessionPublicKey,
+    });
+    // Proposing should fail because the session is revoked
+    try {
+      await sessionAccount.invoke(
+        ethSigSessionKeyAuthenticator,
+        'authenticate_propose',
+        proposeCalldata,
+        {
+          rawInput: true,
+        },
+      );
+      expect.fail('Should have failed');
+    } catch (err: any) {
+      expect(err.message).to.contain(shortString.encodeShortString('Session key expired'));
+    }
   }, 1000000);
 
   it('can revoke a session with an session key sig', async () => {
-    // await starknet.devnet.restart();
-    // await starknet.devnet.load('./dump.pkl');
-    // await starknet.devnet.increaseTime(10);
-    // // Register Session
-    // const sessionKeyAuthMsg: SessionKeyAuth = {
-    //   chainId: '0x534e5f474f45524c49',
-    //   authenticator: ethSigSessionKeyAuthenticator.address,
-    //   owner: ethSigner.address,
-    //   sessionPublicKey: '0x123',
-    //   sessionDuration: '0x123',
-    //   salt: '0x0',
-    // };
-    // let sig = await ethSigner._signTypedData(ethDomain, sessionKeyAuthTypes, sessionKeyAuthMsg);
-    // let splitSig = getRSVFromSig(sig);
-    // const sessionKeyAuthCalldata = CallData.compile({
-    //   r: cairo.uint256(splitSig.r),
-    //   s: cairo.uint256(splitSig.s),
-    //   v: splitSig.v,
-    //   owner: sessionKeyAuthMsg.owner,
-    //   sessionPublicKey: sessionKeyAuthMsg.sessionPublicKey,
-    //   sessionDuration: sessionKeyAuthMsg.sessionDuration,
-    //   salt: cairo.uint256(sessionKeyAuthMsg.salt),
-    // });
-    // await sessionAccount.invoke(
-    //   ethSigSessionKeyAuthenticator,
-    //   'register_with_owner_sig',
-    //   sessionKeyAuthCalldata,
-    //   {
-    //     rawInput: true,
-    //   },
-    // );
-    // // Revoke Session with session key sig
-    // const revokeSessionMsg: SessionKeyRevokeStark = {
-    //   owner: ethSigner.address,
-    //   sessionPublicKey: '0x123',
-    //   salt: '0x1',
-    // };
-    // const revokeSessionKeySig = (await sessionAccountWithSigner.signMessage({
-    //   types: sessionKeyRevokeTypesStark,
-    //   primaryType: 'SessionKeyRevoke',
-    //   domain: starkDomain,
-    //   message: revokeSessionMsg as any,
-    // } as typedData.TypedData)) as any;
-    // const revokeSessionCalldata = CallData.compile({
-    //   signature: [revokeSessionKeySig.r, revokeSessionKeySig.s],
-    //   owner: revokeSessionMsg.owner,
-    //   sessionPublicKey: revokeSessionMsg.sessionPublicKey,
-    //   salt: revokeSessionMsg.salt,
-    // });
-    // await sessionAccount.invoke(
-    //   ethSigSessionKeyAuthenticator,
-    //   'revoke_with_session_key_sig',
-    //   revokeSessionCalldata,
-    //   {
-    //     rawInput: true,
-    //   },
-    // );
-    // // Try to Propose
-    // const proposeMsg: Propose = {
-    //   space: space.address,
-    //   author: sessionKeyAuthMsg.owner,
-    //   metadataUri: ['0x1', '0x2', '0x3', '0x4'],
-    //   executionStrategy: {
-    //     address: '0x0000000000000000000000000000000000005678',
-    //     params: ['0x0'],
-    //   },
-    //   userProposalValidationParams: [
-    //     '0xffffffffffffffffffffffffffffffffffffffffff',
-    //     '0x1234',
-    //     '0x5678',
-    //     '0x9abc',
-    //   ],
-    //   salt: '0x1',
-    // };
-    // const proposeSig = (await sessionAccountWithSigner.signMessage({
-    //   types: proposeTypes,
-    //   primaryType: 'Propose',
-    //   domain: starkDomain,
-    //   message: proposeMsg as any,
-    // } as typedData.TypedData)) as any;
-    // const proposeCalldata = CallData.compile({
-    //   signature: [proposeSig.r, proposeSig.s],
-    //   ...proposeMsg,
-    //   session_public_key: sessionKeyAuthMsg.sessionPublicKey,
-    // });
-    // // Proposing should fail because the session is revoked
-    // try {
-    //   await sessionAccount.invoke(
-    //     ethSigSessionKeyAuthenticator,
-    //     'authenticate_propose',
-    //     proposeCalldata,
-    //     {
-    //       rawInput: true,
-    //     },
-    //   );
-    //   expect.fail('Should have failed');
-    // } catch (err: any) {
-    //   expect(err.message).to.contain(shortString.encodeShortString('Session key expired'));
-    // }
+    await starknet.devnet.restart();
+    await starknet.devnet.load('./dump.pkl');
+    await starknet.devnet.increaseTime(10);
+    // Register Session
+    const sessionKeyAuthMsg: SessionKeyAuth = {
+      chainId: '0x534e5f474f45524c49',
+      authenticator: ethSigSessionKeyAuthenticator.address,
+      owner: ethSigner.address,
+      sessionPublicKey: '0x123',
+      sessionDuration: '0x123',
+      salt: '0x0',
+    };
+    let sig = await ethSigner._signTypedData(ethDomain, sessionKeyAuthTypes, sessionKeyAuthMsg);
+    let splitSig = getRSVFromSig(sig);
+    const sessionKeyAuthCalldata = CallData.compile({
+      r: cairo.uint256(splitSig.r),
+      s: cairo.uint256(splitSig.s),
+      v: splitSig.v,
+      owner: sessionKeyAuthMsg.owner,
+      sessionPublicKey: sessionKeyAuthMsg.sessionPublicKey,
+      sessionDuration: sessionKeyAuthMsg.sessionDuration,
+      salt: cairo.uint256(sessionKeyAuthMsg.salt),
+    });
+    await sessionAccount.invoke(
+      ethSigSessionKeyAuthenticator,
+      'register_with_owner_sig',
+      sessionKeyAuthCalldata,
+      {
+        rawInput: true,
+      },
+    );
+    // Revoke Session with session key sig
+    const revokeSessionMsg: SessionKeyRevokeStark = {
+      owner: ethSigner.address,
+      sessionPublicKey: '0x123',
+      salt: '0x1',
+    };
+    const revokeSessionKeySig = (await sessionAccountWithSigner.signMessage({
+      types: sessionKeyRevokeTypesStark,
+      primaryType: 'SessionKeyRevoke',
+      domain: starkDomain,
+      message: revokeSessionMsg as any,
+    } as typedData.TypedData)) as any;
+    const revokeSessionCalldata = CallData.compile({
+      signature: [revokeSessionKeySig.r, revokeSessionKeySig.s],
+      owner: revokeSessionMsg.owner,
+      sessionPublicKey: revokeSessionMsg.sessionPublicKey,
+      salt: revokeSessionMsg.salt,
+    });
+    await sessionAccount.invoke(
+      ethSigSessionKeyAuthenticator,
+      'revoke_with_session_key_sig',
+      revokeSessionCalldata,
+      {
+        rawInput: true,
+      },
+    );
+    // Try to Propose
+    const proposeMsg: Propose = {
+      space: space.address,
+      author: sessionKeyAuthMsg.owner,
+      metadataUri: ['0x1', '0x2', '0x3', '0x4'],
+      executionStrategy: {
+        address: '0x0000000000000000000000000000000000005678',
+        params: ['0x0'],
+      },
+      userProposalValidationParams: [
+        '0xffffffffffffffffffffffffffffffffffffffffff',
+        '0x1234',
+        '0x5678',
+        '0x9abc',
+      ],
+      salt: '0x1',
+    };
+    const proposeSig = (await sessionAccountWithSigner.signMessage({
+      types: proposeTypes,
+      primaryType: 'Propose',
+      domain: starkDomain,
+      message: proposeMsg as any,
+    } as typedData.TypedData)) as any;
+    const proposeCalldata = CallData.compile({
+      signature: [proposeSig.r, proposeSig.s],
+      ...proposeMsg,
+      session_public_key: sessionKeyAuthMsg.sessionPublicKey,
+    });
+    // Proposing should fail because the session is revoked
+    try {
+      await sessionAccount.invoke(
+        ethSigSessionKeyAuthenticator,
+        'authenticate_propose',
+        proposeCalldata,
+        {
+          rawInput: true,
+        },
+      );
+      expect.fail('Should have failed');
+    } catch (err: any) {
+      expect(err.message).to.contain(shortString.encodeShortString('Session key expired'));
+    }
   }, 1000000);
 
   it('The session cannot be used if it has expired', async () => {
