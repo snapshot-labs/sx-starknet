@@ -9,9 +9,9 @@ const account_address = process.env.ADDRESS || '';
 const account_pk = process.env.PK || '';
 
 const starknetCommitAddress = process.env.STARKNET_COMMIT_ADDRESS || '';
-const factsRegistryAddress = '0x014bf62fadb41d8f899bb5afeeb2da486fcfd8431852def56c5f10e45ae72765'; //process.env.FACTS_REGISTRY_ADDRESS || '';
+const factsRegistryAddress = '0x008ec19768587f3d7362d83b644253de560c9d46eda096619df5942d56079abb'; //process.env.FACTS_REGISTRY_ADDRESS || '';
 const timestampRemappersAddress =
-  '0x0050e1a1a352049b29103d8b42cf00f6faa2d5e88e94ed71962a1bfb24e5b0b2'; //process.env.TIMESTAMP_REMAPPERS_ADDRESS || '';
+  '0x00cdd51fbc4e008f4ef807eaf26f5043521ef5931bbb1e04032a25bd845d286b'; //process.env.TIMESTAMP_REMAPPERS_ADDRESS || '';
 
 const SIGNED_MSG_NAME = 'sx-starknet';
 const SIGNED_MSG_VERSION = '0.1.0';
@@ -141,6 +141,18 @@ const OZVotesStorageProofVotingStrategySierra = json.parse(
 const OZVotesStorageProofVotingStrategyCasm = json.parse(
   fs
     .readFileSync('starknet/target/dev/sx_OZVotesStorageProofVotingStrategy.casm.json')
+    .toString('ascii'),
+);
+
+const OZVotesTrace208StorageProofVotingStrategySierra = json.parse(
+  fs
+    .readFileSync('starknet/target/dev/sx_OZVotesTrace208StorageProofVotingStrategy.sierra.json')
+    .toString('ascii'),
+);
+
+const OZVotesTrace208StorageProofVotingStrategyCasm = json.parse(
+  fs
+    .readFileSync('starknet/target/dev/sx_OZVotesTrace208StorageProofVotingStrategy.casm.json')
     .toString('ascii'),
 );
 
@@ -314,17 +326,38 @@ async function main() {
   console.log('merkleWhitelistVotingStrategyAddress: ', merkleWhitelistVotingStrategyAddress);
   delay(wait);
 
-  response = await account.declareAndDeploy({
-    contract: OZVotesStorageProofVotingStrategySierra,
-    casm: OZVotesStorageProofVotingStrategyCasm,
-    constructorCalldata: CallData.compile({
-      timestamp_remappers: timestampRemappersAddress,
-      facts_registry: factsRegistryAddress,
-    }),
-  });
+  response = await account.declareAndDeploy(
+    {
+      contract: OZVotesStorageProofVotingStrategySierra,
+      casm: OZVotesStorageProofVotingStrategyCasm,
+      constructorCalldata: CallData.compile({
+        timestamp_remappers: timestampRemappersAddress,
+        facts_registry: factsRegistryAddress,
+      }),
+    },
+    { maxFee: 334538702632400 },
+  );
 
   const OZVotesStorageProofVotingStrategy = response.deploy.contract_address;
   console.log('OZVotesStorageProofVotingStrategy: ', OZVotesStorageProofVotingStrategy);
+
+  response = await account.declareAndDeploy(
+    {
+      contract: OZVotesTrace208StorageProofVotingStrategySierra,
+      casm: OZVotesTrace208StorageProofVotingStrategyCasm,
+      constructorCalldata: CallData.compile({
+        timestamp_remappers: timestampRemappersAddress,
+        facts_registry: factsRegistryAddress,
+      }),
+    },
+    { maxFee: 334538702632400 },
+  );
+
+  const OZVotesTrace208StorageProofVotingStrategy = response.deploy.contract_address;
+  console.log(
+    'OZVotesTrace208StorageProofVotingStrategy: ',
+    OZVotesTrace208StorageProofVotingStrategy,
+  );
 
   response = await account.declareAndDeploy({
     contract: factorySierra,
