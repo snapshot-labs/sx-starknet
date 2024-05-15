@@ -6,6 +6,7 @@ import {Test} from "forge-std/Test.sol";
 import {ERC1967Proxy} from "@openzeppelin/contracts/proxy/ERC1967/ERC1967Proxy.sol";
 import {Avatar} from "../src/mocks/Avatar.sol";
 import {L1AvatarExecutionStrategy} from "../src/execution-strategies/L1AvatarExecutionStrategy.sol";
+import {L1AvatarExecutionStrategyFactory} from "../src/execution-strategies/L1AvatarExecutionStrategyFactory.sol";
 import {TRUE, FALSE} from "../src/types.sol";
 
 /// @dev Tests for Setters on the L1 Avatar Execution Strategy
@@ -28,6 +29,7 @@ abstract contract L1AvatarExecutionStrategySettersTest is Test {
     event SpaceDisabled(uint256 space);
 
     L1AvatarExecutionStrategy public avatarExecutionStrategy;
+    L1AvatarExecutionStrategyFactory public factory;
     Avatar public avatar;
 
     address public owner = address(0x1);
@@ -125,7 +127,16 @@ abstract contract L1AvatarExecutionStrategySettersTest is Test {
         vm.expectRevert("Initializable: contract is already initialized");
         address[] memory spaces = new address[](1);
         spaces[0] = address(this);
-        avatarExecutionStrategy.setUp(abi.encode(owner, address(avatar), spaces));
+
+        uint256[] memory starknetSpaces = new uint256[](1);
+        starknetSpaces[0] = 1;
+        avatarExecutionStrategy.setUp(
+            address(this),
+            address(this),
+            address(this),
+            0,
+            starknetSpaces,
+            0);
     }
 
     function testEnableSpace() public {
@@ -191,36 +202,14 @@ contract AvatarExecutionStrategyTestDirect is L1AvatarExecutionStrategySettersTe
 
         uint256[] memory spaces = new uint256[](1);
         spaces[0] = space;
+
+        L1AvatarExecutionStrategy implementation = new L1AvatarExecutionStrategy();
+        factory = new L1AvatarExecutionStrategyFactory(address(implementation));
+
         vm.expectEmit(true, true, true, true);
         emit L1AvatarExecutionStrategySetUp(owner, address(avatar), starknetCore, ethRelayer, spaces, quorum);
-        avatarExecutionStrategy =
-            new L1AvatarExecutionStrategy(owner, address(avatar), starknetCore, ethRelayer, spaces, quorum);
-        avatar.enableModule(address(avatarExecutionStrategy));
-    }
-}
-
-contract AvatarExecutionStrategyTestProxy is L1AvatarExecutionStrategySettersTest {
-    function setUp() public override {
-        super.setUp();
-
-        uint256[] memory spaces = new uint256[](1);
-        spaces[0] = space;
-        vm.expectEmit(true, true, true, true);
-        emit L1AvatarExecutionStrategySetUp(owner, address(avatar), starknetCore, ethRelayer, spaces, quorum);
-        L1AvatarExecutionStrategy masterAvatarExecutionStrategy =
-            new L1AvatarExecutionStrategy(owner, address(avatar), starknetCore, ethRelayer, spaces, quorum);
-
-        avatarExecutionStrategy = L1AvatarExecutionStrategy(
-            address(
-                new ERC1967Proxy(
-                    address(masterAvatarExecutionStrategy),
-                    abi.encodeWithSelector(
-                        L1AvatarExecutionStrategy.setUp.selector,
-                        abi.encode(owner, address(avatar), starknetCore, ethRelayer, spaces, quorum)
-                    )
-                )
-            )
-        );
+        factory.createContract(owner, address(avatar), starknetCore, ethRelayer, spaces, quorum);
+        avatarExecutionStrategy = factory.deployedContracts(0);
         avatar.enableModule(address(avatarExecutionStrategy));
     }
 }
