@@ -74,6 +74,10 @@ const VOTE_TYPEHASH: felt252 = 0x1d9763f87aaaeb271287d4b9c84053d3f201ad61efc2c32
 const UPDATE_PROPOSAL_TYPEHASH: felt252 =
     0x34f1b3fe98891caddfc18d9b8d3bee36be34145a6e9f7a7bb76a45038dda780;
 
+// H('SessionKeyRevoke(owner:felt252,sessionPublicKey:felt252,salt:felt252)')
+const SESSION_KEY_REVOKE_TYPEHASH: felt252 =
+    0x11FA5E8349D04FAA798D9F772F97D151A10FAF60B5CC9022CECA1D0A6BB06A;
+
 // StarknetKeccak('Strategy(address:felt252,params:felt*)')
 const STRATEGY_TYPEHASH: felt252 =
     0x39154ec0efadcd0deffdfc2044cf45dd986d260e59c26d69564b50a18f40f6b;
