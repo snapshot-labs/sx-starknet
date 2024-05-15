@@ -61,7 +61,7 @@ trait IEthTxSessionKeyAuthenticator<TContractState> {
 
 
 #[starknet::contract]
-mod EthSigSessionKeyAuthenticator {
+mod EthTxSessionKeyAuthenticator {
     use core::traits::AddEq;
     use super::IEthTxSessionKeyAuthenticator;
     use starknet::{ContractAddress, EthAddress};

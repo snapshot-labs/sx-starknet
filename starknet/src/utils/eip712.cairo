@@ -204,7 +204,6 @@ mod EIP712 {
             session_duration: u32,
             salt: u256
         ) -> u256 {
-            // TODO: TYPEHASH
             let encoded_data = array![
                 u256 { low: SESSION_KEY_AUTH_TYPEHASH_LOW, high: SESSION_KEY_AUTH_TYPEHASH_HIGH },
                 Felt252IntoU256::into(starknet::get_tx_info().unbox().chain_id),
@@ -221,7 +220,6 @@ mod EIP712 {
         fn get_session_key_revoke_digest(
             self: @ContractState, owner: EthAddress, session_public_key: felt252, salt: u256
         ) -> u256 {
-            // TODO: TYPEHASH
             let encoded_data = array![
                 u256 {
                     low: SESSION_KEY_REVOKE_TYPEHASH_LOW, high: SESSION_KEY_REVOKE_TYPEHASH_HIGH

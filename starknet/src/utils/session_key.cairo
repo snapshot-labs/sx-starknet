@@ -1,15 +1,18 @@
 #[starknet::contract]
 mod SessionKey {
+    // use core::debug::PrintTrait;
     use starknet::{info, ContractAddress, EthAddress};
-    use sx::types::{Strategy, IndexedStrategy, Choice, UserAddress};
+    use sx::types::{
+        Strategy, IndexedStrategy, Choice, UserAddress, UserAddressTrait, UserAddressIntoFelt
+    };
     use sx::interfaces::{ISpaceDispatcher, ISpaceDispatcherTrait};
     use sx::utils::{
         EIP712, StarkEIP712, StructHash, LegacyHashEthAddress, LegacyHashUserAddressU256,
-        LegacyHashFelt252EthAddress
+        LegacyHashFelt252EthAddress,
     };
     use sx::utils::constants::{
         STARKNET_MESSAGE, DOMAIN_TYPEHASH, PROPOSE_TYPEHASH, VOTE_TYPEHASH,
-        UPDATE_PROPOSAL_TYPEHASH, ERC165_ACCOUNT_INTERFACE_ID,
+        UPDATE_PROPOSAL_TYPEHASH, SESSION_KEY_REVOKE_TYPEHASH, ERC165_ACCOUNT_INTERFACE_ID,
         REGISTER_SESSION_WITH_OWNER_TX_SELECTOR, REVOKE_SESSION_WITH_OWNER_TX_SELECTOR
     };
 
@@ -204,6 +207,7 @@ mod SessionKey {
             session_duration: u32,
         ) {
             let mut payload = array![];
+            starknet::get_contract_address().serialize(ref payload);
             REGISTER_SESSION_WITH_OWNER_TX_SELECTOR.serialize(ref payload);
             owner.serialize(ref payload);
             session_public_key.serialize(ref payload);
@@ -219,6 +223,7 @@ mod SessionKey {
             ref self: ContractState, owner: EthAddress, session_public_key: felt252
         ) {
             let mut payload = array![];
+            starknet::get_contract_address().serialize(ref payload);
             REVOKE_SESSION_WITH_OWNER_TX_SELECTOR.serialize(ref payload);
             owner.serialize(ref payload);
             session_public_key.serialize(ref payload);
@@ -304,7 +309,7 @@ mod SessionKey {
             self.assert_session_key_owner(session_public_key, owner);
             assert(!self._used_salts.read((owner, salt.into())), 'Salt Already Used');
 
-            self.verify_session_key_revoke_sig(signature.span(), salt, session_public_key);
+            self.verify_session_key_revoke_sig(signature.span(), owner, session_public_key, salt);
 
             self._used_salts.write((owner, salt.into()), true);
 
@@ -410,7 +415,10 @@ mod SessionKey {
                     salt
                 );
 
-            InternalImpl::is_valid_stark_signature(digest, session_public_key, signature);
+            assert(
+                InternalImpl::is_valid_stark_signature(digest, session_public_key, signature),
+                'Invalid Signature'
+            );
         }
 
         /// Verifies the signature of the vote calldata.
@@ -429,7 +437,10 @@ mod SessionKey {
                 .get_vote_digest(
                     space, voter, proposal_id, choice, user_voting_strategies, metadata_uri
                 );
-            InternalImpl::is_valid_stark_signature(digest, session_public_key, signature);
+            assert(
+                InternalImpl::is_valid_stark_signature(digest, session_public_key, signature),
+                'Invalid Signature'
+            );
         }
 
         /// Verifies the signature of the update proposal calldata.
@@ -448,18 +459,26 @@ mod SessionKey {
                 .get_update_proposal_digest(
                     space, author, proposal_id, execution_strategy, metadata_uri, salt
                 );
-            InternalImpl::is_valid_stark_signature(digest, session_public_key, signature);
+            assert(
+                InternalImpl::is_valid_stark_signature(digest, session_public_key, signature),
+                'Invalid Signature'
+            );
         }
 
         /// Verifies the signature of a session key revokation.
         fn verify_session_key_revoke_sig(
             self: @ContractState,
             signature: Span<felt252>,
+            owner: UserAddress,
+            session_public_key: felt252,
             salt: felt252,
-            session_public_key: felt252
         ) {
-            let digest: felt252 = self.get_session_key_revoke_digest(salt);
-            InternalImpl::is_valid_stark_signature(digest, session_public_key, signature);
+            let digest: felt252 = self
+                .get_session_key_revoke_digest(owner, session_public_key, salt);
+            assert(
+                InternalImpl::is_valid_stark_signature(digest, session_public_key, signature),
+                'Invalid Signature'
+            );
         }
 
         /// Returns the digest of the propose calldata.
@@ -475,7 +494,7 @@ mod SessionKey {
             let mut encoded_data = array![];
             PROPOSE_TYPEHASH.serialize(ref encoded_data);
             space.serialize(ref encoded_data);
-            author.serialize(ref encoded_data);
+            UserAddressIntoFelt::into(author).serialize(ref encoded_data);
             metadata_uri.struct_hash().serialize(ref encoded_data);
             execution_strategy.struct_hash().serialize(ref encoded_data);
             user_proposal_validation_params.struct_hash().serialize(ref encoded_data);
@@ -496,7 +515,7 @@ mod SessionKey {
             let mut encoded_data = array![];
             VOTE_TYPEHASH.serialize(ref encoded_data);
             space.serialize(ref encoded_data);
-            voter.serialize(ref encoded_data);
+            UserAddressIntoFelt::into(voter).serialize(ref encoded_data);
             proposal_id.struct_hash().serialize(ref encoded_data);
             choice.serialize(ref encoded_data);
             user_voting_strategies.struct_hash().serialize(ref encoded_data);
@@ -518,7 +537,7 @@ mod SessionKey {
             let mut encoded_data = array![];
             UPDATE_PROPOSAL_TYPEHASH.serialize(ref encoded_data);
             space.serialize(ref encoded_data);
-            author.serialize(ref encoded_data);
+            UserAddressIntoFelt::into(author).serialize(ref encoded_data);
             proposal_id.struct_hash().serialize(ref encoded_data);
             execution_strategy.struct_hash().serialize(ref encoded_data);
             metadata_uri.struct_hash().serialize(ref encoded_data);
@@ -526,11 +545,15 @@ mod SessionKey {
             self.hash_typed_data(encoded_data.span().struct_hash())
         }
 
-        fn get_session_key_revoke_digest(self: @ContractState, salt: felt252) -> felt252 {
+        fn get_session_key_revoke_digest(
+            self: @ContractState, owner: UserAddress, session_public_key: felt252, salt: felt252
+        ) -> felt252 {
             let mut encoded_data = array![];
-            // TODO: Typehash
-            // SESSION_KEY_REVOKE_TYPEHASH.serialize(ref encoded_data);
+            SESSION_KEY_REVOKE_TYPEHASH.serialize(ref encoded_data);
+            UserAddressIntoFelt::into(owner).serialize(ref encoded_data);
+            session_public_key.serialize(ref encoded_data);
             salt.serialize(ref encoded_data);
+            // encoded_data.clone().print();
             self.hash_typed_data(encoded_data.span().struct_hash())
         }
 
@@ -550,7 +573,9 @@ mod SessionKey {
             let mut encoded_data = array![];
             STARKNET_MESSAGE.serialize(ref encoded_data);
             self._domain_hash.read().serialize(ref encoded_data);
+            0x1.serialize(ref encoded_data);
             message_hash.serialize(ref encoded_data);
+            // encoded_data.clone().print();
             encoded_data.span().struct_hash()
         }
 
@@ -587,6 +612,38 @@ mod SessionKey {
             assert(self._commits.read((hash, sender_address)) == false, 'Commit already exists');
             self._commits.write((hash, sender_address), true);
         }
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::SessionKey;
+    use debug::PrintTrait;
+
+    use starknet::{info, ContractAddress, EthAddress};
+    use sx::types::{Strategy, IndexedStrategy, Choice, UserAddress, UserAddressTrait};
+    use sx::interfaces::{ISpaceDispatcher, ISpaceDispatcherTrait};
+    use sx::utils::{
+        EIP712, StarkEIP712, StructHash, LegacyHashEthAddress, LegacyHashUserAddressU256,
+        LegacyHashFelt252EthAddress
+    };
+    use sx::utils::constants::{
+        STARKNET_MESSAGE, DOMAIN_TYPEHASH, PROPOSE_TYPEHASH, VOTE_TYPEHASH,
+        UPDATE_PROPOSAL_TYPEHASH, ERC165_ACCOUNT_INTERFACE_ID,
+        REGISTER_SESSION_WITH_OWNER_TX_SELECTOR, REVOKE_SESSION_WITH_OWNER_TX_SELECTOR
+    };
+
+    #[test]
+    #[available_gas(10000000)]
+    fn testSessionKey() {
+        let state = SessionKey::unsafe_new_contract_state();
+        let mut payload = array![];
+        starknet::get_contract_address().serialize(ref payload);
+        REGISTER_SESSION_WITH_OWNER_TX_SELECTOR.serialize(ref payload);
+        0x1234.serialize(ref payload);
+        0x5678.serialize(ref payload);
+        0x9999.serialize(ref payload);
+        payload.print();
     }
 }
 
