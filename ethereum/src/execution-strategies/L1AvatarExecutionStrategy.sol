@@ -29,6 +29,9 @@ contract L1AvatarExecutionStrategy is SimpleQuorumExecutionStrategy {
     /// @dev Emitted each time the Execution Relayer is set.
     event ExecutionRelayerSet(uint256 indexed newExecutionRelayer);
 
+    /// @dev Emitted each time a proposal is executed.
+    event ProposalExecuted(uint256 indexed space, bytes32 executionHash);
+
     /// @notice Emitted when a new Avatar Execution Strategy is initialized.
     /// @param _owner Address of the owner of the strategy.
     /// @param _target Address of the avatar that this module will pass transactions to.
@@ -135,6 +138,7 @@ contract L1AvatarExecutionStrategy is SimpleQuorumExecutionStrategy {
         if (bytes32(executionHash) != keccak256(abi.encode(transactions))) revert InvalidPayload();
 
         _execute(transactions);
+        emit ProposalExecuted(space, bytes32(executionHash));
     }
 
     /// @dev Reverts if the expected message was not received from L2.

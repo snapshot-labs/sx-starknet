@@ -54,7 +54,7 @@ describe('L1 Avatar Execution', function () {
       await account.declare(vanillaProposalValidationStrategyFactory);
       await account.declare(ethRelayerFactory);
       await account.declare(spaceFactory);
-    } catch {}
+    } catch { }
 
     starkTxAuthenticator = await account.deploy(starkTxAuthenticatorFactory);
     vanillaVotingStrategy = await account.deploy(vanillaVotingStrategyFactory);
@@ -186,7 +186,7 @@ describe('L1 Avatar Execution', function () {
     // Proposal data can either be extracted from the message sent to L1 (as done here) or pulled from the contract directly
     const [proposal, forVotes, againstVotes, abstainVotes] = extractMessagePayload(message_payload);
 
-    await l1AvatarExecutionStrategy.execute(
+    await expect(l1AvatarExecutionStrategy.execute(
       space.address,
       proposal,
       forVotes,
@@ -194,7 +194,7 @@ describe('L1 Avatar Execution', function () {
       abstainVotes,
       executionHash,
       [proposalTx],
-    );
+    )).to.emit(l1AvatarExecutionStrategy, 'ProposalExecuted').withArgs(space.address.toString(), executionHash);
   }, 10000000);
 
   it('should execute a proposal with multiple txs via the Avatar Execution Strategy connected to a Safe', async function () {
