@@ -61,7 +61,7 @@ jobs:
       - name: Set up node
         uses: actions/setup-node@v3
         with:
-          node-version: 18.16.0
+          node-version: 18.17.0
 
       - name: Get yarn cache directory path
         id: yarn-cache-dir-path
@@ -76,7 +76,7 @@ jobs:
             yarn-
 
       - name: Install Yarn dependencies
-        run: yarn install 
+        run: yarn install
 
       - name: Set up Python
         uses: actions/setup-python@v4
@@ -89,15 +89,15 @@ jobs:
           python -m pip install --upgrade pip
           pip install -r requirements.txt
 
-      - name: Install Cairo 
-        run: curl -L https://github.com/starkware-libs/cairo/releases/download/v2.2.0/release-x86_64-unknown-linux-musl.tar.gz > cairo.tar.gz 
+      - name: Install Cairo
+        run: curl -L https://github.com/starkware-libs/cairo/releases/download/v2.2.0/release-x86_64-unknown-linux-musl.tar.gz > cairo.tar.gz
 
       - name: Extract Cairo
         run: tar -xvf cairo.tar.gz
 
-      - name: Install Scarb 
+      - name: Install Scarb
         uses: software-mansion/setup-scarb@v1
-        with: 
+        with:
           scarb-version: 0.7.0
 
       - name: Check Cairo formatting
@@ -106,7 +106,7 @@ jobs:
 
       - name: Build Cairo contracts
         working-directory: ./starknet
-        run: scarb build --verbose      
+        run: scarb build --verbose
 
       - name: Run Cairo tests
         working-directory: ./starknet
@@ -116,4 +116,4 @@ jobs:
         run: yarn hardhat starknet-build
 
       - name: run Hardhat tests
-        run:  yarn test:l1-execution; yarn test:eth-sig-auth; yarn test:stark-sig-auth;  yarn test:eth-tx-auth
+        run: yarn test:l1-execution; yarn test:eth-sig-auth; yarn test:stark-sig-auth;  yarn test:eth-tx-auth
