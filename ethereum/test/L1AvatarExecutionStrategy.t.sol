@@ -130,13 +130,7 @@ abstract contract L1AvatarExecutionStrategySettersTest is Test {
 
         uint256[] memory starknetSpaces = new uint256[](1);
         starknetSpaces[0] = 1;
-        avatarExecutionStrategy.setUp(
-            address(this),
-            address(this),
-            address(this),
-            0,
-            starknetSpaces,
-            0);
+        avatarExecutionStrategy.setUp(address(this), address(this), address(this), 0, starknetSpaces, 0);
     }
 
     function testEnableSpace() public {

@@ -17,7 +17,6 @@ contract L1AvatarExecutionStrategyFactory {
         implementation = _implementation;
     }
 
-
     /// @notice Deploys a new L1 Avatar Execution Strategy contract.
     /// @param _owner Address of the owner of this contract.
     /// @param _target Address of the avatar that this module will pass transactions to.
@@ -35,7 +34,9 @@ contract L1AvatarExecutionStrategyFactory {
     ) public {
         address clone = Clones.clone(implementation);
 
-        L1AvatarExecutionStrategy(clone).setUp(_owner, _target, _starknetCore, _executionRelayer, _starknetSpaces, _quorum);
+        L1AvatarExecutionStrategy(clone).setUp(
+            _owner, _target, _starknetCore, _executionRelayer, _starknetSpaces, _quorum
+        );
         deployedContracts.push(L1AvatarExecutionStrategy(clone));
         emit ContractDeployed(clone);
     }

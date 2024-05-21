@@ -50,13 +50,13 @@ contract L1AvatarExecutionStrategy is SimpleQuorumExecutionStrategy {
 
     /// @notice Initialization function, should be called immediately after deploying a new proxy to this contract.
     function setUp(
-            address _owner,
-            address _target,
-            address _starknetCore,
-            uint256 _executionRelayer,
-            uint256[] memory _starknetSpaces,
-            uint256 _quorum
-        ) public initializer {
+        address _owner,
+        address _target,
+        address _starknetCore,
+        uint256 _executionRelayer,
+        uint256[] memory _starknetSpaces,
+        uint256 _quorum
+    ) public initializer {
         __Ownable_init();
         transferOwnership(_owner);
         __SpaceManager_init(_starknetSpaces);
