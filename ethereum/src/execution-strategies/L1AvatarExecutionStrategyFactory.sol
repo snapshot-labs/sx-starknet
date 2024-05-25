@@ -34,10 +34,11 @@ contract L1AvatarExecutionStrategyFactory {
     ) public {
         address clone = Clones.clone(implementation);
 
+        emit ContractDeployed(clone);
+
         L1AvatarExecutionStrategy(clone).setUp(
             _owner, _target, _starknetCore, _executionRelayer, _starknetSpaces, _quorum
         );
         deployedContracts.push(L1AvatarExecutionStrategy(clone));
-        emit ContractDeployed(clone);
     }
 }
