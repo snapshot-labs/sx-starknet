@@ -4,6 +4,7 @@ pragma solidity ^0.8.19;
 
 import "@gnosis.pm/zodiac/contracts/interfaces/IAvatar.sol";
 import "../interfaces/IStarknetCore.sol";
+import "@openzeppelin/contracts/proxy/Clones.sol";
 import {SimpleQuorumExecutionStrategy} from "./SimpleQuorumExecutionStrategy.sol";
 import "../types.sol";
 
@@ -48,37 +49,17 @@ contract L1AvatarExecutionStrategy is SimpleQuorumExecutionStrategy {
         uint256 _quorum
     );
 
-    /// @notice Constructor
-    /// @param _owner Address of the owner of this contract.
-    /// @param _target Address of the avatar that this module will pass transactions to.
-    /// @param _starknetCore Address of the StarkNet Core contract.
-    /// @param _executionRelayer Address of the StarkNet contract that will send execution details to this contract in a L2 -> L1 message
-    /// @param _starknetSpaces Array of whitelisted space contracts.
-    /// @param _quorum The quorum required to execute a proposal.
-    constructor(
+    constructor() {}
+
+    /// @notice Initialization function, should be called immediately after deploying a new proxy to this contract.
+    function setUp(
         address _owner,
         address _target,
         address _starknetCore,
         uint256 _executionRelayer,
         uint256[] memory _starknetSpaces,
         uint256 _quorum
-    ) {
-        bytes memory initParams =
-            abi.encode(_owner, _target, _starknetCore, _executionRelayer, _starknetSpaces, _quorum);
-        setUp(initParams);
-    }
-
-    /// @notice Initialization function, should be called immediately after deploying a new proxy to this contract.
-    /// @param initParams ABI encoded parameters, in the same order as the constructor.
-    function setUp(bytes memory initParams) public initializer {
-        (
-            address _owner,
-            address _target,
-            address _starknetCore,
-            uint256 _executionRelayer,
-            uint256[] memory _starknetSpaces,
-            uint256 _quorum
-        ) = abi.decode(initParams, (address, address, address, uint256, uint256[], uint256));
+    ) public initializer {
         __Ownable_init();
         transferOwnership(_owner);
         __SpaceManager_init(_starknetSpaces);
