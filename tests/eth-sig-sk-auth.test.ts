@@ -447,12 +447,12 @@ describe('Ethereum Signature Session Key Authenticator', function () {
     };
 
     let invalidEthSigner = ethers.Wallet.createRandom();
-    let invalidSig = await ethSigner._signTypedData(
+    let invalidSig = await invalidEthSigner._signTypedData(
       ethDomain,
       sessionKeyRevokeTypes,
       revokeSessionMsg,
     );
-    let invalidSplitSig = getRSVFromSig(sig);
+    let invalidSplitSig = getRSVFromSig(invalidSig);
     const invalidRevokeSessionCalldata = CallData.compile({
       r: cairo.uint256(invalidSplitSig.r),
       s: cairo.uint256(invalidSplitSig.s),
