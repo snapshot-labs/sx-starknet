@@ -72,6 +72,16 @@ export const sessionKeyRevokeTypes = {
   ],
 };
 
+export const sessionKeyAuthTypes = {
+  StarkNetDomain: domainTypes.StarkNetDomain,
+  SessionKeyAuth: [
+    { name: 'owner', type: 'felt252' },
+    { name: 'sessionPublicKey', type: 'felt252' },
+    { name: 'sessionDuration', type: 'felt252' },
+    { name: 'salt', type: 'felt252' },
+  ],
+};
+
 export interface Strategy {
   address: string;
   params: string[];
@@ -111,6 +121,13 @@ export interface UpdateProposal {
   proposalId: u256;
   executionStrategy: Strategy;
   metadataUri: string[];
+  salt: string;
+}
+
+export interface SessionKeyAuth {
+  owner: string;
+  sessionPublicKey: string;
+  sessionDuration: string;
   salt: string;
 }
 
