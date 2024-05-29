@@ -69,7 +69,7 @@ mod StarkSigSessionKeyAuthenticator {
     use super::IStarkSigSessionKeyAuthenticator;
     use starknet::ContractAddress;
     use sx::types::{Strategy, IndexedStrategy, Choice, UserAddress};
-    use sx::utils::SessionKey;
+    use sx::utils::{SessionKey, StarkEIP712};
 
     #[storage]
     struct Storage {}
@@ -190,5 +190,13 @@ mod StarkSigSessionKeyAuthenticator {
                 ref state, signature, UserAddress::Starknet(owner), session_public_key, salt
             );
         }
+    }
+
+    #[constructor]
+    fn constructor(ref self: ContractState, name: felt252, version: felt252) {
+        let mut state = StarkEIP712::unsafe_new_contract_state();
+        StarkEIP712::InternalImpl::initializer(ref state, name, version);
+        let mut state = SessionKey::unsafe_new_contract_state();
+        SessionKey::InternalImpl::eth_sig_initializer(ref state, name, version);
     }
 }

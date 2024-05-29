@@ -9,7 +9,7 @@ mod StarkEIP712 {
     use sx::utils::StructHash;
     use sx::utils::constants::{
         STARKNET_MESSAGE, DOMAIN_TYPEHASH, PROPOSE_TYPEHASH, VOTE_TYPEHASH,
-        UPDATE_PROPOSAL_TYPEHASH, ERC165_ACCOUNT_INTERFACE_ID
+        UPDATE_PROPOSAL_TYPEHASH, SESSION_KEY_AUTH_TYPEHASH, SESSION_KEY_REVOKE_TYPEHASH, ERC165_ACCOUNT_INTERFACE_ID
     };
 
     #[storage]
@@ -180,8 +180,7 @@ mod StarkEIP712 {
             salt: felt252
         ) -> felt252 {
             let mut encoded_data = array![];
-            // TODO: TYPEHASH
-            1.serialize(ref encoded_data);
+            SESSION_KEY_AUTH_TYPEHASH.serialize(ref encoded_data);
             owner.serialize(ref encoded_data);
             session_public_key.serialize(ref encoded_data);
             session_duration.serialize(ref encoded_data);
@@ -193,8 +192,7 @@ mod StarkEIP712 {
             self: @ContractState, owner: ContractAddress, session_public_key: felt252, salt: felt252
         ) -> felt252 {
             let mut encoded_data = array![];
-            // TODO: TYPEHASH
-            1.serialize(ref encoded_data);
+            SESSION_KEY_REVOKE_TYPEHASH.serialize(ref encoded_data);
             owner.serialize(ref encoded_data);
             session_public_key.serialize(ref encoded_data);
             salt.serialize(ref encoded_data);
