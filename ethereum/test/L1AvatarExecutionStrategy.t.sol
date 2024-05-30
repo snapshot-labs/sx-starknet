@@ -196,13 +196,14 @@ contract AvatarExecutionStrategyTestDirect is L1AvatarExecutionStrategySettersTe
 
         uint256[] memory spaces = new uint256[](1);
         spaces[0] = space;
+        bytes32 salt = bytes32(0);
 
         L1AvatarExecutionStrategy implementation = new L1AvatarExecutionStrategy();
         factory = new L1AvatarExecutionStrategyFactory(address(implementation));
 
         vm.expectEmit(true, true, true, true);
         emit L1AvatarExecutionStrategySetUp(owner, address(avatar), starknetCore, ethRelayer, spaces, quorum);
-        factory.createContract(owner, address(avatar), starknetCore, ethRelayer, spaces, quorum);
+        factory.createContract(owner, address(avatar), starknetCore, ethRelayer, spaces, quorum, salt);
         avatarExecutionStrategy = factory.deployedContracts(0);
         avatar.enableModule(address(avatarExecutionStrategy));
     }
