@@ -45,6 +45,9 @@ mod voting_strategies {
     mod oz_votes_storage_proof;
     use oz_votes_storage_proof::OZVotesStorageProofVotingStrategy;
 
+    mod oz_votes_trace_208_storage_proof;
+    use oz_votes_trace_208_storage_proof::OZVotesTrace208StorageProofVotingStrategy;
+
     mod merkle_whitelist;
     use merkle_whitelist::MerkleWhitelistVotingStrategy;
 }

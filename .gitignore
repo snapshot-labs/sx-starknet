@@ -3,6 +3,8 @@ node_modules/
 .env
 cairo_project.toml
 
+ethereum/broadcast/
+
 build/
 cache/
 out/
