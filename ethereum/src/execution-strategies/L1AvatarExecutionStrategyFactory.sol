@@ -30,9 +30,10 @@ contract L1AvatarExecutionStrategyFactory {
         address _starknetCore,
         uint256 _executionRelayer,
         uint256[] memory _starknetSpaces,
-        uint256 _quorum
+        uint256 _quorum,
+        bytes32 salt
     ) public {
-        address clone = Clones.clone(implementation);
+        address clone = Clones.cloneDeterministic(implementation, salt);
 
         emit ContractDeployed(clone);
 
