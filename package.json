@@ -16,6 +16,10 @@
     "test:stark-sig-auth": "bash './scripts/stark-sig-auth-test.sh'",
     "test:eth-sig-auth": "bash './scripts/eth-sig-auth-test.sh'",
     "test:eth-tx-auth": "bash './scripts/eth-tx-auth-test.sh'",
+    "test:eth-sig-sk-auth": "bash './scripts/eth-sig-sk-auth-test.sh'",
+    "test:eth-tx-sk-auth": "bash './scripts/eth-tx-sk-auth-test.sh'",
+    "test:stark-sig-sk-auth": "bash './scripts/stark-sig-sk-auth-test.sh'",
+    "test:stark-tx-sk-auth": "bash './scripts/stark-tx-sk-auth-test.sh'",
     "test:l1-execution": "bash './scripts/l1-avatar-execution-test.sh'"
   },
   "devDependencies": {

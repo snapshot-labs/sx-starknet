@@ -1,5 +1,6 @@
 #[starknet::contract]
 mod EIP712 {
+    use integer::U32IntoU256;
     use starknet::{EthAddress, ContractAddress, secp256_trait};
     use starknet::secp256k1::Secp256k1Point;
     use sx::types::{Strategy, IndexedStrategy, Choice};
@@ -7,7 +8,9 @@ mod EIP712 {
     use sx::utils::constants::{
         DOMAIN_HASH_LOW, DOMAIN_HASH_HIGH, ETHEREUM_PREFIX, PROPOSE_TYPEHASH_LOW,
         PROPOSE_TYPEHASH_HIGH, VOTE_TYPEHASH_LOW, VOTE_TYPEHASH_HIGH, UPDATE_PROPOSAL_TYPEHASH_LOW,
-        UPDATE_PROPOSAL_TYPEHASH_HIGH, INDEXED_STRATEGY_TYPEHASH_LOW,
+        UPDATE_PROPOSAL_TYPEHASH_HIGH, SESSION_KEY_AUTH_TYPEHASH_HIGH,
+        SESSION_KEY_AUTH_TYPEHASH_LOW, SESSION_KEY_REVOKE_TYPEHASH_HIGH,
+        SESSION_KEY_REVOKE_TYPEHASH_LOW, INDEXED_STRATEGY_TYPEHASH_LOW,
         INDEXED_STRATEGY_TYPEHASH_HIGH,
     };
 
@@ -87,6 +90,38 @@ mod EIP712 {
             );
         }
 
+        fn verify_session_key_auth_sig(
+            self: @ContractState,
+            r: u256,
+            s: u256,
+            v: u32,
+            owner: EthAddress,
+            session_public_key: felt252,
+            session_duration: u32,
+            salt: u256
+        ) {
+            let digest: u256 = self
+                .get_session_key_auth_digest(owner, session_public_key, session_duration, salt);
+            secp256_trait::verify_eth_signature::<Secp256k1Point>(
+                digest, secp256_trait::signature_from_vrs(v, r, s), owner
+            );
+        }
+
+        fn verify_session_key_revoke_sig(
+            self: @ContractState,
+            r: u256,
+            s: u256,
+            v: u32,
+            owner: EthAddress,
+            session_public_key: felt252,
+            salt: u256
+        ) {
+            let digest: u256 = self.get_session_key_revoke_digest(owner, session_public_key, salt);
+            secp256_trait::verify_eth_signature::<Secp256k1Point>(
+                digest, secp256_trait::signature_from_vrs(v, r, s), owner
+            );
+        }
+
         /// Returns the digest of the propose calldata.
         fn get_propose_digest(
             self: @ContractState,
@@ -162,6 +197,43 @@ mod EIP712 {
             self.hash_typed_data(message_hash)
         }
 
+        fn get_session_key_auth_digest(
+            self: @ContractState,
+            owner: EthAddress,
+            session_public_key: felt252,
+            session_duration: u32,
+            salt: u256
+        ) -> u256 {
+            let encoded_data = array![
+                u256 { low: SESSION_KEY_AUTH_TYPEHASH_LOW, high: SESSION_KEY_AUTH_TYPEHASH_HIGH },
+                Felt252IntoU256::into(starknet::get_tx_info().unbox().chain_id),
+                starknet::get_contract_address().into(),
+                owner.into(),
+                Felt252IntoU256::into(session_public_key),
+                U32IntoU256::into(session_duration),
+                salt
+            ];
+            let message_hash = keccak::keccak_u256s_be_inputs(encoded_data.span()).byte_reverse();
+            self.hash_typed_data(message_hash)
+        }
+
+        fn get_session_key_revoke_digest(
+            self: @ContractState, owner: EthAddress, session_public_key: felt252, salt: u256
+        ) -> u256 {
+            let encoded_data = array![
+                u256 {
+                    low: SESSION_KEY_REVOKE_TYPEHASH_LOW, high: SESSION_KEY_REVOKE_TYPEHASH_HIGH
+                },
+                Felt252IntoU256::into(starknet::get_tx_info().unbox().chain_id),
+                starknet::get_contract_address().into(),
+                owner.into(),
+                Felt252IntoU256::into(session_public_key),
+                salt
+            ];
+            let message_hash = keccak::keccak_u256s_be_inputs(encoded_data.span()).byte_reverse();
+            self.hash_typed_data(message_hash)
+        }
+
         /// Hashes typed data according to the EIP-712 specification.
         fn hash_typed_data(self: @ContractState, message_hash: u256) -> u256 {
             let encoded_data = InternalImpl::add_prefix_array(
@@ -198,7 +270,6 @@ mod EIP712 {
             };
             out
         }
-
 
         /// Adds a 16 bit prefix to a 128 bit input, returning the result and a carry.
         fn add_prefix_u128(input: u128, prefix: u128) -> (u128, u128) {

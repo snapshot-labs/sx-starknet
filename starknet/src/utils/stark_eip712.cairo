@@ -2,13 +2,15 @@
 /// See here for more info: https://community.starknet.io/t/snip-off-chain-signatures-a-la-eip712/98029
 #[starknet::contract]
 mod StarkEIP712 {
+    use core::starknet::account::AccountContract;
     use starknet::ContractAddress;
     use openzeppelin::account::interface::{AccountABIDispatcher, AccountABIDispatcherTrait};
     use sx::types::{Strategy, IndexedStrategy, Choice};
     use sx::utils::StructHash;
     use sx::utils::constants::{
         STARKNET_MESSAGE, DOMAIN_TYPEHASH, PROPOSE_TYPEHASH, VOTE_TYPEHASH,
-        UPDATE_PROPOSAL_TYPEHASH, ERC165_ACCOUNT_INTERFACE_ID
+        UPDATE_PROPOSAL_TYPEHASH, SESSION_KEY_AUTH_TYPEHASH, SESSION_KEY_REVOKE_TYPEHASH,
+        ERC165_ACCOUNT_INTERFACE_ID
     };
 
     #[storage]
@@ -82,6 +84,31 @@ mod StarkEIP712 {
             InternalImpl::verify_signature(digest, signature, author);
         }
 
+        fn verify_session_key_auth_sig(
+            self: @ContractState,
+            signature: Array<felt252>,
+            owner: ContractAddress,
+            session_public_key: felt252,
+            session_duration: u32,
+            salt: felt252
+        ) {
+            let digest: felt252 = self
+                .get_session_key_auth_digest(owner, session_public_key, session_duration, salt);
+            InternalImpl::verify_signature(digest, signature, owner);
+        }
+
+        fn verify_session_key_revoke_sig(
+            self: @ContractState,
+            signature: Array<felt252>,
+            owner: ContractAddress,
+            session_public_key: felt252,
+            salt: felt252
+        ) {
+            let digest: felt252 = self
+                .get_session_key_revoke_digest(owner, session_public_key, salt);
+            InternalImpl::verify_signature(digest, signature, owner);
+        }
+
         /// Returns the digest of the propose calldata.
         fn get_propose_digest(
             self: @ContractState,
@@ -146,6 +173,32 @@ mod StarkEIP712 {
             self.hash_typed_data(encoded_data.span().struct_hash(), author)
         }
 
+        fn get_session_key_auth_digest(
+            self: @ContractState,
+            owner: ContractAddress,
+            session_public_key: felt252,
+            session_duration: u32,
+            salt: felt252
+        ) -> felt252 {
+            let mut encoded_data = array![];
+            SESSION_KEY_AUTH_TYPEHASH.serialize(ref encoded_data);
+            owner.serialize(ref encoded_data);
+            session_public_key.serialize(ref encoded_data);
+            session_duration.serialize(ref encoded_data);
+            salt.serialize(ref encoded_data);
+            self.hash_typed_data(encoded_data.span().struct_hash(), owner)
+        }
+
+        fn get_session_key_revoke_digest(
+            self: @ContractState, owner: ContractAddress, session_public_key: felt252, salt: felt252
+        ) -> felt252 {
+            let mut encoded_data = array![];
+            SESSION_KEY_REVOKE_TYPEHASH.serialize(ref encoded_data);
+            owner.serialize(ref encoded_data);
+            session_public_key.serialize(ref encoded_data);
+            salt.serialize(ref encoded_data);
+            self.hash_typed_data(encoded_data.span().struct_hash(), owner)
+        }
 
         /// Returns the domain hash of the contract.
         fn get_domain_hash(name: felt252, version: felt252) -> felt252 {

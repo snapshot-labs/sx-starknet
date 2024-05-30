@@ -78,6 +78,18 @@ impl UserAddressZeroable of Zeroable<UserAddress> {
     }
 }
 
+impl UserAddressIntoFelt of Into<UserAddress, felt252> {
+    fn into(self: UserAddress) -> felt252 {
+        match self {
+            UserAddress::Starknet(address) => address.into(),
+            UserAddress::Ethereum(address) => address.into(),
+            UserAddress::Custom(address) => {
+                panic_with_felt252('Undefined')
+            }
+        }
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use super::{UserAddress, UserAddressZeroable};

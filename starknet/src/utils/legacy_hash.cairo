@@ -50,6 +50,14 @@ impl LegacyHashUserAddress of LegacyHash<UserAddress> {
     }
 }
 
+impl LegacyHashUserAddressU256 of LegacyHash<(UserAddress, u256)> {
+    fn hash(state: felt252, value: (UserAddress, u256)) -> felt252 {
+        let (addr, u256) = value;
+        let state = LegacyHash::hash(state, addr);
+        LegacyHash::hash(state, u256)
+    }
+}
+
 impl LegacyHashUsedSalts of LegacyHash<(EthAddress, u256)> {
     fn hash(state: felt252, value: (EthAddress, u256)) -> felt252 {
         let (addr, salt) = value;

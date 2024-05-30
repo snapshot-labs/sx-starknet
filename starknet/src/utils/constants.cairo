@@ -34,6 +34,18 @@ const VOTE_TYPEHASH_LOW: u128 = 0x298f2993575d81a3b6ec2d52ae694cb7;
 const UPDATE_PROPOSAL_TYPEHASH_HIGH: u128 = 0x2df41899fffb50338812b0c6bb5db608;
 const UPDATE_PROPOSAL_TYPEHASH_LOW: u128 = 0x9503bccdcdb9a1ed596eea5bb5087f84;
 
+// keccak256(
+//     "SessionKeyAuth(uint256 chainId,uint256 authenticator,address owner,uint256 sessionPublicKey,uint256 sessionDuration,uint256 salt)"
+//         )
+const SESSION_KEY_AUTH_TYPEHASH_HIGH: u128 = 0xbf6f5331c3a2c744889ff780cad3d0f2;
+const SESSION_KEY_AUTH_TYPEHASH_LOW: u128 = 0x550df4038acab427712b5b0b38e43c3d;
+
+// keccak256(
+//     "SessionKeyRevoke(uint256 chainId,uint256 authenticator,address owner,uint256 sessionPublicKey,uint256 salt)"
+//         )
+const SESSION_KEY_REVOKE_TYPEHASH_HIGH: u128 = 0xf607352669f95230a0602015a636355d;
+const SESSION_KEY_REVOKE_TYPEHASH_LOW: u128 = 0x1ef75bc12feec22425baac28de317513;
+
 // keccak256("Strategy(uint256 address,uint256[] params)")
 const STRATEGY_TYPEHASH_HIGH: u128 = 0xa6cb034787a88e7219605b9db792cb9a;
 const STRATEGY_TYPEHASH_LOW: u128 = 0x312314462975078b4bdad10feee486d9;
@@ -62,6 +74,14 @@ const VOTE_TYPEHASH: felt252 = 0x1d9763f87aaaeb271287d4b9c84053d3f201ad61efc2c32
 const UPDATE_PROPOSAL_TYPEHASH: felt252 =
     0x34f1b3fe98891caddfc18d9b8d3bee36be34145a6e9f7a7bb76a45038dda780;
 
+// H('SessionKeyAuth(owner:felt252,sessionPublicKey:felt252,sessionDuration:felt252,salt:felt252)')
+const SESSION_KEY_AUTH_TYPEHASH: felt252 =
+    0x3AE06AD61C8456C0833FD6862CD5D5F3CE96C8B9EB80B4B7FB2D0FF15C840F6;
+
+// H('SessionKeyRevoke(owner:felt252,sessionPublicKey:felt252,salt:felt252)')
+const SESSION_KEY_REVOKE_TYPEHASH: felt252 =
+    0x11FA5E8349D04FAA798D9F772F97D151A10FAF60B5CC9022CECA1D0A6BB06A;
+
 // StarknetKeccak('Strategy(address:felt252,params:felt*)')
 const STRATEGY_TYPEHASH: felt252 =
     0x39154ec0efadcd0deffdfc2044cf45dd986d260e59c26d69564b50a18f40f6b;
@@ -78,3 +98,9 @@ const U256_TYPEHASH: felt252 = 0x1094260a770342332e6a73e9256b901d484a43892531620
 
 const ERC165_ACCOUNT_INTERFACE_ID: felt252 =
     0x2ceccef7f994940b3962a6c67e0ba4fcd37df7d131417c604f91e03caecc1cd; // SNIP-6 compliant account ID, functions are snake case
+
+
+// ------ Pseudo selectors for Tx based Session key authentication ------
+const REGISTER_SESSION_WITH_OWNER_TX_SELECTOR: felt252 = 'register_session';
+
+const REVOKE_SESSION_WITH_OWNER_TX_SELECTOR: felt252 = 'revoke_session';

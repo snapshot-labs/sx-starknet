@@ -10,6 +10,18 @@ mod authenticators {
 
     mod stark_tx;
     use stark_tx::StarkTxAuthenticator;
+
+    mod eth_sig_session_key;
+    use eth_sig_session_key::EthSigSessionKeyAuthenticator;
+
+    mod eth_tx_session_key;
+    use eth_tx_session_key::IEthTxSessionKeyAuthenticator;
+
+    mod stark_sig_session_key;
+    use stark_sig_session_key::StarkSigSessionKeyAuthenticator;
+
+    mod stark_tx_session_key;
+    use stark_tx_session_key::StarkTxSessionKeyAuthenticator;
 }
 
 mod execution_strategies {
@@ -86,7 +98,7 @@ mod types {
     use finalization_status::FinalizationStatus;
 
     mod user_address;
-    use user_address::{UserAddress, UserAddressTrait};
+    use user_address::{UserAddress, UserAddressTrait, UserAddressIntoFelt};
 
     mod indexed_strategy;
     use indexed_strategy::{IndexedStrategy, IndexedStrategyImpl, IndexedStrategyTrait};
@@ -131,7 +143,8 @@ mod utils {
     mod legacy_hash;
     use legacy_hash::{
         LegacyHashEthAddress, LegacyHashFelt252EthAddress, LegacyHashUsedSalts, LegacyHashChoice,
-        LegacyHashUserAddress, LegacyHashVotePower, LegacyHashVoteRegistry, LegacyHashSpanFelt252
+        LegacyHashUserAddress, LegacyHashVotePower, LegacyHashVoteRegistry, LegacyHashSpanFelt252,
+        LegacyHashUserAddressU256
     };
 
     mod math;
@@ -143,6 +156,9 @@ mod utils {
 
     mod reinitializable;
     use reinitializable::Reinitializable;
+
+    mod session_key;
+    use session_key::SessionKey;
 
     mod simple_majority;
 
