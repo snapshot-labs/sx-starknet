@@ -116,4 +116,6 @@ jobs:
         run: yarn hardhat starknet-build
 
       - name: run Hardhat tests
-        run: yarn test:l1-execution; yarn test:eth-sig-auth; yarn test:stark-sig-auth;  yarn test:eth-tx-auth; yarn test:stark-tx-auth;
+        run:
+          yarn test:l1-execution; yarn test:eth-sig-auth; yarn test:stark-sig-auth;  yarn test:eth-tx-auth;
+          yarn test:eth-sig-sk-auth; yarn test:stark-sig-sk-auth; yarn test:eth-tx-sk-auth; yarn test:stark-tx-sk-auth
