@@ -180,4 +180,10 @@ mod StarkTxSessionKeyAuthenticator {
             );
         }
     }
+
+    #[constructor]
+    fn constructor(ref self: ContractState, name: felt252, version: felt252) {
+        let mut state = SessionKey::unsafe_new_contract_state();
+        SessionKey::InternalImpl::eth_sig_initializer(ref state, name, version);
+    }
 }
