@@ -31,7 +31,7 @@ contract L1AvatarExecutionStrategy is SimpleQuorumExecutionStrategy {
     event ExecutionRelayerSet(uint256 indexed newExecutionRelayer);
 
     /// @dev Emitted each time a proposal is executed.
-    event ProposalExecuted(uint256 indexed space, bytes32 executionHash);
+    event ProposalExecuted(uint256 indexed space, uint256 proposalId);
 
     /// @notice Emitted when a new Avatar Execution Strategy is initialized.
     /// @param _owner Address of the owner of the strategy.
@@ -93,25 +93,24 @@ contract L1AvatarExecutionStrategy is SimpleQuorumExecutionStrategy {
 
     /// @notice Executes a proposal
     /// @param space The address of the space that the proposal was created in.
+    /// @param proposalId The ID of the proposal (on Starknet).
     /// @param proposal The proposal struct.
-    /// @param votesFor The number of votes for the proposal.
-    /// @param votesAgainst The number of votes against the proposal.
-    /// @param votesAbstain The number of votes abstaining from the proposal.
+    /// @param votes Struct that hold the voting power of for, against and abstain choices.
     /// @param executionHash The hash of the proposal transactions.
     /// @param transactions The proposal transactions to be executed.
     function execute(
         uint256 space,
+        uint256 proposalId,
         Proposal memory proposal,
-        uint256 votesFor,
-        uint256 votesAgainst,
-        uint256 votesAbstain,
+        Votes memory votes,
         uint256 executionHash,
         MetaTransaction[] memory transactions
     ) external onlySpace(space) {
         // Call to the Starknet core contract will fail if finalized proposal message was not received on L1.
-        _receiveProposal(space, proposal, votesFor, votesAgainst, votesAbstain, executionHash);
+        _receiveProposal(space, proposalId, proposal, votes, executionHash);
 
-        ProposalStatus proposalStatus = getProposalStatus(proposal, votesFor, votesAgainst, votesAbstain);
+        ProposalStatus proposalStatus =
+            getProposalStatus(proposal, votes.votesFor, votes.votesAgainst, votes.votesAbstain);
         if ((proposalStatus != ProposalStatus.Accepted) && (proposalStatus != ProposalStatus.VotingPeriodAccepted)) {
             revert InvalidProposalStatus(proposalStatus);
         }
@@ -119,43 +118,44 @@ contract L1AvatarExecutionStrategy is SimpleQuorumExecutionStrategy {
         if (bytes32(executionHash) != keccak256(abi.encode(transactions))) revert InvalidPayload();
 
         _execute(transactions);
-        emit ProposalExecuted(space, bytes32(executionHash));
+        emit ProposalExecuted(space, proposalId);
     }
 
     /// @dev Reverts if the expected message was not received from L2.
     function _receiveProposal(
         uint256 space,
+        uint256 proposalId,
         Proposal memory proposal,
-        uint256 votesFor,
-        uint256 votesAgainst,
-        uint256 votesAbstain,
+        Votes memory votes,
         uint256 executionHash
     ) internal {
         // The Cairo serialization of the payload sent from L2
-        uint256[] memory payload = new uint256[](19);
+        uint256[] memory payload = new uint256[](21);
         payload[0] = space;
-        payload[1] = uint256(proposal.startTimestamp);
-        payload[2] = uint256(proposal.minEndTimestamp);
-        payload[3] = uint256(proposal.maxEndTimestamp);
-        payload[4] = uint256(proposal.finalizationStatus);
-        payload[5] = proposal.executionPayloadHash;
-        payload[6] = proposal.executionStrategy;
-        payload[7] = proposal.authorAddressType;
-        payload[8] = proposal.author;
-        payload[9] = proposal.activeVotingStrategies & (2 ** 128 - 1);
-        payload[10] = proposal.activeVotingStrategies >> 128;
+        payload[1] = proposalId & (2 ** 128 - 1);
+        payload[2] = proposalId >> 128;
+        payload[3] = uint256(proposal.startTimestamp);
+        payload[4] = uint256(proposal.minEndTimestamp);
+        payload[5] = uint256(proposal.maxEndTimestamp);
+        payload[6] = uint256(proposal.finalizationStatus);
+        payload[7] = proposal.executionPayloadHash;
+        payload[8] = proposal.executionStrategy;
+        payload[9] = proposal.authorAddressType;
+        payload[10] = proposal.author;
+        payload[11] = proposal.activeVotingStrategies & (2 ** 128 - 1);
+        payload[12] = proposal.activeVotingStrategies >> 128;
 
-        payload[11] = votesFor & (2 ** 128 - 1);
-        payload[12] = votesFor >> 128;
+        payload[13] = votes.votesFor & (2 ** 128 - 1);
+        payload[14] = votes.votesFor >> 128;
 
-        payload[13] = votesAgainst & (2 ** 128 - 1);
-        payload[14] = votesAgainst >> 128;
+        payload[15] = votes.votesAgainst & (2 ** 128 - 1);
+        payload[16] = votes.votesAgainst >> 128;
 
-        payload[15] = votesAbstain & (2 ** 128 - 1);
-        payload[16] = votesAbstain >> 128;
+        payload[17] = votes.votesAbstain & (2 ** 128 - 1);
+        payload[18] = votes.votesAbstain >> 128;
 
-        payload[17] = executionHash & (2 ** 128 - 1);
-        payload[18] = executionHash >> 128;
+        payload[19] = executionHash & (2 ** 128 - 1);
+        payload[20] = executionHash >> 128;
 
         // If proposal execution message did not exist/not received yet, then this will revert.
         IStarknetCore(starknetCore).consumeMessageFromL2(executionRelayer, payload);

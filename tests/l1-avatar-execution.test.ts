@@ -113,13 +113,12 @@ describe('L1 Avatar Execution', function () {
       value: 0,
       data: '0x11',
       operation: 0,
-      salt: 1,
     };
 
     const abiCoder = new ethers.utils.AbiCoder();
     const executionHash = ethers.utils.keccak256(
       abiCoder.encode(
-        ['tuple(address to, uint256 value, bytes data, uint8 operation, uint256 salt)[]'],
+        ['tuple(address to, uint256 value, bytes data, uint8 operation)[]'],
         [[proposalTx]],
       ),
     );
@@ -184,17 +183,16 @@ describe('L1 Avatar Execution', function () {
     const message_payload = flushL2Response.consumed_messages.from_l2[0].payload;
 
     // Proposal data can either be extracted from the message sent to L1 (as done here) or pulled from the contract directly
-    const [proposal, forVotes, againstVotes, abstainVotes] = extractMessagePayload(message_payload);
+    const [proposalId, proposal, votes] = extractMessagePayload(message_payload);
 
     await expect(l1AvatarExecutionStrategy.execute(
       space.address,
+      proposalId,
       proposal,
-      forVotes,
-      againstVotes,
-      abstainVotes,
+      votes,
       executionHash,
       [proposalTx],
-    )).to.emit(l1AvatarExecutionStrategy, 'ProposalExecuted').withArgs(space.address.toString(), executionHash);
+    )).to.emit(l1AvatarExecutionStrategy, 'ProposalExecuted').withArgs(space.address.toString(), proposalId);
   }, 10000000);
 
   it('should execute a proposal with multiple txs via the Avatar Execution Strategy connected to a Safe', async function () {
@@ -208,7 +206,6 @@ describe('L1 Avatar Execution', function () {
       value: 0,
       data: '0x11',
       operation: 0,
-      salt: 1,
     };
 
     const proposalTx2 = {
@@ -222,7 +219,7 @@ describe('L1 Avatar Execution', function () {
     const abiCoder = new ethers.utils.AbiCoder();
     const executionHash = ethers.utils.keccak256(
       abiCoder.encode(
-        ['tuple(address to, uint256 value, bytes data, uint8 operation, uint256 salt)[]'],
+        ['tuple(address to, uint256 value, bytes data, uint8 operation)[]'],
         [[proposalTx, proposalTx2]],
       ),
     );
@@ -287,14 +284,13 @@ describe('L1 Avatar Execution', function () {
     const message_payload = flushL2Response.consumed_messages.from_l2[0].payload;
 
     // Proposal data can either be extracted from the message sent to L1 (as done here) or pulled from the contract directly
-    const [proposal, forVotes, againstVotes, abstainVotes] = extractMessagePayload(message_payload);
+    const [proposalId, proposal, votes] = extractMessagePayload(message_payload);
 
     await l1AvatarExecutionStrategy.execute(
       space.address,
+      proposalId,
       proposal,
-      forVotes,
-      againstVotes,
-      abstainVotes,
+      votes,
       executionHash,
       [proposalTx, proposalTx2],
     );
@@ -314,13 +310,12 @@ describe('L1 Avatar Execution', function () {
       value: 0,
       data: '0x11',
       operation: 0,
-      salt: 1,
     };
 
     const abiCoder = new ethers.utils.AbiCoder();
     const executionHash = ethers.utils.keccak256(
       abiCoder.encode(
-        ['tuple(address to, uint256 value, bytes data, uint8 operation, uint256 salt)[]'],
+        ['tuple(address to, uint256 value, bytes data, uint8 operation)[]'],
         [[proposalTx]],
       ),
     );
@@ -385,15 +380,14 @@ describe('L1 Avatar Execution', function () {
     const message_payload = flushL2Response.consumed_messages.from_l2[0].payload;
 
     // Proposal data can either be extracted from the message sent to L1 (as done here) or pulled from the contract directly
-    const [proposal, forVotes, againstVotes, abstainVotes] = extractMessagePayload(message_payload);
+    const [proposalId, proposal, votes] = extractMessagePayload(message_payload);
 
     await expect(
       l1AvatarExecutionStrategy.execute(
         space.address,
+        proposalId,
         proposal,
-        forVotes,
-        againstVotes,
-        abstainVotes,
+        votes,
         executionHash,
         [proposalTx],
       ),
@@ -414,13 +408,12 @@ describe('L1 Avatar Execution', function () {
       value: 0,
       data: '0x22',
       operation: 0,
-      salt: 1,
     };
 
     const abiCoder = new ethers.utils.AbiCoder();
     const executionHash = ethers.utils.keccak256(
       abiCoder.encode(
-        ['tuple(address to, uint256 value, bytes data, uint8 operation, uint256 salt)[]'],
+        ['tuple(address to, uint256 value, bytes data, uint8 operation)[]'],
         [[proposalTx]],
       ),
     );
@@ -484,16 +477,17 @@ describe('L1 Avatar Execution', function () {
     const flushL2Response = await starknet.devnet.flush();
     const message_payload = flushL2Response.consumed_messages.from_l2[0].payload;
     // Proposal data can either be extracted from the message sent to L1 (as done here) or pulled from the contract directly
-    const [proposal, forVotes, againstVotes, abstainVotes] = extractMessagePayload(message_payload);
+    const [proposalId, proposal, votes] = extractMessagePayload(message_payload);
 
-    // Incorrect forVotes value was supplied
+    // Manually set an incorrect votesFor value
+    votes.votesFor = 10;
+
     await expect(
       l1AvatarExecutionStrategy.execute(
         space.address,
+        proposalId,
         proposal,
-        10,
-        againstVotes,
-        abstainVotes,
+        votes,
         executionHash,
         [proposalTx],
       ),
@@ -511,13 +505,12 @@ describe('L1 Avatar Execution', function () {
       value: 0,
       data: '0x22',
       operation: 0,
-      salt: 1,
     };
 
     const abiCoder = new ethers.utils.AbiCoder();
     const executionHash = ethers.utils.keccak256(
       abiCoder.encode(
-        ['tuple(address to, uint256 value, bytes data, uint8 operation, uint256 salt)[]'],
+        ['tuple(address to, uint256 value, bytes data, uint8 operation)[]'],
         [[proposalTx]],
       ),
     );
@@ -581,7 +574,7 @@ describe('L1 Avatar Execution', function () {
     const flushL2Response = await starknet.devnet.flush();
     const message_payload = flushL2Response.consumed_messages.from_l2[0].payload;
     // Proposal data can either be extracted from the message sent to L1 (as done here) or pulled from the contract directly
-    const [proposal, forVotes, againstVotes, abstainVotes] = extractMessagePayload(message_payload);
+    const [proposalId, proposal, votes] = extractMessagePayload(message_payload);
 
     const fakeProposalTx = {
       to: signer.address,
@@ -595,10 +588,9 @@ describe('L1 Avatar Execution', function () {
     await expect(
       l1AvatarExecutionStrategy.execute(
         space.address,
+        proposalId,
         proposal,
-        forVotes,
-        againstVotes,
-        abstainVotes,
+        votes,
         executionHash,
         [fakeProposalTx],
       ),
@@ -616,13 +608,12 @@ describe('L1 Avatar Execution', function () {
       value: 0,
       data: '0x22',
       operation: 0,
-      salt: 1,
     };
 
     const abiCoder = new ethers.utils.AbiCoder();
     const executionHash = ethers.utils.keccak256(
       abiCoder.encode(
-        ['tuple(address to, uint256 value, bytes data, uint8 operation, uint256 salt)[]'],
+        ['tuple(address to, uint256 value, bytes data, uint8 operation)[]'],
         [[proposalTx]],
       ),
     );
@@ -686,16 +677,15 @@ describe('L1 Avatar Execution', function () {
     const flushL2Response = await starknet.devnet.flush();
     const message_payload = flushL2Response.consumed_messages.from_l2[0].payload;
     // Proposal data can either be extracted from the message sent to L1 (as done here) or pulled from the contract directly
-    const [proposal, forVotes, againstVotes, abstainVotes] = extractMessagePayload(message_payload);
+    const [proposalId, proposal, votes] = extractMessagePayload(message_payload);
 
     // For some reason CI fails with revertedWith('InvalidProposalStatus') but works locally.
     await expect(
       l1AvatarExecutionStrategy.execute(
         space.address,
+        proposalId,
         proposal,
-        forVotes,
-        againstVotes,
-        abstainVotes,
+        votes,
         executionHash,
         [proposalTx],
       ),
@@ -713,13 +703,12 @@ describe('L1 Avatar Execution', function () {
       value: 0,
       data: '0x22',
       operation: 0,
-      salt: 1,
     };
 
     const abiCoder = new ethers.utils.AbiCoder();
     const executionHash = ethers.utils.keccak256(
       abiCoder.encode(
-        ['tuple(address to, uint256 value, bytes data, uint8 operation, uint256 salt)[]'],
+        ['tuple(address to, uint256 value, bytes data, uint8 operation)[]'],
         [[proposalTx]],
       ),
     );
@@ -783,16 +772,15 @@ describe('L1 Avatar Execution', function () {
     const flushL2Response = await starknet.devnet.flush();
     const message_payload = flushL2Response.consumed_messages.from_l2[0].payload;
     // Proposal data can either be extracted from the message sent to L1 (as done here) or pulled from the contract directly
-    const [proposal, forVotes, againstVotes, abstainVotes] = extractMessagePayload(message_payload);
+    const [proposalId, proposal, votes] = extractMessagePayload(message_payload);
 
     // For some reason CI fails with revertedWith('InvalidProposalStatus') but works locally.
     await expect(
       l1AvatarExecutionStrategy.execute(
         space.address,
+        proposalId,
         proposal,
-        forVotes,
-        againstVotes,
-        abstainVotes,
+        votes,
         executionHash,
         [proposalTx],
       ),
@@ -810,13 +798,12 @@ describe('L1 Avatar Execution', function () {
       value: 0,
       data: '0x22',
       operation: 0,
-      salt: 1,
     };
 
     const abiCoder = new ethers.utils.AbiCoder();
     const executionHash = ethers.utils.keccak256(
       abiCoder.encode(
-        ['tuple(address to, uint256 value, bytes data, uint8 operation, uint256 salt)[]'],
+        ['tuple(address to, uint256 value, bytes data, uint8 operation)[]'],
         [[proposalTx]],
       ),
     );
@@ -867,16 +854,15 @@ describe('L1 Avatar Execution', function () {
     const flushL2Response = await starknet.devnet.flush();
     const message_payload = flushL2Response.consumed_messages.from_l2[0].payload;
     // Proposal data can either be extracted from the message sent to L1 (as done here) or pulled from the contract directly
-    const [proposal, forVotes, againstVotes, abstainVotes] = extractMessagePayload(message_payload);
+    const [proposalId, proposal, votes] = extractMessagePayload(message_payload);
 
     // For some reason CI fails with revertedWith('InvalidProposalStatus') but works locally.
     await expect(
       l1AvatarExecutionStrategy.execute(
         space.address,
+        proposalId,
         proposal,
-        forVotes,
-        againstVotes,
-        abstainVotes,
+        votes,
         executionHash,
         [proposalTx],
       ),
@@ -895,13 +881,12 @@ describe('L1 Avatar Execution', function () {
       value: 0,
       data: '0x22',
       operation: 0,
-      salt: 1,
     };
 
     const abiCoder = new ethers.utils.AbiCoder();
     const executionHash = ethers.utils.keccak256(
       abiCoder.encode(
-        ['tuple(address to, uint256 value, bytes data, uint8 operation, uint256 salt)[]'],
+        ['tuple(address to, uint256 value, bytes data, uint8 operation)[]'],
         [[proposalTx]],
       ),
     );

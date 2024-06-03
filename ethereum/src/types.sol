@@ -14,8 +14,6 @@ struct MetaTransaction {
     uint256 value;
     bytes data;
     Enum.Operation operation;
-    // We use a salt so that the struct can always be unique and we can use its hash as a unique identifier.
-    uint256 salt;
 }
 
 /// @notice The set of possible finalization statuses for a proposal.
@@ -38,6 +36,13 @@ struct Proposal {
     uint256 authorAddressType;
     uint256 author;
     uint256 activeVotingStrategies;
+}
+
+/// @notice Struct to store the votes for a proposal. Used because of Solidity's stack limitations.
+struct Votes {
+    uint256 votesFor;
+    uint256 votesAgainst;
+    uint256 votesAbstain;
 }
 
 /// @notice The set of possible statuses for a proposal.
