@@ -51,6 +51,7 @@ mod EthRelayerExecutionStrategy {
             // Serialize the payload to be sent to the L1 execution strategy
             let mut l1_payload = array![];
             space.serialize(ref l1_payload);
+            proposal_id.serialize(ref l1_payload);
             proposal.serialize(ref l1_payload);
             votes_for.serialize(ref l1_payload);
             votes_against.serialize(ref l1_payload);

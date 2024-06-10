@@ -42,29 +42,16 @@ export async function safeWithL1AvatarExecutionStrategySetup(
     'L1AvatarExecutionStrategyMockMessaging',
   );
 
-  //deploying singleton master contract
-  const masterL1AvatarExecutionStrategy = await L1AvatarExecutionStrategyFactory.deploy(
-    '0x0000000000000000000000000000000000000001',
-    '0x0000000000000000000000000000000000000001',
-    '0x0000000000000000000000000000000000000001',
-    1,
-    [],
-    0,
-  );
-  const encodedInitParams = ethers.utils.defaultAbiCoder.encode(
-    ['address', 'address', 'address', 'uint256', 'uint256[]', 'uint256'],
-    [
-      safeSigner.address,
-      safe.address,
-      starknetCoreAddress,
-      ethRelayerAddress,
-      [spaceAddress],
-      quorum,
-    ],
-  );
+  // Deploying the singleton master contract (not initialized)
+  const masterL1AvatarExecutionStrategy = await L1AvatarExecutionStrategyFactory.deploy();
 
   const initData = masterL1AvatarExecutionStrategy.interface.encodeFunctionData('setUp', [
-    encodedInitParams,
+    safeSigner.address,
+    safe.address,
+    starknetCoreAddress,
+    ethRelayerAddress,
+    [spaceAddress],
+    quorum,
   ]);
 
   const masterCopyAddress = masterL1AvatarExecutionStrategy.address
@@ -118,34 +105,43 @@ export async function increaseEthBlockchainTime(networkUrl: string, seconds: num
 
 export function extractMessagePayload(
   message_payload: any,
-): [proposal: any, forVotes: bigint, againstVotes: bigint, abstainVotes: bigint] {
+): [proposalId: any, proposal: any, votes: any] {
+  const proposalId = uint256.uint256ToBN({
+    low: message_payload[1],
+    high: message_payload[2],
+  });
   const proposal = {
-    startTimestamp: message_payload[1],
-    minEndTimestamp: message_payload[2],
-    maxEndTimestamp: message_payload[3],
-    finalizationStatus: message_payload[4],
-    executionPayloadHash: message_payload[5],
-    executionStrategy: message_payload[6],
-    authorAddressType: message_payload[7],
-    author: message_payload[8],
+    startTimestamp: message_payload[3],
+    minEndTimestamp: message_payload[4],
+    maxEndTimestamp: message_payload[5],
+    finalizationStatus: message_payload[6],
+    executionPayloadHash: message_payload[7],
+    executionStrategy: message_payload[8],
+    authorAddressType: message_payload[9],
+    author: message_payload[10],
     activeVotingStrategies: uint256.uint256ToBN({
-      low: message_payload[9],
-      high: message_payload[10],
+      low: message_payload[11],
+      high: message_payload[12],
     }),
   };
   const forVotes = uint256.uint256ToBN({
-    low: message_payload[11],
-    high: message_payload[12],
-  });
-  const againstVotes = uint256.uint256ToBN({
     low: message_payload[13],
     high: message_payload[14],
   });
-  const abstainVotes = uint256.uint256ToBN({
+  const againstVotes = uint256.uint256ToBN({
     low: message_payload[15],
     high: message_payload[16],
   });
-  return [proposal, forVotes, againstVotes, abstainVotes];
+  const abstainVotes = uint256.uint256ToBN({
+    low: message_payload[17],
+    high: message_payload[18],
+  });
+  const votes = {
+    votesFor: forVotes,
+    votesAgainst: againstVotes,
+    votesAbstain: abstainVotes,
+  }
+  return [proposalId, proposal, votes];
 }
 
 // From sx.js
