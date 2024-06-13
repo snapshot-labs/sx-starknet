@@ -15,14 +15,6 @@ impl LegacyHashEthAddress of LegacyHash<EthAddress> {
     }
 }
 
-impl LegacyHashFelt252EthAddress of LegacyHash<(felt252, EthAddress)> {
-    fn hash(state: felt252, value: (felt252, EthAddress)) -> felt252 {
-        let (_felt252, _eth_address) = value;
-        let state = LegacyHash::hash(state, _felt252);
-        LegacyHash::hash(state, _eth_address)
-    }
-}
-
 impl LegacyHashSpanFelt252 of LegacyHash<Span<felt252>> {
     fn hash(state: felt252, mut value: Span<felt252>) -> felt252 {
         let len = value.len();
@@ -32,9 +24,7 @@ impl LegacyHashSpanFelt252 of LegacyHash<Span<felt252>> {
                 Option::Some(item) => {
                     call_data_state = LegacyHash::hash(call_data_state, *item);
                 },
-                Option::None(_) => {
-                    break LegacyHash::hash(call_data_state, len);
-                },
+                Option::None(_) => { break LegacyHash::hash(call_data_state, len); },
             };
         }
     }
@@ -47,14 +37,6 @@ impl LegacyHashUserAddress of LegacyHash<UserAddress> {
             UserAddress::Ethereum(address) => LegacyHash::<felt252>::hash(state, address.into()),
             UserAddress::Custom(address) => LegacyHash::<u256>::hash(state, address),
         }
-    }
-}
-
-impl LegacyHashUsedSalts of LegacyHash<(EthAddress, u256)> {
-    fn hash(state: felt252, value: (EthAddress, u256)) -> felt252 {
-        let (addr, salt) = value;
-        let state = LegacyHash::hash(state, addr);
-        LegacyHash::hash(state, salt)
     }
 }
 

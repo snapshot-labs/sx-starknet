@@ -33,17 +33,24 @@ trait ITimelockExecutionStrategy<TContractState> {
 mod TimelockExecutionStrategy {
     use core::zeroable::Zeroable;
     use starknet::{ContractAddress, info, syscalls};
-    use openzeppelin::access::ownable::Ownable;
+    use openzeppelin::access::ownable::OwnableComponent;
     use sx::interfaces::IExecutionStrategy;
     use super::ITimelockExecutionStrategy;
     use sx::types::{Proposal, ProposalStatus};
     use sx::utils::{SimpleQuorum, SpaceManager};
 
+    component!(path: OwnableComponent, storage: ownable, event: OwnableEvent);
+
+    impl OwnableInternalImpl = OwnableComponent::InternalImpl<ContractState>;
+    impl OwnableImpl = OwnableComponent::OwnableImpl<ContractState>;
+
     #[storage]
     struct Storage {
         _timelock_delay: u32,
         _veto_guardian: ContractAddress,
-        _proposal_execution_time: LegacyMap::<felt252, u32>
+        _proposal_execution_time: LegacyMap::<felt252, u32>,
+        #[substorage(v0)]
+        ownable: OwnableComponent::Storage
     }
 
     #[event]
@@ -56,7 +63,9 @@ mod TimelockExecutionStrategy {
         ProposalQueued: ProposalQueued,
         CallExecuted: CallExecuted,
         ProposalExecuted: ProposalExecuted,
-        ProposalVetoed: ProposalVetoed
+        ProposalVetoed: ProposalVetoed,
+        #[flat]
+        OwnableEvent: OwnableComponent::Event
     }
 
     #[derive(Drop, PartialEq, starknet::Event)]
@@ -121,10 +130,7 @@ mod TimelockExecutionStrategy {
         timelock_delay: u32,
         quorum: u256
     ) {
-        // Migration to components planned ; disregard the `unsafe` keyword,
-        // it is actually safe.
-        let mut state = Ownable::unsafe_new_contract_state();
-        Ownable::InternalImpl::initializer(ref state, owner);
+        self.ownable.initializer(owner);
 
         let mut state = SimpleQuorum::unsafe_new_contract_state();
         SimpleQuorum::InternalImpl::initializer(ref state, quorum);
@@ -136,7 +142,7 @@ mod TimelockExecutionStrategy {
         self._veto_guardian.write(veto_guardian);
     }
 
-    #[external(v0)]
+    #[abi(embed_v0)]
     impl ExecutionStrategy of IExecutionStrategy<ContractState> {
         fn execute(
             ref self: ContractState,
@@ -183,9 +189,7 @@ mod TimelockExecutionStrategy {
                                 )
                             );
                     },
-                    Option::None(()) => {
-                        break;
-                    }
+                    Option::None(()) => { break; }
                 };
             }
         }
@@ -208,7 +212,7 @@ mod TimelockExecutionStrategy {
         }
     }
 
-    #[external(v0)]
+    #[abi(embed_v0)]
     impl TimelockExecutionStrategy of ITimelockExecutionStrategy<ContractState> {
         fn execute_queued_proposal(ref self: ContractState, mut payload: Span<felt252>) {
             let execution_payload_hash = poseidon::poseidon_hash_span(payload);
@@ -232,9 +236,7 @@ mod TimelockExecutionStrategy {
 
                         self.emit(Event::CallExecuted(CallExecuted { call: call }));
                     },
-                    Option::None(()) => {
-                        break;
-                    }
+                    Option::None(()) => { break; }
                 };
             };
 
@@ -262,10 +264,7 @@ mod TimelockExecutionStrategy {
         }
 
         fn set_veto_guardian(ref self: ContractState, new_veto_guardian: ContractAddress) {
-            // Migration to components planned ; disregard the `unsafe` keyword,
-            // it is actually safe.
-            let state = Ownable::unsafe_new_contract_state();
-            Ownable::InternalImpl::assert_only_owner(@state);
+            self.ownable.assert_only_owner();
             self._veto_guardian.write(new_veto_guardian);
 
             self
@@ -279,10 +278,7 @@ mod TimelockExecutionStrategy {
         }
 
         fn set_timelock_delay(ref self: ContractState, new_timelock_delay: u32) {
-            // Migration to components planned ; disregard the `unsafe` keyword,
-            // it is actually safe.
-            let state = Ownable::unsafe_new_contract_state();
-            Ownable::InternalImpl::assert_only_owner(@state);
+            self.ownable.assert_only_owner();
             self._timelock_delay.write(new_timelock_delay);
 
             self
@@ -298,19 +294,13 @@ mod TimelockExecutionStrategy {
         }
 
         fn enable_space(ref self: ContractState, space: ContractAddress) {
-            // Migration to components planned ; disregard the `unsafe` keyword,
-            // it is actually safe.
-            let state = Ownable::unsafe_new_contract_state();
-            Ownable::InternalImpl::assert_only_owner(@state);
+            self.ownable.assert_only_owner();
             let mut state = SpaceManager::unsafe_new_contract_state();
             SpaceManager::InternalImpl::enable_space(ref state, space);
         }
 
         fn disable_space(ref self: ContractState, space: ContractAddress) {
-            // Migration to components planned ; disregard the `unsafe` keyword,
-            // it is actually safe.
-            let state = Ownable::unsafe_new_contract_state();
-            Ownable::InternalImpl::assert_only_owner(@state);
+            self.ownable.assert_only_owner();
             let mut state = SpaceManager::unsafe_new_contract_state();
             SpaceManager::InternalImpl::disable_space(ref state, space);
         }
@@ -322,25 +312,17 @@ mod TimelockExecutionStrategy {
             SpaceManager::InternalImpl::is_space_enabled(@state, space)
         }
 
+        // TODO: use Ownable impl as abi_embed(v0)?
         fn owner(self: @ContractState) -> ContractAddress {
-            // Migration to components planned ; disregard the `unsafe` keyword,
-            // it is actually safe.
-            let state = Ownable::unsafe_new_contract_state();
-            Ownable::OwnableImpl::owner(@state)
+            self.ownable.owner()
         }
 
         fn transfer_ownership(ref self: ContractState, new_owner: ContractAddress) {
-            // Migration to components planned ; disregard the `unsafe` keyword,
-            // it is actually safe.
-            let mut state = Ownable::unsafe_new_contract_state();
-            Ownable::OwnableImpl::transfer_ownership(ref state, new_owner);
+            self.ownable.transfer_ownership(new_owner);
         }
 
         fn renounce_ownership(ref self: ContractState) {
-            // Migration to components planned ; disregard the `unsafe` keyword,
-            // it is actually safe.
-            let mut state = Ownable::unsafe_new_contract_state();
-            Ownable::OwnableImpl::renounce_ownership(ref state);
+            self.ownable.renounce_ownership();
         }
     }
 

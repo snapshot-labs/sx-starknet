@@ -2,8 +2,6 @@
 mod tests {
     use sx::tests::mocks::erc20_votes_preset::ERC20VotesPreset; // temporary while we wait for scarb to fix their dependencies
     use sx::interfaces::{ISpaceDispatcher, ISpaceDispatcherTrait};
-    use openzeppelin::token::erc20::presets::ERC20VotesPreset::ERC20Impl;
-    use openzeppelin::token::erc20::presets::ERC20VotesPreset::VotesImpl;
     use openzeppelin::token::erc20::interface::{IERC20Dispatcher, IERC20DispatcherTrait};
     use openzeppelin::governance::utils::interfaces::votes::{
         IVotes, IVotesDispatcher, IVotesDispatcherTrait
@@ -66,7 +64,7 @@ mod tests {
 
     fn setup_space() -> (Config, ISpaceDispatcher) {
         let config = _setup();
-        let (factory_address, space) = deploy(@config);
+        let (_, space) = deploy(@config);
 
         let token_contract = deploy_token_contract();
         let erc20_voting_strategy = strategy_from_contract(token_contract);

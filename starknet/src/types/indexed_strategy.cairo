@@ -31,9 +31,7 @@ impl IndexedStrategyImpl of IndexedStrategyTrait {
                     // Update aforementioned bit.
                     bit_map = bit_map | s;
                 },
-                Option::None => {
-                    break;
-                },
+                Option::None => { break; },
             };
         };
     }

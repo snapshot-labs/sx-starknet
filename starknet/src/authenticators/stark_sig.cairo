@@ -88,7 +88,7 @@ mod StarkSigAuthenticator {
         _used_salts: LegacyMap::<(ContractAddress, felt252), bool>
     }
 
-    #[external(v0)]
+    #[abi(embed_v0)]
     impl StarkSigAuthenticator of IStarkSigAuthenticator<ContractState> {
         fn authenticate_propose(
             ref self: ContractState,

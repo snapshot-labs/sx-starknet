@@ -16,7 +16,7 @@ mod VanillaAuthenticator {
     #[storage]
     struct Storage {}
 
-    #[external(v0)]
+    #[abi(embed_v0)]
     impl VanillaAuthenticator of IVanillaAuthenticator<ContractState> {
         fn authenticate(
             ref self: ContractState,
@@ -26,10 +26,8 @@ mod VanillaAuthenticator {
         ) {
             // TODO: use if let Err(e) once it's supported
             match syscalls::call_contract_syscall(target, selector, data.span()) {
-                Result::Ok(a) => {},
-                Result::Err(a) => {
-                    assert(false, *a[0]);
-                },
+                Result::Ok(_) => {},
+                Result::Err(a) => { assert(false, *a[0]); },
             };
         }
     }

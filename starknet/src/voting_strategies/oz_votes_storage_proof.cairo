@@ -10,7 +10,7 @@ mod OZVotesStorageProofVotingStrategy {
     #[storage]
     struct Storage {}
 
-    #[external(v0)]
+    #[abi(embed_v0)]
     impl OZVotesStorageProofVotingStrategy of IVotingStrategy<ContractState> {
         /// Returns the delegated voting power of `voter` at the block number corresponding to `timestamp` for tokens that implement OZVotes.
         ///
@@ -31,20 +31,22 @@ mod OZVotesStorageProofVotingStrategy {
             timestamp: u32,
             voter: UserAddress,
             mut params: Span<felt252>, // [contract_address: address, slot_index: u256]
-            mut user_params: Span<felt252>, // [checkpoint_index: u32, checkpoint_mpt_proof: u64[][], exclusion_mpt_proof: u64[][]]
+            mut user_params: Span<
+                felt252
+            >, // [checkpoint_index: u32, checkpoint_mpt_proof: u64[][], exclusion_mpt_proof: u64[][]]
         ) -> u256 {
             // Cast voter address to an Ethereum address
             // Will revert if the address is not a valid Ethereum address
             let voter = voter.to_ethereum_address();
 
             // Decode params and user_params
-            let (evm_contract_address, slot_index) = Serde::<(
-                EthAddress, u256
-            )>::deserialize(ref params)
+            let (evm_contract_address, slot_index) = Serde::<
+                (EthAddress, u256)
+            >::deserialize(ref params)
                 .unwrap();
-            let (checkpoint_index, checkpoint_mpt_proof, exclusion_mpt_proof) = Serde::<(
-                u32, Span<Span<u64>>, Span<Span<u64>>
-            )>::deserialize(ref user_params)
+            let (checkpoint_index, checkpoint_mpt_proof, exclusion_mpt_proof) = Serde::<
+                (u32, Span<Span<u64>>, Span<Span<u64>>)
+            >::deserialize(ref user_params)
                 .unwrap();
 
             // Get the slot key for the final checkpoint
@@ -77,7 +79,6 @@ mod OZVotesStorageProofVotingStrategy {
         }
     }
 
-    #[external(v0)]
     #[generate_trait]
     impl SingleSlotProofImpl of SingleSlotProofTrait {
         /// Queries the Timestamp Remapper contract for the closest L1 block number that occured before

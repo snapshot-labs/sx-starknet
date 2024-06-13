@@ -52,7 +52,6 @@ mod setup {
         let max_voting_duration = 2;
         let min_voting_duration = 1;
         let voting_delay = 1;
-        let quorum = u256_from_felt252(1);
 
         // Deploy Vanilla Authenticator 
         let (vanilla_authenticator_address, _) = deploy_syscall(
@@ -83,20 +82,6 @@ mod setup {
         voting_strategies
             .append(Strategy { address: vanilla_voting_strategy_address, params: array![] });
 
-        // Deploy Vanilla Execution Strategy 
-        let mut initializer_calldata = array![];
-        quorum.serialize(ref initializer_calldata);
-        let (vanilla_execution_strategy_address, _) = deploy_syscall(
-            VanillaExecutionStrategy::TEST_CLASS_HASH.try_into().unwrap(),
-            0,
-            initializer_calldata.span(),
-            false
-        )
-            .unwrap();
-        let vanilla_execution_strategy = StrategyImpl::from_address(
-            vanilla_execution_strategy_address
-        );
-
         let proposal_validation_strategy_metadata_uri = array!['https:://rick.roll'];
         let voting_strategies_metadata_uris = array![array![]];
         let dao_uri = array!['https://dao.uri'];
@@ -126,7 +111,7 @@ mod setup {
                 Factory::TEST_CLASS_HASH.try_into().unwrap(), 0, array![].span(), false
             ) {
             Result::Ok((address, _)) => address,
-            Result::Err(e) => {
+            Result::Err(_) => {
                 panic_with_felt252('deploy failed');
                 contract_address_const::<0>()
             }
@@ -138,7 +123,7 @@ mod setup {
         let space_address =
             match factory.deploy(space_class_hash, initializer_calldata.span(), salt_nonce) {
             Result::Ok(address) => address,
-            Result::Err(e) => {
+            Result::Err(_) => {
                 panic_with_felt252('deploy failed');
                 contract_address_const::<0>()
             },

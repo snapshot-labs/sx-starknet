@@ -6,7 +6,6 @@ mod AlwaysFailProposalValidationStrategy {
     #[storage]
     struct Storage {}
 
-    #[external(v0)]
     #[generate_trait]
     impl AlwaysFailProposalValidationStrategy of IAlwaysFailProposalValidationStrategy {
         fn validate(

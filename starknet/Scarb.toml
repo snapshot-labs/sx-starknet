@@ -12,7 +12,7 @@ casm-add-pythonic-hints = true
 build-external-contracts = ["openzeppelin::account::account::Account", "openzeppelin::account::interface::AccountABI"]
 
 [dependencies]
-openzeppelin = { git = "https://github.com/snapshot-labs/openzeppelin-cairo-contracts.git", branch = "feat/erc20votes-#631-frozen" }
+openzeppelin = { git = "https://github.com/OpenZeppelin/cairo-contracts.git", version = "0.13.0" }
 starknet = ">=2.2.0"
 
 [scripts]

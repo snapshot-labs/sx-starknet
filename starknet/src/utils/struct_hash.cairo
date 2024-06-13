@@ -43,12 +43,8 @@ impl StructHashIndexedStrategySpan of StructHash<Span<IndexedStrategy>> {
         let mut encoded_data = array![];
         loop {
             match self_.pop_front() {
-                Option::Some(item) => {
-                    encoded_data.append(item.struct_hash());
-                },
-                Option::None(_) => {
-                    break encoded_data.span().struct_hash();
-                },
+                Option::Some(item) => { encoded_data.append(item.struct_hash()); },
+                Option::None(_) => { break encoded_data.span().struct_hash(); },
             };
         }
     }

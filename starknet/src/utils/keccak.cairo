@@ -44,9 +44,7 @@ impl KeccakStructHashIndexedStrategyArray of KeccakStructHash<Span<IndexedStrate
         let mut encoded_data = ArrayTrait::<u256>::new();
         loop {
             match self_.pop_front() {
-                Option::Some(item) => {
-                    encoded_data.append(item.keccak_struct_hash());
-                },
+                Option::Some(item) => { encoded_data.append(item.keccak_struct_hash()); },
                 Option::None(_) => {
                     break keccak::keccak_u256s_be_inputs(encoded_data.span()).byte_reverse();
                 }

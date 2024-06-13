@@ -42,7 +42,7 @@ mod tests {
     #[available_gas(10000000000)]
     fn propose_update_vote() {
         let config = setup();
-        let (factory, space) = deploy(@config);
+        let (_, space) = deploy(@config);
         let authenticator = setup_stark_tx_auth(space, config.owner);
 
         let quorum = 1_u256;
@@ -110,7 +110,7 @@ mod tests {
     #[should_panic(expected: ('Invalid Caller', 'ENTRYPOINT_FAILED'))]
     fn propose_invalid_caller() {
         let config = setup();
-        let (factory, space) = deploy(@config);
+        let (_, space) = deploy(@config);
         let authenticator = setup_stark_tx_auth(space, config.owner);
 
         let quorum = 1_u256;
@@ -142,7 +142,7 @@ mod tests {
     #[should_panic(expected: ('Invalid Caller', 'ENTRYPOINT_FAILED'))]
     fn update_proposal_invalid_caller() {
         let config = setup();
-        let (factory, space) = deploy(@config);
+        let (_, space) = deploy(@config);
         let authenticator = setup_stark_tx_auth(space, config.owner);
 
         let quorum = 1_u256;
@@ -192,7 +192,7 @@ mod tests {
     #[should_panic(expected: ('Invalid Caller', 'ENTRYPOINT_FAILED'))]
     fn vote_invalid_caller() {
         let config = setup();
-        let (factory, space) = deploy(@config);
+        let (_, space) = deploy(@config);
         let authenticator = setup_stark_tx_auth(space, config.owner);
 
         let quorum = 1_u256;

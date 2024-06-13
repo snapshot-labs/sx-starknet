@@ -130,8 +130,8 @@ mod utils {
 
     mod legacy_hash;
     use legacy_hash::{
-        LegacyHashEthAddress, LegacyHashFelt252EthAddress, LegacyHashUsedSalts, LegacyHashChoice,
-        LegacyHashUserAddress, LegacyHashVotePower, LegacyHashVoteRegistry, LegacyHashSpanFelt252
+        LegacyHashEthAddress, LegacyHashChoice, LegacyHashUserAddress, LegacyHashVotePower,
+        LegacyHashVoteRegistry, LegacyHashSpanFelt252
     };
 
     mod math;

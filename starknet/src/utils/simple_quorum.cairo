@@ -61,7 +61,7 @@ mod SimpleQuorum {
         }
     }
 
-    #[external(v0)]
+    #[abi(embed_v0)]
     impl Quorum of IQuorum<ContractState> {
         fn quorum(self: @ContractState) -> u256 {
             self._quorum.read()
