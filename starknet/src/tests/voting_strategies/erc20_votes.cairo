@@ -23,8 +23,7 @@ mod tests {
     use sx::utils::constants::{PROPOSE_SELECTOR, VOTE_SELECTOR};
     use sx::tests::mocks::vanilla_execution_strategy::VanillaExecutionStrategy;
 
-    const NAME: felt252 = 'TEST';
-    const SYMBOL: felt252 = 'TST';
+
     const INITIAL_SUPPLY: u256 = 1_000;
 
     fn OWNER() -> ContractAddress {
@@ -32,11 +31,22 @@ mod tests {
     }
 
     fn deploy_token_contract() -> ContractAddress {
-        // Deploy ERC20
-        let constructor_data = array![
-            NAME, SYMBOL, INITIAL_SUPPLY.low.into(), INITIAL_SUPPLY.high.into(), OWNER().into()
-        ];
+        let NAME: ByteArray = "TEST";
+        let SYMBOL: ByteArray = "TST";
 
+        let mut constructor_data = array![];
+        NAME.serialize(ref constructor_data);
+        SYMBOL.serialize(ref constructor_data);
+        INITIAL_SUPPLY.low.serialize(ref constructor_data);
+        INITIAL_SUPPLY.high.serialize(ref constructor_data);
+        OWNER().serialize(ref constructor_data);
+
+        // let constructor_data = array![
+        //     NAME, SYMBOL, INITIAL_SUPPLY.low.into(), INITIAL_SUPPLY.high.into(), OWNER().into()
+        // ];
+        // let constructor_data = (NAME, SYMBOL, INITIAL_SUPPLY.low, INITIAL_SUPPLY, OWNER());
+
+        // Deploy ERC20
         let (token_contract, _) = syscalls::deploy_syscall(
             ERC20VotesPreset::TEST_CLASS_HASH.try_into().unwrap(),
             0,
@@ -149,7 +159,7 @@ mod tests {
 
     #[test]
     #[available_gas(1000000000)]
-    fn works() {
+    fn scott_works() {
         let (config, space) = setup_space();
         let vanilla_execution_strategy = get_vanilla_execution_strategy();
         let accounts = setup_accounts(space.voting_strategies(1));

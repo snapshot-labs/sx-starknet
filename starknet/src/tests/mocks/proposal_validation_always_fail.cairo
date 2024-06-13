@@ -2,12 +2,13 @@
 mod AlwaysFailProposalValidationStrategy {
     use starknet::ContractAddress;
     use sx::types::UserAddress;
+    use sx::interfaces::{IProposalValidationStrategy,};
 
     #[storage]
     struct Storage {}
 
-    #[generate_trait]
-    impl AlwaysFailProposalValidationStrategy of IAlwaysFailProposalValidationStrategy {
+    #[abi(embed_v0)]
+    impl AlwaysFailProposalValidationStrategy of IProposalValidationStrategy<ContractState> {
         fn validate(
             self: @ContractState,
             author: UserAddress,

@@ -20,7 +20,6 @@ mod tests {
     use sx::tests::utils::strategy_trait::{StrategyImpl, StrategyDefault};
     use sx::tests::mocks::executor::ExecutorWithoutTxExecutionStrategy;
 
-
     fn assert_correct_proposal_event(
         space_address: ContractAddress,
         proposal_id: u256,
