@@ -90,7 +90,7 @@ jobs:
           pip install -r requirements.txt
 
       - name: Install Cairo
-        run: curl -L https://github.com/starkware-libs/cairo/releases/download/v2.2.0/release-x86_64-unknown-linux-musl.tar.gz > cairo.tar.gz
+        run: curl -L https://github.com/starkware-libs/cairo/releases/download/v2.6.3/release-x86_64-unknown-linux-musl.tar.gz > cairo.tar.gz
 
       - name: Extract Cairo
         run: tar -xvf cairo.tar.gz
