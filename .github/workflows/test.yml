@@ -98,7 +98,7 @@ jobs:
       - name: Install Scarb
         uses: software-mansion/setup-scarb@v1
         with:
-          scarb-version: 0.7.0
+          scarb-version: 2.6.4
 
       - name: Check Cairo formatting
         working-directory: ./starknet
