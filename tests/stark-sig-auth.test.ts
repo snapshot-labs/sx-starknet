@@ -34,6 +34,7 @@ describe('Starknet Signature Authenticator', function () {
   let domain: any;
 
   before(async function () {
+    console.log('account address:', account_address, 'account pk:', account_pk);
     account = await starknet.OpenZeppelinAccount.getAccountFromAddress(account_address, account_pk);
     const accountFactory = await starknet.getContractFactory('openzeppelin_Account');
     const starkSigAuthenticatorFactory = await starknet.getContractFactory(
@@ -54,7 +55,7 @@ describe('Starknet Signature Authenticator', function () {
       await account.declare(vanillaVotingStrategyFactory);
       await account.declare(vanillaProposalValidationStrategyFactory);
       await account.declare(spaceFactory);
-    } catch {}
+    } catch { }
 
     const accountObj = await account.deploy(accountFactory, {
       _public_key: account_public_key,

@@ -2,7 +2,7 @@
   "name": "sx",
   "version": "1.0.0",
   "description": "Cairo 1 implementation of the Snapshot X Protocol",
-  "repository": "https://github.com/snapshot-labs/sx-starknet-2.git",
+  "repository": "https://github.com/snapshot-labs/sx-starknet.git",
   "author": "Snapshot Labs",
   "license": "MIT",
   "main": "index.js",

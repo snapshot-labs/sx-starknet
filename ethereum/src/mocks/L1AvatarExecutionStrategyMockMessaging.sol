@@ -59,8 +59,7 @@ contract L1AvatarExecutionStrategyMockMessaging is SimpleQuorumExecutionStrategy
         uint256[] memory _starknetSpaces,
         uint256 _quorum
     ) public initializer {
-        __Ownable_init();
-        transferOwnership(_owner);
+        __Ownable_init(_owner);
         __SpaceManager_init(_starknetSpaces);
         __SimpleQuorumExecutionStrategy_init(_quorum);
         target = _target;
