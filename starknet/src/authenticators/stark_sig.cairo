@@ -10,7 +10,7 @@ trait IStarkSigAuthenticator<TContractState> {
     ///
     /// * `signature` - The signature of message digest.
     /// * `space` - The address of the space contract.
-    /// * `author` - The starkent address of the author of the proposal.
+    /// * `author` - The starknet address of the author of the proposal.
     /// * `metadata_uri` - The URI of the proposal metadata.
     /// * `execution_strategy` - The execution strategy of the proposal.
     /// * `user_proposal_validation_params` - The user proposal validation params of the proposal.
@@ -35,7 +35,7 @@ trait IStarkSigAuthenticator<TContractState> {
     ///
     /// * `signature` - The signature of message digest.
     /// * `space` - The address of the space contract.
-    /// * `voter` - The starkent address of the voter.
+    /// * `voter` - The starknet address of the voter.
     /// * `proposal_id` - The id of the proposal.
     /// * `choice` - The choice of the voter.
     /// * `user_voting_strategies` - The user voting strategies of the voter.
@@ -58,7 +58,7 @@ trait IStarkSigAuthenticator<TContractState> {
     ///
     /// * `signature` - The signature of message digest.
     /// * `space` - The address of the space contract.
-    /// * `author` - The starkent address of the author of the proposal.
+    /// * `author` - The starknet address of the author of the proposal.
     /// * `proposal_id` - The id of the proposal.
     /// * `execution_strategy` - The execution strategy of the proposal.
     /// * `metadata_uri` - The URI of the proposal metadata.
