@@ -9,7 +9,7 @@ mod MerkleWhitelistVotingStrategy {
 
     #[external(v0)]
     impl MerkleWhitelistImpl of IVotingStrategy<ContractState> {
-        /// Returns the voting power of a members of a merkle tree.
+        /// Returns the voting power of a member of a merkle tree.
         /// The merkle tree root is stored in the strategy parameters (defined by the space owner).
         /// It is up to the user to supply the leaf and the corresponding proof.
         ///
