@@ -6,7 +6,8 @@ type Words64 = Span<u64>;
 
 type MapperId = u256;
 
-type MmrSize = u256; // From 'https://github.com/HerodotusDev/cairo-lib/blob/update-cairo/src/data_structures/mmr/mmr.cairo'
+type MmrSize =
+    u256; // From 'https://github.com/HerodotusDev/cairo-lib/blob/update-cairo/src/data_structures/mmr/mmr.cairo'
 
 
 #[derive(Drop, Serde)]
