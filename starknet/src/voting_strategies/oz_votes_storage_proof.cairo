@@ -61,7 +61,6 @@ mod OZVotesStorageProofVotingStrategy {
             let checkpoint = SingleSlotProof::InternalImpl::get_storage_slot(
                 @state, timestamp, evm_contract_address, slot_key, checkpoint_mpt_proof
             );
-            assert(checkpoint.is_non_zero(), 'Slot is zero');
 
             // Verify the checkpoint is indeed the final checkpoint by checking the next slot is zero.
             assert(

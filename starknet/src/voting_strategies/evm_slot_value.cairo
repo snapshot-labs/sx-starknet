@@ -56,7 +56,6 @@ mod EvmSlotValueVotingStrategy {
             let slot_value = SingleSlotProof::InternalImpl::get_storage_slot(
                 @state, timestamp, evm_contract_address, slot_key, mpt_proof
             );
-            assert(slot_value.is_non_zero(), 'Slot is zero');
 
             slot_value
         }
