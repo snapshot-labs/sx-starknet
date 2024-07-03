@@ -81,7 +81,7 @@ mod StarkSigAuthenticator {
     use starknet::{ContractAddress, info};
     use sx::interfaces::{ISpaceDispatcher, ISpaceDispatcherTrait};
     use sx::types::{Strategy, IndexedStrategy, UserAddress, Choice};
-    use sx::utils::StarkEIP712;
+    use sx::utils::SNIP12;
 
     #[storage]
     struct Storage {
@@ -102,8 +102,8 @@ mod StarkSigAuthenticator {
         ) {
             assert(!self._used_salts.read((author, salt)), 'Salt Already Used');
 
-            let state = StarkEIP712::unsafe_new_contract_state();
-            StarkEIP712::InternalImpl::verify_propose_sig(
+            let state = SNIP12::unsafe_new_contract_state();
+            SNIP12::InternalImpl::verify_propose_sig(
                 @state,
                 signature,
                 space,
@@ -136,8 +136,8 @@ mod StarkSigAuthenticator {
         ) {
             // No need to check salts here, as double voting is prevented by the space itself.
 
-            let state = StarkEIP712::unsafe_new_contract_state();
-            StarkEIP712::InternalImpl::verify_vote_sig(
+            let state = SNIP12::unsafe_new_contract_state();
+            SNIP12::InternalImpl::verify_vote_sig(
                 @state,
                 signature,
                 space,
@@ -170,8 +170,8 @@ mod StarkSigAuthenticator {
         ) {
             assert(!self._used_salts.read((author, salt)), 'Salt Already Used');
 
-            let state = StarkEIP712::unsafe_new_contract_state();
-            StarkEIP712::InternalImpl::verify_update_proposal_sig(
+            let state = SNIP12::unsafe_new_contract_state();
+            SNIP12::InternalImpl::verify_update_proposal_sig(
                 @state,
                 signature,
                 space,
@@ -191,7 +191,7 @@ mod StarkSigAuthenticator {
     }
     #[constructor]
     fn constructor(ref self: ContractState, name: felt252, version: felt252) {
-        let mut state = StarkEIP712::unsafe_new_contract_state();
-        StarkEIP712::InternalImpl::initializer(ref state, name, version);
+        let mut state = SNIP12::unsafe_new_contract_state();
+        SNIP12::InternalImpl::initializer(ref state, name, version);
     }
 }
