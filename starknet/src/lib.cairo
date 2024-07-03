@@ -10,6 +10,9 @@ mod authenticators {
 
     mod stark_tx;
     use stark_tx::StarkTxAuthenticator;
+
+    mod bitcoin_sig;
+    use bitcoin_sig::BitcoinSigAuthenticator;
 }
 
 mod execution_strategies {
@@ -108,6 +111,9 @@ mod types {
 }
 
 mod utils {
+    mod bitcoin;
+    use bitcoin::Bitcoin;
+
     mod bits;
     use bits::BitSetter;
 
