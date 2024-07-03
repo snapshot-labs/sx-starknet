@@ -9,6 +9,9 @@ import {L1AvatarExecutionStrategy} from "../src/execution-strategies/L1AvatarExe
 import {L1AvatarExecutionStrategyFactory} from "../src/execution-strategies/L1AvatarExecutionStrategyFactory.sol";
 import {TRUE, FALSE} from "../src/types.sol";
 
+import {Ownable} from "openzeppelin-contracts/contracts/access/Ownable.sol";
+import {Initializable} from "openzeppelin-contracts/contracts/proxy/utils/Initializable.sol";
+
 /// @dev Tests for Setters on the L1 Avatar Execution Strategy
 abstract contract L1AvatarExecutionStrategySettersTest is Test {
     error InvalidSpace();
@@ -57,7 +60,7 @@ abstract contract L1AvatarExecutionStrategySettersTest is Test {
     function testUnauthorizedSetTarget() public {
         address newTarget = address(0xbeef);
         vm.prank(unauthorized);
-        vm.expectRevert("Ownable: caller is not the owner");
+        vm.expectRevert(abi.encodeWithSelector(Ownable.OwnableUnauthorizedAccount.selector, unauthorized));
         avatarExecutionStrategy.setTarget(newTarget);
     }
 
@@ -73,7 +76,7 @@ abstract contract L1AvatarExecutionStrategySettersTest is Test {
     function testUnauthorizedSetStarknetCore() public {
         address newStarknetCore = address(0xbeef);
         vm.prank(unauthorized);
-        vm.expectRevert("Ownable: caller is not the owner");
+        vm.expectRevert(abi.encodeWithSelector(Ownable.OwnableUnauthorizedAccount.selector, unauthorized));
         avatarExecutionStrategy.setStarknetCore(newStarknetCore);
     }
 
@@ -89,7 +92,7 @@ abstract contract L1AvatarExecutionStrategySettersTest is Test {
     function testUnauthorizedSetExecutionRelayer() public {
         uint256 newExecutionRelayer = 3;
         vm.prank(unauthorized);
-        vm.expectRevert("Ownable: caller is not the owner");
+        vm.expectRevert(abi.encodeWithSelector(Ownable.OwnableUnauthorizedAccount.selector, unauthorized));
         avatarExecutionStrategy.setExecutionRelayer(newExecutionRelayer);
     }
 
@@ -105,7 +108,7 @@ abstract contract L1AvatarExecutionStrategySettersTest is Test {
     function testUnauthorizedSetQuorum() public {
         uint256 newQuorum = 3;
         vm.prank(unauthorized);
-        vm.expectRevert("Ownable: caller is not the owner");
+        vm.expectRevert(abi.encodeWithSelector(Ownable.OwnableUnauthorizedAccount.selector, unauthorized));
         avatarExecutionStrategy.setQuorum(newQuorum);
     }
 
@@ -119,12 +122,12 @@ abstract contract L1AvatarExecutionStrategySettersTest is Test {
     function testUnauthorizedTransferOwnership() public {
         address newOwner = address(0xbeef);
         vm.prank(unauthorized);
-        vm.expectRevert("Ownable: caller is not the owner");
+        vm.expectRevert(abi.encodeWithSelector(Ownable.OwnableUnauthorizedAccount.selector, unauthorized));
         avatarExecutionStrategy.transferOwnership(newOwner);
     }
 
     function testDoubleInitialization() public {
-        vm.expectRevert("Initializable: contract is already initialized");
+        vm.expectRevert(Initializable.InvalidInitialization.selector);
         address[] memory spaces = new address[](1);
         spaces[0] = address(this);
 
@@ -159,7 +162,7 @@ abstract contract L1AvatarExecutionStrategySettersTest is Test {
     function testUnauthorizedEnableSpace() public {
         uint256 space_ = 2;
         vm.prank(unauthorized);
-        vm.expectRevert("Ownable: caller is not the owner");
+        vm.expectRevert(abi.encodeWithSelector(Ownable.OwnableUnauthorizedAccount.selector, unauthorized));
         avatarExecutionStrategy.enableSpace(space_);
     }
 
@@ -181,11 +184,11 @@ abstract contract L1AvatarExecutionStrategySettersTest is Test {
 
     function testUnauthorizedDisableSpace() public {
         vm.prank(unauthorized);
-        vm.expectRevert("Ownable: caller is not the owner");
+        vm.expectRevert(abi.encodeWithSelector(Ownable.OwnableUnauthorizedAccount.selector, unauthorized));
         avatarExecutionStrategy.disableSpace(space);
     }
 
-    function testGetStrategyType() external {
+    function testGetStrategyType() external view {
         assertEq(avatarExecutionStrategy.getStrategyType(), "SimpleQuorumL1Avatar");
     }
 }
