@@ -69,7 +69,6 @@ mod EthTxAuthenticator {
     use starknet::{ContractAddress, EthAddress, Felt252TryIntoEthAddress, EthAddressIntoFelt252,};
     use sx::interfaces::{ISpaceDispatcher, ISpaceDispatcherTrait};
     use sx::types::{UserAddress, Strategy, IndexedStrategy, Choice};
-    use sx::utils::LegacyHashFelt252EthAddress;
     use sx::utils::constants::{PROPOSE_SELECTOR, VOTE_SELECTOR, UPDATE_PROPOSAL_SELECTOR};
 
     #[storage]
@@ -78,7 +77,7 @@ mod EthTxAuthenticator {
         _commits: LegacyMap::<(felt252, EthAddress), bool>
     }
 
-    #[external(v0)]
+    #[abi(embed_v0)]
     impl EthTxAuthenticator of IEthTxAuthenticator<ContractState> {
         fn authenticate_propose(
             ref self: ContractState,

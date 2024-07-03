@@ -5,6 +5,10 @@ cairo_project.toml
 
 ethereum/broadcast/
 
+artifacts/
+starknet-artifacts/
+typechain-types/
+
 build/
 cache/
 out/

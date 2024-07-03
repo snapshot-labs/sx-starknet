@@ -20,19 +20,20 @@ mod tests {
     };
     use sx::tests::mocks::space_v2::{SpaceV2, ISpaceV2Dispatcher, ISpaceV2DispatcherTrait};
     use starknet::ClassHash;
+    use starknet::SyscallResultTrait;
 
     #[test]
     #[available_gas(10000000000)]
     fn upgrade() {
         let config = setup();
-        let (factory, space) = deploy(@config);
+        let (_, space) = deploy(@config);
 
         let new_implem = SpaceV2::TEST_CLASS_HASH.try_into().unwrap();
 
         testing::set_contract_address(config.owner);
 
         // Now upgrade the implementation
-        space.upgrade(new_implem, array![7]);
+        space.upgrade(new_implem, array![7]).unwrap_syscall();
 
         // Ensure it works
         let new_space = ISpaceV2Dispatcher { contract_address: space.contract_address };
@@ -44,7 +45,7 @@ mod tests {
     #[available_gas(10000000000)]
     fn upgrade_via_execution_strategy() {
         let config = setup();
-        let (factory, space) = deploy(@config);
+        let (_, space) = deploy(@config);
         let proposal_id = space.next_proposal_id();
 
         // New implementation is not a proposer space but a random contract (here, a proposal validation strategy).
@@ -102,13 +103,13 @@ mod tests {
     #[should_panic(expected: ('Caller is not the owner', 'ENTRYPOINT_FAILED'))]
     fn upgrade_unauthorized() {
         let config = setup();
-        let (factory, space) = deploy(@config);
+        let (_, space) = deploy(@config);
 
         let new_implem = SpaceV2::TEST_CLASS_HASH.try_into().unwrap();
 
         testing::set_contract_address(starknet::contract_address_const::<0xdead>());
 
         // Upgrade should fail as caller is not owner
-        space.upgrade(new_implem, array![7]);
+        space.upgrade(new_implem, array![7]).unwrap_syscall();
     }
 }

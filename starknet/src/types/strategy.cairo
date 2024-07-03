@@ -1,5 +1,6 @@
 use integer::BoundedU8;
 use starknet::{ContractAddress, StorageBaseAddress, Store, SyscallResult};
+use starknet::SyscallResultTrait;
 
 /// A strategy identified by an address
 #[derive(Clone, Drop, Option, Serde, starknet::Store)]
@@ -67,7 +68,7 @@ impl StoreFelt252Array of Store<Array<felt252>> {
     ) -> SyscallResult<()> {
         // // Store the length of the array in the first storage slot.
         let len: u8 = value.len().try_into().expect('Storage - Span too large');
-        Store::<u8>::write_at_offset(address_domain, base, offset, len);
+        Store::<u8>::write_at_offset(address_domain, base, offset, len).unwrap_syscall();
         offset += Store::<u8>::size();
 
         // Store the array elements sequentially
@@ -76,15 +77,11 @@ impl StoreFelt252Array of Store<Array<felt252>> {
                 Option::Some(element) => {
                     match Store::<felt252>::write_at_offset(address_domain, base, offset, element) {
                         Result::Ok(()) => {},
-                        Result::Err(e) => {
-                            break Result::Err(e);
-                        }
+                        Result::Err(e) => { break Result::Err(e); }
                     }
                     offset += Store::<felt252>::size();
                 },
-                Option::None(_) => {
-                    break Result::Ok(());
-                }
+                Option::None(_) => { break Result::Ok(()); }
             };
         }
     }

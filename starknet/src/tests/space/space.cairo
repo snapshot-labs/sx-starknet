@@ -20,7 +20,6 @@ mod tests {
     use sx::tests::utils::strategy_trait::{StrategyImpl, StrategyDefault};
     use sx::tests::mocks::executor::ExecutorWithoutTxExecutionStrategy;
 
-
     fn assert_correct_proposal_event(
         space_address: ContractAddress,
         proposal_id: u256,
@@ -29,13 +28,11 @@ mod tests {
         payload: Span<felt252>,
         metadata_uri: Span<felt252>,
     ) {
-        let event = utils::pop_log::<ProposalCreated>(space_address).unwrap();
-
-        assert(event.proposal_id == proposal_id, 'proposal_id incorrect');
-        assert(event.author == author, 'voter incorrect');
-        assert(event.proposal == proposal, 'proposal incorrect');
-        assert(event.payload == payload, 'payload incorrect');
-        assert(event.metadata_uri == metadata_uri, 'metadata_uri incorrect');
+        let event = utils::pop_log::<Space::Event>(space_address).unwrap();
+        let expected = Space::Event::ProposalCreated(
+            ProposalCreated { proposal_id, author, proposal, payload, metadata_uri }
+        );
+        assert(event == expected, 'Proposal event incorrect');
     }
 
     fn assert_correct_update_proposal_event(
@@ -44,11 +41,11 @@ mod tests {
         execution_strategy: Strategy,
         metadata_uri: Span<felt252>,
     ) {
-        let event = utils::pop_log::<ProposalUpdated>(space_address).unwrap();
-
-        assert(event.proposal_id == proposal_id, 'proposal_id incorrect');
-        assert(event.execution_strategy == execution_strategy, 'execution_strategy incorrect');
-        assert(event.metadata_uri == metadata_uri, 'metadata_uri incorrect');
+        let event = utils::pop_log::<Space::Event>(space_address).unwrap();
+        let expected = Space::Event::ProposalUpdated(
+            ProposalUpdated { proposal_id, execution_strategy, metadata_uri }
+        );
+        assert(event == expected, 'Update event should be correct');
     }
 
     fn assert_correct_vote_cast_event(
@@ -59,13 +56,11 @@ mod tests {
         voting_power: u256,
         metadata_uri: Span<felt252>,
     ) {
-        let event = utils::pop_log::<VoteCast>(space_address).unwrap();
-
-        assert(event.proposal_id == proposal_id, 'Proposal ID should be correct');
-        assert(event.voter == voter, 'Voter should be correct');
-        assert(event.choice == choice, 'Choice should be correct');
-        assert(event.voting_power == voting_power, 'Voting power should be correct');
-        assert(event.metadata_uri == metadata_uri, 'Metadata URI should be correct');
+        let event = utils::pop_log::<Space::Event>(space_address).unwrap();
+        let expected = Space::Event::VoteCast(
+            VoteCast { proposal_id, voter, choice, voting_power, metadata_uri }
+        );
+        assert(event == expected, 'Vote event should be correct');
     }
 
     #[test]
@@ -338,8 +333,8 @@ mod tests {
     #[available_gas(10000000000)]
     fn propose_update_vote_execute() {
         let config = setup();
-        let (factory, space) = deploy(@config);
-        let ISpaceDispatcher{contract_address: space_contract_address } = space;
+        let (_, space) = deploy(@config);
+        let ISpaceDispatcher { contract_address: space_contract_address } = space;
 
         utils::drop_events(space_contract_address, 3);
 
@@ -387,8 +382,6 @@ mod tests {
             finalization_status: FinalizationStatus::Pending(()),
             active_voting_strategies: 1_u256,
         };
-        let proposal = ISpaceDispatcher { contract_address: space_contract_address }
-            .proposals(1_u256);
 
         let payload = vanilla_execution_strategy.params.span();
 
@@ -456,7 +449,7 @@ mod tests {
     #[should_panic(expected: ('Proposal is not valid', 'ENTRYPOINT_FAILED'))]
     fn propose_failed_validation() {
         let config = setup();
-        let (factory, space) = deploy(@config);
+        let (_, space) = deploy(@config);
         let authenticator = IVanillaAuthenticatorDispatcher {
             contract_address: *config.authenticators.at(0)
         };
@@ -510,7 +503,7 @@ mod tests {
     #[should_panic(expected: ('Already finalized', 'ENTRYPOINT_FAILED'))]
     fn execute_already_finalized() {
         let config = setup();
-        let (factory, space) = deploy(@config);
+        let (_, space) = deploy(@config);
 
         let authenticator = IVanillaAuthenticatorDispatcher {
             contract_address: *config.authenticators.at(0),
@@ -574,7 +567,7 @@ mod tests {
     #[should_panic(expected: ('Invalid payload hash', 'ENTRYPOINT_FAILED'))]
     fn execute_invalid_payload() {
         let config = setup();
-        let (factory, space) = deploy(@config);
+        let (_, space) = deploy(@config);
 
         let authenticator = IVanillaAuthenticatorDispatcher {
             contract_address: *config.authenticators.at(0),
@@ -609,7 +602,7 @@ mod tests {
     #[available_gas(10000000000)]
     fn get_proposal_status() {
         let config = setup();
-        let (factory, space) = deploy(@config);
+        let (_, space) = deploy(@config);
 
         let authenticator = IVanillaAuthenticatorDispatcher {
             contract_address: *config.authenticators.at(0),
@@ -647,7 +640,7 @@ mod tests {
     #[should_panic(expected: ('Proposal does not exist', 'ENTRYPOINT_FAILED'))]
     fn get_proposal_status_invalid_proposal_id() {
         let config = setup();
-        let (factory, space) = deploy(@config);
+        let (_, space) = deploy(@config);
 
         space.get_proposal_status(0);
     }
@@ -656,9 +649,8 @@ mod tests {
     #[available_gas(10000000000)]
     #[should_panic(expected: ('Already finalized', 'ENTRYPOINT_FAILED'))]
     fn cancel() {
-        let relayer = starknet::contract_address_const::<0x1234>();
         let config = setup();
-        let (factory, space) = deploy(@config);
+        let (_, space) = deploy(@config);
 
         let authenticator = IVanillaAuthenticatorDispatcher {
             contract_address: *config.authenticators.at(0)
@@ -723,7 +715,7 @@ mod tests {
     #[should_panic(expected: ('Proposal does not exist', 'ENTRYPOINT_FAILED'))]
     fn cancel_inexistent_proposal() {
         let config = setup();
-        let (factory, space) = deploy(@config);
+        let (_, space) = deploy(@config);
 
         testing::set_contract_address(config.owner);
         space.cancel(0);
@@ -734,7 +726,7 @@ mod tests {
     #[should_panic(expected: ('Already finalized', 'ENTRYPOINT_FAILED'))]
     fn cancel_already_finalized() {
         let config = setup();
-        let (factory, space) = deploy(@config);
+        let (_, space) = deploy(@config);
 
         let authenticator = IVanillaAuthenticatorDispatcher {
             contract_address: *config.authenticators.at(0),
@@ -777,7 +769,7 @@ mod tests {
     #[should_panic(expected: ('Zero Address', 'ENTRYPOINT_FAILED'))]
     fn propose_zero_address() {
         let config = setup();
-        let (factory, space) = deploy(@config);
+        let (_, space) = deploy(@config);
 
         let authenticator = IVanillaAuthenticatorDispatcher {
             contract_address: *config.authenticators.at(0),
@@ -814,7 +806,7 @@ mod tests {
     #[should_panic(expected: ('Zero Address', 'ENTRYPOINT_FAILED'))]
     fn update_zero_address() {
         let config = setup();
-        let (factory, space) = deploy(@config);
+        let (_, space) = deploy(@config);
 
         let authenticator = IVanillaAuthenticatorDispatcher {
             contract_address: *config.authenticators.at(0),
@@ -853,7 +845,7 @@ mod tests {
     #[should_panic(expected: ('Already finalized', 'ENTRYPOINT_FAILED'))]
     fn update_already_finalized() {
         let config = setup();
-        let (factory, space) = deploy(@config);
+        let (_, space) = deploy(@config);
 
         let authenticator = IVanillaAuthenticatorDispatcher {
             contract_address: *config.authenticators.at(0),
@@ -901,7 +893,7 @@ mod tests {
     #[should_panic(expected: ('Invalid author', 'ENTRYPOINT_FAILED'))]
     fn update_invalid_author() {
         let config = setup();
-        let (factory, space) = deploy(@config);
+        let (_, space) = deploy(@config);
 
         let authenticator = IVanillaAuthenticatorDispatcher {
             contract_address: *config.authenticators.at(0),
@@ -941,7 +933,7 @@ mod tests {
     #[should_panic(expected: ('Voting period started', 'ENTRYPOINT_FAILED'))]
     fn update_voting_period_started() {
         let config = setup();
-        let (factory, space) = deploy(@config);
+        let (_, space) = deploy(@config);
 
         let authenticator = IVanillaAuthenticatorDispatcher {
             contract_address: *config.authenticators.at(0),
@@ -982,7 +974,7 @@ mod tests {
     #[should_panic(expected: ('Proposal does not exist', 'ENTRYPOINT_FAILED'))]
     fn update_inexistent_proposal() {
         let config = setup();
-        let (factory, space) = deploy(@config);
+        let (_, space) = deploy(@config);
 
         let authenticator = IVanillaAuthenticatorDispatcher {
             contract_address: *config.authenticators.at(0),
@@ -1024,7 +1016,7 @@ mod tests {
     #[should_panic(expected: ('Zero Address', 'ENTRYPOINT_FAILED'))]
     fn vote_zero_address() {
         let config = setup();
-        let (factory, space) = deploy(@config);
+        let (_, space) = deploy(@config);
 
         let authenticator = IVanillaAuthenticatorDispatcher {
             contract_address: *config.authenticators.at(0),

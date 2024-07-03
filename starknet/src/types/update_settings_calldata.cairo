@@ -54,25 +54,33 @@ impl NoUpdateFelt252 of NoUpdateTrait<felt252> {
 impl NoUpdateContractAddress of NoUpdateTrait<ContractAddress> {
     fn no_update() -> ContractAddress {
         // First 248 bits
-        starknet::contract_address_const::<0xf2cda9b13ed04e585461605c0d6e804933ca828111bd94d4e6a96c75e8b048>()
+        starknet::contract_address_const::<
+            0xf2cda9b13ed04e585461605c0d6e804933ca828111bd94d4e6a96c75e8b048
+        >()
     }
 
     fn should_update(self: @ContractAddress) -> bool {
-        *self != starknet::contract_address_const::<0xf2cda9b13ed04e585461605c0d6e804933ca828111bd94d4e6a96c75e8b048>()
+        *self != starknet::contract_address_const::<
+            0xf2cda9b13ed04e585461605c0d6e804933ca828111bd94d4e6a96c75e8b048
+        >()
     }
 }
 
 impl NoUpdateStrategy of NoUpdateTrait<Strategy> {
     fn no_update() -> Strategy {
         Strategy {
-            address: starknet::contract_address_const::<0xf2cda9b13ed04e585461605c0d6e804933ca828111bd94d4e6a96c75e8b048>(),
+            address: starknet::contract_address_const::<
+                0xf2cda9b13ed04e585461605c0d6e804933ca828111bd94d4e6a96c75e8b048
+            >(),
             params: array![],
         }
     }
 
     fn should_update(self: @Strategy) -> bool {
         *self
-            .address != starknet::contract_address_const::<0xf2cda9b13ed04e585461605c0d6e804933ca828111bd94d4e6a96c75e8b048>()
+            .address != starknet::contract_address_const::<
+                0xf2cda9b13ed04e585461605c0d6e804933ca828111bd94d4e6a96c75e8b048
+            >()
     }
 }
 
@@ -83,9 +91,7 @@ impl NoUpdateString of NoUpdateTrait<Array<felt252>> {
 
     fn should_update(self: @Array<felt252>) -> bool {
         match self.get(0) {
-            Option::Some(e) => {
-                *e.unbox() != 'No update'
-            },
+            Option::Some(e) => { *e.unbox() != 'No update' },
             Option::None => true,
         }
     }

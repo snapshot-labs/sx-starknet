@@ -43,9 +43,7 @@ fn compute_merkle_root(mut current: felt252, proof: Span<felt252>) -> felt252 {
                     current = LegacyHash::hash(*val, current);
                 };
             },
-            Option::None => {
-                break current;
-            },
+            Option::None => { break current; },
         };
     }
 }

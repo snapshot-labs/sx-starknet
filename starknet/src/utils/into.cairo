@@ -4,12 +4,8 @@ impl Felt252SpanIntoU256Array of Into<Span<felt252>, Array<u256>> {
         let mut arr = ArrayTrait::<u256>::new();
         loop {
             match self.pop_front() {
-                Option::Some(num) => {
-                    arr.append(integer::u256_from_felt252(*num));
-                },
-                Option::None(_) => {
-                    break ();
-                },
+                Option::Some(num) => { arr.append(integer::u256_from_felt252(*num)); },
+                Option::None(_) => { break (); },
             };
         };
         arr

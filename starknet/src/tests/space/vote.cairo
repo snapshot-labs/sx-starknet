@@ -60,19 +60,18 @@ mod tests {
         voting_power: u256,
         metadata_uri: Span<felt252>,
     ) {
-        let event = utils::pop_log::<VoteCast>(space_address).unwrap();
-        assert(event.proposal_id == proposal_id, 'Proposal ID should be correct');
-        assert(event.voter == voter, 'Voter should be correct');
-        assert(event.choice == choice, 'Choice should be correct');
-        assert(event.voting_power == voting_power, 'Voting power should be correct');
-        assert(event.metadata_uri == metadata_uri, 'Metadata URI should be correct');
+        let event = utils::pop_log::<Space::Event>(space_address).unwrap();
+        let expected = Space::Event::VoteCast(
+            VoteCast { proposal_id, voter, choice, voting_power, metadata_uri }
+        );
+        assert(event == expected, 'Vote event should be correct');
     }
 
     #[test]
     #[available_gas(10000000000)]
     fn vote_for() {
         let config = setup();
-        let (factory, space) = deploy(@config);
+        let (_, space) = deploy(@config);
 
         let execution_strategy = get_execution_strategy();
 
@@ -114,7 +113,7 @@ mod tests {
     #[available_gas(10000000000)]
     fn vote_against() {
         let config = setup();
-        let (factory, space) = deploy(@config);
+        let (_, space) = deploy(@config);
         let execution_strategy = get_execution_strategy();
 
         let authenticator = IVanillaAuthenticatorDispatcher {
@@ -155,7 +154,7 @@ mod tests {
     #[available_gas(10000000000)]
     fn vote_abstain() {
         let config = setup();
-        let (factory, space) = deploy(@config);
+        let (_, space) = deploy(@config);
         let execution_strategy = get_execution_strategy();
 
         let authenticator = IVanillaAuthenticatorDispatcher {
@@ -196,7 +195,7 @@ mod tests {
     #[should_panic(expected: ('Voting period has not started', 'ENTRYPOINT_FAILED'))]
     fn vote_too_early() {
         let config = setup();
-        let (factory, space) = deploy(@config);
+        let (_, space) = deploy(@config);
         let execution_strategy = get_execution_strategy();
 
         let authenticator = IVanillaAuthenticatorDispatcher {
@@ -226,7 +225,7 @@ mod tests {
     #[should_panic(expected: ('Voting period has ended', 'ENTRYPOINT_FAILED'))]
     fn vote_too_late() {
         let config = setup();
-        let (factory, space) = deploy(@config);
+        let (_, space) = deploy(@config);
         let execution_strategy = get_execution_strategy();
 
         let authenticator = IVanillaAuthenticatorDispatcher {
@@ -259,7 +258,7 @@ mod tests {
     #[should_panic(expected: ('Already finalized', 'ENTRYPOINT_FAILED'))]
     fn vote_finalized_proposal() {
         let config = setup();
-        let (factory, space) = deploy(@config);
+        let (_, space) = deploy(@config);
         let execution_strategy = get_execution_strategy();
 
         let authenticator = IVanillaAuthenticatorDispatcher {
@@ -294,7 +293,7 @@ mod tests {
     #[should_panic(expected: ('Caller is not an authenticator', 'ENTRYPOINT_FAILED'))]
     fn vote_without_authenticator() {
         let config = setup();
-        let (factory, space) = deploy(@config);
+        let (_, space) = deploy(@config);
         let execution_strategy = get_execution_strategy();
 
         let authenticator = IVanillaAuthenticatorDispatcher {
@@ -322,7 +321,7 @@ mod tests {
     #[should_panic(expected: ('Voter has already voted', 'ENTRYPOINT_FAILED'))]
     fn vote_twice() {
         let config = setup();
-        let (factory, space) = deploy(@config);
+        let (_, space) = deploy(@config);
 
         let execution_strategy = get_execution_strategy();
 
@@ -355,7 +354,7 @@ mod tests {
     #[should_panic(expected: ('User has no voting power', 'ENTRYPOINT_FAILED'))]
     fn vote_no_voting_power() {
         let config = setup();
-        let (factory, space) = deploy(@config);
+        let (_, space) = deploy(@config);
 
         let execution_strategy = get_execution_strategy();
 
@@ -405,7 +404,7 @@ mod tests {
     #[should_panic(expected: ('Proposal does not exist', 'ENTRYPOINT_FAILED'))]
     fn vote_inexistant_proposal() {
         let config = setup();
-        let (factory, space) = deploy(@config);
+        let (_, space) = deploy(@config);
 
         let execution_strategy = get_execution_strategy();
 

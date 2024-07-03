@@ -30,14 +30,10 @@ fn get_cumulative_power(
                                 indexed_strategy.params.span(),
                             );
                     },
-                    Option::None => {
-                        panic_with_felt252('Invalid strategy index');
-                    },
+                    Option::None => { panic_with_felt252('Invalid strategy index'); },
                 };
             },
-            Option::None => {
-                break total_voting_power;
-            },
+            Option::None => { break total_voting_power; },
         };
     }
 }
@@ -48,9 +44,9 @@ fn validate(
     mut params: Span<felt252>, // [proposal_threshold: u256, allowed_strategies: Array<Strategy>]
     mut user_params: Span<felt252> // [user_strategies: Array<IndexedStrategy>]
 ) -> bool {
-    let (proposal_threshold, allowed_strategies) = Serde::<(
-        u256, Array<Strategy>
-    )>::deserialize(ref params)
+    let (proposal_threshold, allowed_strategies) = Serde::<
+        (u256, Array<Strategy>)
+    >::deserialize(ref params)
         .unwrap();
 
     let user_strategies = Serde::<Array<IndexedStrategy>>::deserialize(ref user_params).unwrap();

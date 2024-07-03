@@ -11,9 +11,7 @@ mod merkle_utils {
             loop {
                 match self.pop_front() {
                     Option::Some(val) => output.append(val.clone()),
-                    Option::None => {
-                        break;
-                    }
+                    Option::None => { break; }
                 };
             };
             output
@@ -96,9 +94,7 @@ mod merkle_utils {
                         Option::None => panic_with_felt252('Incorrect array length'),
                     }
                 },
-                Option::None => {
-                    break;
-                }
+                Option::None => { break; }
             };
         };
         next_level
@@ -111,12 +107,8 @@ mod merkle_utils {
         let mut output = array![];
         loop {
             match members_.pop_front() {
-                Option::Some(leaf) => {
-                    output.append(leaf.hash());
-                },
-                Option::None => {
-                    break;
-                },
+                Option::Some(leaf) => { output.append(leaf.hash()); },
+                Option::None => { break; },
             };
         };
         output
@@ -186,13 +178,11 @@ mod assert_valid_proof {
         let mut output = ArrayTrait::new();
         output.append(value);
 
-        arr.pop_front(); // remove first element
+        arr.pop_front().unwrap(); // remove first element
         loop {
             match arr.pop_front() {
                 Option::Some(v) => output.append(*v),
-                Option::None => {
-                    break;
-                },
+                Option::None => { break; },
             };
         };
         output
@@ -436,7 +426,6 @@ mod merkle_whitelist_voting_power {
         let timestamp = 0x1234;
         let index = 2;
         let leaf = *members.at(index);
-        let voter = leaf.address;
 
         let merkle_data = generate_merkle_data(members.span());
         let root = generate_merkle_root(merkle_data.span());

@@ -260,7 +260,12 @@ mod tests {
 
         // deploy erc20 voting strategy
         let owner = starknet::contract_address_const::<'owner'>();
-        let mut constructor = array!['TEST', 'TST'];
+        let mut constructor = array![];
+        let name: ByteArray = "TEST";
+        let symbol: ByteArray = "TST";
+
+        name.serialize(ref constructor);
+        symbol.serialize(ref constructor);
         SUPPLY.serialize(ref constructor);
         owner.serialize(ref constructor);
 

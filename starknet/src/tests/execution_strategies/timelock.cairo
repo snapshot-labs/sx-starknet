@@ -26,7 +26,7 @@ mod tests {
     fn setup_test() -> (Config, ISpaceDispatcher, ITimelockExecutionStrategyDispatcher) {
         let mut config = setup::setup();
         config.min_voting_duration = 0;
-        let (factory, space) = setup::deploy(@config);
+        let (_, space) = setup::deploy(@config);
 
         let spaces = array![space.contract_address];
         let timelock_delay = 100;
@@ -225,7 +225,7 @@ mod tests {
     fn queue_duplicate_proposal() {
         let (config, space, timelock) = setup_test();
         // Creating and voting on 2 proposals with the same payload
-        let (proposal_id_1, payload) = propose_and_vote(
+        let (proposal_id_1, _) = propose_and_vote(
             @config,
             space,
             timelock,
@@ -299,7 +299,7 @@ mod tests {
     #[should_panic(expected: ('Invalid payload hash', 'ENTRYPOINT_FAILED'))]
     fn queue_invalid_payload() {
         let (config, space, timelock) = setup_test();
-        let (proposal_id, payload) = propose_and_vote(
+        let (proposal_id, _) = propose_and_vote(
             @config,
             space,
             timelock,
@@ -367,7 +367,7 @@ mod tests {
     #[should_panic(expected: ('Proposal Not Queued', 'ENTRYPOINT_FAILED'))]
     fn execute_not_queued() {
         let (config, space, timelock) = setup_test();
-        let (proposal_id, payload) = propose_and_vote(
+        let (_, payload) = propose_and_vote(
             @config,
             space,
             timelock,
@@ -392,12 +392,6 @@ mod tests {
     #[available_gas(10000000000)]
     fn multiple_proposal_txs() {
         let (config, space, timelock) = setup_test();
-        let call = CallWithSalt {
-            to: space.contract_address,
-            selector: RENOUNCE_OWNERSHIP_SELECTOR,
-            calldata: array![],
-            salt: 0
-        };
         let mut new_settings: UpdateSettingsCalldata = Default::default();
         new_settings.max_voting_duration = 1000;
         let mut new_settings_calldata = array![];
@@ -438,12 +432,6 @@ mod tests {
     #[should_panic(expected: ('Call Failed', 'ENTRYPOINT_FAILED'))]
     fn multiple_proposal_txs_one_fails() {
         let (config, space, timelock) = setup_test();
-        let call = CallWithSalt {
-            to: space.contract_address,
-            selector: RENOUNCE_OWNERSHIP_SELECTOR,
-            calldata: array![],
-            salt: 0
-        };
         let mut new_settings: UpdateSettingsCalldata = Default::default();
         new_settings.max_voting_duration = 1000;
         let mut new_settings_calldata = array![];
@@ -536,7 +524,7 @@ mod tests {
     #[test]
     #[available_gas(10000000000)]
     fn set_timelock_delay() {
-        let (config, space, timelock) = setup_test();
+        let (_, _, timelock) = setup_test();
 
         testing::set_caller_address(timelock.owner());
         testing::set_contract_address(timelock.owner());
@@ -548,7 +536,7 @@ mod tests {
     #[available_gas(10000000000)]
     #[should_panic(expected: ('Caller is not the owner', 'ENTRYPOINT_FAILED'))]
     fn set_timelock_delay_unauthorized() {
-        let (config, space, timelock) = setup_test();
+        let (_, _, timelock) = setup_test();
         // Only the owner can set the timelock delay
         testing::set_caller_address(timelock.veto_guardian());
         testing::set_contract_address(timelock.veto_guardian());
@@ -559,7 +547,7 @@ mod tests {
     #[test]
     #[available_gas(10000000000)]
     fn set_veto_guardian() {
-        let (config, space, timelock) = setup_test();
+        let (_, _, timelock) = setup_test();
 
         testing::set_caller_address(timelock.owner());
         testing::set_contract_address(timelock.owner());
@@ -571,7 +559,7 @@ mod tests {
     #[available_gas(10000000000)]
     #[should_panic(expected: ('Caller is not the owner', 'ENTRYPOINT_FAILED'))]
     fn set_veto_guardian_unauthorized() {
-        let (config, space, timelock) = setup_test();
+        let (_, _, timelock) = setup_test();
         // Only the owner can set the veto guardian
         testing::set_caller_address(timelock.veto_guardian());
         testing::set_contract_address(timelock.veto_guardian());
@@ -581,7 +569,7 @@ mod tests {
     #[test]
     #[available_gas(10000000000)]
     fn set_owner() {
-        let (config, space, timelock) = setup_test();
+        let (_, _, timelock) = setup_test();
 
         testing::set_caller_address(timelock.owner());
         testing::set_contract_address(timelock.owner());
@@ -593,7 +581,7 @@ mod tests {
     #[available_gas(10000000000)]
     #[should_panic(expected: ('Caller is not the owner', 'ENTRYPOINT_FAILED'))]
     fn set_owner_unauthorized() {
-        let (config, space, timelock) = setup_test();
+        let (_, _, timelock) = setup_test();
         // Only the owner can transfer ownership
         testing::set_caller_address(timelock.veto_guardian());
         testing::set_contract_address(timelock.veto_guardian());
@@ -603,7 +591,7 @@ mod tests {
     #[test]
     #[available_gas(10000000000)]
     fn enable_space() {
-        let (config, space, timelock) = setup_test();
+        let (_, _, timelock) = setup_test();
 
         testing::set_caller_address(timelock.owner());
         testing::set_contract_address(timelock.owner());
@@ -618,7 +606,7 @@ mod tests {
     #[available_gas(10000000000)]
     #[should_panic(expected: ('Caller is not the owner', 'ENTRYPOINT_FAILED'))]
     fn enable_space_unauthorized() {
-        let (config, space, timelock) = setup_test();
+        let (_, _, timelock) = setup_test();
         // Only the owner can enable a space
         testing::set_caller_address(timelock.veto_guardian());
         testing::set_contract_address(timelock.veto_guardian());
@@ -628,7 +616,7 @@ mod tests {
     #[test]
     #[available_gas(10000000000)]
     fn disable_space() {
-        let (config, space, timelock) = setup_test();
+        let (_, _, timelock) = setup_test();
 
         testing::set_caller_address(timelock.owner());
         testing::set_contract_address(timelock.owner());
@@ -644,7 +632,7 @@ mod tests {
     #[available_gas(10000000000)]
     #[should_panic(expected: ('Caller is not the owner', 'ENTRYPOINT_FAILED'))]
     fn disable_space_unauthorized() {
-        let (config, space, timelock) = setup_test();
+        let (_, _, timelock) = setup_test();
         // Only the owner can disable a space
         testing::set_caller_address(timelock.veto_guardian());
         testing::set_contract_address(timelock.veto_guardian());

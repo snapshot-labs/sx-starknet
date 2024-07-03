@@ -7,7 +7,7 @@ mod MerkleWhitelistVotingStrategy {
     #[storage]
     struct Storage {}
 
-    #[external(v0)]
+    #[abi(embed_v0)]
     impl MerkleWhitelistImpl of IVotingStrategy<ContractState> {
         /// Returns the voting power of a members of a merkle tree.
         /// The merkle tree root is stored in the strategy parameters (defined by the space owner).

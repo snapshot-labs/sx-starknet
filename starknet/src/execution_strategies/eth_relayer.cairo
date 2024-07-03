@@ -3,6 +3,7 @@ mod EthRelayerExecutionStrategy {
     use starknet::{info, syscalls, EthAddress};
     use sx::interfaces::IExecutionStrategy;
     use sx::types::{Proposal, ProposalStatus};
+    use starknet::SyscallResultTrait;
 
     #[storage]
     struct Storage {}
@@ -20,7 +21,7 @@ mod EthRelayerExecutionStrategy {
     /// * votes_against - The number of votes against the proposal.
     /// * votes_abstain - The number of votes abstaining from the proposal.
     /// * payload - An array containing the serialized L1 execution strategy address and the L1 execution hash.
-    #[external(v0)]
+    #[abi(embed_v0)]
     impl EthRelayerExecutionStrategy of IExecutionStrategy<ContractState> {
         fn execute(
             ref self: ContractState,
@@ -43,9 +44,9 @@ mod EthRelayerExecutionStrategy {
 
             // Decode payload into L1 execution strategy and L1 (keccak) execution hash
             let mut payload = payload.span();
-            let (l1_execution_strategy, l1_execution_hash) = Serde::<(
-                EthAddress, u256
-            )>::deserialize(ref payload)
+            let (l1_execution_strategy, l1_execution_hash) = Serde::<
+                (EthAddress, u256)
+            >::deserialize(ref payload)
                 .unwrap();
 
             // Serialize the payload to be sent to the L1 execution strategy
@@ -58,7 +59,8 @@ mod EthRelayerExecutionStrategy {
             votes_abstain.serialize(ref l1_payload);
             l1_execution_hash.serialize(ref l1_payload);
 
-            syscalls::send_message_to_l1_syscall(l1_execution_strategy.into(), l1_payload.span());
+            syscalls::send_message_to_l1_syscall(l1_execution_strategy.into(), l1_payload.span())
+                .unwrap_syscall();
         }
 
         fn get_strategy_type(self: @ContractState) -> felt252 {
