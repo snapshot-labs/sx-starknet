@@ -15,7 +15,7 @@ mod ExecutorExecutionStrategy {
         data: Array<felt252>,
     }
 
-    #[external(v0)]
+    #[abi(embed_v0)]
     impl ExecutorExecutionStrategy of IExecutionStrategy<ContractState> {
         // Dummy function that will just execute the `Transaction` in the payload, without needing any quorum.
         fn execute(
@@ -62,7 +62,7 @@ mod ExecutorWithoutTxExecutionStrategy {
     #[storage]
     struct Storage {}
 
-    #[external(v0)]
+    #[abi(embed_v0)]
     impl ExecutorWithoutTxExecutionStrategy of IExecutionStrategy<ContractState> {
         // Dummy function that will do nothing
         fn execute(

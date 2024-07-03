@@ -14,7 +14,7 @@ mod SpaceV2 {
         _var: felt252
     }
 
-    #[external(v0)]
+    #[abi(embed_v0)]
     impl SpaceV2 of ISpaceV2<ContractState> {
         fn post_upgrade_initializer(ref self: ContractState, var: felt252) {
             // Migration to components planned ; disregard the `unsafe` keyword,

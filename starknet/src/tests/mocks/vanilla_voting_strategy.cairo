@@ -6,7 +6,7 @@ mod VanillaVotingStrategy {
     #[storage]
     struct Storage {}
 
-    #[external(v0)]
+    #[abi(embed_v0)]
     impl VanillaVotingStrategy of IVotingStrategy<ContractState> {
         /// Vanilla voting strategy that returns 1 for all voters.
         fn get_voting_power(

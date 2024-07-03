@@ -10,7 +10,7 @@ mod EvmSlotValueVotingStrategy {
     #[storage]
     struct Storage {}
 
-    #[external(v0)]
+    #[abi(embed_v0)]
     impl EvmSlotValueVotingStrategy of IVotingStrategy<ContractState> {
         /// Returns the value of a slot in a mapping in an EVM contract at the block number corresponding to the given timestamp.
         ///
@@ -40,9 +40,9 @@ mod EvmSlotValueVotingStrategy {
             let voter = voter.to_ethereum_address();
 
             // Decode params and user_params
-            let (evm_contract_address, slot_index) = Serde::<(
-                EthAddress, u256
-            )>::deserialize(ref params)
+            let (evm_contract_address, slot_index) = Serde::<
+                (EthAddress, u256)
+            >::deserialize(ref params)
                 .unwrap();
             let mpt_proof = Serde::<Span<Span<u64>>>::deserialize(ref user_params).unwrap();
 
@@ -62,7 +62,6 @@ mod EvmSlotValueVotingStrategy {
         }
     }
 
-    #[external(v0)]
     #[generate_trait]
     impl SingleSlotProofImpl of SingleSlotProofTrait {
         /// Queries the Timestamp Remapper contract for the closest L1 block number that occured before

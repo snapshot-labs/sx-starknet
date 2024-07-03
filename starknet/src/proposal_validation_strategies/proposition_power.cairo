@@ -10,7 +10,7 @@ mod PropositionPowerProposalValidationStrategy {
     #[storage]
     struct Storage {}
 
-    #[external(v0)]
+    #[abi(embed_v0)]
     impl PropositionPowerProposalValidationStrategy of IProposalValidationStrategy<ContractState> {
         /// Designed to be used by spaces that which to use voting strategies to define who can create proposals.
         /// The allowed strategies simply need to be supplied in the `params` field.
@@ -29,7 +29,9 @@ mod PropositionPowerProposalValidationStrategy {
         fn validate(
             self: @ContractState,
             author: UserAddress,
-            params: Span<felt252>, // [proposal_threshold: u256, allowed_strategies: Array<Strategy>]
+            params: Span<
+                felt252
+            >, // [proposal_threshold: u256, allowed_strategies: Array<Strategy>]
             user_params: Span<felt252> // [user_strategies: Array<IndexedStrategy>]
         ) -> bool {
             proposition_power::validate(author, params, user_params)

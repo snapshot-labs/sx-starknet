@@ -1,6 +1,7 @@
 #[starknet::contract]
 mod EIP712 {
     use starknet::{EthAddress, ContractAddress, secp256_trait};
+    use starknet::eth_signature::verify_eth_signature;
     use starknet::secp256k1::Secp256k1Point;
     use sx::types::{Strategy, IndexedStrategy, Choice};
     use sx::utils::{endian, ByteReverse, KeccakStructHash, TIntoU256};
@@ -38,9 +39,7 @@ mod EIP712 {
                     user_proposal_validation_params,
                     salt
                 );
-            secp256_trait::verify_eth_signature::<Secp256k1Point>(
-                digest, secp256_trait::signature_from_vrs(v, r, s), author
-            );
+            verify_eth_signature(digest, secp256_trait::signature_from_vrs(v, r, s), author);
         }
 
         /// Verifies the signature of the vote calldata.
@@ -60,9 +59,7 @@ mod EIP712 {
                 .get_vote_digest(
                     space, voter, proposal_id, choice, user_voting_strategies, metadata_uri
                 );
-            secp256_trait::verify_eth_signature::<Secp256k1Point>(
-                digest, secp256_trait::signature_from_vrs(v, r, s), voter
-            );
+            verify_eth_signature(digest, secp256_trait::signature_from_vrs(v, r, s), voter);
         }
 
         /// Verifies the signature of the update proposal calldata.
@@ -82,9 +79,7 @@ mod EIP712 {
                 .get_update_proposal_digest(
                     space, author, proposal_id, execution_strategy, metadata_uri, salt
                 );
-            secp256_trait::verify_eth_signature::<Secp256k1Point>(
-                digest, secp256_trait::signature_from_vrs(v, r, s), author
-            );
+            verify_eth_signature(digest, secp256_trait::signature_from_vrs(v, r, s), author);
         }
 
         /// Returns the digest of the propose calldata.

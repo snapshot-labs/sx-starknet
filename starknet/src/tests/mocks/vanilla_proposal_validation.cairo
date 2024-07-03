@@ -7,7 +7,7 @@ mod VanillaProposalValidationStrategy {
     #[storage]
     struct Storage {}
 
-    #[external(v0)]
+    #[abi(embed_v0)]
     impl VanillaProposalValidationStrategy of IProposalValidationStrategy<ContractState> {
         /// Vanilla validation strategy that always returns true.
         fn validate(

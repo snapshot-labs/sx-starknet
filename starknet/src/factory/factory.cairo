@@ -18,12 +18,12 @@ mod Factory {
     use sx::utils::constants::INITIALIZE_SELECTOR;
 
     #[event]
-    #[derive(Drop, starknet::Event)]
+    #[derive(Drop, PartialEq, starknet::Event)]
     enum Event {
         NewContractDeployed: NewContractDeployed
     }
 
-    #[derive(Drop, starknet::Event)]
+    #[derive(Drop, PartialEq, starknet::Event)]
     struct NewContractDeployed {
         class_hash: ClassHash,
         contract_address: ContractAddress
@@ -32,7 +32,7 @@ mod Factory {
     #[storage]
     struct Storage {}
 
-    #[external(v0)]
+    #[abi(embed_v0)]
     impl Factory of IFactory<ContractState> {
         fn deploy(
             ref self: ContractState,

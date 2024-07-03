@@ -7,7 +7,7 @@ mod NoVotingPowerVotingStrategy {
     #[storage]
     struct Storage {}
 
-    #[external(v0)]
+    #[abi(embed_v0)]
     impl NoVotingPowerVotingStrategy of IVotingStrategy<ContractState> {
         fn get_voting_power(
             self: @ContractState,

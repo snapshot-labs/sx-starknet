@@ -89,14 +89,14 @@ mod EthSigAuthenticator {
     use starknet::{ContractAddress, EthAddress};
     use sx::interfaces::{ISpaceDispatcher, ISpaceDispatcherTrait};
     use sx::types::{Strategy, IndexedStrategy, Choice, UserAddress};
-    use sx::utils::{EIP712, LegacyHashEthAddress, LegacyHashUsedSalts, ByteReverse};
+    use sx::utils::{EIP712, LegacyHashEthAddress, ByteReverse};
 
     #[storage]
     struct Storage {
         _used_salts: LegacyMap::<(EthAddress, u256), bool>
     }
 
-    #[external(v0)]
+    #[abi(embed_v0)]
     impl EthSigAuthenticator of IEthSigAuthenticator<ContractState> {
         fn authenticate_propose(
             ref self: ContractState,

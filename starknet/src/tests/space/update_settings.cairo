@@ -37,7 +37,7 @@ mod tests {
     #[available_gas(10000000000)]
     #[should_panic(expected: ('Caller is not the owner', 'ENTRYPOINT_FAILED'))]
     fn update_unauthorized() {
-        let (config, space) = setup_update_settings();
+        let (_, space) = setup_update_settings();
         let mut input: UpdateSettingsCalldata = Default::default();
 
         testing::set_contract_address(starknet::contract_address_const::<'unauthorized'>());
@@ -57,10 +57,10 @@ mod tests {
             space.min_voting_duration() == input.min_voting_duration,
             'Min voting duration not updated'
         );
-        let expected_event = MinVotingDurationUpdated {
-            min_voting_duration: input.min_voting_duration
-        };
-        assert_correct_event::<MinVotingDurationUpdated>(space.contract_address, expected_event);
+        let expected_event = Space::Event::MinVotingDurationUpdated(
+            MinVotingDurationUpdated { min_voting_duration: input.min_voting_duration }
+        );
+        assert_correct_event::<Space::Event>(space.contract_address, expected_event);
     }
 
     #[test]
@@ -88,10 +88,10 @@ mod tests {
             space.max_voting_duration() == input.max_voting_duration,
             'Max voting duration not updated'
         );
-        let expected_event = MaxVotingDurationUpdated {
-            max_voting_duration: input.max_voting_duration
-        };
-        assert_correct_event::<MaxVotingDurationUpdated>(space.contract_address, expected_event);
+        let expected_event = Space::Event::MaxVotingDurationUpdated(
+            MaxVotingDurationUpdated { max_voting_duration: input.max_voting_duration }
+        );
+        assert_correct_event::<Space::Event>(space.contract_address, expected_event);
     }
 
     #[test]
@@ -123,15 +123,15 @@ mod tests {
             'Max voting duration not updated'
         );
 
-        let expected_event = MinVotingDurationUpdated {
-            min_voting_duration: input.min_voting_duration
-        };
-        assert_correct_event::<MinVotingDurationUpdated>(space.contract_address, expected_event);
+        let expected_event = Space::Event::MinVotingDurationUpdated(
+            MinVotingDurationUpdated { min_voting_duration: input.min_voting_duration }
+        );
+        assert_correct_event::<Space::Event>(space.contract_address, expected_event);
 
-        let expected_event = MaxVotingDurationUpdated {
-            max_voting_duration: input.max_voting_duration
-        };
-        assert_correct_event::<MaxVotingDurationUpdated>(space.contract_address, expected_event);
+        let expected_event = Space::Event::MaxVotingDurationUpdated(
+            MaxVotingDurationUpdated { max_voting_duration: input.max_voting_duration }
+        );
+        assert_correct_event::<Space::Event>(space.contract_address, expected_event);
     }
 
     #[test]
@@ -158,41 +158,45 @@ mod tests {
         space.update_settings(input.clone());
 
         assert(space.voting_delay() == input.voting_delay, 'Voting delay not updated');
-        let expected = VotingDelayUpdated { voting_delay: input.voting_delay };
-        assert_correct_event::<VotingDelayUpdated>(space.contract_address, expected);
+        let expected = Space::Event::VotingDelayUpdated(
+            VotingDelayUpdated { voting_delay: input.voting_delay }
+        );
+        assert_correct_event::<Space::Event>(space.contract_address, expected);
     }
 
     #[test]
     #[available_gas(10000000000)]
     fn metadata_uri() {
-        let (config, space) = setup_update_settings();
+        let (_, space) = setup_update_settings();
         let mut input: UpdateSettingsCalldata = Default::default();
         let mut arr = array![];
         'hello!'.serialize(ref arr);
         input.metadata_uri = arr;
 
         space.update_settings(input.clone());
-        let expected = MetadataUriUpdated { metadata_uri: input.metadata_uri.span() };
-        assert_correct_event::<MetadataUriUpdated>(space.contract_address, expected);
+        let expected = Space::Event::MetadataUriUpdated(
+            MetadataUriUpdated { metadata_uri: input.metadata_uri.span() }
+        );
+        assert_correct_event::<Space::Event>(space.contract_address, expected);
     }
 
     #[test]
     #[available_gas(10000000000)]
     fn dao_uri() {
-        let (config, space) = setup_update_settings();
+        let (_, space) = setup_update_settings();
         let mut input: UpdateSettingsCalldata = Default::default();
         input.dao_uri = array!['hello!'];
 
         space.update_settings(input.clone());
         assert(space.dao_uri() == input.dao_uri, 'dao uri not updated');
-        let expected = DaoUriUpdated { dao_uri: input.dao_uri.span() };
-        assert_correct_event::<DaoUriUpdated>(space.contract_address, expected);
+        let expected = Space::Event::DaoUriUpdated(DaoUriUpdated { dao_uri: input.dao_uri.span() });
+        assert_correct_event::<Space::Event>(space.contract_address, expected);
     }
 
     #[test]
     #[available_gas(10000000000)]
     fn proposal_validation_strategy() {
-        let (config, space) = setup_update_settings();
+        let (_, space) = setup_update_settings();
         let mut input: UpdateSettingsCalldata = Default::default();
         let randomStrategy = StrategyImpl::from_address(
             starknet::contract_address_const::<'randomStrategy'>()
@@ -208,19 +212,21 @@ mod tests {
             space.proposal_validation_strategy() == input.proposal_validation_strategy,
             'Proposal strategy not updated'
         );
-        let expected = ProposalValidationStrategyUpdated {
-            proposal_validation_strategy: input.proposal_validation_strategy,
-            proposal_validation_strategy_metadata_uri: input
-                .proposal_validation_strategy_metadata_uri
-                .span()
-        };
-        assert_correct_event::<ProposalValidationStrategyUpdated>(space.contract_address, expected);
+        let expected = Space::Event::ProposalValidationStrategyUpdated(
+            ProposalValidationStrategyUpdated {
+                proposal_validation_strategy: input.proposal_validation_strategy,
+                proposal_validation_strategy_metadata_uri: input
+                    .proposal_validation_strategy_metadata_uri
+                    .span()
+            }
+        );
+        assert_correct_event::<Space::Event>(space.contract_address, expected);
     }
 
     #[test]
     #[available_gas(10000000000)]
     fn add_authenticators() {
-        let (config, space) = setup_update_settings();
+        let (_, space) = setup_update_settings();
         let mut input: UpdateSettingsCalldata = Default::default();
         let auth1 = starknet::contract_address_const::<'authenticator1'>();
         let auth2 = starknet::contract_address_const::<'authenticator2'>();
@@ -232,8 +238,10 @@ mod tests {
         assert(space.authenticators(auth1) == true, 'Authenticator 1 not added');
         assert(space.authenticators(auth2) == true, 'Authenticator 2 not added');
 
-        let expected = AuthenticatorsAdded { authenticators: input.authenticators_to_add.span() };
-        assert_correct_event::<AuthenticatorsAdded>(space.contract_address, expected);
+        let expected = Space::Event::AuthenticatorsAdded(
+            AuthenticatorsAdded { authenticators: input.authenticators_to_add.span() }
+        );
+        assert_correct_event::<Space::Event>(space.contract_address, expected);
     }
 
     #[test]
@@ -248,16 +256,16 @@ mod tests {
         space.update_settings(input.clone());
 
         assert(space.authenticators(auth1) == false, 'Authenticator not removed');
-        let expected = AuthenticatorsRemoved {
-            authenticators: input.authenticators_to_remove.span()
-        };
-        assert_correct_event::<AuthenticatorsRemoved>(space.contract_address, expected);
+        let expected = Space::Event::AuthenticatorsRemoved(
+            AuthenticatorsRemoved { authenticators: input.authenticators_to_remove.span() }
+        );
+        assert_correct_event::<Space::Event>(space.contract_address, expected);
     }
 
     #[test]
     #[available_gas(10000000000)]
     fn add_voting_strategies() {
-        let (config, space) = setup_update_settings();
+        let (_, space) = setup_update_settings();
         let mut input: UpdateSettingsCalldata = Default::default();
 
         let vs1 = StrategyImpl::from_address(
@@ -277,18 +285,20 @@ mod tests {
         assert(space.voting_strategies(2) == vs2, 'Voting strategy 2 not added');
         assert(space.active_voting_strategies() == 0b111, 'Voting strategies not active');
 
-        let expected = VotingStrategiesAdded {
-            voting_strategies: input.voting_strategies_to_add.span(),
-            voting_strategy_metadata_uris: input.voting_strategies_metadata_uris_to_add.span(),
-        };
-        assert_correct_event::<VotingStrategiesAdded>(space.contract_address, expected);
+        let expected = Space::Event::VotingStrategiesAdded(
+            VotingStrategiesAdded {
+                voting_strategies: input.voting_strategies_to_add.span(),
+                voting_strategy_metadata_uris: input.voting_strategies_metadata_uris_to_add.span(),
+            }
+        );
+        assert_correct_event::<Space::Event>(space.contract_address, expected);
     }
 
     #[test]
     #[available_gas(10000000000)]
     #[should_panic(expected: ('len mismatch', 'ENTRYPOINT_FAILED'))]
     fn add_voting_strategies_mismatch() {
-        let (config, space) = setup_update_settings();
+        let (_, space) = setup_update_settings();
         let mut input: UpdateSettingsCalldata = Default::default();
 
         let vs1 = StrategyImpl::from_address(
@@ -313,7 +323,7 @@ mod tests {
     #[test]
     #[available_gas(10000000000)]
     fn remove_voting_strategies() {
-        let (config, space) = setup_update_settings();
+        let (_, space) = setup_update_settings();
         let mut input: UpdateSettingsCalldata = Default::default();
 
         // First, add a new voting strategy
@@ -338,17 +348,19 @@ mod tests {
         space.update_settings(input.clone());
         assert(space.active_voting_strategies() == 0b10, 'strategy not removed');
 
-        let expected = VotingStrategiesRemoved {
-            voting_strategy_indices: input.voting_strategies_to_remove.span()
-        };
-        assert_correct_event::<VotingStrategiesRemoved>(space.contract_address, expected);
+        let expected = Space::Event::VotingStrategiesRemoved(
+            VotingStrategiesRemoved {
+                voting_strategy_indices: input.voting_strategies_to_remove.span()
+            }
+        );
+        assert_correct_event::<Space::Event>(space.contract_address, expected);
     }
 
     #[test]
     #[available_gas(10000000000)]
     #[should_panic(expected: ('No active voting strategy left', 'ENTRYPOINT_FAILED'))]
     fn remove_all_voting_strategies() {
-        let (config, space) = setup_update_settings();
+        let (_, space) = setup_update_settings();
         let mut input: UpdateSettingsCalldata = Default::default();
 
         // Remove the first voting strategy

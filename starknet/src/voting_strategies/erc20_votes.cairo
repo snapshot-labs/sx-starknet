@@ -10,7 +10,7 @@ mod ERC20VotesVotingStrategy {
     #[storage]
     struct Storage {}
 
-    #[external(v0)]
+    #[abi(embed_v0)]
     impl ERC20VotesVotingStrategy of IVotingStrategy<ContractState> {
         /// Returns the total amount of delegated votes of `voter` at the given `timestamp`.
         /// A user must self-delegate if he wishes to have voting power.

@@ -35,9 +35,7 @@ mod SpaceManager {
                         );
                         self._spaces.write(*space, true);
                     },
-                    Option::None(()) => {
-                        break;
-                    }
+                    Option::None(()) => { break; }
                 };
             }
         }

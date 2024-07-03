@@ -2,8 +2,6 @@
 mod tests {
     use sx::tests::mocks::erc20_votes_preset::ERC20VotesPreset; // temporary while we wait for scarb to fix their dependencies
     use sx::interfaces::{ISpaceDispatcher, ISpaceDispatcherTrait};
-    use openzeppelin::token::erc20::presets::ERC20VotesPreset::ERC20Impl;
-    use openzeppelin::token::erc20::presets::ERC20VotesPreset::VotesImpl;
     use openzeppelin::token::erc20::interface::{IERC20Dispatcher, IERC20DispatcherTrait};
     use openzeppelin::governance::utils::interfaces::votes::{
         IVotes, IVotesDispatcher, IVotesDispatcherTrait
@@ -25,8 +23,7 @@ mod tests {
     use sx::utils::constants::{PROPOSE_SELECTOR, VOTE_SELECTOR};
     use sx::tests::mocks::vanilla_execution_strategy::VanillaExecutionStrategy;
 
-    const NAME: felt252 = 'TEST';
-    const SYMBOL: felt252 = 'TST';
+
     const INITIAL_SUPPLY: u256 = 1_000;
 
     fn OWNER() -> ContractAddress {
@@ -34,11 +31,22 @@ mod tests {
     }
 
     fn deploy_token_contract() -> ContractAddress {
-        // Deploy ERC20
-        let constructor_data = array![
-            NAME, SYMBOL, INITIAL_SUPPLY.low.into(), INITIAL_SUPPLY.high.into(), OWNER().into()
-        ];
+        let NAME: ByteArray = "TEST";
+        let SYMBOL: ByteArray = "TST";
 
+        let mut constructor_data = array![];
+        NAME.serialize(ref constructor_data);
+        SYMBOL.serialize(ref constructor_data);
+        INITIAL_SUPPLY.low.serialize(ref constructor_data);
+        INITIAL_SUPPLY.high.serialize(ref constructor_data);
+        OWNER().serialize(ref constructor_data);
+
+        // let constructor_data = array![
+        //     NAME, SYMBOL, INITIAL_SUPPLY.low.into(), INITIAL_SUPPLY.high.into(), OWNER().into()
+        // ];
+        // let constructor_data = (NAME, SYMBOL, INITIAL_SUPPLY.low, INITIAL_SUPPLY, OWNER());
+
+        // Deploy ERC20
         let (token_contract, _) = syscalls::deploy_syscall(
             ERC20VotesPreset::TEST_CLASS_HASH.try_into().unwrap(),
             0,
@@ -66,7 +74,7 @@ mod tests {
 
     fn setup_space() -> (Config, ISpaceDispatcher) {
         let config = _setup();
-        let (factory_address, space) = deploy(@config);
+        let (_, space) = deploy(@config);
 
         let token_contract = deploy_token_contract();
         let erc20_voting_strategy = strategy_from_contract(token_contract);
@@ -151,7 +159,7 @@ mod tests {
 
     #[test]
     #[available_gas(1000000000)]
-    fn works() {
+    fn scott_works() {
         let (config, space) = setup_space();
         let vanilla_execution_strategy = get_vanilla_execution_strategy();
         let accounts = setup_accounts(space.voting_strategies(1));

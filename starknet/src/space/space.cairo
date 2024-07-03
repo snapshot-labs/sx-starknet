@@ -2,7 +2,7 @@
 mod Space {
     use starknet::{ClassHash, ContractAddress, info, Store, syscalls, SyscallResult,};
     use starknet::storage_access::{StorePacking, StoreUsingPacking};
-    use openzeppelin::access::ownable::Ownable;
+    use openzeppelin::access::ownable::OwnableComponent;
     use sx::interfaces::ISpace;
     use sx::interfaces::{
         IProposalValidationStrategyDispatcher, IProposalValidationStrategyDispatcherTrait,
@@ -20,6 +20,11 @@ mod Space {
         LegacyHashVoteRegistry, constants::{INITIALIZE_SELECTOR, POST_UPGRADE_INITIALIZER_SELECTOR}
     };
 
+    component!(path: OwnableComponent, storage: ownable, event: OwnableEvent);
+
+    impl OwnableInternalImpl = OwnableComponent::InternalImpl<ContractState>;
+    impl OwnableImpl = OwnableComponent::OwnableImpl<ContractState>;
+
     #[storage]
     struct Storage {
         _min_voting_duration: u32,
@@ -35,10 +40,12 @@ mod Space {
         _proposals: LegacyMap::<u256, Proposal>,
         _vote_power: LegacyMap::<(u256, Choice), u256>,
         _vote_registry: LegacyMap::<(u256, UserAddress), bool>,
+        #[substorage(v0)]
+        ownable: OwnableComponent::Storage,
     }
 
     #[event]
-    #[derive(Drop, starknet::Event)]
+    #[derive(Drop, PartialEq, starknet::Event)]
     enum Event {
         SpaceCreated: SpaceCreated,
         ProposalCreated: ProposalCreated,
@@ -57,6 +64,8 @@ mod Space {
         ProposalValidationStrategyUpdated: ProposalValidationStrategyUpdated,
         VotingDelayUpdated: VotingDelayUpdated,
         Upgraded: Upgraded,
+        #[flat]
+        OwnableEvent: OwnableComponent::Event
     }
 
     #[derive(Drop, PartialEq, starknet::Event)]
@@ -168,7 +177,7 @@ mod Space {
         dao_uri: Span<felt252>,
     }
 
-    #[external(v0)]
+    #[abi(embed_v0)]
     impl Space of ISpace<ContractState> {
         fn initialize(
             ref self: ContractState,
@@ -216,10 +225,7 @@ mod Space {
             assert(authenticators.len() != 0, 'empty authenticators');
             assert(voting_strategies.len() == voting_strategy_metadata_uris.len(), 'len mismatch');
 
-            // Migration to components planned ; disregard the `unsafe` keyword,
-            // it is actually safe.
-            let mut state = Ownable::unsafe_new_contract_state();
-            Ownable::InternalImpl::initializer(ref state, owner);
+            self.ownable.initializer(owner);
             self.set_dao_uri(dao_uri);
             self
                 .set_max_voting_duration(
@@ -388,10 +394,7 @@ mod Space {
         }
 
         fn cancel(ref self: ContractState, proposal_id: u256) {
-            // Migration to components planned ; disregard the `unsafe` keyword,
-            // it is actually safe.
-            let state = Ownable::unsafe_new_contract_state();
-            Ownable::InternalImpl::assert_only_owner(@state);
+            self.ownable.assert_only_owner();
 
             let mut proposal = self._proposals.read(proposal_id);
             InternalImpl::assert_proposal_exists(@proposal);
@@ -446,8 +449,7 @@ mod Space {
         fn upgrade(
             ref self: ContractState, class_hash: ClassHash, initialize_calldata: Array<felt252>
         ) -> SyscallResult<()> {
-            let state: Ownable::ContractState = Ownable::unsafe_new_contract_state();
-            Ownable::InternalImpl::assert_only_owner(@state);
+            self.ownable.assert_only_owner();
 
             assert(class_hash.is_non_zero(), 'Class Hash cannot be zero');
             starknet::replace_class_syscall(class_hash)?;
@@ -485,10 +487,7 @@ mod Space {
         }
 
         fn owner(self: @ContractState) -> ContractAddress {
-            // Migration to components planned ; disregard the `unsafe` keyword,
-            // it is actually safe.
-            let state = Ownable::unsafe_new_contract_state();
-            Ownable::OwnableImpl::owner(@state)
+            self.ownable.owner()
         }
 
         fn max_voting_duration(self: @ContractState) -> u32 {
@@ -548,10 +547,7 @@ mod Space {
         }
 
         fn update_settings(ref self: ContractState, input: UpdateSettingsCalldata) {
-            // Migration to components planned ; disregard the `unsafe` keyword,
-            // it is actually safe.
-            let state = Ownable::unsafe_new_contract_state();
-            Ownable::InternalImpl::assert_only_owner(@state);
+            self.ownable.assert_only_owner();
 
             // Needed because the compiler will go crazy if we try to use `input` directly
             let _min_voting_duration = input.min_voting_duration;
@@ -716,17 +712,11 @@ mod Space {
         }
 
         fn transfer_ownership(ref self: ContractState, new_owner: ContractAddress) {
-            // Migration to components planned ; disregard the `unsafe` keyword,
-            // it is actually safe.
-            let mut state = Ownable::unsafe_new_contract_state();
-            Ownable::OwnableImpl::transfer_ownership(ref state, new_owner);
+            self.ownable.transfer_ownership(new_owner);
         }
 
         fn renounce_ownership(ref self: ContractState) {
-            // Migration to components planned ; disregard the `unsafe` keyword,
-            // it is actually safe.
-            let mut state = Ownable::unsafe_new_contract_state();
-            Ownable::OwnableImpl::renounce_ownership(ref state);
+            self.ownable.renounce_ownership();
         }
     }
 
@@ -763,9 +753,7 @@ mod Space {
                                 strategy_index.params.span()
                             );
                     },
-                    Option::None => {
-                        break;
-                    },
+                    Option::None => { break; },
                 };
             };
             total_voting_power
@@ -812,9 +800,7 @@ mod Space {
                             .write(cachedNextVotingStrategyIndex, strategy.clone());
                         cachedNextVotingStrategyIndex += 1_u8;
                     },
-                    Option::None => {
-                        break;
-                    },
+                    Option::None => { break; },
                 };
             };
             self._active_voting_strategies.write(cachedActiveVotingStrategies);
@@ -825,12 +811,8 @@ mod Space {
             let mut cachedActiveVotingStrategies = self._active_voting_strategies.read();
             loop {
                 match _voting_strategies.pop_front() {
-                    Option::Some(index) => {
-                        cachedActiveVotingStrategies.set_bit(*index, false);
-                    },
-                    Option::None => {
-                        break;
-                    },
+                    Option::Some(index) => { cachedActiveVotingStrategies.set_bit(*index, false); },
+                    Option::None => { break; },
                 };
             };
 
@@ -845,9 +827,7 @@ mod Space {
                     Option::Some(authenticator) => {
                         self._authenticators.write(*authenticator, true);
                     },
-                    Option::None => {
-                        break;
-                    },
+                    Option::None => { break; },
                 };
             }
         }
@@ -860,9 +840,7 @@ mod Space {
                     Option::Some(authenticator) => {
                         self._authenticators.write(*authenticator, false);
                     },
-                    Option::None => {
-                        break;
-                    },
+                    Option::None => { break; },
                 };
             }
         }

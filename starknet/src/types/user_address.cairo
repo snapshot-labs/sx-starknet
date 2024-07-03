@@ -24,37 +24,25 @@ impl UserAddressImpl of UserAddressTrait {
     fn to_starknet_address(self: UserAddress) -> ContractAddress {
         match self {
             UserAddress::Starknet(address) => address,
-            UserAddress::Ethereum(_) => {
-                panic_with_felt252('Incorrect address type')
-            },
-            UserAddress::Custom(_) => {
-                panic_with_felt252('Incorrect address type')
-            }
+            UserAddress::Ethereum(_) => { panic_with_felt252('Incorrect address type') },
+            UserAddress::Custom(_) => { panic_with_felt252('Incorrect address type') }
         }
     }
 
     /// Returns the ethereum address. Panics if the address is not an ethereum address.
     fn to_ethereum_address(self: UserAddress) -> EthAddress {
         match self {
-            UserAddress::Starknet(_) => {
-                panic_with_felt252('Incorrect address type')
-            },
+            UserAddress::Starknet(_) => { panic_with_felt252('Incorrect address type') },
             UserAddress::Ethereum(address) => address,
-            UserAddress::Custom(_) => {
-                panic_with_felt252('Incorrect address type')
-            }
+            UserAddress::Custom(_) => { panic_with_felt252('Incorrect address type') }
         }
     }
 
     /// Returns the custom address. Panics if the address is not a custom address.
     fn to_custom_address(self: UserAddress) -> u256 {
         match self {
-            UserAddress::Starknet(_) => {
-                panic_with_felt252('Incorrect address type')
-            },
-            UserAddress::Ethereum(_) => {
-                panic_with_felt252('Incorrect address type')
-            },
+            UserAddress::Starknet(_) => { panic_with_felt252('Incorrect address type') },
+            UserAddress::Ethereum(_) => { panic_with_felt252('Incorrect address type') },
             UserAddress::Custom(address) => address,
         }
     }

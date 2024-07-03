@@ -70,7 +70,7 @@ mod StarkTxAuthenticator {
     #[storage]
     struct Storage {}
 
-    #[external(v0)]
+    #[abi(embed_v0)]
     impl StarkTxAuthenticator of IStarkTxAuthenticator<ContractState> {
         fn authenticate_propose(
             ref self: ContractState,

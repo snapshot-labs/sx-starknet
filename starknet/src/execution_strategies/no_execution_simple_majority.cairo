@@ -10,7 +10,7 @@ mod NoExecutionSimpleMajorityExecutionStrategy {
     #[storage]
     struct Storage {}
 
-    #[external(v0)]
+    #[abi(embed_v0)]
     impl NoExecutionSimpleMajorityExecutionStrategy of IExecutionStrategy<ContractState> {
         fn execute(
             ref self: ContractState,
