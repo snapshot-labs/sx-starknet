@@ -47,7 +47,7 @@ const INDEXED_STRATEGY_TYPEHASH_LOW: u128 = 0x1d011b57ff63174d8f2b064ab6ce9cc6;
 const STARKNET_MESSAGE: felt252 = 'StarkNet Message';
 
 // StarknetKeccak('StarkNetDomain(name:felt252,version:felt252,chainId:felt252)')
-const DOMAIN_TYPEHASH: felt252 = 0x7652a980b9a4920425c858386f09477bb210dea95169abd576f5ef7c9d5ca2;
+const DOMAIN_TYPEHASH: felt252 = 0x27652a980b9a4920425c858386f09477bb210dea95169abd576f5ef7c9d5ca2;
 
 // H('Propose(space:ContractAddress,author:ContractAddress,metadataUri:felt*,executionStrategy:Strategy,
 //    userProposalValidationParams:felt*,salt:felt252)Strategy(address:felt252,params:felt*)')
