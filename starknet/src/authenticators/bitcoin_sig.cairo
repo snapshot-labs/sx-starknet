@@ -1,16 +1,26 @@
-// Draft code for verifying Bitcoin signature
+use starknet::{ContractAddress, EthAddress};
+use sx::types::{Strategy, IndexedStrategy, Choice};
 
 #[starknet::interface]
 trait IBitcoinSigAuthenticator<TContractState> {
+    /// Authenticates a propose transaction, by checking the signature using Bitcoin signature verification
+    /// 
+    /// # Arguments
+    ///
+    /// * `signature` - The signature of message digest.
+    /// * `space` - The address of the space contract.
+    /// * `author` - The starkent address of the author of the proposal.
+    /// * `metadata_uri` - The URI of the proposal metadata.
+    /// * `execution_strategy` - The execution strategy of the proposal.
+    /// * `user_proposal_validation_params` - The user proposal validation params of the proposal.
+    /// * `salt` - The salt, used for replay protection.
     fn authenticate_propose(
-        ref self: TContractState,
-        orig_signature: Array<u8>, // space: ContractAddress,
-        author: Array<u8>,
-        msg: ByteArray,
+        ref self: TContractState, signature: Array<u8>, space: ContractAddress, author: Array<u8>,
+    // msg: ByteArray,
     // metadata_uri: Array<felt252>,
     // execution_strategy: Strategy,
     // user_proposal_validation_params: Array<felt252>,
-    //salt: u256,
+    // salt: u256,
     );
 }
 
@@ -40,6 +50,7 @@ mod BitcoinSigAuthenticator {
 
     // use alexandria_math::{sha256, fast_power};
     use sx::utils::{Bitcoin};
+    use starknet::{ContractAddress, EthAddress};
 
     #[storage]
     struct Storage { //_used_salts: LegacyMap::<(EthAddress, u256), bool>
@@ -49,16 +60,21 @@ mod BitcoinSigAuthenticator {
     impl BitcoinSigAuthenticator of IBitcoinSigAuthenticator<ContractState> {
         fn authenticate_propose(
             ref self: ContractState,
-            orig_signature: Array<u8>, // space: ContractAddress,
+            signature: Array<u8>,
+            space: ContractAddress,
             author: Array<u8>,
-            msg: ByteArray
+        //msg: ByteArray,
         // metadata_uri: Array<felt252>,
         // execution_strategy: Strategy,
         // user_proposal_validation_params: Array<felt252>,
-        //salt: u256,
+        // salt: u256
         ) {
             let state = Bitcoin::unsafe_new_contract_state();
-            Bitcoin::InternalImpl::verify_propose_sig(@state, msg, orig_signature, author);
+            Bitcoin::InternalImpl::verify_propose_sig(@state, signature, space, author,// metadata_uri.span(),
+            // @execution_strategy,
+            // user_proposal_validation_params.span(),
+            // salt
+            );
         }
     }
 }

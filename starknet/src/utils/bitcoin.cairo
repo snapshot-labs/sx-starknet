@@ -12,15 +12,20 @@ mod Bitcoin {
     use starknet::secp256k1::{Secp256k1Point};
     use starknet::eth_signature::verify_eth_signature;
     use core::traits::{Into, TryInto};
+    use starknet::contract_address::ContractAddressIntoFelt252;
     use alexandria_bytes::{Bytes, BytesTrait};
     use alexandria_encoding::sol_abi::decode::SolAbiDecodeTrait;
     use alexandria_encoding::sol_abi::decode::SolAbiDecodeBytes;
-    use starknet::{ContractAddress};
+    use starknet::{ContractAddress, contract_address_const};
     use alexandria_encoding::base64::{
         Base64Encoder, Base64Decoder, Base64UrlEncoder, Base64UrlDecoder
     };
-
     use alexandria_math::{sha256, fast_power};
+
+    use sx::types::{Strategy, IndexedStrategy, Choice};
+    use sx::utils::{endian, ByteReverse, KeccakStructHash};
+    //use sx::utils::{endian, ByteReverse, KeccakStructHash, TIntoU256};
+    use starknet::{secp256_trait};
 
     #[storage]
     struct Storage {}
@@ -48,6 +53,61 @@ mod Bitcoin {
             shad
         }
 
+        fn u256_to_u8_array(self: @ContractState, input: u256) -> Array<u8> {
+            let mut mutable = input.clone();
+            let mut input_arr = array![];
+            let mut i: usize = 0;
+
+            loop {
+                if mutable == 0 {
+                    break;
+                }
+                let hmm = mutable % 256;
+                let aa: u8 = hmm.try_into().expect('number too big');
+                input_arr.append(aa);
+                mutable /= 256;
+                i += 1;
+            };
+            input_arr
+        }
+
+        fn u256_array_to_u8_array(self: @ContractState, input: Array<u256>) -> Array<u8> {
+            let mut result: Array<u8> = array![];
+
+            let mut i = 0;
+            while i < input
+                .len() {
+                    let mut mutable = *input[i];
+                    let mut temp_arr = array![];
+                    let mut j: usize = 0;
+
+                    loop {
+                        if mutable == 0 {
+                            break;
+                        }
+                        let hmm = mutable % 256;
+                        let aa: u8 = hmm.try_into().expect('number too big');
+                        temp_arr.append(aa);
+                        mutable /= 256;
+                        j += 1;
+                    };
+
+                    // Reverse the temp_arr to maintain the original byte order
+                    temp_arr.reversed();
+
+                    // Append the converted u8 array to the result
+                    let mut k = 0;
+                    while k < temp_arr.len() {
+                        result.append(*temp_arr[k]);
+                        k += 1;
+                    };
+
+                    i += 1;
+                };
+
+            return result;
+        }
+
         fn u8_array_to_u256(self: @ContractState, input: Array<u8>) -> u256 {
             let mut result: u256 = 0;
 
@@ -59,6 +119,36 @@ mod Bitcoin {
             };
             return result;
         }
+
+        fn u8_array_to_u256_array(self: @ContractState, input: Array<u8>) -> Array<u256> {
+            let mut result: Array<u256> = array![];
+
+            let mut temp: u256 = 0;
+            let mut byte_count: usize = 0;
+
+            let mut i = 0;
+            while i < input
+                .len() {
+                    temp = temp * 256 + (*input[i]).into(); // Assuming big-endian byte order
+                    byte_count = byte_count + 1;
+
+                    if byte_count == 32 {
+                        result.append(temp);
+                        temp = 0;
+                        byte_count = 0;
+                    }
+
+                    i = i + 1;
+                };
+
+            // Append the last u256 if there are remaining bytes
+            if (byte_count > 0) {
+                result.append(temp);
+            }
+
+            return result;
+        }
+
 
         fn print_array(self: @ContractState, array: Array<u8>) {
             let mut str: ByteArray = "";
@@ -361,6 +451,27 @@ mod Bitcoin {
             res
         }
 
+        fn felt_to_u8_arr(self: @ContractState, mut data: felt252) -> Array<u8> {
+            let mut i2: usize = 0;
+            let mut input: u256 = data.into();
+            //print!("PRE ");
+            let mut input_arr2: Array<u8> = array![];
+            loop {
+                if input == 0 {
+                    break;
+                }
+                let hmm = input % 256;
+                let aa: u8 = hmm.try_into().expect('number too big for hashing');
+                input_arr2.append(aa);
+                //print!("{} ", aa);
+                input /= 256;
+                i2 += 1;
+            };
+            // println!("");
+            input_arr2 = input_arr2.reversed();
+            input_arr2
+        }
+
         fn calculate_address(
             self: @ContractState, msg: ByteArray, orig_signature: Array<u8>
         ) -> Array<u8> {
@@ -475,16 +586,90 @@ mod Bitcoin {
         }
 
         fn verify_propose_sig(
-            self: @ContractState, msg: ByteArray, orig_signature: Array<u8>, author: Array<u8>
+            self: @ContractState, signature: Array<u8>, space: ContractAddress, author: Array<u8>,
+        // metadata_uri: Span<felt252>,
+        // execution_strategy: @Strategy,
+        // user_proposal_validation_params: Span<felt252>,
+        // salt: u256
         ) {
-            let parsed_address = self.calculate_address(msg, orig_signature);
-            assert(parsed_address.len() == author.len(), 'Signature mismatch');
+            let digest = self.get_propose_array(space, author, // metadata_uri,
+            // execution_strategy,
+            // user_proposal_validation_params,
+            // salt
+            );
+        // let parsed_address = self.calculate_address(digest, signature);
+        // assert(parsed_address.len() == author.len(), 'Signature mismatch');
 
+        // let mut i = 0;
+        // while (i < parsed_address.len()) {
+        //     assert(parsed_address[i] == author[i], 'Signature mismatch');
+        //     i = i + 1;
+        // }
+        }
+
+        fn get_propose_array(
+            self: @ContractState, space: ContractAddress, author: Array<u8>,
+        // metadata_uri: Span<felt252>,
+        // execution_strategy: @Strategy,
+        // user_proposal_validation_params: Span<felt252>,
+        // salt: u256
+        ) -> Array<u8> {
+            let aa: felt252 = space.into();
+            let mut encoded_data: Array<u8> =
+                array![ // u256 { low: PROPOSE_TYPEHASH_LOW, high: PROPOSE_TYPEHASH_HIGH },
+            // Felt252IntoU256::into(starknet::get_tx_info().unbox().chain_id),
+            // starknet::get_contract_address().into(),
+            //space.into(), author.into(), // metadata_uri.keccak_struct_hash(),
+            // execution_strategy.keccak_struct_hash(),
+            // user_proposal_validation_params.keccak_struct_hash(),
+            // salt
+            ];
+
+            let new_execution_strategy = Strategy {
+                address: contract_address_const::<0x12>(), params: array![]
+            };
+            let strat_hash = new_execution_strategy.keccak_struct_hash();
+            //let fff: felt252 = contract_address_const::<0x12>().into();
+            println!("STRAT hash {}", strat_hash);
+
+            let space_arr = self.felt_to_u8_arr(aa);
+            // 87dc1cc5e043bb5b40a823f5b2d0d7ab955eba32afe6a7490251cf04a8c1c2
+            //encoded_data.append(space);
+            encoded_data = encoded_data.concat(@space_arr);
+            encoded_data = encoded_data.concat(@author);
+            print!("Start encoded ");
+            self.print_bin_array(encoded_data.clone());
+            //encoded_data
+
+            // print!("Start ORIG ");
+            // let mut i = 0;
+            // let mutt = encoded_data.clone();
+            // while (i < mutt.len()) {
+            //     print!("{} ", mutt[i]);
+            //     i = i + 1;
+            // };
+            // println!("");
+
+            let mut transformed = self.u8_array_to_u256_array(encoded_data.clone());
+            // -> 240043513658661043565144645556575089943934514866347618245383635901377724866
+            //    87dc1cc5e043bb5b40a823f5b2d0d7ab955eba32afe6a7490251cf04a8c1c2
+
+            print!("Start TRAN ");
             let mut i = 0;
-            while (i < parsed_address.len()) {
-                assert(parsed_address[i] == author[i], 'Signature mismatch');
+            let mutt = transformed.clone();
+            while (i < mutt.len()) {
+                print!("{} ", mutt[i]);
                 i = i + 1;
-            }
+            };
+            println!("");
+
+            let message_hash = keccak::keccak_u256s_be_inputs(transformed.clone().span())
+                .byte_reverse();
+            print!("Real hash ");
+            self.print_hex_u256(message_hash);
+            //self.print_bin_array(message_hash.clone());
+            //self.hash_typed_data(message_hash)
+            encoded_data.clone()
         }
     }
 }
