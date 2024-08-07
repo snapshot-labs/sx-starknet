@@ -46,7 +46,7 @@ mod SingleSlotProof {
         }
 
         fn cache_timestamp(ref self: ContractState, timestamp: u32, tree: BinarySearchTree) {
-            // Maps timestamp to closest L1 block number that occured before the timestamp. If the queried 
+            // Maps timestamp to closest L1 block number that occurred before the timestamp. If the queried 
             // timestamp is less than the earliest timestamp or larger than the latest timestamp in the mapper
             // then the call will return Option::None and the transaction will revert.
             let l1_block_number = ITimestampRemappersDispatcher {

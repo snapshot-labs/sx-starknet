@@ -81,10 +81,10 @@ mod OZVotesStorageProofVotingStrategy {
 
     #[generate_trait]
     impl SingleSlotProofImpl of SingleSlotProofTrait {
-        /// Queries the Timestamp Remapper contract for the closest L1 block number that occured before
+        /// Queries the Timestamp Remapper contract for the closest L1 block number that occurred before
         /// the given timestamp and then caches the result. If the queried timestamp is less than the earliest
         /// timestamp or larger than the latest timestamp in the mapper then the transaction will revert.
-        /// This function should be used to cache a remapped timestamp before its used when calling the 
+        /// This function should be used to cache a remapped timestamp before it's used when calling the 
         /// `get_storage_slot` function with the same timestamp.
         ///
         /// # Arguments
