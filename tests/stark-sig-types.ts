@@ -3,7 +3,6 @@ export const domainTypes = {
     { name: 'name', type: 'felt252' },
     { name: 'version', type: 'felt252' },
     { name: 'chainId', type: 'felt252' },
-    { name: 'verifyingContract', type: 'ContractAddress' },
   ],
 };
 

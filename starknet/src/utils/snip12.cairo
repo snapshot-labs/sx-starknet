@@ -1,7 +1,7 @@
-/// EIP712 style typed data signing implementation.
+/// SNIP12 style typed data signing implementation.
 /// See here for more info: https://community.starknet.io/t/snip-off-chain-signatures-a-la-eip712/98029
 #[starknet::contract]
-mod StarkEIP712 {
+mod SNIP12 {
     use starknet::ContractAddress;
     use openzeppelin::account::interface::{AccountABIDispatcher, AccountABIDispatcherTrait};
     use sx::types::{Strategy, IndexedStrategy, Choice};
@@ -154,7 +154,6 @@ mod StarkEIP712 {
             name.serialize(ref encoded_data);
             version.serialize(ref encoded_data);
             starknet::get_tx_info().unbox().chain_id.serialize(ref encoded_data);
-            starknet::get_contract_address().serialize(ref encoded_data);
             encoded_data.span().struct_hash()
         }
 

@@ -39,6 +39,7 @@ mod voting_strategies {
     mod merkle_whitelist;
     use merkle_whitelist::MerkleWhitelistVotingStrategy;
 }
+
 mod proposal_validation_strategies {
     mod proposition_power;
     use proposition_power::PropositionPowerProposalValidationStrategy;
@@ -152,8 +153,8 @@ mod utils {
     mod single_slot_proof;
     use single_slot_proof::SingleSlotProof;
 
-    mod stark_eip712;
-    use stark_eip712::StarkEIP712;
+    mod snip12;
+    use snip12::SNIP12;
 
     mod struct_hash;
     use struct_hash::StructHash;

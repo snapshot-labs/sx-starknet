@@ -101,7 +101,6 @@ describe('Starknet Signature Authenticator', function () {
       name: 'sx-sn',
       version: '0.1.0',
       chainId: '0x534e5f474f45524c49', // devnet id
-      verifyingContract: starkSigAuthenticator.address,
     };
 
     // Dumping the Starknet state so it can be loaded at the same point for each test
