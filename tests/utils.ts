@@ -3,6 +3,31 @@ import axios from 'axios';
 import { ethers } from 'hardhat';
 import { uint256 } from 'starknet';
 import { executeContractCallWithSigners } from './external/safeUtils';
+import path from 'path';
+import fs from 'fs/promises';
+
+export async function getCompiledCode(filename: string) {
+  const sierraFilePath = path.join(
+    __dirname,
+    `../starknet/target/dev/${filename}.contract_class.json`,
+  );
+  const casmFilePath = path.join(
+    __dirname,
+    `../starknet/target/dev/${filename}.compiled_contract_class.json`,
+  );
+
+  const code = [sierraFilePath, casmFilePath].map(async (filePath) => {
+    const file = await fs.readFile(filePath);
+    return JSON.parse(file.toString("ascii"));
+  });
+
+  const [sierraCode, casmCode] = await Promise.all(code);
+
+  return {
+    sierraCode,
+    casmCode,
+  };
+}
 
 export async function safeWithL1AvatarExecutionStrategySetup(
   safeSigner: ethers.SignerWithAddress,

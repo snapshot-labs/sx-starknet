@@ -1,8 +1,9 @@
 import dotenv from 'dotenv';
 import { expect } from 'chai';
-import { starknet, ethers, network } from 'hardhat';
+import { ethers, network } from 'hardhat';
 import { HttpNetworkConfig } from 'hardhat/types';
 import { CallData, Uint256, uint256 } from 'starknet';
+
 import {
   safeWithL1AvatarExecutionStrategySetup,
   increaseEthBlockchainTime,

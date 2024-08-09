@@ -2,7 +2,7 @@ import dotenv from 'dotenv';
 dotenv.config();
 import { task } from 'hardhat/config';
 import { HardhatUserConfig } from 'hardhat/types';
-import '@shardlabs/starknet-hardhat-plugin';
+import 'starknet';
 import '@typechain/hardhat';
 import '@nomicfoundation/hardhat-ethers';
 import '@nomiclabs/hardhat-waffle';
