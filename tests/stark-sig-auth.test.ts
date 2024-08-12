@@ -1,6 +1,6 @@
 import { expect } from 'chai';
 import dotenv from 'dotenv';
-import { CallData, typedData, shortString, Account, RpcProvider, Contract, StarknetDomain } from 'starknet';
+import { CallData, shortString, Account, RpcProvider, Contract, StarknetDomain } from 'starknet';
 import { Devnet } from 'starknet-devnet';
 import {
   proposeTypes,
@@ -12,7 +12,6 @@ import {
 } from './stark-sig-types';
 import { getCompiledCode } from './utils';
 import { TypedData as StarknetTypedData } from 'starknet';
-import { TypedDataRevision as Revision } from 'starknet';
 import { CairoCustomEnum } from 'starknet';
 
 
@@ -264,16 +263,15 @@ describe('Starknet Signature Authenticator Tests', function () {
 
     starkSigAuthenticator.connect(account);
 
-    console.log("Authenticating invalid proposal...");
-
-    const invalidProposeSig = [invalidProposeSignature.r, invalidProposeSignature.s];
-
     try {
+      console.log("Authenticating invalid proposal...");
+      const invalidProposeSig = [invalidProposeSignature.r, invalidProposeSignature.s];
       const invalidProposeRes = await starkSigAuthenticator.authenticate_propose(invalidProposeSig, proposeMsg.space, proposeMsg.author, proposeMsg.metadataUri, proposeMsg.executionStrategy, proposeMsg.userProposalValidationParams, proposeMsg.salt);
       await provider.waitForTransaction(invalidProposeRes.transaction_hash);
       expect.fail('Should have failed');
     } catch (err: any) {
       expect(err.message).to.contain(shortString.encodeShortString('Invalid Signature'));
+      console.log("Invalid proposal failed as expected");
     }
 
     const proposeSignature = (await account.signMessage({
@@ -316,16 +314,17 @@ describe('Starknet Signature Authenticator Tests', function () {
       message: updateProposalMsg as any,
     } as StarknetTypedData)) as any;
 
-    console.log("Authenticating invalid update proposal...");
-
-    const invalidUpdateProposalSig = [invalidUpdateProposalSignature.r, invalidUpdateProposalSignature.s];
 
     try {
+      console.log("Authenticating invalid update proposal...");
+
+      const invalidUpdateProposalSig = [invalidUpdateProposalSignature.r, invalidUpdateProposalSignature.s];
       const invalidUpdateProposalRes = await starkSigAuthenticator.authenticate_update_proposal(invalidUpdateProposalSig, updateProposalMsg.space, updateProposalMsg.author, updateProposalMsg.proposalId, updateProposalMsg.executionStrategy, updateProposalMsg.metadataUri, updateProposalMsg.salt);
       await provider.waitForTransaction(invalidUpdateProposalRes.transaction_hash);
       expect.fail('Should have failed');
     } catch (err: any) {
       expect(err.message).to.contain(shortString.encodeShortString('Invalid Signature'));
+      console.log("Invalid update proposal failed as expected");
     }
 
     const updateProposalSignature = (await account.signMessage({
@@ -345,7 +344,6 @@ describe('Starknet Signature Authenticator Tests', function () {
 
     // VOTE
 
-    console.log("Casting invalid vote...");
     const voteMsg: Vote = {
       space: space.address,
       voter: account.address,
@@ -362,15 +360,17 @@ describe('Starknet Signature Authenticator Tests', function () {
       message: voteMsg as any,
     } as StarknetTypedData)) as any;
 
-    const invalidVoteSig = [invalidVoteSignature.r, invalidVoteSignature.s];
 
     const choice = new CairoCustomEnum({ For: {} });
     try {
+      console.log("Casting invalid vote...");
+      const invalidVoteSig = [invalidVoteSignature.r, invalidVoteSignature.s];
       const invalidVoteRes = await starkSigAuthenticator.authenticate_vote(invalidVoteSig, voteMsg.space, voteMsg.voter, voteMsg.proposalId, choice, voteMsg.userVotingStrategies, voteMsg.metadataUri);
       await provider.waitForTransaction(invalidVoteRes.transaction_hash);
       expect.fail('Should have failed');
     } catch (err: any) {
       expect(err.message).to.contain(shortString.encodeShortString('Invalid Signature'));
+      console.log("Invalid vote failed as expected");
     }
 
     const voteSignature = (await account.signMessage({
