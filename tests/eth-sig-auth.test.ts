@@ -384,143 +384,120 @@ describe('Ethereum Signature Authenticator', function () {
     console.log("Vote authenticated");
   });
 
-  // it('should revert if a salt is reused by an author when creating or updating a proposal', async () => {
-  //   await starknet.devnet.restart();
-  //   await starknet.devnet.load('./dump.pkl');
-  //   await starknet.devnet.increaseTime(10);
+  it('should revert if a salt is reused by an author when creating or updating a proposal', async () => {
+    await devnet.provider.restart();
+    await devnet.provider.load('./dump.pkl');
+    await devnet.provider.increaseTime(10);
 
-  //   // PROPOSE
-  //   const proposeMsg: Propose = {
-  //     chainId: '0x534e5f474f45524c49',
-  //     authenticator: ethSigAuthenticator.address,
-  //     space: space.address,
-  //     author: signer.address,
-  //     metadataUri: ['0x1', '0x2', '0x3', '0x4'],
-  //     executionStrategy: {
-  //       address: '0x0000000000000000000000000000000000005678',
-  //       params: ['0x0'],
-  //     },
-  //     userProposalValidationParams: [
-  //       '0xffffffffffffffffffffffffffffffffffffffffff',
-  //       '0x1234',
-  //       '0x5678',
-  //       '0x9abc',
-  //     ],
-  //     salt: '0x0',
-  //   };
+    // PROPOSE
+    const proposeMsg: Propose = {
+      chainId,
+      authenticator: ethSigAuthenticator.address,
+      space: space.address,
+      author: signer.address,
+      metadataUri: ['0x1', '0x2', '0x3', '0x4'],
+      executionStrategy: {
+        address: '0x0000000000000000000000000000000000005678',
+        params: ['0x0'],
+      },
+      userProposalValidationParams: [
+        '0xffffffffffffffffffffffffffffffffffffffffff',
+        '0x1234',
+        '0x5678',
+        '0x9abc',
+      ],
+      salt: '0x0',
+    };
 
-  //   let sig = await signer._signTypedData(domain, proposeTypes, proposeMsg);
-  //   let splitSig = getRSVFromSig(sig);
+    let sig = await signer.signTypedData(domain, proposeTypes, proposeMsg);
+    let splitSig = getRSVFromSig(sig);
 
-  //   const proposeCalldata = CallData.compile({
-  //     r: cairo.uint256(splitSig.r),
-  //     s: cairo.uint256(splitSig.s),
-  //     v: splitSig.v,
-  //     space: proposeMsg.space,
-  //     author: proposeMsg.author,
-  //     metadataUri: proposeMsg.metadataUri,
-  //     executionStrategy: proposeMsg.executionStrategy,
-  //     userProposalValidationParams: proposeMsg.userProposalValidationParams,
-  //     salt: cairo.uint256(proposeMsg.salt),
-  //   });
+    const proposeCalldata = CallData.compile({
+      r: cairo.uint256(splitSig.r),
+      s: cairo.uint256(splitSig.s),
+      v: splitSig.v,
+      space: proposeMsg.space,
+      author: proposeMsg.author,
+      metadataUri: proposeMsg.metadataUri,
+      executionStrategy: proposeMsg.executionStrategy,
+      userProposalValidationParams: proposeMsg.userProposalValidationParams,
+      salt: cairo.uint256(proposeMsg.salt),
+    });
 
-  //   await account.invoke(ethSigAuthenticator, 'authenticate_propose', proposeCalldata, {
-  //     rawInput: true,
-  //   });
+    const r0 = cairo.uint256(splitSig.r);
+    const s0 = cairo.uint256(splitSig.s);
+    const v0 = splitSig.v;
+    const salt0 = cairo.uint256(proposeMsg.salt);
 
-  //   try {
-  //     await account.invoke(ethSigAuthenticator, 'authenticate_propose', proposeCalldata, {
-  //       rawInput: true,
-  //     });
-  //     expect.fail('Should have failed');
-  //   } catch (err: any) {
-  //     expect(err.message).to.contain(shortString.encodeShortString('Salt Already Used'));
-  //   }
+    console.log("Authenticating proposal...");
+    const proposeRes = await ethSigAuthenticator.authenticate_propose(r0, s0, v0, proposeMsg.space, proposeMsg.author, proposeMsg.metadataUri, proposeMsg.executionStrategy, proposeMsg.userProposalValidationParams, salt0);
+    await provider.waitForTransaction(proposeRes.transaction_hash);
+    console.log("Proposal authenticated");
 
-  //   // UPDATE PROPOSAL
+    try {
+      console.log("Attempting to reuse salt...");
+      const invalidRes = await ethSigAuthenticator.authenticate_propose(r0, s0, v0, proposeMsg.space, proposeMsg.author, proposeMsg.metadataUri, proposeMsg.executionStrategy, proposeMsg.userProposalValidationParams, salt0);
+      await provider.waitForTransaction(invalidRes.transaction);
+      expect.fail('Should have failed');
+    } catch (err: any) {
+      expect(err.message).to.contain(shortString.encodeShortString('Salt Already Used'));
+      console.log("Salt reuse was correctly rejected");
+    }
 
-  //   const updateProposalMsg: UpdateProposal = {
-  //     chainId: '0x534e5f474f45524c49',
-  //     authenticator: ethSigAuthenticator.address,
-  //     space: space.address,
-  //     author: signer.address,
-  //     proposalId: '0x1',
-  //     executionStrategy: {
-  //       address: '0x0000000000000000000000000000000000005678',
-  //       params: ['0x0'],
-  //     },
-  //     metadataUri: ['0x1', '0x2', '0x3', '0x4'],
-  //     salt: '0x1',
-  //   };
+    // UPDATE PROPOSAL
 
-  //   sig = await signer._signTypedData(domain, updateProposalTypes, updateProposalMsg);
-  //   splitSig = getRSVFromSig(sig);
+    const updateProposalMsg: UpdateProposal = {
+      chainId,
+      authenticator: ethSigAuthenticator.address,
+      space: space.address,
+      author: signer.address,
+      proposalId: '0x1',
+      executionStrategy: {
+        address: '0x0000000000000000000000000000000000005678',
+        params: ['0x0'],
+      },
+      metadataUri: ['0x1', '0x2', '0x3', '0x4'],
+      salt: '0x1',
+    };
 
-  //   const updateProposalCalldata = CallData.compile({
-  //     r: cairo.uint256(splitSig.r),
-  //     s: cairo.uint256(splitSig.s),
-  //     v: splitSig.v,
-  //     space: updateProposalMsg.space,
-  //     author: updateProposalMsg.author,
-  //     proposalId: cairo.uint256(updateProposalMsg.proposalId),
-  //     executionStrategy: updateProposalMsg.executionStrategy,
-  //     metadataUri: updateProposalMsg.metadataUri,
-  //     salt: cairo.uint256(updateProposalMsg.salt),
-  //   });
+    sig = await signer.signTypedData(domain, updateProposalTypes, updateProposalMsg);
+    splitSig = getRSVFromSig(sig);
 
-  //   await account.invoke(
-  //     ethSigAuthenticator,
-  //     'authenticate_update_proposal',
-  //     updateProposalCalldata,
-  //     { rawInput: true },
-  //   );
+    const updateProposalCalldata = CallData.compile({
+      r: cairo.uint256(splitSig.r),
+      s: cairo.uint256(splitSig.s),
+      v: splitSig.v,
+      space: updateProposalMsg.space,
+      author: updateProposalMsg.author,
+      proposalId: cairo.uint256(updateProposalMsg.proposalId),
+      executionStrategy: updateProposalMsg.executionStrategy,
+      metadataUri: updateProposalMsg.metadataUri,
+      salt: cairo.uint256(updateProposalMsg.salt),
+    });
 
-  //   try {
-  //     await account.invoke(
-  //       ethSigAuthenticator,
-  //       'authenticate_update_proposal',
-  //       updateProposalCalldata,
-  //       { rawInput: true },
-  //     );
-  //     expect.fail('Should have failed');
-  //   } catch (err: any) {
-  //     // 'salt already used' error
-  //     expect(err.message).to.contain(shortString.encodeShortString('Salt Already Used'));
-  //   }
+    const r1 = cairo.uint256(splitSig.r);
+    const s1 = cairo.uint256(splitSig.s);
+    const v1 = splitSig.v;
+    const salt1 = cairo.uint256(updateProposalMsg.salt);
 
-  //   // Increase time so voting period begins
-  //   await starknet.devnet.increaseTime(100);
+    console.log("Authenticating update proposal...");
+    const updateProposalRes = await ethSigAuthenticator.authenticate_update_proposal(r1, s1, v1, updateProposalMsg.space, updateProposalMsg.author, updateProposalMsg.proposalId, updateProposalMsg.executionStrategy, updateProposalMsg.metadataUri, salt1);
+    await provider.waitForTransaction(updateProposalRes.transaction_hash);
+    console.log("Update proposal authenticated");
 
-  //   // VOTE
 
-  //   const voteMsg: Vote = {
-  //     chainId: '0x534e5f474f45524c49',
-  //     authenticator: ethSigAuthenticator.address,
-  //     space: space.address,
-  //     voter: signer.address,
-  //     proposalId: '0x1',
-  //     choice: '0x1',
-  //     userVotingStrategies: [{ index: '0x0', params: ['0x1', '0x2', '0x3', '0x4'] }],
-  //     metadataUri: ['0x1', '0x2', '0x3', '0x4'],
-  //   };
+    try {
+      console.log("Attempting to reuse salt...");
+      const invalidRes = await ethSigAuthenticator.authenticate_update_proposal(r1, s1, v1, updateProposalMsg.space, updateProposalMsg.author, updateProposalMsg.proposalId, updateProposalMsg.executionStrategy, updateProposalMsg.metadataUri, salt1);
+      await provider.waitForTransaction(invalidRes.transaction_hash);
 
-  //   sig = await signer._signTypedData(domain, voteTypes, voteMsg);
-  //   splitSig = getRSVFromSig(sig);
+      expect.fail('Should have failed');
+    } catch (err: any) {
+      expect(err.message).to.contain(shortString.encodeShortString('Salt Already Used'));
+      console.log("Salt reuse was correctly rejected");
+    }
 
-  //   const voteCalldata = CallData.compile({
-  //     r: cairo.uint256(splitSig.r),
-  //     s: cairo.uint256(splitSig.s),
-  //     v: splitSig.v,
-  //     space: voteMsg.space,
-  //     voter: voteMsg.voter,
-  //     proposalId: cairo.uint256(voteMsg.proposalId),
-  //     choice: voteMsg.choice,
-  //     userVotingStrategies: voteMsg.userVotingStrategies,
-  //     metadataUri: voteMsg.metadataUri,
-  //   });
-
-  //   await account.invoke(ethSigAuthenticator, 'authenticate_vote', voteCalldata, {
-  //     rawInput: true,
-  //   });
-  // }, 1000000);
+    // Increase time so voting period begins
+    await devnet.provider.increaseTime(100);
+  });
 });
