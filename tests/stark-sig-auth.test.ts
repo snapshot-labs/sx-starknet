@@ -289,7 +289,7 @@ describe('Starknet Signature Authenticator Tests', function () {
     });
 
     // Should not fail this time !
-    console.log("Authenticating proposal...");
+    console.log("Now authenticating proposal...");
     const proposeSig = [proposeSignature.r, proposeSignature.s];
     const proposeRes = await starkSigAuthenticator.authenticate_propose(proposeSig, proposeMsg.space, proposeMsg.author, proposeMsg.metadataUri, proposeMsg.executionStrategy, proposeMsg.userProposalValidationParams, proposeMsg.salt);
     await provider.waitForTransaction(proposeRes.transaction_hash);
@@ -335,6 +335,7 @@ describe('Starknet Signature Authenticator Tests', function () {
       message: updateProposalMsg as any,
     } as StarknetTypedData)) as any;
 
+    console.log("Now updating proposal...");
     const updateProposalSig = [updateProposalSignature.r, updateProposalSignature.s];
     const updateProposalRes = await starkSigAuthenticator.authenticate_update_proposal(updateProposalSig, updateProposalMsg.space, updateProposalMsg.author, updateProposalMsg.proposalId, updateProposalMsg.executionStrategy, updateProposalMsg.metadataUri, updateProposalMsg.salt);
     await provider.waitForTransaction(updateProposalRes.transaction_hash);
@@ -379,106 +380,92 @@ describe('Starknet Signature Authenticator Tests', function () {
       message: voteMsg as any,
     } as StarknetTypedData)) as any;
 
+    console.log("Now casting a valid vote...");
     const voteSig = [voteSignature.r, voteSignature.s];
     const voteRes = await starkSigAuthenticator.authenticate_vote(voteSig, voteMsg.space, voteMsg.voter, voteMsg.proposalId, choice, voteMsg.userVotingStrategies, voteMsg.metadataUri);
     await provider.waitForTransaction(voteRes.transaction_hash);
   });
 
-  // it('should revert if a salt is reused by an author when creating or updating a proposal', async () => {
-  //   await starknet.devnet.restart();
-  //   await starknet.devnet.load('./dump.pkl');
-  //   await starknet.devnet.increaseTime(10);
+  it('should revert if a salt is reused by an author when creating or updating a proposal', async () => {
+    await devnet.provider.restart();
+    await devnet.provider.load('./dump.pkl');
+    await devnet.provider.increaseTime(10);
 
-  //   // PROPOSE
-  //   const proposeMsg: Propose = {
-  //     space: space.address,
-  //     author: accountWithSigner.address,
-  //     metadataUri: ['0x1', '0x2', '0x3', '0x4'],
-  //     executionStrategy: {
-  //       address: '0x0000000000000000000000000000000000005678',
-  //       params: ['0x0'],
-  //     },
-  //     userProposalValidationParams: [
-  //       '0xffffffffffffffffffffffffffffffffffffffffff',
-  //       '0x1234',
-  //       '0x5678',
-  //       '0x9abc',
-  //     ],
-  //     salt: '0x0',
-  //   };
+    // PROPOSE
+    const proposeMsg: Propose = {
+      space: space.address,
+      author: account.address,
+      metadataUri: ['0x1', '0x2', '0x3', '0x4'],
+      executionStrategy: {
+        address: '0x0000000000000000000000000000000000005678',
+        params: ['0x0'],
+      },
+      userProposalValidationParams: [
+        '0xffffffffffffffffffffffffffffffffffffffffff',
+        '0x1234',
+        '0x5678',
+        '0x9abc',
+      ],
+      salt: '0x0',
+    };
 
-  //   const proposeSig = (await accountWithSigner.signMessage({
-  //     types: proposeTypes,
-  //     primaryType: 'Propose',
-  //     domain: domain,
-  //     message: proposeMsg as any,
-  //   } as typedData.TypedData)) as any;
+    const proposeSignature = (await account.signMessage({
+      types: proposeTypes,
+      primaryType: 'Propose',
+      domain: domain,
+      message: proposeMsg as any,
+    } as StarknetTypedData)) as any;
 
-  //   const proposeCalldata = CallData.compile({
-  //     signature: [proposeSig.r, proposeSig.s],
-  //     ...proposeMsg,
-  //   });
+    console.log("Authenticating proposal...");
+    const proposeSig = [proposeSignature.r, proposeSignature.s];
+    const proposeRes = await starkSigAuthenticator.authenticate_propose(proposeSig, proposeMsg.space, proposeMsg.author, proposeMsg.metadataUri, proposeMsg.executionStrategy, proposeMsg.userProposalValidationParams, proposeMsg.salt);
+    await provider.waitForTransaction(proposeRes.transaction_hash);
 
-  //   await account.invoke(starkSigAuthenticator, 'authenticate_propose', proposeCalldata, {
-  //     rawInput: true,
-  //   });
+    try {
+      console.log("Proposing with the same salt...");
+      const invalidProposeRes = await starkSigAuthenticator.authenticate_propose(proposeSig, proposeMsg.space, proposeMsg.author, proposeMsg.metadataUri, proposeMsg.executionStrategy, proposeMsg.userProposalValidationParams, proposeMsg.salt);
+      await provider.waitForTransaction(invalidProposeRes.transaction_hash);
+      expect.fail('Should have failed');
+    } catch (err: any) {
+      expect(err.message).to.contain(shortString.encodeShortString('Salt Already Used'));
+    }
 
-  //   try {
-  //     await account.invoke(starkSigAuthenticator, 'authenticate_propose', proposeCalldata, {
-  //       rawInput: true,
-  //     });
-  //     expect.fail('Should have failed');
-  //   } catch (err: any) {
-  //     expect(err.message).to.contain(shortString.encodeShortString('Salt Already Used'));
-  //   }
+    // UPDATE PROPOSAL
 
-  //   // UPDATE PROPOSAL
+    console.log("Updating proposal...");
+    const updateProposalMsg: UpdateProposal = {
+      space: space.address,
+      author: account.address,
+      proposalId: { low: '0x1', high: '0x0' },
+      executionStrategy: {
+        address: '0x0000000000000000000000000000000000005678',
+        params: ['0x5', '0x6', '0x7', '0x8'],
+      },
+      metadataUri: ['0x1', '0x2', '0x3', '0x4'],
+      salt: '0x1',
+    };
 
-  //   const updateProposalMsg: UpdateProposal = {
-  //     space: space.address,
-  //     author: accountWithSigner.address,
-  //     proposalId: { low: '0x1', high: '0x0' },
-  //     executionStrategy: {
-  //       address: '0x0000000000000000000000000000000000005678',
-  //       params: ['0x5', '0x6', '0x7', '0x8'],
-  //     },
-  //     metadataUri: ['0x1', '0x2', '0x3', '0x4'],
-  //     salt: '0x1',
-  //   };
+    const updateProposalSignature = (await account.signMessage({
+      types: updateProposalTypes,
+      primaryType: 'UpdateProposal',
+      domain: domain,
+      message: updateProposalMsg as any,
+    } as StarknetTypedData)) as any;
 
-  //   const updateProposalSig = (await accountWithSigner.signMessage({
-  //     types: updateProposalTypes,
-  //     primaryType: 'UpdateProposal',
-  //     domain: domain,
-  //     message: updateProposalMsg as any,
-  //   } as typedData.TypedData)) as any;
+    const updateProposalSig = [updateProposalSignature.r, updateProposalSignature.s];
 
-  //   const updateProposalCalldata = CallData.compile({
-  //     signature: [updateProposalSig.r, updateProposalSig.s],
-  //     ...updateProposalMsg,
-  //   });
+    console.log("Authenticating update proposal...");
 
-  //   await account.invoke(
-  //     starkSigAuthenticator,
-  //     'authenticate_update_proposal',
-  //     updateProposalCalldata,
-  //     {
-  //       rawInput: true,
-  //     },
-  //   );
+    const updateProposalRes = await starkSigAuthenticator.authenticate_update_proposal(updateProposalSig, updateProposalMsg.space, updateProposalMsg.author, updateProposalMsg.proposalId, updateProposalMsg.executionStrategy, updateProposalMsg.metadataUri, updateProposalMsg.salt);
+    await provider.waitForTransaction(updateProposalRes.transaction_hash);
 
-  //   try {
-  //     await account.invoke(
-  //       starkSigAuthenticator,
-  //       'authenticate_update_proposal',
-  //       updateProposalCalldata,
-  //       {
-  //         rawInput: true,
-  //       },
-  //     );
-  //     expect.fail('Should have failed');
-  //   } catch (err: any) {
-  //     expect(err.message).to.contain(shortString.encodeShortString('Salt Already Used'));
-  //   }
-  // }, 1000000);
+    try {
+      console.log("Updating with the same salt...");
+      const invalidProposalRes = await starkSigAuthenticator.authenticate_update_proposal(updateProposalSig, updateProposalMsg.space, updateProposalMsg.author, updateProposalMsg.proposalId, updateProposalMsg.executionStrategy, updateProposalMsg.metadataUri, updateProposalMsg.salt);
+      await provider.waitForTransaction(invalidProposalRes.transaction_hash);
+      expect.fail('Should have failed');
+    } catch (err: any) {
+      expect(err.message).to.contain(shortString.encodeShortString('Salt Already Used'));
+    }
+  });
 });
