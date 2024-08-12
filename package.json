@@ -58,6 +58,7 @@
     "wait-on": "^7.0.1"
   },
   "dependencies": {
+    "ethers": "^6.13.2",
     "starknet-devnet": "^0.1.1"
   }
 }
