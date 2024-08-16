@@ -5,6 +5,7 @@ import { uint256 } from 'starknet';
 import { executeContractCallWithSigners } from './external/safeUtils';
 import path from 'path';
 import fs from 'fs/promises';
+import { Signer, ZeroAddress, solidityPackedKeccak256, keccak256, Contract, getCreate2Address } from 'ethers';
 
 export async function getCompiledCode(filename: string) {
   const sierraFilePath = path.join(
@@ -30,7 +31,7 @@ export async function getCompiledCode(filename: string) {
 }
 
 export async function safeWithL1AvatarExecutionStrategySetup(
-  safeSigner: ethers.SignerWithAddress,
+  safeSigner: Signer,
   starknetCoreAddress: string,
   spaceAddress: string,
   ethRelayerAddress: string,
@@ -45,19 +46,21 @@ export async function safeWithL1AvatarExecutionStrategySetup(
   const singleton = await GnosisSafeL2.deploy();
   const factory = await FactoryContract.deploy();
 
-  const template = await factory.callStatic.createProxyWithNonce(singleton.address, '0x', 0);
-  await factory.createProxyWithNonce(singleton.address, '0x', 0);
+  // Using staticCall to get the return value without actually sending the transaction
+  const template = await factory.createProxyWithNonce.staticCall(await singleton.getAddress(), '0x', 0);
+  // Now actually send the transaction
+  await factory.createProxyWithNonce(await singleton.getAddress(), '0x', 0);
 
   const safe = GnosisSafeL2.attach(template);
   await safe.setup(
-    [safeSigner.address],
+    [await safeSigner.getAddress()],
     1,
-    ethers.constants.AddressZero,
+    ZeroAddress,
     '0x',
-    ethers.constants.AddressZero,
-    ethers.constants.AddressZero,
+    ZeroAddress,
+    ZeroAddress,
     0,
-    ethers.constants.AddressZero,
+    ZeroAddress,
   );
 
   const moduleFactoryContract = await ethers.getContractFactory('ModuleProxyFactory');
@@ -71,52 +74,51 @@ export async function safeWithL1AvatarExecutionStrategySetup(
   const masterL1AvatarExecutionStrategy = await L1AvatarExecutionStrategyFactory.deploy();
 
   const initData = masterL1AvatarExecutionStrategy.interface.encodeFunctionData('setUp', [
-    safeSigner.address,
-    safe.address,
+    await safeSigner.getAddress(),
+    await safe.getAddress(),
     starknetCoreAddress,
     ethRelayerAddress,
     [spaceAddress],
     quorum,
   ]);
 
-  const masterCopyAddress = masterL1AvatarExecutionStrategy.address
-    .toLowerCase()
-    .replace(/^0x/, '');
+  const masterCopyAddress = (await masterL1AvatarExecutionStrategy.getAddress()).toLowerCase().replace(/^0x/, '');
 
-  //This is the bytecode of the module proxy contract
+  // This is the bytecode of the module proxy contract
   const byteCode =
     '0x602d8060093d393df3363d3d373d3d3d363d73' +
     masterCopyAddress +
     '5af43d82803e903d91602b57fd5bf3';
 
-  const salt = ethers.utils.solidityKeccak256(
+  const salt = solidityPackedKeccak256(
     ['bytes32', 'uint256'],
-    [ethers.utils.solidityKeccak256(['bytes'], [initData]), '0x01'],
+    [solidityPackedKeccak256(['bytes'], [initData]), '0x01'],
   );
 
-  const expectedAddress = ethers.utils.getCreate2Address(
-    moduleFactory.address,
+  const expectedAddress = getCreate2Address(
+    await moduleFactory.getAddress(),
     salt,
-    ethers.utils.keccak256(byteCode),
+    keccak256(byteCode),
   );
   expect(
-    await moduleFactory.deployModule(masterL1AvatarExecutionStrategy.address, initData, '0x01'),
+    await moduleFactory.deployModule(await masterL1AvatarExecutionStrategy.getAddress(), initData, '0x01'),
   )
     .to.emit(moduleFactory, 'ModuleProxyCreation')
-    .withArgs(expectedAddress, masterL1AvatarExecutionStrategy.address);
+    .withArgs(expectedAddress, await masterL1AvatarExecutionStrategy.getAddress());
+
   const L1AvatarExecutionStrategy = L1AvatarExecutionStrategyFactory.attach(expectedAddress);
 
   await executeContractCallWithSigners(
     safe,
     safe,
     'enableModule',
-    [L1AvatarExecutionStrategy.address],
+    [await L1AvatarExecutionStrategy.getAddress()],
     [safeSigner],
   );
 
   return {
-    l1AvatarExecutionStrategy: L1AvatarExecutionStrategy as ethers.Contract,
-    safe: safe as ethers.Contract,
+    l1AvatarExecutionStrategy: L1AvatarExecutionStrategy as Contract,
+    safe: safe as Contract,
   };
 }
 

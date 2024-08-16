@@ -3,22 +3,10 @@ dotenv.config();
 import { task } from 'hardhat/config';
 import { HardhatUserConfig } from 'hardhat/types';
 import 'starknet';
-import '@typechain/hardhat';
-import '@nomicfoundation/hardhat-ethers';
-import '@nomiclabs/hardhat-waffle';
-import '@nomiclabs/hardhat-etherscan';
+import '@nomicfoundation/hardhat-toolbox';
 import '@nomicfoundation/hardhat-network-helpers';
 import '@nomicfoundation/hardhat-foundry';
 import '@openzeppelin/hardhat-upgrades';
-
-
-task('accounts', 'Prints the list of accounts', async (args, hre) => {
-  const accounts = await hre.ethers.getSigners();
-
-  for (const account of accounts) {
-    console.log(await account.getAddress());
-  }
-});
 
 const config: HardhatUserConfig = {
   solidity: {
