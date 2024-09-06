@@ -384,6 +384,9 @@ describe('L1 Avatar Execution', function () {
         [proposalTx],
       ),
     ).to.be.reverted;
+
+    // Re-enable the space in the execution strategy for other tests
+    await l1AvatarExecutionStrategy.enableSpace(space.address);
   });
 
   it('should revert execution if an invalid payload is sent to L1', async function () {
