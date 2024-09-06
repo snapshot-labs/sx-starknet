@@ -1,7 +1,7 @@
 import dotenv from 'dotenv';
 import { expect } from 'chai';
 import { HttpNetworkConfig } from 'hardhat/types';
-import { RpcProvider as StarknetRpcProvider, Contract as StarknetContract, Account as StarknetAccount, CallData, Uint256, uint256, CairoCustomEnum } from 'starknet';
+import { RpcProvider as StarknetRpcProvider, Contract as StarknetContract, Account as StarknetAccount, shortString, Uint256, uint256, CairoCustomEnum } from 'starknet';
 import { Contract as EthContract } from 'ethers';
 import { Devnet as StarknetDevnet, DevnetProvider as StarknetDevnetProvider } from 'starknet-devnet';
 import { ethers, config } from 'hardhat';
@@ -770,82 +770,62 @@ describe('L1 Avatar Execution', function () {
     }
   });
 
-  // it('should revert execution if voting period is not exceeded', async function () {
-  //   await starknet.devnet.restart();
-  //   await starknet.devnet.load('./dump.pkl');
-  //   await starknet.devnet.increaseTime(10);
+  it.only('should revert execution if voting period is not exceeded', async function () {
+    await starknetDevnet.provider.restart();
+    await starknetDevnet.provider.load('./dump.pkl');
+    await starknetDevnetProvider.postman.loadL1MessagingContract(eth_network, mockMessagingContractAddress);
+    await starkTxAuthenticator.connect(account);
 
-  //   await starknet.devnet.loadL1MessagingContract(eth_network, mockStarknetMessaging.address);
+    const proposalTx = {
+      to: signer.address,
+      value: 0,
+      data: '0x22',
+      operation: 0,
+    };
 
-  //   const proposalTx = {
-  //     to: signer.address,
-  //     value: 0,
-  //     data: '0x22',
-  //     operation: 0,
-  //   };
+    const abiCoder = new AbiCoder();
+    const executionHash = keccak256(
+      abiCoder.encode(
+        ['tuple(address to, uint256 value, bytes data, uint8 operation)[]'],
+        [[proposalTx]],
+      ),
+    );
 
-  //   const abiCoder = new ethers.utils.AbiCoder();
-  //   const executionHash = ethers.utils.keccak256(
-  //     abiCoder.encode(
-  //       ['tuple(address to, uint256 value, bytes data, uint8 operation)[]'],
-  //       [[proposalTx]],
-  //     ),
-  //   );
-  //   // Represent the execution hash as a Cairo Uint256
-  //   const executionHashUint256: Uint256 = uint256.bnToUint256(executionHash);
+    // Represent the execution hash as a Cairo Uint256
+    const executionHashUint256: Uint256 = uint256.bnToUint256(executionHash);
 
-  //   const executionPayload = [
-  //     l1AvatarExecutionStrategy.address,
-  //     executionHashUint256.low,
-  //     executionHashUint256.high,
-  //   ];
+    const executionPayload = [
+      await l1AvatarExecutionStrategy.getAddress(),
+      executionHashUint256.low,
+      executionHashUint256.high,
+    ];
 
-  //   // Propose
-  //   await account.invoke(
-  //     starkTxAuthenticator,
-  //     'authenticate_propose',
-  //     CallData.compile({
-  //       space: space.address,
-  //       author: account.address,
-  //       metadataURI: [],
-  //       executionStrategy: {
-  //         address: ethRelayer.address,
-  //         params: executionPayload,
-  //       },
-  //       userProposalValidationParams: [],
-  //     }),
-  //     { rawInput: true },
-  //   );
+    // Propose
+    console.log("Authenticating proposal...");
+    const proposeRes = await starkTxAuthenticator.authenticate_propose(space.address, account.address, [], { address: ethRelayer.address, params: executionPayload }, []);
+    await provider.waitForTransaction(proposeRes.transaction_hash);
+    console.log("Proposal authenticated");
 
-  //   // Vote
-  //   await account.invoke(
-  //     starkTxAuthenticator,
-  //     'authenticate_vote',
-  //     CallData.compile({
-  //       space: space.address,
-  //       voter: account.address,
-  //       proposalId: { low: '0x1', high: '0x0' },
-  //       choice: '0x1',
-  //       userVotingStrategies: [{ index: '0x0', params: [] }],
-  //       metadataURI: [],
-  //     }),
-  //     { rawInput: true },
-  //   );
+    // Advance time so that voting has started
+    await starknetDevnet.provider.increaseTime(101);
+    await increaseEthBlockchainTime(eth_network, 101);
 
-  //   try {
-  //     // Execute before maxVotingTimestamp is exceeded
-  //     await account.invoke(
-  //       space,
-  //       'execute',
-  //       CallData.compile({
-  //         proposalId: { low: '0x1', high: '0x0' },
-  //         executionPayload: executionPayload,
-  //       }),
-  //       { rawInput: true },
-  //     );
-  //   } catch (err: any) {
-  //     // 'Before max end timestamp' error message
-  //     expect(err.message).to.contain('0x4265666f7265206d617820656e642074696d657374616d70');
-  //   }
-  // }, 10000000);
+    // Voting
+    console.log("Authenticating vote...");
+    const choice = new CairoCustomEnum({ For: {} });
+    const voteRes = await starkTxAuthenticator.authenticate_vote(space.address, account.address, { low: '0x1', high: '0x0' }, choice, [{ index: '0x0', params: [] }], []);
+    await provider.waitForTransaction(voteRes.transaction_hash);
+    console.log("Vote authenticated");
+
+    // Try to execute before max Voting Timestamp is exceeded
+    try {
+      console.log("Trying to executing proposal...");
+      const executeRes = await space.execute({ low: '0x1', high: '0x0' }, executionPayload);
+      await provider.waitForTransaction(executeRes.transaction_hash);
+      expect.fail('Should have failed');
+    } catch (err) {
+      expect(err.message).to.contain(shortString.encodeShortString('Before max end timestamp'));
+      console.log("Invalid proposal failed as expected");
+    }
+  })
 });
