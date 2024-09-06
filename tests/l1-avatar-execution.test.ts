@@ -104,6 +104,7 @@ describe('L1 Avatar Execution', function () {
     // Connect with our account
     space.connect(account);
 
+    // TODO: make these available for the whole file
     const _owner = 1;
     const _max_voting_duration = 200;
     const _min_voting_duration = 200;
@@ -384,9 +385,6 @@ describe('L1 Avatar Execution', function () {
         [proposalTx],
       ),
     ).to.be.reverted;
-
-    // Re-enabling the space in the execution strategy : TODO: don't need ot do this since we load the dump
-    await l1AvatarExecutionStrategy.enableSpace(space.address);
   });
 
   it('should revert execution if an invalid payload is sent to L1', async function () {
