@@ -52,8 +52,13 @@ describe('L1 Avatar Execution', function () {
     starknetDevnetProvider = new StarknetDevnetProvider();
 
     console.log("Loading L1 Messaging Contract");
-    const messagingLoadResponse = await starknetDevnetProvider.postman.loadL1MessagingContract(eth_network);
-    mockMessagingContractAddress = messagingLoadResponse.messaging_contract_address;
+    // const messagingLoadResponse = await starknetDevnetProvider.postman.loadL1MessagingContract(eth_network);
+    // mockMessagingContractAddress = messagingLoadResponse.messaging_contract_address;
+
+    const MockStarknetMessaging = await ethers.getContractFactory('MockStarknetMessaging', signer);
+    const messageCancellationDelay = 5 * 60; // seconds
+    const toto = await MockStarknetMessaging.deploy(messageCancellationDelay);
+    mockMessagingContractAddress = await toto.getAddress();
     console.log("mock messaging contract", mockMessagingContractAddress);
 
     provider = new StarknetRpcProvider({ nodeUrl: starknetDevnet.provider.url });
@@ -153,6 +158,8 @@ describe('L1 Avatar Execution', function () {
     await starknetDevnet.provider.restart();
     await starknetDevnet.provider.load('./dump.pkl');
     await starknetDevnetProvider.postman.loadL1MessagingContract(eth_network, mockMessagingContractAddress);
+    starkTxAuthenticator.connect(account);
+
 
     const proposalTx = {
       to: signer.address,
@@ -177,8 +184,6 @@ describe('L1 Avatar Execution', function () {
       executionHashUint256.high,
     ];
     const proposalId = { low: '0x1', high: '0x0' };
-
-    starkTxAuthenticator.connect(account);
 
     console.log("Authenticating propose...");
     const proposeRes = await starkTxAuthenticator.authenticate_propose(space.address, account.address, [], { address: ethRelayer.address, params: executionPayload }, []);
@@ -228,6 +233,7 @@ describe('L1 Avatar Execution', function () {
     await starknetDevnet.provider.restart();
     await starknetDevnet.provider.load('./dump.pkl');
     await starknetDevnetProvider.postman.loadL1MessagingContract(eth_network, mockMessagingContractAddress);
+    await starkTxAuthenticator.connect(account);
 
     const proposalTx = {
       to: signer.address,
@@ -307,6 +313,7 @@ describe('L1 Avatar Execution', function () {
     await starknetDevnet.provider.restart();
     await starknetDevnet.provider.load('./dump.pkl');
     await starknetDevnetProvider.postman.loadL1MessagingContract(eth_network, mockMessagingContractAddress);
+    await starkTxAuthenticator.connect(account);
 
     // Disabling the space in the execution strategy
     await l1AvatarExecutionStrategy.disableSpace(space.address);
@@ -378,106 +385,86 @@ describe('L1 Avatar Execution', function () {
       ),
     ).to.be.reverted;
 
-    // Re-enabling the space in the execution strategy
+    // Re-enabling the space in the execution strategy : TODO: don't need ot do this since we load the dump
     await l1AvatarExecutionStrategy.enableSpace(space.address);
   });
 
-  // it('should revert execution if an invalid payload is sent to L1', async function () {
-  //   await starknet.devnet.restart();
-  //   await starknet.devnet.load('./dump.pkl');
-  //   await starknet.devnet.increaseTime(10);
-  //   await starknet.devnet.loadL1MessagingContract(eth_network, mockStarknetMessaging.address);
+  it('should revert execution if an invalid payload is sent to L1', async function () {
+    await starknetDevnet.provider.restart();
+    await starknetDevnet.provider.load('./dump.pkl');
+    await starknetDevnetProvider.postman.loadL1MessagingContract(eth_network, mockMessagingContractAddress);
+    starkTxAuthenticator.connect(account);
 
-  //   const proposalTx = {
-  //     to: signer.address,
-  //     value: 0,
-  //     data: '0x22',
-  //     operation: 0,
-  //   };
+    const proposalTx = {
+      to: signer.address,
+      value: 0,
+      data: '0x22',
+      operation: 0,
+    };
 
-  //   const abiCoder = new ethers.utils.AbiCoder();
-  //   const executionHash = ethers.utils.keccak256(
-  //     abiCoder.encode(
-  //       ['tuple(address to, uint256 value, bytes data, uint8 operation)[]'],
-  //       [[proposalTx]],
-  //     ),
-  //   );
-  //   // Represent the execution hash as a Cairo Uint256
-  //   const executionHashUint256: Uint256 = uint256.bnToUint256(executionHash);
+    const abiCoder = new AbiCoder();
+    const executionHash = keccak256(
+      abiCoder.encode(
+        ['tuple(address to, uint256 value, bytes data, uint8 operation)[]'],
+        [[proposalTx]],
+      ),
+    );
+    // Represent the execution hash as a Cairo Uint256
+    const executionHashUint256: Uint256 = uint256.bnToUint256(executionHash);
 
-  //   const executionPayload = [
-  //     l1AvatarExecutionStrategy.address,
-  //     executionHashUint256.low,
-  //     executionHashUint256.high,
-  //   ];
+    const executionPayload = [
+      await l1AvatarExecutionStrategy.getAddress(),
+      executionHashUint256.low,
+      executionHashUint256.high,
+    ];
 
-  //   // Propose
-  //   await account.invoke(
-  //     starkTxAuthenticator,
-  //     'authenticate_propose',
-  //     CallData.compile({
-  //       space: space.address,
-  //       author: account.address,
-  //       metadataURI: [],
-  //       executionStrategy: {
-  //         address: ethRelayer.address,
-  //         params: executionPayload,
-  //       },
-  //       userProposalValidationParams: [],
-  //     }),
-  //     { rawInput: true },
-  //   );
+    const proposalId = { low: '0x1', high: '0x0' };
 
-  //   // Vote
-  //   await account.invoke(
-  //     starkTxAuthenticator,
-  //     'authenticate_vote',
-  //     CallData.compile({
-  //       space: space.address,
-  //       voter: account.address,
-  //       proposalId: { low: '0x1', high: '0x0' },
-  //       choice: '0x1',
-  //       userVotingStrategies: [{ index: '0x0', params: [] }],
-  //       metadataURI: [],
-  //     }),
-  //     { rawInput: true },
-  //   );
 
-  //   // Advance time so that the maxVotingTimestamp is exceeded
-  //   await starknet.devnet.increaseTime(10);
-  //   await increaseEthBlockchainTime(eth_network, 10);
+    console.log("Authenticating proposal...");
+    const proposeRes = await starkTxAuthenticator.authenticate_propose(space.address, account.address, [], { address: ethRelayer.address, params: executionPayload }, []);
+    await provider.waitForTransaction(proposeRes.transaction_hash);
+    console.log("Proposal authenticated");
 
-  //   // Execute
-  //   await account.invoke(
-  //     space,
-  //     'execute',
-  //     CallData.compile({
-  //       proposalId: { low: '0x1', high: '0x0' },
-  //       executionPayload: executionPayload,
-  //     }),
-  //     { rawInput: true },
-  //   );
+    // Advance time so that voting has started
+    await starknetDevnet.provider.increaseTime(101);
+    await increaseEthBlockchainTime(eth_network, 101);
 
-  //   // Propagating message to L1
-  //   const flushL2Response = await starknet.devnet.flush();
-  //   const message_payload = flushL2Response.consumed_messages.from_l2[0].payload;
-  //   // Proposal data can either be extracted from the message sent to L1 (as done here) or pulled from the contract directly
-  //   const [proposalId, proposal, votes] = extractMessagePayload(message_payload);
+    console.log("Authenticating vote...");
+    const choice = new CairoCustomEnum({ For: {} });
+    const voteRes = await starkTxAuthenticator.authenticate_vote(space.address, account.address, proposalId, choice, [{ index: '0x0', params: [] }], []);
+    await provider.waitForTransaction(voteRes.transaction_hash);
+    console.log("Vote authenticated");
 
-  //   // Manually set an incorrect votesFor value
-  //   votes.votesFor = 10;
+    // Advance time so that the maxVotingTimestamp is exceeded
+    await starknetDevnet.provider.increaseTime(200);
+    await increaseEthBlockchainTime(eth_network, 200);
 
-  //   await expect(
-  //     l1AvatarExecutionStrategy.execute(
-  //       space.address,
-  //       proposalId,
-  //       proposal,
-  //       votes,
-  //       executionHash,
-  //       [proposalTx],
-  //     ),
-  //   ).to.be.revertedWith('INVALID_MESSAGE_TO_CONSUME');
-  // }, 10000000);
+    console.log("Executing proposal...");
+    const executeRes = await space.execute(proposalId, executionPayload);
+    await provider.waitForTransaction(executeRes.transaction_hash);
+    console.log("Proposal executed");
+
+    // Propagating message to L1
+    const flushL2Response = await starknetDevnetProvider.postman.flush();
+    const message_payload = flushL2Response.messages_to_l1[0].payload;
+    // Proposal data can either be extracted from the message sent to L1 (as done here) or pulled from the contract directly
+    const [proposalId_, proposal, votes] = extractMessagePayload(message_payload);
+
+    // Manually set an incorrect votesFor value
+    votes.votesFor = 10;
+
+    await expect(
+      l1AvatarExecutionStrategy.execute(
+        space.address,
+        proposalId_,
+        proposal,
+        votes,
+        executionHash,
+        [proposalTx],
+      ),
+    ).to.be.revertedWith('INVALID_MESSAGE_TO_CONSUME');
+  });
 
   // it('should revert execution if an invalid proposal tx is sent to the execution strategy', async function () {
   //   await starknet.devnet.restart();
