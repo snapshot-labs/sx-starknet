@@ -161,7 +161,6 @@ describe('L1 Avatar Execution', function () {
     await starknetDevnetProvider.postman.loadL1MessagingContract(eth_network, mockMessagingContractAddress);
     starkTxAuthenticator.connect(account);
 
-
     const proposalTx = {
       to: signer.address,
       value: 0,
@@ -768,7 +767,7 @@ describe('L1 Avatar Execution', function () {
     }
   });
 
-  it.only('should revert execution if voting period is not exceeded', async function () {
+  it('should revert execution if voting period is not exceeded', async function () {
     await starknetDevnet.provider.restart();
     await starknetDevnet.provider.load('./dump.pkl');
     await starknetDevnetProvider.postman.loadL1MessagingContract(eth_network, mockMessagingContractAddress);
