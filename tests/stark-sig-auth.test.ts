@@ -50,7 +50,7 @@ describe('Starknet Signature Authenticator Tests', function () {
     console.log('account address:', account_address, 'account pk:', account_pk);
 
     const devnetConfig = {
-      args: ["--seed", "42", "--lite-mode", "--dump-on", "exit", "--dump-path", "./dump.pkl"],
+      args: ["--seed", "42", "--lite-mode", "--dump-on", "request", "--dump-path", "./dump.pkl"],
     };
     console.log("Spawning devnet...");
     devnet = await Devnet.spawnVersion("v0.2.0-rc.3", devnetConfig);

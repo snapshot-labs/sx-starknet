@@ -9,14 +9,11 @@
   "scripts": {
     "format:ts": "eslint . --ext .ts --fix",
     "format:json": "json-format ./tests/data/*.json",
-    "test:sig-auths": "jest -c jest.config.ts --runInBand",
-    "chain:l1": "hardhat node",
-    "chain:l2": "bash './scripts/chain-l2.sh'",
-    "chain": "yarn chain:l1 & yarn chain:l2",
     "test:stark-sig-auth": "bash './scripts/stark-sig-auth-test.sh'",
     "test:eth-sig-auth": "bash './scripts/eth-sig-auth-test.sh'",
     "test:eth-tx-auth": "bash './scripts/eth-tx-auth-test.sh'",
-    "test:l1-execution": "bash './scripts/l1-avatar-execution-test.sh'"
+    "test:l1-execution": "bash './scripts/l1-avatar-execution-test.sh'",
+    "test-all": "yarn test:stark-sig-auth && yarn test:eth-sig-auth && yarn test:eth-tx-auth && yarn test:l1-execution"
   },
   "devDependencies": {
     "@gnosis.pm/zodiac": "^4.0.3",

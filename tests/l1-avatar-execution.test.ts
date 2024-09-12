@@ -55,7 +55,7 @@ describe('L1 Avatar Execution', function () {
 
   before(async function () {
     const devnetConfig = {
-      args: ["--seed", "42", "--lite-mode", "--dump-on", "exit", "--dump-path", "./dump.pkl", "--host", "127.0.0.1", "--port", "5050"],
+      args: ["--seed", "42", "--lite-mode", "--dump-on", "request", "--dump-path", "./dump.pkl", "--host", "127.0.0.1", "--port", "5050"],
     };
     console.log("Spawning devnet...");
     starknetDevnet = await StarknetDevnet.spawnVersion('v0.2.0-rc.3', devnetConfig);
