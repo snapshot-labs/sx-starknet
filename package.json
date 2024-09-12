@@ -13,7 +13,7 @@
     "test:eth-sig-auth": "bash './scripts/eth-sig-auth-test.sh'",
     "test:eth-tx-auth": "bash './scripts/eth-tx-auth-test.sh'",
     "test:l1-execution": "bash './scripts/l1-avatar-execution-test.sh'",
-    "test-all": "yarn test:stark-sig-auth && yarn test:eth-sig-auth && yarn test:eth-tx-auth && yarn test:l1-execution"
+    "test-ts": "yarn test:stark-sig-auth && yarn test:eth-sig-auth && yarn test:eth-tx-auth && yarn test:l1-execution"
   },
   "devDependencies": {
     "@gnosis.pm/zodiac": "^4.0.3",

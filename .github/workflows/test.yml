@@ -1,11 +1,9 @@
 name: SX-Starknet Workflow
 
 env:
-  STARKNET_SIERRA_COMPILE_PATH: ./cairo/bin/starknet-sierra-compile
-  OBJC_DISABLE_INITIALIZE_FORK_SAFETY: YES
-  ADDRESS: "0x347be35996a21f6bf0623e75dbce52baba918ad5ae8d83b6f416045ab22961a"
-  PUBLIC_KEY: "0x674efe292c3c1125108916d6128bd6d1db4528db07322a84177551067aa2bef"
-  PK: "0xbdd640fb06671ad11c80317fa3b1799d"
+  ADDRESS: "0x34ba56f92265f0868c57d3fe72ecab144fc96f97954bbbc4252cef8e8a979ba"
+  PUBLIC_KEY: "0x5a5e37c60e77a0318643b111f88413a76af6233c891a0cfb2804106372006d4"
+  PK: "0xb137668388dbe9acdfa3bc734cc2c469"
 
 on:
   push:
@@ -94,4 +92,4 @@ jobs:
         run: scarb test --verbose
 
       - name: run Hardhat tests
-        run: yarn test-all
+        run: yarn test-ts
