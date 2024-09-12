@@ -48,11 +48,8 @@ describe('Ethereum Transaction Authenticator', function () {
   let _dao_uri: string[];
 
   before(async function () {
-    const commit = `0x${poseidonHashMany([0x1].map((v) => BigInt(v))).toString(16)}`;
-    console.log(commit);
-
     const devnetConfig = {
-      args: ["--seed", "42", "--lite-mode", "--dump-on", "exit", "--dump-path", "./dump.pkl", "--host", "127.0.0.1", "--port", "5050"],
+      args: ["--seed", "42", "--lite-mode", "--dump-on", "request", "--dump-path", "./dump.pkl", "--host", "127.0.0.1", "--port", "5050"],
     };
     console.log("Spawning devnet...");
     starknetDevnet = await StarknetDevnet.spawnInstalled(devnetConfig); // TODO: should be a new rather than spawninstalled
@@ -152,7 +149,7 @@ describe('Ethereum Transaction Authenticator', function () {
 
     const proposal = {
       author: signer.address,
-      metadataUri: ['0x1', '0x2', '0x3', '0x4'],
+      metadataUri: ['0x1', '0x1'], // We use metadataUris with different values because the L1 devnet does not reset so we need to make sure the commit is different
       executionStrategy: {
         address: '0x0000000000000000000000000000000000005678',
         params: ['0x0'],
@@ -183,7 +180,7 @@ describe('Ethereum Transaction Authenticator', function () {
 
     // Checking that the L1 -> L2 message has been propagated
     console.log("Flushing messages...");
-    expect((await starknetDevnetProvider.postman.flush()).messages_to_l2).to.have.a.lengthOf(1);
+    await starknetDevnetProvider.postman.flush();
     console.log("Messages flushed!");
 
     console.log("Authenticating proposal...");
@@ -198,7 +195,7 @@ describe('Ethereum Transaction Authenticator', function () {
         address: '0x0000000000000000000000000000000000005678',
         params: ['0x0'],
       },
-      metadataUri: ['0x1', '0x2', '0x3', '0x4'],
+      metadataUri: ['0x1', '0x2'], // We use metadataUris with different values because the L1 devnet does not reset so we need to make sure the commit is different
     };
 
     const updateCommitPreImage = CallData.compile({
@@ -220,7 +217,7 @@ describe('Ethereum Transaction Authenticator', function () {
     });
 
     // Checking that the L1 -> L2 message has been propagated
-    expect((await starknetDevnetProvider.postman.flush()).messages_to_l2).to.have.a.lengthOf(1);
+    await starknetDevnetProvider.postman.flush();
 
     console.log("Authenticating update proposal...");
     const updateRes = await ethTxAuthenticator.authenticate_update_proposal(space.address, updateProposal.author, updateProposal.proposalId, updateProposal.executionStrategy, updateProposal.metadataUri);
@@ -235,7 +232,7 @@ describe('Ethereum Transaction Authenticator', function () {
       proposalId: cairo.uint256('0x1'),
       choice: '0x1',
       userVotingStrategies: [{ index: '0x0', params: ['0x1', '0x2', '0x3', '0x4'] }],
-      metadataUri: ['0x1', '0x2', '0x3', '0x4'],
+      metadataUri: ['0x1', '0x3'], // We use metadataUris with different values because the L1 devnet does not reset so we need to make sure the commit is different
     };
 
     const voteCommitPreImage = CallData.compile({
@@ -256,7 +253,7 @@ describe('Ethereum Transaction Authenticator', function () {
     console.log("Vote committed!");
 
     // Checking that the L1 -> L2 message has been propagated
-    expect((await starknetDevnetProvider.postman.flush()).messages_to_l2).to.have.a.lengthOf(1);
+    await starknetDevnetProvider.postman.flush();
 
     console.log("Authenticating vote...");
     const choice = new CairoCustomEnum({ For: {} });
@@ -265,438 +262,384 @@ describe('Ethereum Transaction Authenticator', function () {
     console.log("Vote authenticated");
   });
 
-  // it('should revert if an invalid hash of an action was committed', async () => {
-  //   await starknet.devnet.restart();
-  //   await starknet.devnet.load('./dump.pkl');
-  //   await starknet.devnet.increaseTime(10);
-  //   await starknet.devnet.loadL1MessagingContract(eth_network, mockStarknetMessaging.address);
+  it('should revert if an invalid hash of an action was committed', async () => {
+    await starknetDevnet.provider.restart();
+    await starknetDevnet.provider.load('./dump.pkl');
+    await starknetDevnetProvider.postman.loadL1MessagingContract(eth_network, mockMessagingContractAddress);
+    ethTxAuthenticator.connect(account);
 
-  //   const proposal = {
-  //     author: signer.address,
-  //     metadataUri: ['0x1', '0x2', '0x3', '0x4'],
-  //     executionStrategy: {
-  //       address: '0x0000000000000000000000000000000000005678',
-  //       params: ['0x0'],
-  //     },
-  //     userProposalValidationParams: [
-  //       '0xffffffffffffffffffffffffffffffffffffffffff',
-  //       '0x1234',
-  //       '0x5678',
-  //       '0x9abc',
-  //     ],
-  //   };
+    const proposal = {
+      author: signer.address,
+      metadataUri: ['0x1', '0x4'], // We use metadataUris with different values because the L1 devnet does not reset so we need to make sure the commit is different
+      executionStrategy: {
+        address: '0x0000000000000000000000000000000000005678',
+        params: ['0x0'],
+      },
+      userProposalValidationParams: [
+        '0xffffffffffffffffffffffffffffffffffffffffff',
+        '0x1234',
+        '0x5678',
+        '0x9abc',
+      ],
+    };
 
-  //   const proposeCommitPreImage = CallData.compile({
-  //     target: space.address,
-  //     selector: selector.getSelectorFromName('propose'),
-  //     ...proposal,
-  //   });
+    const proposeCommitPreImage = CallData.compile({
+      target: space.address,
+      selector: selector.getSelectorFromName('propose'),
+      ...proposal,
+    });
 
-  //   // Commit hash of payload to the Starknet Commit L1 contract
-  //   const commit = `0x${poseidonHashMany(proposeCommitPreImage.map((v) => BigInt(v))).toString(
-  //     16,
-  //   )}`;
+    // Commit hash of payload to the Starknet Commit L1 contract
+    const proposalCommit = `0x${poseidonHashMany(proposeCommitPreImage.map((v) => BigInt(v))).toString(
+      16,
+    )}`;
 
-  //   await starknetCommit.commit(ethTxAuthenticator.address, commit, { value: 18485000000000 });
+    console.log("Proposal commit: ", proposalCommit);
 
-  //   // Checking that the L1 -> L2 message has been propogated
-  //   expect((await starknet.devnet.flush()).consumed_messages.from_l1).to.have.a.lengthOf(1);
+    console.log("Committing proposal on L1...");
+    await starknetCommit.commit(ethTxAuthenticator.address, proposalCommit, { value: 18485000000000 });
+    console.log("Committed!");
 
-  //   // Try to authenticate with an invalid author
-  //   try {
-  //     await account.invoke(
-  //       ethTxAuthenticator,
-  //       'authenticate_propose',
-  //       CallData.compile({
-  //         target: space.address,
-  //         author: invalidSigner.address,
-  //         metadataURI: proposal.metadataUri,
-  //         executionStrategy: proposal.executionStrategy,
-  //         userProposalValidationParams: proposal.userProposalValidationParams,
-  //       }),
-  //       { rawInput: true },
-  //     );
-  //     expect.fail('Should have failed');
-  //   } catch (err: any) {
-  //     expect(err.message).to.contain(shortString.encodeShortString('Commit not found'));
-  //   }
+    // Checking that the L1 -> L2 message has been propagated
+    console.log("Flushing messages...");
+    await starknetDevnetProvider.postman.flush();
+    console.log("Messages flushed!");
 
-  //   await account.invoke(
-  //     ethTxAuthenticator,
-  //     'authenticate_propose',
-  //     CallData.compile({
-  //       target: space.address,
-  //       author: proposal.author,
-  //       metadataURI: proposal.metadataUri,
-  //       executionStrategy: proposal.executionStrategy,
-  //       userProposalValidationParams: proposal.userProposalValidationParams,
-  //     }),
-  //     { rawInput: true },
-  //   );
+    // Authenticating with a different user
+    try {
+      console.log("Authenticating proposal with a different user...");
+      const proposeRes = await ethTxAuthenticator.authenticate_propose(space.address, invalidSigner.address, proposal.metadataUri, proposal.executionStrategy, proposal.userProposalValidationParams);
+      await provider.waitForTransaction(proposeRes.transaction_hash);
+      console.log("Proposal authenticated");
+      expect.fail('Should have failed');
+    } catch (err) {
+      expect(err.message).to.contain('Commit not found');
+      console.log("Proposal authentication failed as expected");
+    }
 
-  //   const updateProposal = {
-  //     author: signer.address,
-  //     proposalId: cairo.uint256('0x1'),
-  //     executionStrategy: {
-  //       address: '0x0000000000000000000000000000000000005678',
-  //       params: ['0x0'],
-  //     },
-  //     metadataUri: ['0x1', '0x2', '0x3', '0x4'],
-  //   };
+    console.log("Authenticating proposal...");
+    const proposeRes = await ethTxAuthenticator.authenticate_propose(space.address, proposal.author, proposal.metadataUri, proposal.executionStrategy, proposal.userProposalValidationParams);
+    await provider.waitForTransaction(proposeRes.transaction_hash);
+    console.log("Proposal authenticated");
 
-  //   const updateCommitPreImage = CallData.compile({
-  //     target: space.address,
-  //     selector: selector.getSelectorFromName('update_proposal'),
-  //     ...updateProposal,
-  //   });
+    const updateProposal = {
+      author: signer.address,
+      proposalId: cairo.uint256('0x1'),
+      executionStrategy: {
+        address: '0x0000000000000000000000000000000000005678',
+        params: ['0x0'],
+      },
+      metadataUri: ['0x1', '0x5'], // We use metadataUris with different values because the L1 devnet does not reset so we need to make sure the commit is different
+    };
 
-  //   // Commit hash of payload to the Starknet Commit L1 contract
-  //   const updateCommit = `0x${poseidonHashMany(updateCommitPreImage.map((v) => BigInt(v))).toString(
-  //     16,
-  //   )}`;
+    const updateCommitPreImage = CallData.compile({
+      target: space.address,
+      selector: selector.getSelectorFromName('update_proposal'),
+      ...updateProposal,
+    });
 
-  //   await starknetCommit.commit(ethTxAuthenticator.address, updateCommit, {
-  //     value: 18485000000000,
-  //   });
+    // Commit hash of payload to the Starknet Commit L1 contract
+    const updateCommit = `0x${poseidonHashMany(updateCommitPreImage.map((v) => BigInt(v))).toString(
+      16,
+    )}`;
 
-  //   // Checking that the L1 -> L2 message has been propogated
-  //   expect((await starknet.devnet.flush()).consumed_messages.from_l1).to.have.a.lengthOf(1);
+    console.log("Update commit: ", updateCommit);
 
-  //   try {
-  //     await account.invoke(
-  //       ethTxAuthenticator,
-  //       'authenticate_update_proposal',
-  //       CallData.compile({
-  //         target: space.address,
-  //         author: invalidSigner.address,
-  //         proposalId: updateProposal.proposalId,
-  //         executionStrategy: updateProposal.executionStrategy,
-  //         metadataURI: updateProposal.metadataUri,
-  //       }),
-  //       { rawInput: true },
-  //     );
+    console.log("Committing update proposal on L1...");
+    await starknetCommit.commit(ethTxAuthenticator.address, updateCommit, {
+      value: 18485000000000,
+    });
 
-  //     expect.fail('Should have failed');
-  //   } catch (err: any) {
-  //     expect(err.message).to.contain(shortString.encodeShortString('Commit not found'));
-  //   }
+    // Checking that the L1 -> L2 message has been propagated
+    await starknetDevnetProvider.postman.flush();
 
-  //   await account.invoke(
-  //     ethTxAuthenticator,
-  //     'authenticate_update_proposal',
-  //     CallData.compile({
-  //       target: space.address,
-  //       author: updateProposal.author,
-  //       proposalId: updateProposal.proposalId,
-  //       executionStrategy: updateProposal.executionStrategy,
-  //       metadataURI: updateProposal.metadataUri,
-  //     }),
-  //     { rawInput: true },
-  //   );
+    // Authenticating update proposal with a different user
+    try {
+      console.log("Authenticating update proposal with a different user...");
+      const updateRes = await ethTxAuthenticator.authenticate_update_proposal(space.address, invalidSigner.address, updateProposal.proposalId, updateProposal.executionStrategy, updateProposal.metadataUri);
+      await provider.waitForTransaction(updateRes.transaction_hash);
+      console.log("Update proposal authenticated");
+      expect.fail('Should have failed');
+    } catch (err) {
+      expect(err.message).to.contain('Commit not found');
+      console.log("Update proposal authentication failed as expected");
+    }
 
-  //   // Increase time so voting period begins
-  //   await starknet.devnet.increaseTime(100);
+    console.log("Authenticating update proposal...");
+    const updateRes = await ethTxAuthenticator.authenticate_update_proposal(space.address, updateProposal.author, updateProposal.proposalId, updateProposal.executionStrategy, updateProposal.metadataUri);
+    await provider.waitForTransaction(updateRes.transaction_hash);
+    console.log("Update proposal authenticated");
 
-  //   const vote = {
-  //     voter: signer.address,
-  //     proposalId: cairo.uint256('0x1'),
-  //     choice: '0x1',
-  //     userVotingStrategies: [{ index: '0x0', params: ['0x1', '0x2', '0x3', '0x4'] }],
-  //     metadataUri: ['0x1', '0x2', '0x3', '0x4'],
-  //   };
+    // Increase time so voting period begins
+    await starknetDevnet.provider.increaseTime(_voting_delay);
 
-  //   const voteCommitPreImage = CallData.compile({
-  //     target: space.address,
-  //     selector: selector.getSelectorFromName('vote'),
-  //     ...vote,
-  //   });
+    const vote = {
+      voter: signer.address,
+      proposalId: cairo.uint256('0x1'),
+      choice: '0x1',
+      userVotingStrategies: [{ index: '0x0', params: ['0x1', '0x2', '0x3', '0x4'] }],
+      metadataUri: ['0x1', '0x6'], // We use metadataUris with different values because the L1 devnet does not reset so we need to make sure the commit is different
+    };
 
-  //   // Commit hash of payload to the Starknet Commit L1 contract
-  //   const voteCommit = `0x${poseidonHashMany(voteCommitPreImage.map((v) => BigInt(v))).toString(
-  //     16,
-  //   )}`;
+    const voteCommitPreImage = CallData.compile({
+      target: space.address,
+      selector: selector.getSelectorFromName('vote'),
+      ...vote,
+    });
 
-  //   await starknetCommit.commit(ethTxAuthenticator.address, voteCommit, { value: 18485000000000 });
+    // Commit hash of payload to the Starknet Commit L1 contract
+    const voteCommit = `0x${poseidonHashMany(voteCommitPreImage.map((v) => BigInt(v))).toString(
+      16,
+    )}`;
 
-  //   // Checking that the L1 -> L2 message has been propogated
-  //   expect((await starknet.devnet.flush()).consumed_messages.from_l1).to.have.a.lengthOf(1);
+    console.log("Vote commit: ", voteCommit);
 
-  //   try {
-  //     await account.invoke(
-  //       ethTxAuthenticator,
-  //       'authenticate_vote',
-  //       CallData.compile({
-  //         target: space.address,
-  //         voter: invalidSigner.address,
-  //         proposalId: vote.proposalId,
-  //         choice: vote.choice,
-  //         userVotingStrategies: vote.userVotingStrategies,
-  //         metadataURI: vote.metadataUri,
-  //       }),
-  //       { rawInput: true },
-  //     );
-  //     expect.fail('Should have failed');
-  //   } catch (err: any) {
-  //     expect(err.message).to.contain(shortString.encodeShortString('Commit not found'));
-  //   }
+    console.log("Committing vote on L1...");
+    await starknetCommit.commit(ethTxAuthenticator.address, voteCommit, { value: 18485000000000 });
+    console.log("Vote committed!");
 
-  //   await account.invoke(
-  //     ethTxAuthenticator,
-  //     'authenticate_vote',
-  //     CallData.compile({
-  //       target: space.address,
-  //       voter: vote.voter,
-  //       proposalId: vote.proposalId,
-  //       choice: vote.choice,
-  //       userVotingStrategies: vote.userVotingStrategies,
-  //       metadataURI: vote.metadataUri,
-  //     }),
-  //     { rawInput: true },
-  //   );
-  // }, 1000000);
+    // Checking that the L1 -> L2 message has been propagated
+    await starknetDevnetProvider.postman.flush();
 
-  // it('should revert if a commit was made by a different address to the author/voter address', async () => {
-  //   await starknet.devnet.restart();
-  //   await starknet.devnet.load('./dump.pkl');
-  //   await starknet.devnet.increaseTime(10);
-  //   await starknet.devnet.loadL1MessagingContract(eth_network, mockStarknetMessaging.address);
+    // Authenticating vote with a different user
+    try {
+      console.log("Authenticating vote with a different user...");
+      const choice = new CairoCustomEnum({ For: {} });
+      const voteRes = await ethTxAuthenticator.authenticate_vote(space.address, invalidSigner.address, vote.proposalId, choice, vote.userVotingStrategies, vote.metadataUri);
+      await provider.waitForTransaction(voteRes.transaction_hash);
+      console.log("Vote authenticated");
+      expect.fail('Should have failed');
+    } catch (err) {
+      expect(err.message).to.contain('Commit not found');
+      console.log("Vote authentication failed as expected");
+    }
 
-  //   const proposal = {
-  //     author: signer.address,
-  //     metadataUri: ['0x1', '0x2', '0x3', '0x4'],
-  //     executionStrategy: {
-  //       address: '0x0000000000000000000000000000000000005678',
-  //       params: ['0x0'],
-  //     },
-  //     userProposalValidationParams: [
-  //       '0xffffffffffffffffffffffffffffffffffffffffff',
-  //       '0x1234',
-  //       '0x5678',
-  //       '0x9abc',
-  //     ],
-  //   };
+    console.log("Authenticating vote...");
+    const choice = new CairoCustomEnum({ For: {} });
+    const voteRes = await ethTxAuthenticator.authenticate_vote(space.address, vote.voter, vote.proposalId, choice, vote.userVotingStrategies, vote.metadataUri);
+    await provider.waitForTransaction(voteRes.transaction_hash);
+    console.log("Vote authenticated");
+  });
 
-  //   const proposeCommitPreImage = CallData.compile({
-  //     target: space.address,
-  //     selector: selector.getSelectorFromName('propose'),
-  //     ...proposal,
-  //   });
+  it('should revert if a commit was made by a different address to the author/voter address', async () => {
+    await starknetDevnet.provider.restart();
+    await starknetDevnet.provider.load('./dump.pkl');
+    await starknetDevnetProvider.postman.loadL1MessagingContract(eth_network, mockMessagingContractAddress);
+    ethTxAuthenticator.connect(account);
 
-  //   // Commit hash of payload to the Starknet Commit L1 contract
-  //   const commit = `0x${poseidonHashMany(proposeCommitPreImage.map((v) => BigInt(v))).toString(
-  //     16,
-  //   )}`;
+    const proposal = {
+      author: signer.address,
+      metadataUri: ['0x1', '0x7'], // We use metadataUris with different values because the L1 devnet does not reset so we need to make sure the commit is different
+      executionStrategy: {
+        address: '0x0000000000000000000000000000000000005678',
+        params: ['0x0'],
+      },
+      userProposalValidationParams: [
+        '0xffffffffffffffffffffffffffffffffffffffffff',
+        '0x1234',
+        '0x5678',
+        '0x9abc',
+      ],
+    };
 
-  //   // Committing payload from a different address to the author
-  //   await starknetCommit
-  //     .connect(invalidSigner)
-  //     .commit(ethTxAuthenticator.address, commit, { value: 18485000000000 });
+    const proposeCommitPreImage = CallData.compile({
+      target: space.address,
+      selector: selector.getSelectorFromName('propose'),
+      ...proposal,
+    });
 
-  //   // Checking that the L1 -> L2 message has been propogated
-  //   expect((await starknet.devnet.flush()).consumed_messages.from_l1).to.have.a.lengthOf(1);
+    // Commit hash of payload to the Starknet Commit L1 contract
+    const proposalCommit = `0x${poseidonHashMany(proposeCommitPreImage.map((v) => BigInt(v))).toString(
+      16,
+    )}`;
+    console.log("Proposal commit: ", proposalCommit);
 
-  //   try {
-  //     await account.invoke(
-  //       ethTxAuthenticator,
-  //       'authenticate_propose',
-  //       CallData.compile({
-  //         target: space.address,
-  //         author: proposal.author,
-  //         metadataURI: proposal.metadataUri,
-  //         executionStrategy: proposal.executionStrategy,
-  //         userProposalValidationParams: proposal.userProposalValidationParams,
-  //       }),
-  //       { rawInput: true },
-  //     );
-  //     expect.fail('Should have failed');
-  //   } catch (err: any) {
-  //     expect(err.message).to.contain(shortString.encodeShortString('Commit not found'));
-  //   }
-  // }, 1000000);
+    console.log("Committing proposal on L1...");
+    await starknetCommit.connect(invalidSigner).commit(ethTxAuthenticator.address, proposalCommit, { value: 18485000000000 });
+    console.log("Committed!");
 
-  // it('should not revert if the same commit was made twice', async () => {
-  //   await starknet.devnet.restart();
-  //   await starknet.devnet.load('./dump.pkl');
-  //   await starknet.devnet.increaseTime(10);
-  //   await starknet.devnet.loadL1MessagingContract(eth_network, mockStarknetMessaging.address);
+    // Checking that the L1 -> L2 message has been propagated
+    console.log("Flushing messages...");
+    await starknetDevnetProvider.postman.flush();
+    console.log("Messages flushed!");
 
-  //   const proposal = {
-  //     author: signer.address,
-  //     metadataUri: ['0x1', '0x2', '0x3', '0x4'],
-  //     executionStrategy: {
-  //       address: '0x0000000000000000000000000000000000005678',
-  //       params: ['0x0'],
-  //     },
-  //     userProposalValidationParams: [
-  //       '0xffffffffffffffffffffffffffffffffffffffffff',
-  //       '0x1234',
-  //       '0x5678',
-  //       '0x9abc',
-  //     ],
-  //   };
+    try {
+      console.log("Authenticating proposal...");
+      const proposeRes = await ethTxAuthenticator.authenticate_propose(space.address, proposal.author, proposal.metadataUri, proposal.executionStrategy, proposal.userProposalValidationParams);
+      await provider.waitForTransaction(proposeRes.transaction_hash);
+      expect.fail('Should have failed');
+    } catch (err) {
+      expect(err.message).to.contain('Commit not found');
+      console.log("Proposal authentication failed as expected");
+    }
+  });
 
-  //   const proposeCommitPreImage = CallData.compile({
-  //     target: space.address,
-  //     selector: selector.getSelectorFromName('propose'),
-  //     ...proposal,
-  //   });
+  it('should not revert if the same commit was made twice', async () => {
+    await starknetDevnet.provider.restart();
+    await starknetDevnet.provider.load('./dump.pkl');
+    await starknetDevnetProvider.postman.loadL1MessagingContract(eth_network, mockMessagingContractAddress);
+    ethTxAuthenticator.connect(account);
 
-  //   // Commit hash of payload to the Starknet Commit L1 contract
-  //   const commit = `0x${poseidonHashMany(proposeCommitPreImage.map((v) => BigInt(v))).toString(
-  //     16,
-  //   )}`;
+    const proposal = {
+      author: signer.address,
+      metadataUri: ['0x1', '0x8'], // We use metadataUris with different values because the L1 devnet does not reset so we need to make sure the commit is different
+      executionStrategy: {
+        address: '0x0000000000000000000000000000000000005678',
+        params: ['0x0'],
+      },
+      userProposalValidationParams: [
+        '0xffffffffffffffffffffffffffffffffffffffffff',
+        '0x1234',
+        '0x5678',
+        '0x9abc',
+      ],
+    };
 
-  //   // Committing payload from a different address to the author
-  //   await starknetCommit
-  //     .connect(invalidSigner)
-  //     .commit(ethTxAuthenticator.address, commit, { value: 18485000000000 });
+    const proposeCommitPreImage = CallData.compile({
+      target: space.address,
+      selector: selector.getSelectorFromName('propose'),
+      ...proposal,
+    });
 
-  //   expect((await starknet.devnet.flush()).consumed_messages.from_l1).to.have.a.lengthOf(1);
+    // Commit hash of payload to the Starknet Commit L1 contract
+    const proposalCommit = `0x${poseidonHashMany(proposeCommitPreImage.map((v) => BigInt(v))).toString(
+      16,
+    )}`;
+    console.log("Proposal commit: ", proposalCommit);
 
-  //   // Committing the same payload from the author
-  //   await starknetCommit.commit(ethTxAuthenticator.address, commit, { value: 18485000000000 });
+    console.log("Committing proposal on L1 from another signer...");
+    await starknetCommit.connect(invalidSigner).commit(ethTxAuthenticator.address, proposalCommit, { value: 18485000000000 });
+    console.log("Committed!");
 
-  //   expect((await starknet.devnet.flush()).consumed_messages.from_l1).to.have.a.lengthOf(1);
+    // Checking that the L1 -> L2 message has been propagated
+    console.log("Flushing messages...");
+    await starknetDevnetProvider.postman.flush();
+    console.log("Messages flushed!");
 
-  //   await account.invoke(
-  //     ethTxAuthenticator,
-  //     'authenticate_propose',
-  //     CallData.compile({
-  //       target: space.address,
-  //       author: proposal.author,
-  //       metadataURI: proposal.metadataUri,
-  //       executionStrategy: proposal.executionStrategy,
-  //       userProposalValidationParams: proposal.userProposalValidationParams,
-  //     }),
-  //     { rawInput: true },
-  //   );
-  // }, 1000000);
+    console.log("Committing proposal on L1 from the correct signer...");
+    await starknetCommit.commit(ethTxAuthenticator.address, proposalCommit, { value: 18485000000000 });
+    console.log("Committed!");
 
-  // it('a commit cannot be consumed twice', async () => {
-  //   await starknet.devnet.restart();
-  //   await starknet.devnet.load('./dump.pkl');
-  //   await starknet.devnet.increaseTime(10);
-  //   await starknet.devnet.loadL1MessagingContract(eth_network, mockStarknetMessaging.address);
+    // Checking that the L1 -> L2 message has been propagated
+    console.log("Flushing messages...");
+    await starknetDevnetProvider.postman.flush();
+    console.log("Messages flushed!");
 
-  //   const proposal = {
-  //     author: signer.address,
-  //     metadataUri: ['0x1', '0x2', '0x3', '0x4'],
-  //     executionStrategy: {
-  //       address: '0x0000000000000000000000000000000000005678',
-  //       params: ['0x0'],
-  //     },
-  //     userProposalValidationParams: [
-  //       '0xffffffffffffffffffffffffffffffffffffffffff',
-  //       '0x1234',
-  //       '0x5678',
-  //       '0x9abc',
-  //     ],
-  //   };
+    console.log("Authenticating proposal...");
+    const proposeRes = await ethTxAuthenticator.authenticate_propose(space.address, proposal.author, proposal.metadataUri, proposal.executionStrategy, proposal.userProposalValidationParams);
+    await provider.waitForTransaction(proposeRes.transaction_hash);
+    console.log("Proposal authenticated");
+  });
 
-  //   const proposeCommitPreImage = CallData.compile({
-  //     target: space.address,
-  //     selector: selector.getSelectorFromName('propose'),
-  //     ...proposal,
-  //   });
+  it('a commit cannot be consumed twice', async () => {
+    await starknetDevnet.provider.restart();
+    await starknetDevnet.provider.load('./dump.pkl');
+    await starknetDevnetProvider.postman.loadL1MessagingContract(eth_network, mockMessagingContractAddress);
+    ethTxAuthenticator.connect(account);
 
-  //   // Commit hash of payload to the Starknet Commit L1 contract
-  //   const commit = `0x${poseidonHashMany(proposeCommitPreImage.map((v) => BigInt(v))).toString(
-  //     16,
-  //   )}`;
+    const proposal = {
+      author: signer.address,
+      metadataUri: ['0x1', '0x9'], // We use metadataUris with different values because the L1 devnet does not reset so we need to make sure the commit is different
+      executionStrategy: {
+        address: '0x0000000000000000000000000000000000005678',
+        params: ['0x0'],
+      },
+      userProposalValidationParams: [
+        '0xffffffffffffffffffffffffffffffffffffffffff',
+        '0x1234',
+        '0x5678',
+        '0x9abc',
+      ],
+    };
 
-  //   // Committing payload from a different address to the author
-  //   await starknetCommit.commit(ethTxAuthenticator.address, commit, { value: 18485000000000 });
+    const proposeCommitPreImage = CallData.compile({
+      target: space.address,
+      selector: selector.getSelectorFromName('propose'),
+      ...proposal,
+    });
 
-  //   // Checking that the L1 -> L2 message has been propogated
-  //   expect((await starknet.devnet.flush()).consumed_messages.from_l1).to.have.a.lengthOf(1);
+    // Commit hash of payload to the Starknet Commit L1 contract
+    const proposalCommit = `0x${poseidonHashMany(proposeCommitPreImage.map((v) => BigInt(v))).toString(
+      16,
+    )}`;
+    console.log("Proposal commit: ", proposalCommit);
 
-  //   await account.invoke(
-  //     ethTxAuthenticator,
-  //     'authenticate_propose',
-  //     CallData.compile({
-  //       target: space.address,
-  //       author: proposal.author,
-  //       metadataURI: proposal.metadataUri,
-  //       executionStrategy: proposal.executionStrategy,
-  //       userProposalValidationParams: proposal.userProposalValidationParams,
-  //     }),
-  //     { rawInput: true },
-  //   );
+    console.log("Committing proposal on L1...");
+    await starknetCommit.commit(ethTxAuthenticator.address, proposalCommit, { value: 18485000000000 });
+    console.log("Committed!");
 
-  //   // Attempting to replay the proposal creation commit
-  //   try {
-  //     await account.invoke(
-  //       ethTxAuthenticator,
-  //       'authenticate_propose',
-  //       CallData.compile({
-  //         target: space.address,
-  //         author: proposal.author,
-  //         metadataURI: proposal.metadataUri,
-  //         executionStrategy: proposal.executionStrategy,
-  //         userProposalValidationParams: proposal.userProposalValidationParams,
-  //       }),
-  //       { rawInput: true },
-  //     );
-  //     expect.fail('Should have failed');
-  //   } catch (err: any) {
-  //     expect(err.message).to.contain(shortString.encodeShortString('Commit not found'));
-  //   }
-  // }, 1000000);
+    // Checking that the L1 -> L2 message has been propagated
+    console.log("Flushing messages...");
+    await starknetDevnetProvider.postman.flush();
+    console.log("Messages flushed!");
 
-  // it('a commit cannot be overwritten by a different sender', async () => {
-  //   await starknet.devnet.restart();
-  //   await starknet.devnet.load('./dump.pkl');
-  //   await starknet.devnet.increaseTime(10);
-  //   await starknet.devnet.loadL1MessagingContract(eth_network, mockStarknetMessaging.address);
+    console.log("Authenticating proposal...");
+    const proposeRes = await ethTxAuthenticator.authenticate_propose(space.address, proposal.author, proposal.metadataUri, proposal.executionStrategy, proposal.userProposalValidationParams);
+    await provider.waitForTransaction(proposeRes.transaction_hash);
+    console.log("Proposal authenticated");
 
-  //   const proposal = {
-  //     author: signer.address,
-  //     metadataUri: ['0x1', '0x2', '0x3', '0x4'],
-  //     executionStrategy: {
-  //       address: '0x0000000000000000000000000000000000005678',
-  //       params: ['0x0'],
-  //     },
-  //     userProposalValidationParams: [
-  //       '0xffffffffffffffffffffffffffffffffffffffffff',
-  //       '0x1234',
-  //       '0x5678',
-  //       '0x9abc',
-  //     ],
-  //   };
+    // Attempting to replay the same commit
+    try {
+      console.log("Trying to replay the proposal creationc commit...");
+      const proposeRes = await ethTxAuthenticator.authenticate_propose(space.address, proposal.author, proposal.metadataUri, proposal.executionStrategy, proposal.userProposalValidationParams);
+      await provider.waitForTransaction(proposeRes.transaction_hash);
+      expect.fail('Should have failed');
+    } catch (err) {
+      expect(err.message).to.contain('Commit not found');
+      console.log("Proposal authentication failed as expected");
+    }
+  });
 
-  //   const proposeCommitPreImage = CallData.compile({
-  //     target: space.address,
-  //     selector: selector.getSelectorFromName('propose'),
-  //     ...proposal,
-  //   });
+  it('a commit cannot be overwritten by a different sender', async () => {
+    await starknetDevnet.provider.restart();
+    await starknetDevnet.provider.load('./dump.pkl');
+    await starknetDevnetProvider.postman.loadL1MessagingContract(eth_network, mockMessagingContractAddress);
+    ethTxAuthenticator.connect(account);
 
-  //   // Commit hash of payload to the Starknet Commit L1 contract
-  //   const commit = `0x${poseidonHashMany(proposeCommitPreImage.map((v) => BigInt(v))).toString(
-  //     16,
-  //   )}`;
+    const proposal = {
+      author: signer.address,
+      metadataUri: ['0x1', '0xa'], // We use metadataUris with different values because the L1 devnet does not reset so we need to make sure the commit is different
+      executionStrategy: {
+        address: '0x0000000000000000000000000000000000005678',
+        params: ['0x0'],
+      },
+      userProposalValidationParams: [
+        '0xffffffffffffffffffffffffffffffffffffffffff',
+        '0x1234',
+        '0x5678',
+        '0x9abc',
+      ],
+    };
 
-  //   await starknetCommit.commit(ethTxAuthenticator.address, commit, { value: 18485000000000 });
+    const proposeCommitPreImage = CallData.compile({
+      target: space.address,
+      selector: selector.getSelectorFromName('propose'),
+      ...proposal,
+    });
 
-  //   // Committing the same commit but different sender
-  //   await starknetCommit
-  //     .connect(invalidSigner)
-  //     .commit(ethTxAuthenticator.address, commit, { value: 18485000000000 });
+    // Commit hash of payload to the Starknet Commit L1 contract
+    const proposalCommit = `0x${poseidonHashMany(proposeCommitPreImage.map((v) => BigInt(v))).toString(
+      16,
+    )}`;
+    console.log("Proposal commit: ", proposalCommit);
 
-  //   // Checking that both L1 -> L2 messages has been propogated
-  //   expect((await starknet.devnet.flush()).consumed_messages.from_l1).to.have.a.lengthOf(2);
+    console.log("Committing proposal on L1 from the correct signer...");
+    await starknetCommit.commit(ethTxAuthenticator.address, proposalCommit, { value: 18485000000000 });
+    console.log("Committed!");
 
-  //   // The commit by the correct signer should be accepted
-  //   await account.invoke(
-  //     ethTxAuthenticator,
-  //     'authenticate_propose',
-  //     CallData.compile({
-  //       target: space.address,
-  //       author: proposal.author,
-  //       metadataURI: proposal.metadataUri,
-  //       executionStrategy: proposal.executionStrategy,
-  //       userProposalValidationParams: proposal.userProposalValidationParams,
-  //     }),
-  //     { rawInput: true },
-  //   );
-  // }, 1000000);
+    console.log("Committing proposal on L1 from another signer...");
+    await starknetCommit.connect(invalidSigner).commit(ethTxAuthenticator.address, proposalCommit, { value: 18485000000000 });
+    console.log("Committed!");
+
+    // Checking that the L1 -> L2 message has been propagated
+    console.log("Flushing messages...");
+    await starknetDevnetProvider.postman.flush();
+    console.log("Messages flushed!");
+
+    // The commit by the correct signer should be accepted
+    console.log("Authenticating proposal...");
+    const proposeRes = await ethTxAuthenticator.authenticate_propose(space.address, proposal.author, proposal.metadataUri, proposal.executionStrategy, proposal.userProposalValidationParams);
+    await provider.waitForTransaction(proposeRes.transaction_hash);
+    console.log("Proposal authenticated");
+  });
 });
