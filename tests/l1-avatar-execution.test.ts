@@ -26,7 +26,6 @@ describe('L1 Avatar Execution', function () {
 
   let signer: HardhatEthersSigner;
   let safe: EthContract;
-  // let mockStarknetMessaging: EthContract;
   let mockMessagingContractAddress: string;
   let l1AvatarExecutionStrategy: EthContract;
 
@@ -41,24 +40,30 @@ describe('L1 Avatar Execution', function () {
   let starknetDevnetProvider: StarknetDevnetProvider;
   let provider: StarknetRpcProvider;
 
-  before(async function () {
-    console.log('account address:', account_address, 'account pk:', account_pk);
+  const _owner = 1;
+  const _min_voting_duration = 200;
+  const _max_voting_duration = 200;
+  const _voting_delay = 100;
+  let _proposal_validation_strategy: { address: string; params: any[] };
+  const _proposal_validation_strategy_metadata_uri = [];
+  let _voting_strategies: { address: string; params: any[] }[];
+  const _voting_strategies_metadata_uri = [[]];
+  let _authenticators: string[];
+  const _metadata_uri = [];
+  const _dao_uri = [];
 
+
+  before(async function () {
     const devnetConfig = {
       args: ["--seed", "42", "--lite-mode", "--dump-on", "exit", "--dump-path", "./dump.pkl", "--host", "127.0.0.1", "--port", "5050"],
     };
     console.log("Spawning devnet...");
-    starknetDevnet = await StarknetDevnet.spawnInstalled(devnetConfig); // TODO: should be a new rather than spawninstalled
+    starknetDevnet = await StarknetDevnet.spawnVersion('v0.2.0-rc.3', devnetConfig);
     starknetDevnetProvider = new StarknetDevnetProvider();
 
     console.log("Loading L1 Messaging Contract");
-    // const messagingLoadResponse = await starknetDevnetProvider.postman.loadL1MessagingContract(eth_network);
-    // mockMessagingContractAddress = messagingLoadResponse.messaging_contract_address;
-
-    const MockStarknetMessaging = await ethers.getContractFactory('MockStarknetMessaging', signer);
-    const messageCancellationDelay = 5 * 60; // seconds
-    const toto = await MockStarknetMessaging.deploy(messageCancellationDelay);
-    mockMessagingContractAddress = await toto.getAddress();
+    const messagingLoadResponse = await starknetDevnetProvider.postman.loadL1MessagingContract(eth_network);
+    mockMessagingContractAddress = messagingLoadResponse.messaging_contract_address;
     console.log("mock messaging contract", mockMessagingContractAddress);
 
     provider = new StarknetRpcProvider({ nodeUrl: starknetDevnet.provider.url });
@@ -104,27 +109,15 @@ describe('L1 Avatar Execution', function () {
     // Connect with our account
     space.connect(account);
 
-    // TODO: make these available for the whole file
-    const _owner = 1;
-    const _max_voting_duration = 200;
-    const _min_voting_duration = 200;
-    const _voting_delay = 100;
-    const _proposal_validation_strategy = {
-      address: vanillaProposalValidationStrategy.address,
-      params: [],
-    };
-    const _proposal_validation_strategy_metadata_uri = [];
-    const _voting_strategies = [{ address: vanillaVotingStrategy.address, params: [] }];
-    const _voting_strategies_metadata_uri = [[]];
-    const _authenticators = [starkTxAuthenticator.address];
-    const _metadata_uri = [];
-    const _dao_uri = [];
+    _proposal_validation_strategy = { address: vanillaProposalValidationStrategy.address, params: [] };
+    _voting_strategies = [{ address: vanillaVotingStrategy.address, params: [] }];
+    _authenticators = [starkTxAuthenticator.address];
 
     console.log("Initializing space...");
     const initializeRes = await space.initialize(
       _owner,
-      _max_voting_duration,
       _min_voting_duration,
+      _max_voting_duration,
       _voting_delay,
       _proposal_validation_strategy,
       _proposal_validation_strategy_metadata_uri,
@@ -190,8 +183,8 @@ describe('L1 Avatar Execution', function () {
     await provider.waitForTransaction(proposeRes.transaction_hash);
     console.log("Propose authenticated");
 
-    await starknetDevnet.provider.increaseTime(101);
-    await increaseEthBlockchainTime(eth_network, 101);
+    await starknetDevnet.provider.increaseTime(_voting_delay);
+    await increaseEthBlockchainTime(eth_network, _voting_delay);
 
     console.log("Authenticating vote...");
     const choice = new CairoCustomEnum({ For: {} });
@@ -200,8 +193,8 @@ describe('L1 Avatar Execution', function () {
     console.log("Vote authenticated");
 
     // Advance time so that the maxVotingTimestamp is exceeded
-    await starknetDevnet.provider.increaseTime(200);
-    await increaseEthBlockchainTime(eth_network, 200);
+    await starknetDevnet.provider.increaseTime(_max_voting_duration);
+    await increaseEthBlockchainTime(eth_network, _max_voting_duration);
 
     // Execute
     console.log("Executing proposal...");
@@ -274,8 +267,8 @@ describe('L1 Avatar Execution', function () {
     await provider.waitForTransaction(proposeRes.transaction_hash);
     console.log("Proposal authenticated");
 
-    await starknetDevnet.provider.increaseTime(101);
-    await increaseEthBlockchainTime(eth_network, 101);
+    await starknetDevnet.provider.increaseTime(_voting_delay);
+    await increaseEthBlockchainTime(eth_network, _voting_delay);
 
     console.log("Authenticating vote...");
     const choice = new CairoCustomEnum({ For: {} });
@@ -284,8 +277,8 @@ describe('L1 Avatar Execution', function () {
     console.log("Vote authenticated!");
 
     // Advance time so that the maxVotingTimestamp is exceeded
-    await starknetDevnet.provider.increaseTime(200);
-    await increaseEthBlockchainTime(eth_network, 200);
+    await starknetDevnet.provider.increaseTime(_max_voting_duration)
+    await increaseEthBlockchainTime(eth_network, _max_voting_duration);
 
     console.log("Executing proposal...");
     const execRes = await space.execute(proposalId, executionPayload);
@@ -349,8 +342,8 @@ describe('L1 Avatar Execution', function () {
     console.log("Proposal authenticated");
 
     // Advance time to voting has started.
-    await starknetDevnet.provider.increaseTime(101);
-    await increaseEthBlockchainTime(eth_network, 101);
+    await starknetDevnet.provider.increaseTime(_voting_delay);
+    await increaseEthBlockchainTime(eth_network, _voting_delay);
 
     console.log("Authenticating vote...");
     const choice = new CairoCustomEnum({ For: {} });
@@ -359,8 +352,8 @@ describe('L1 Avatar Execution', function () {
     console.log("Vote authenticated");
 
     // Advance time so that the maxVotingTimestamp is exceeded
-    await starknetDevnet.provider.increaseTime(200);
-    await increaseEthBlockchainTime(eth_network, 200);
+    await starknetDevnet.provider.increaseTime(_max_voting_duration);
+    await increaseEthBlockchainTime(eth_network, _max_voting_duration);
 
     console.log("Executing proposal...");
     const executRes = await space.execute(proposalId, executionPayload);
@@ -426,8 +419,8 @@ describe('L1 Avatar Execution', function () {
     console.log("Proposal authenticated");
 
     // Advance time so that voting has started
-    await starknetDevnet.provider.increaseTime(101);
-    await increaseEthBlockchainTime(eth_network, 101);
+    await starknetDevnet.provider.increaseTime(_voting_delay);
+    await increaseEthBlockchainTime(eth_network, _voting_delay);
 
     console.log("Authenticating vote...");
     const choice = new CairoCustomEnum({ For: {} });
@@ -436,8 +429,8 @@ describe('L1 Avatar Execution', function () {
     console.log("Vote authenticated");
 
     // Advance time so that the maxVotingTimestamp is exceeded
-    await starknetDevnet.provider.increaseTime(200);
-    await increaseEthBlockchainTime(eth_network, 200);
+    await starknetDevnet.provider.increaseTime(_max_voting_duration);
+    await increaseEthBlockchainTime(eth_network, _max_voting_duration);
 
     console.log("Executing proposal...");
     const executeRes = await space.execute(proposalId, executionPayload);
@@ -501,8 +494,8 @@ describe('L1 Avatar Execution', function () {
     console.log("Proposal authenticated");
 
     // Advance time so that voting has started
-    await starknetDevnet.provider.increaseTime(101);
-    await increaseEthBlockchainTime(eth_network, 101);
+    await starknetDevnet.provider.increaseTime(_voting_delay);
+    await increaseEthBlockchainTime(eth_network, _voting_delay);
 
     console.log("Authenticating vote...");
     const choice = new CairoCustomEnum({ For: {} });
@@ -511,8 +504,8 @@ describe('L1 Avatar Execution', function () {
     console.log("Vote authenticated");
 
     // Advance time so that the maxVotingTimestamp is exceeded
-    await starknetDevnet.provider.increaseTime(200);
-    await increaseEthBlockchainTime(eth_network, 200);
+    await starknetDevnet.provider.increaseTime(_max_voting_duration);
+    await increaseEthBlockchainTime(eth_network, _max_voting_duration);
 
     console.log("Executing proposal...");
     const executeRes = await space.execute({ low: '0x1', high: '0x0' }, executionPayload);
@@ -583,8 +576,8 @@ describe('L1 Avatar Execution', function () {
     console.log("Proposal authenticated");
 
     // Advance time so that voting has started
-    await starknetDevnet.provider.increaseTime(101);
-    await increaseEthBlockchainTime(eth_network, 101);
+    await starknetDevnet.provider.increaseTime(_voting_delay);
+    await increaseEthBlockchainTime(eth_network, _voting_delay);
 
     // Voting
     console.log("Authenticating vote...");
@@ -594,8 +587,8 @@ describe('L1 Avatar Execution', function () {
     console.log("Vote authenticated");
 
     // Advance time so that the maxVotingTimestamp is exceeded
-    await starknetDevnet.provider.increaseTime(200);
-    await increaseEthBlockchainTime(eth_network, 200);
+    await starknetDevnet.provider.increaseTime(_max_voting_duration);
+    await increaseEthBlockchainTime(eth_network, _max_voting_duration);
 
     // Execute
     console.log("Executing proposal...");
@@ -659,8 +652,8 @@ describe('L1 Avatar Execution', function () {
       console.log("Proposal authenticated");
 
       // Advance time so that voting has started
-      await starknetDevnet.provider.increaseTime(101);
-      await increaseEthBlockchainTime(eth_network, 101);
+      await starknetDevnet.provider.increaseTime(_voting_delay);
+      await increaseEthBlockchainTime(eth_network, _voting_delay);
 
       // Voting
       console.log("Authenticating vote...");
@@ -670,8 +663,8 @@ describe('L1 Avatar Execution', function () {
       console.log("Vote authenticated");
 
       // Advance time so that the maxVotingTimestamp is exceeded
-      await starknetDevnet.provider.increaseTime(200);
-      await increaseEthBlockchainTime(eth_network, 200);
+      await starknetDevnet.provider.increaseTime(_max_voting_duration);
+      await increaseEthBlockchainTime(eth_network, _max_voting_duration);
 
       // Execute
       console.log("Executing proposal...");
@@ -736,14 +729,14 @@ describe('L1 Avatar Execution', function () {
       console.log("Proposal authenticated");
 
       // Advance time so that voting has started
-      await starknetDevnet.provider.increaseTime(101);
-      await increaseEthBlockchainTime(eth_network, 101);
+      await starknetDevnet.provider.increaseTime(_voting_delay);
+      await increaseEthBlockchainTime(eth_network, _voting_delay);
 
       // No voting
 
       // Advance time so that the maxVotingTimestamp is exceeded
-      await starknetDevnet.provider.increaseTime(200);
-      await increaseEthBlockchainTime(eth_network, 200);
+      await starknetDevnet.provider.increaseTime(_max_voting_duration);
+      await increaseEthBlockchainTime(eth_network, _max_voting_duration);
 
       // Execute
       console.log("Executing proposal...");
@@ -807,8 +800,8 @@ describe('L1 Avatar Execution', function () {
     console.log("Proposal authenticated");
 
     // Advance time so that voting has started
-    await starknetDevnet.provider.increaseTime(101);
-    await increaseEthBlockchainTime(eth_network, 101);
+    await starknetDevnet.provider.increaseTime(_voting_delay);
+    await increaseEthBlockchainTime(eth_network, _voting_delay);
 
     // Voting
     console.log("Authenticating vote...");

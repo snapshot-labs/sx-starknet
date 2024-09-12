@@ -1,7 +1,7 @@
 import { expect } from 'chai';
 import dotenv from 'dotenv';
-import { HDNodeWallet, Wallet } from 'ethers';
-import { Account as StarknetAccount, Contract as StarknetContract, RpcProvider as StarknetRpcProvider, CallData, cairo, shortString, CairoCustomEnum } from 'starknet';
+import { Wallet } from 'ethers';
+import { Account as StarknetAccount, Contract as StarknetContract, RpcProvider as StarknetRpcProvider, CallData, cairo, shortString, CairoCustomEnum, eth } from 'starknet';
 import { Devnet as StarknetDevnet } from 'starknet-devnet';
 import {
   Propose,
@@ -12,6 +12,8 @@ import {
   UpdateProposal,
 } from './eth-sig-types';
 import { getRSVFromSig, getCompiledCode } from './utils';
+import { HardhatEthersSigner } from '@nomicfoundation/hardhat-ethers/signers';
+import { ethers } from 'hardhat';
 
 dotenv.config();
 
@@ -24,7 +26,7 @@ describe('Ethereum Signature Authenticator', function () {
   // EIP712 Domain is empty.
   const domain = {};
 
-  let signer: HDNodeWallet;
+  let signer: HardhatEthersSigner;
 
   let account: StarknetAccount;
   let ethSigAuthenticator: StarknetContract;
@@ -34,16 +36,28 @@ describe('Ethereum Signature Authenticator', function () {
   let devnet: StarknetDevnet;
   let provider: StarknetRpcProvider;
 
+  const _owner = 1;
+  const _min_voting_duration = 200;
+  const _max_voting_duration = 200;
+  const _voting_delay = 100;
+  let _proposal_validation_strategy: { address: string, params: string[] };
+  const _proposal_validation_strategy_metadata_uri = [];
+  let _voting_strategies: { address: string, params: string[] }[];
+  const _voting_strategies_metadata_uri = [[]];
+  let _authenticators: string[];
+  const _metadata_uri = [];
+  const _dao_uri = [];
+
   before(async function () {
-    signer = Wallet.createRandom();
-
-    console.log('account address:', account_address, 'account pk:', account_pk);
-
     const devnetConfig = {
-      args: ["--seed", "42", "--lite-mode", "--dump-on", "exit", "--dump-path", "./dump.pkl"],
+      args: ["--seed", "42", "--lite-mode", "--dump-on", "request", "--dump-path", "./dump.pkl"],
     };
     console.log("Spawning devnet...");
-    devnet = await StarknetDevnet.spawnInstalled(devnetConfig); // TODO: should be a neew rather than spawninstalled
+    devnet = await StarknetDevnet.spawnVersion("v0.2.0-rc.3", devnetConfig);
+    console.log("Devnet spawned");
+
+    const signers = await ethers.getSigners();
+    signer = signers[0];
 
     provider = new StarknetRpcProvider({ nodeUrl: devnet.provider.url });
 
@@ -84,26 +98,15 @@ describe('Ethereum Signature Authenticator', function () {
     // Connect with our account
     space.connect(account);
 
-    const _owner = 1;
-    const _max_voting_duration = 200;
-    const _min_voting_duration = 200;
-    const _voting_delay = 100;
-    const _proposal_validation_strategy = {
-      address: vanillaProposalValidationStrategy.address,
-      params: [],
-    };
-    const _proposal_validation_strategy_metadata_uri = [];
-    const _voting_strategies = [{ address: vanillaVotingStrategy.address, params: [] }];
-    const _voting_strategies_metadata_uri = [[]];
-    const _authenticators = [ethSigAuthenticator.address];
-    const _metadata_uri = [];
-    const _dao_uri = [];
+    _proposal_validation_strategy = { address: vanillaProposalValidationStrategy.address, params: [] };
+    _voting_strategies = [{ address: vanillaVotingStrategy.address, params: [] }];
+    _authenticators = [ethSigAuthenticator.address];
 
     console.log("Initializing space...");
     const initializeRes = await space.initialize(
       _owner,
-      _max_voting_duration,
       _min_voting_duration,
+      _max_voting_duration,
       _voting_delay,
       _proposal_validation_strategy,
       _proposal_validation_strategy_metadata_uri,
@@ -115,6 +118,8 @@ describe('Ethereum Signature Authenticator', function () {
     await provider.waitForTransaction(initializeRes.transaction_hash);
     console.log("Space initialized");
 
+    await devnet.provider.createBlock();
+
     // Dumping the Starknet state so it can be loaded at the same point for each test
     console.log("Dumping state...");
     await devnet.provider.dump('dump.pkl');
@@ -124,7 +129,7 @@ describe('Ethereum Signature Authenticator', function () {
   it('can authenticate a proposal, a vote, and a proposal update', async () => {
     await devnet.provider.restart();
     await devnet.provider.load('./dump.pkl');
-    await devnet.provider.increaseTime(10);
+    ethSigAuthenticator.connect(account);
 
     // PROPOSE
     const proposeMsg: Propose = {
@@ -149,7 +154,6 @@ describe('Ethereum Signature Authenticator', function () {
     let sig = await signer.signTypedData(domain, proposeTypes, proposeMsg);
     let splitSig = getRSVFromSig(sig);
 
-    ethSigAuthenticator.connect(account);
     const r = cairo.uint256(splitSig.r);
     const s = cairo.uint256(splitSig.s);
     const v = splitSig.v;
@@ -190,7 +194,7 @@ describe('Ethereum Signature Authenticator', function () {
     console.log("Update proposal authenticated");
 
     // Increase time so voting period begins
-    await devnet.provider.increaseTime(100);
+    await devnet.provider.increaseTime(_voting_delay);
 
     // VOTE
 
@@ -234,7 +238,7 @@ describe('Ethereum Signature Authenticator', function () {
   it('should revert if an incorrect signature is used', async () => {
     await devnet.provider.restart();
     await devnet.provider.load('./dump.pkl');
-    await devnet.provider.increaseTime(10);
+    ethSigAuthenticator.connect(account);
 
     // PROPOSE
     const proposeMsg: Propose = {
@@ -337,7 +341,7 @@ describe('Ethereum Signature Authenticator', function () {
     console.log("Update proposal authenticated");
 
     // Increase time so voting period begins
-    await devnet.provider.increaseTime(100);
+    await devnet.provider.increaseTime(_voting_delay);
 
     // VOTE
 
@@ -387,7 +391,7 @@ describe('Ethereum Signature Authenticator', function () {
   it('should revert if a salt is reused by an author when creating or updating a proposal', async () => {
     await devnet.provider.restart();
     await devnet.provider.load('./dump.pkl');
-    await devnet.provider.increaseTime(10);
+    ethSigAuthenticator.connect(account);
 
     // PROPOSE
     const proposeMsg: Propose = {
@@ -411,18 +415,6 @@ describe('Ethereum Signature Authenticator', function () {
 
     let sig = await signer.signTypedData(domain, proposeTypes, proposeMsg);
     let splitSig = getRSVFromSig(sig);
-
-    const proposeCalldata = CallData.compile({
-      r: cairo.uint256(splitSig.r),
-      s: cairo.uint256(splitSig.s),
-      v: splitSig.v,
-      space: proposeMsg.space,
-      author: proposeMsg.author,
-      metadataUri: proposeMsg.metadataUri,
-      executionStrategy: proposeMsg.executionStrategy,
-      userProposalValidationParams: proposeMsg.userProposalValidationParams,
-      salt: cairo.uint256(proposeMsg.salt),
-    });
 
     const r0 = cairo.uint256(splitSig.r);
     const s0 = cairo.uint256(splitSig.s);
@@ -485,7 +477,6 @@ describe('Ethereum Signature Authenticator', function () {
     await provider.waitForTransaction(updateProposalRes.transaction_hash);
     console.log("Update proposal authenticated");
 
-
     try {
       console.log("Attempting to reuse salt...");
       const invalidRes = await ethSigAuthenticator.authenticate_update_proposal(r1, s1, v1, updateProposalMsg.space, updateProposalMsg.author, updateProposalMsg.proposalId, updateProposalMsg.executionStrategy, updateProposalMsg.metadataUri, salt1);
@@ -496,8 +487,5 @@ describe('Ethereum Signature Authenticator', function () {
       expect(err.message).to.contain(shortString.encodeShortString('Salt Already Used'));
       console.log("Salt reuse was correctly rejected");
     }
-
-    // Increase time so voting period begins
-    await devnet.provider.increaseTime(100);
   });
 });

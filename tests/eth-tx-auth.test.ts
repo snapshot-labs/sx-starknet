@@ -34,25 +34,24 @@ describe('Ethereum Transaction Authenticator', function () {
 
   let mockMessagingContractAddress: string;
 
-  // Space general settings
-  let _owner: number;
-  let _max_voting_duration: number;
-  let _min_voting_duration: number;
-  let _voting_delay: number;
+  const _owner = 1;
+  const _min_voting_duration = 100;
+  const _max_voting_duration = 200;
+  const _voting_delay = 100;
   let _proposal_validation_strategy: { address: string; params: string[] };
-  let _proposal_validation_strategy_metadata_uri: string[];
+  const _proposal_validation_strategy_metadata_uri = [];
   let _voting_strategies: { address: string; params: string[] }[];
-  let _voting_strategies_metadata_uri: string[][];
+  const _voting_strategies_metadata_uri = [[]];
   let _authenticators: string[];
-  let _metadata_uri: string[];
-  let _dao_uri: string[];
+  const _metadata_uri = [];
+  const _dao_uri = [];
 
   before(async function () {
     const devnetConfig = {
       args: ["--seed", "42", "--lite-mode", "--dump-on", "request", "--dump-path", "./dump.pkl", "--host", "127.0.0.1", "--port", "5050"],
     };
     console.log("Spawning devnet...");
-    starknetDevnet = await StarknetDevnet.spawnInstalled(devnetConfig); // TODO: should be a new rather than spawninstalled
+    starknetDevnet = await StarknetDevnet.spawnVersion("v0.2.0-rc.3", devnetConfig);
     starknetDevnetProvider = new StarknetDevnetProvider();
     console.log("Devnet spawned!");
 
@@ -102,28 +101,20 @@ describe('Ethereum Transaction Authenticator', function () {
     space = new StarknetContract(space_sierra.abi, space_response.deploy.contract_address, provider);
     console.log("Space: ", space.address);
 
-    _owner = 1;
-    _max_voting_duration = 200;
-    _min_voting_duration = 200;
-    _voting_delay = 100;
     _proposal_validation_strategy = {
       address: vanillaProposalValidationStrategy.address,
       params: [],
     };
-    _proposal_validation_strategy_metadata_uri = [];
     _voting_strategies = [{ address: vanillaVotingStrategy.address, params: [] }];
-    _voting_strategies_metadata_uri = [[]];
     _authenticators = [ethTxAuthenticator.address];
-    _metadata_uri = [];
-    _dao_uri = [];
 
     space.connect(account);
 
     console.log("Initializing space...");
     const initializeRes = await space.initialize(
       _owner,
-      _max_voting_duration,
       _min_voting_duration,
+      _max_voting_duration,
       _voting_delay,
       _proposal_validation_strategy,
       _proposal_validation_strategy_metadata_uri,

@@ -34,6 +34,18 @@ describe('Starknet Signature Authenticator Tests', function () {
 
   let domain: any;
 
+  const _owner = 1;
+  const _min_voting_duration = 200;
+  const _max_voting_duration = 200;
+  const _voting_delay = 100;
+  let _proposal_validation_strategy: { address: string, params: any[] };
+  const _proposal_validation_strategy_metadata_uri = [];
+  let _voting_strategies: { address: string, params: any[] }[];
+  const _voting_strategies_metadata_uri = [[]];
+  let _authenticators: string[];
+  const _metadata_uri = [];
+  const _dao_uri = [];
+
   before(async function () {
     console.log('account address:', account_address, 'account pk:', account_pk);
 
@@ -41,7 +53,7 @@ describe('Starknet Signature Authenticator Tests', function () {
       args: ["--seed", "42", "--lite-mode", "--dump-on", "exit", "--dump-path", "./dump.pkl"],
     };
     console.log("Spawning devnet...");
-    devnet = await Devnet.spawnInstalled(devnetConfig); // TODO: should be a neew rather than spawninstalled
+    devnet = await Devnet.spawnVersion("v0.2.0-rc.3", devnetConfig);
 
     provider = new RpcProvider({ nodeUrl: devnet.provider.url });
 
@@ -87,26 +99,15 @@ describe('Starknet Signature Authenticator Tests', function () {
     // Connect with our account
     space.connect(account);
 
-    const _owner = 1;
-    const _max_voting_duration = 200;
-    const _min_voting_duration = 200;
-    const _voting_delay = 100;
-    const _proposal_validation_strategy = {
-      address: vanillaProposalValidationStrategy.address,
-      params: [],
-    };
-    const _proposal_validation_strategy_metadata_uri = [];
-    const _voting_strategies = [{ address: vanillaVotingStrategy.address, params: [] }];
-    const _voting_strategies_metadata_uri = [[]];
-    const _authenticators = [starkSigAuthenticator.address];
-    const _metadata_uri = [];
-    const _dao_uri = [];
+    _proposal_validation_strategy = { address: vanillaProposalValidationStrategy.address, params: [] };
+    _voting_strategies = [{ address: vanillaVotingStrategy.address, params: [] }];
+    _authenticators = [starkSigAuthenticator.address];
 
     console.log("Initializing space...");
     const initializeRes = await space.initialize(
       _owner,
-      _max_voting_duration,
       _min_voting_duration,
+      _max_voting_duration,
       _voting_delay,
       _proposal_validation_strategy,
       _proposal_validation_strategy_metadata_uri,
@@ -131,12 +132,8 @@ describe('Starknet Signature Authenticator Tests', function () {
   });
 
   it('can authenticate a proposal, a vote, and a proposal update', async () => {
-    console.log("Restarting devnet...");
     await devnet.provider.restart();
-    console.log("Loading state...");
     await devnet.provider.load('./dump.pkl');
-    console.log("Increasing time by 10");
-    await devnet.provider.increaseTime(10); // TODO check if necessary
 
     // PROPOSE
     const proposeMsg: Propose = {
@@ -197,8 +194,8 @@ describe('Starknet Signature Authenticator Tests', function () {
     const updateRes = await starkSigAuthenticator.authenticate_update_proposal(updateSignature, updateProposalMsg.space, updateProposalMsg.author, updateProposalMsg.proposalId, updateProposalMsg.executionStrategy, updateProposalMsg.metadataUri, updateProposalMsg.salt);
     await provider.waitForTransaction(updateRes.transaction_hash);
 
-    // Increase time so voting period begins TODO
-    devnet.provider.increaseTime(100);
+    // Increase time so voting period begins
+    devnet.provider.increaseTime(_voting_delay);
 
     // VOTE
     const voteMsg: Vote = {
@@ -227,7 +224,7 @@ describe('Starknet Signature Authenticator Tests', function () {
   it('should revert if an incorrect signature is used', async () => {
     await devnet.provider.restart();
     await devnet.provider.load('./dump.pkl');
-    await devnet.provider.increaseTime(10); // TODO check if necessary
+    starkSigAuthenticator.connect(account);
 
     // Account #1 on Starknet devnet with seed 42
     const invalidAccount = new Account(
@@ -260,8 +257,6 @@ describe('Starknet Signature Authenticator Tests', function () {
       domain: domain,
       message: proposeMsg as any,
     } as StarknetTypedData)) as any;
-
-    starkSigAuthenticator.connect(account);
 
     try {
       console.log("Authenticating invalid proposal...");
@@ -340,7 +335,7 @@ describe('Starknet Signature Authenticator Tests', function () {
     await provider.waitForTransaction(updateProposalRes.transaction_hash);
 
     // Increase time so voting period begins
-    await devnet.provider.increaseTime(100);
+    await devnet.provider.increaseTime(_voting_delay);
 
     // VOTE
 
@@ -389,7 +384,7 @@ describe('Starknet Signature Authenticator Tests', function () {
   it('should revert if a salt is reused by an author when creating or updating a proposal', async () => {
     await devnet.provider.restart();
     await devnet.provider.load('./dump.pkl');
-    await devnet.provider.increaseTime(10);
+    starkSigAuthenticator.connect(account);
 
     // PROPOSE
     const proposeMsg: Propose = {
