@@ -43,18 +43,9 @@ const config: HardhatUserConfig = {
   etherscan: {
     apiKey: process.env.ETHERSCAN_API_KEY,
   },
-  starknet: {
-    scarbCommand: 'scarb',
-    network: 'starknetLocal',
-    recompile: false,
-    venv: 'active',
-    requestTimeout: 90_000,
-  },
   paths: {
-    starknetSources: './starknet',
     sources: 'ethereum/src/',
     tests: './tests',
-    cairoPaths: ['starknet/src/'],
   },
 };
 
