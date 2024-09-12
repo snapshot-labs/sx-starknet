@@ -61,6 +61,6 @@
     "wait-on": "^7.0.1"
   },
   "dependencies": {
-    "starknet-devnet": "^0.1.1"
+    "starknet-devnet": "^0.1.2"
   }
 }

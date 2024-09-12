@@ -1832,6 +1832,15 @@ axios@^1.5.0, axios@^1.5.1, axios@^1.7.2:
     form-data "^4.0.0"
     proxy-from-env "^1.1.0"
 
+axios@^1.7.4:
+  version "1.7.7"
+  resolved "https://registry.yarnpkg.com/axios/-/axios-1.7.7.tgz#2f554296f9892a72ac8d8e4c5b79c14a91d0a47f"
+  integrity sha512-S4kL7XrjgBmvdGut0sN3yJxqYzrDOnivkBiN0OFs6hLiUam3UPvswUo0kqGyhqUZGEOytHyumEdXsAkgCOUf3Q==
+  dependencies:
+    follow-redirects "^1.15.6"
+    form-data "^4.0.0"
+    proxy-from-env "^1.1.0"
+
 balanced-match@^1.0.0:
   version "1.0.2"
   resolved "https://registry.npmjs.org/balanced-match/-/balanced-match-1.0.2.tgz"
@@ -5593,13 +5602,13 @@ stacktrace-parser@^0.1.10:
   dependencies:
     type-fest "^0.7.1"
 
-starknet-devnet@^0.1.1:
-  version "0.1.1"
-  resolved "https://registry.npmjs.org/starknet-devnet/-/starknet-devnet-0.1.1.tgz"
-  integrity sha512-CIJ5uTuU4iTCez9mUsL2Ik6Y231wRrgAd0lOCujgJVXpnBmjtFodtQAlg1dsueMEiW8gbRsEIqP8LMwELZuXuA==
+starknet-devnet@^0.1.2:
+  version "0.1.2"
+  resolved "https://registry.yarnpkg.com/starknet-devnet/-/starknet-devnet-0.1.2.tgz#179ff81122750e79399493204fdae019886e39db"
+  integrity sha512-osWePA1bcr21dmOyGUlXYKNofmj2RF18Yw3gWNhNNFiW08PK7xF1eB2O8utNKGpYGhUSXn7I+Wz7QV4bZWdFwg==
   dependencies:
     "@types/decompress" "^4.2.7"
-    axios "^1.7.2"
+    axios "^1.7.4"
     decompress "^4.2.1"
     decompress-targz "^4.1.1"
 
