@@ -1,6 +1,6 @@
 # Snapshot X
 
-A Cairo implementation of the Snapshot X Protocol. Refer to the [documentation](https://docs.snapshotx.xyz) for more
+A Cairo implementation of the Snapshot X Protocol. Refer to the [documentation](https://docs.snapshot.box) for more
 information.
 
 ## Architecture
