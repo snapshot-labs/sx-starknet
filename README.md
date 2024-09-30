@@ -45,6 +45,18 @@ Run tests:
 forge test
 ```
 
+### Run L1 <-> L2 tests and signature tests (typescript tests)
+
+On a separate terminal, spin an L1 node (hardhat in this example, but could be anvil):
+```sh
+yarn hardhat node
+```
+
+Now run the tests:
+```sh
+yarn test-ts
+```
+
 #### Run Hardhat Tests
 
 The Hardhat tests can be run following the procedure followed in the [CI](.github/workflows/test.yml). You will need local Starknet Devnet and Ethereum devnet instances running. 
