@@ -2,6 +2,7 @@ target
 node_modules/
 .env
 cairo_project.toml
+dump.pkl
 
 ethereum/broadcast/
 

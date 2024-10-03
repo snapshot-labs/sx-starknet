@@ -1,8 +1,6 @@
 #!/bin/bash
 
 kill -9 $(lsof -t -i:5050)
-yarn chain:l2 &
-sleep 10 &&
 yarn hardhat test tests/eth-sig-auth.test.ts
 if [ $? -eq 0 ]
 then

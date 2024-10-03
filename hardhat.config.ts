@@ -2,23 +2,11 @@ import dotenv from 'dotenv';
 dotenv.config();
 import { task } from 'hardhat/config';
 import { HardhatUserConfig } from 'hardhat/types';
-import '@shardlabs/starknet-hardhat-plugin';
-import '@typechain/hardhat';
-import '@nomicfoundation/hardhat-ethers';
-import '@nomiclabs/hardhat-waffle';
-import '@nomiclabs/hardhat-etherscan';
+import 'starknet';
+import '@nomicfoundation/hardhat-toolbox';
 import '@nomicfoundation/hardhat-network-helpers';
 import '@nomicfoundation/hardhat-foundry';
 import '@openzeppelin/hardhat-upgrades';
-
-
-task('accounts', 'Prints the list of accounts', async (args, hre) => {
-  const accounts = await hre.ethers.getSigners();
-
-  for (const account of accounts) {
-    console.log(await account.getAddress());
-  }
-});
 
 const config: HardhatUserConfig = {
   solidity: {
@@ -55,18 +43,9 @@ const config: HardhatUserConfig = {
   etherscan: {
     apiKey: process.env.ETHERSCAN_API_KEY,
   },
-  starknet: {
-    scarbCommand: 'scarb',
-    network: 'starknetLocal',
-    recompile: false,
-    venv: 'active',
-    requestTimeout: 90_000,
-  },
   paths: {
-    starknetSources: './starknet',
     sources: 'ethereum/src/',
     tests: './tests',
-    cairoPaths: ['starknet/src/'],
   },
 };
 

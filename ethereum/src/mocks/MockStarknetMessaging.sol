@@ -29,6 +29,6 @@ contract MockStarknetMessaging is StarknetMessaging {
         bytes32 msgHash = keccak256(abi.encodePacked(fromAddress, toAddress, nonce, selector, payload.length, payload));
 
         require(l1ToL2Messages()[msgHash] > 0, "INVALID_MESSAGE_TO_CONSUME");
-        l1ToL2Messages()[msgHash] = 0;
+        l1ToL2Messages()[msgHash] -= 1;
     }
 }

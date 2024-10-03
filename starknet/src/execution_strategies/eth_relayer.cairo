@@ -59,8 +59,8 @@ mod EthRelayerExecutionStrategy {
             votes_abstain.serialize(ref l1_payload);
             l1_execution_hash.serialize(ref l1_payload);
 
-            syscalls::send_message_to_l1_syscall(l1_execution_strategy.into(), l1_payload.span())
-                .unwrap_syscall();
+            starknet::send_message_to_l1_syscall(l1_execution_strategy.into(), l1_payload.span())
+                .unwrap();
         }
 
         fn get_strategy_type(self: @ContractState) -> felt252 {
