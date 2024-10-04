@@ -153,7 +153,6 @@ mod utils {
     use single_slot_proof::SingleSlotProof;
 
     mod snip12;
-    use snip12::SNIP12;
 
     mod struct_hash;
     use struct_hash::StructHash;
