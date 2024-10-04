@@ -118,7 +118,6 @@ mod utils {
     use default::ContractAddressDefault;
 
     mod eip712;
-    use eip712::EIP712;
 
     mod endian;
     use endian::ByteReverse;
