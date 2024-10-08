@@ -147,7 +147,6 @@ mod utils {
     mod simple_majority;
 
     mod simple_quorum;
-    use simple_quorum::SimpleQuorum;
 
     mod single_slot_proof;
     use single_slot_proof::SingleSlotProof;

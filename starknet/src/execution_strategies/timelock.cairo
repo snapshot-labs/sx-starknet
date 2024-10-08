@@ -37,12 +37,18 @@ mod TimelockExecutionStrategy {
     use sx::interfaces::IExecutionStrategy;
     use super::ITimelockExecutionStrategy;
     use sx::types::{Proposal, ProposalStatus};
-    use sx::utils::{SimpleQuorum, SpaceManager};
+    use sx::utils::{simple_quorum::SimpleQuorumComponent, SpaceManager};
 
     component!(path: OwnableComponent, storage: ownable, event: OwnableEvent);
 
     impl OwnableInternalImpl = OwnableComponent::InternalImpl<ContractState>;
     impl OwnableImpl = OwnableComponent::OwnableImpl<ContractState>;
+
+    component!(path: SimpleQuorumComponent, storage: simple_quorum, event: SimpleQuorumEvent);
+
+    #[abi(embed_v0)]
+    impl SimpleQuorumImpl = SimpleQuorumComponent::SimpleQuorumImpl<ContractState>;
+    impl SimpleQuorumInternalImpl = SimpleQuorumComponent::InternalImpl<ContractState>;
 
     #[storage]
     struct Storage {
@@ -50,7 +56,9 @@ mod TimelockExecutionStrategy {
         _veto_guardian: ContractAddress,
         _proposal_execution_time: LegacyMap::<felt252, u32>,
         #[substorage(v0)]
-        ownable: OwnableComponent::Storage
+        ownable: OwnableComponent::Storage,
+        #[substorage(v0)]
+        simple_quorum: SimpleQuorumComponent::Storage,
     }
 
     #[event]
@@ -65,7 +73,9 @@ mod TimelockExecutionStrategy {
         ProposalExecuted: ProposalExecuted,
         ProposalVetoed: ProposalVetoed,
         #[flat]
-        OwnableEvent: OwnableComponent::Event
+        OwnableEvent: OwnableComponent::Event,
+        #[flat]
+        SimpleQuorumEvent: SimpleQuorumComponent::Event,
     }
 
     #[derive(Drop, PartialEq, starknet::Event)]
@@ -132,8 +142,7 @@ mod TimelockExecutionStrategy {
     ) {
         self.ownable.initializer(owner);
 
-        let mut state = SimpleQuorum::unsafe_new_contract_state();
-        SimpleQuorum::InternalImpl::initializer(ref state, quorum);
+        self.simple_quorum.initializer(quorum);
 
         let mut state = SpaceManager::unsafe_new_contract_state();
         SpaceManager::InternalImpl::initializer(ref state, spaces);
@@ -157,10 +166,9 @@ mod TimelockExecutionStrategy {
             // it is actually safe.
             let state = SpaceManager::unsafe_new_contract_state();
             SpaceManager::InternalImpl::assert_only_spaces(@state);
-            let state = SimpleQuorum::unsafe_new_contract_state();
-            let proposal_status = SimpleQuorum::InternalImpl::get_proposal_status(
-                @state, @proposal, votes_for, votes_against, votes_abstain
-            );
+            let proposal_status = self
+                .simple_quorum
+                .get_proposal_status(@proposal, votes_for, votes_against, votes_abstain);
             assert(
                 proposal_status == ProposalStatus::Accepted(())
                     || proposal_status == ProposalStatus::VotingPeriodAccepted(()),
@@ -201,10 +209,9 @@ mod TimelockExecutionStrategy {
             votes_against: u256,
             votes_abstain: u256,
         ) -> ProposalStatus {
-            let state = SimpleQuorum::unsafe_new_contract_state();
-            SimpleQuorum::InternalImpl::get_proposal_status(
-                @state, @proposal, votes_for, votes_against, votes_abstain
-            )
+            self
+                .simple_quorum
+                .get_proposal_status(@proposal, votes_for, votes_against, votes_abstain)
         }
 
         fn get_strategy_type(self: @ContractState) -> felt252 {
