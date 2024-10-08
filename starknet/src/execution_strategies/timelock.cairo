@@ -20,13 +20,6 @@ trait ITimelockExecutionStrategy<TContractState> {
     fn disable_space(ref self: TContractState, space: ContractAddress);
 
     fn is_space_enabled(self: @TContractState, space: ContractAddress) -> bool;
-
-    /// Transfers the ownership to `new_owner`.
-    fn transfer_ownership(ref self: TContractState, new_owner: ContractAddress);
-    /// Renounces the ownership of the contract. CAUTION: This is a one-way operation.
-    fn renounce_ownership(ref self: TContractState);
-
-    fn owner(self: @TContractState) -> ContractAddress;
 }
 
 #[starknet::contract]
@@ -41,8 +34,9 @@ mod TimelockExecutionStrategy {
 
     component!(path: OwnableComponent, storage: ownable, event: OwnableEvent);
 
-    impl OwnableInternalImpl = OwnableComponent::InternalImpl<ContractState>;
+    #[abi(embed_v0)]
     impl OwnableImpl = OwnableComponent::OwnableImpl<ContractState>;
+    impl OwnableInternalImpl = OwnableComponent::InternalImpl<ContractState>;
 
     component!(path: SimpleQuorumComponent, storage: simple_quorum, event: SimpleQuorumEvent);
 
@@ -317,19 +311,6 @@ mod TimelockExecutionStrategy {
             // it is actually safe.
             let state = SpaceManager::unsafe_new_contract_state();
             SpaceManager::InternalImpl::is_space_enabled(@state, space)
-        }
-
-        // TODO: use Ownable impl as abi_embed(v0)?
-        fn owner(self: @ContractState) -> ContractAddress {
-            self.ownable.owner()
-        }
-
-        fn transfer_ownership(ref self: ContractState, new_owner: ContractAddress) {
-            self.ownable.transfer_ownership(new_owner);
-        }
-
-        fn renounce_ownership(ref self: ContractState) {
-            self.ownable.renounce_ownership();
         }
     }
 

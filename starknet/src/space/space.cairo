@@ -22,8 +22,9 @@ mod Space {
 
     component!(path: OwnableComponent, storage: ownable, event: OwnableEvent);
 
-    impl OwnableInternalImpl = OwnableComponent::InternalImpl<ContractState>;
+    #[abi(embed_v0)]
     impl OwnableImpl = OwnableComponent::OwnableImpl<ContractState>;
+    impl OwnableInternalImpl = OwnableComponent::InternalImpl<ContractState>;
 
     #[storage]
     struct Storage {
@@ -486,10 +487,6 @@ mod Space {
         // We leave the implementation empty.
         }
 
-        fn owner(self: @ContractState) -> ContractAddress {
-            self.ownable.owner()
-        }
-
         fn max_voting_duration(self: @ContractState) -> u32 {
             self._max_voting_duration.read()
         }
@@ -709,14 +706,6 @@ mod Space {
 
         fn vote_power(self: @ContractState, proposal_id: u256, choice: Choice) -> u256 {
             self._vote_power.read((proposal_id, choice))
-        }
-
-        fn transfer_ownership(ref self: ContractState, new_owner: ContractAddress) {
-            self.ownable.transfer_ownership(new_owner);
-        }
-
-        fn renounce_ownership(ref self: ContractState) {
-            self.ownable.renounce_ownership();
         }
     }
 

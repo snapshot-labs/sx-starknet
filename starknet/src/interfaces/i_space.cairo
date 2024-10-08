@@ -7,9 +7,6 @@ use sx::types::{
 trait ISpace<TContractState> {
     // -- View functions --
 
-    /// Returns the owner of the contract.
-    fn owner(self: @TContractState) -> ContractAddress;
-
     /// The voting delay in seconds between when a proposal is created and the start of the voting period.
     fn voting_delay(self: @TContractState) -> u32;
 
@@ -60,10 +57,6 @@ trait ISpace<TContractState> {
     /// struct is passed to be able to update different settings in a single call. Settings that should not
     /// be updated should have the `no_update` value (see `UpdateSettingsCalldata`).
     fn update_settings(ref self: TContractState, input: UpdateSettingsCalldata);
-    /// Transfers the ownership to `new_owner`.
-    fn transfer_ownership(ref self: TContractState, new_owner: ContractAddress);
-    /// Renounces the ownership of the contract. CAUTION: This is a one-way operation.
-    fn renounce_ownership(ref self: TContractState);
 
     // -- Actions --
     /// Initializes the contract. Can only be called once.
