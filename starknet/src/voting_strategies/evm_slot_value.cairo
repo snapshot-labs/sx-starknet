@@ -66,7 +66,8 @@ mod EvmSlotValueVotingStrategy {
             let slot_key = InternalImpl::get_mapping_slot_key(voter.into(), slot_index);
 
             // Returns the value of the storage slot at the block number corresponding to the given timestamp.
-            let slot_value = self.single_slot_proof
+            let slot_value = self
+                .single_slot_proof
                 .get_storage_slot(timestamp, evm_contract_address, slot_key, mpt_proof);
 
             slot_value
