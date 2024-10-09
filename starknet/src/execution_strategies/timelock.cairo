@@ -30,7 +30,7 @@ mod TimelockExecutionStrategy {
     use sx::interfaces::IExecutionStrategy;
     use super::ITimelockExecutionStrategy;
     use sx::types::{Proposal, ProposalStatus};
-    use sx::utils::{simple_quorum::SimpleQuorumComponent, SpaceManager};
+    use sx::utils::{simple_quorum::SimpleQuorumComponent, space_manager::SpaceManagerComponent};
 
     component!(path: OwnableComponent, storage: ownable, event: OwnableEvent);
 
@@ -44,6 +44,9 @@ mod TimelockExecutionStrategy {
     impl SimpleQuorumImpl = SimpleQuorumComponent::SimpleQuorumImpl<ContractState>;
     impl SimpleQuorumInternalImpl = SimpleQuorumComponent::InternalImpl<ContractState>;
 
+    component!(path: SpaceManagerComponent, storage: space_manager, event: SpaceManagerEvent);
+    impl SpaceManagerInternalImpl = SpaceManagerComponent::InternalImpl<ContractState>;
+
     #[storage]
     struct Storage {
         _timelock_delay: u32,
@@ -53,6 +56,8 @@ mod TimelockExecutionStrategy {
         ownable: OwnableComponent::Storage,
         #[substorage(v0)]
         simple_quorum: SimpleQuorumComponent::Storage,
+        #[substorage(v0)]
+        space_manager: SpaceManagerComponent::Storage,
     }
 
     #[event]
@@ -70,6 +75,8 @@ mod TimelockExecutionStrategy {
         OwnableEvent: OwnableComponent::Event,
         #[flat]
         SimpleQuorumEvent: SimpleQuorumComponent::Event,
+        #[flat]
+        SpaceManagerEvent: SpaceManagerComponent::Event,
     }
 
     #[derive(Drop, PartialEq, starknet::Event)]
@@ -138,8 +145,7 @@ mod TimelockExecutionStrategy {
 
         self.simple_quorum.initializer(quorum);
 
-        let mut state = SpaceManager::unsafe_new_contract_state();
-        SpaceManager::InternalImpl::initializer(ref state, spaces);
+        self.space_manager.initializer(spaces);
 
         self._timelock_delay.write(timelock_delay);
         self._veto_guardian.write(veto_guardian);
@@ -156,10 +162,7 @@ mod TimelockExecutionStrategy {
             votes_abstain: u256,
             payload: Array<felt252>
         ) {
-            // Migration to components planned ; disregard the `unsafe` keyword,
-            // it is actually safe.
-            let state = SpaceManager::unsafe_new_contract_state();
-            SpaceManager::InternalImpl::assert_only_spaces(@state);
+            self.space_manager.assert_only_spaces();
             let proposal_status = self
                 .simple_quorum
                 .get_proposal_status(@proposal, votes_for, votes_against, votes_abstain);
@@ -296,21 +299,16 @@ mod TimelockExecutionStrategy {
 
         fn enable_space(ref self: ContractState, space: ContractAddress) {
             self.ownable.assert_only_owner();
-            let mut state = SpaceManager::unsafe_new_contract_state();
-            SpaceManager::InternalImpl::enable_space(ref state, space);
+            self.space_manager.enable_space(space);
         }
 
         fn disable_space(ref self: ContractState, space: ContractAddress) {
             self.ownable.assert_only_owner();
-            let mut state = SpaceManager::unsafe_new_contract_state();
-            SpaceManager::InternalImpl::disable_space(ref state, space);
+            self.space_manager.disable_space(space);
         }
 
         fn is_space_enabled(self: @ContractState, space: ContractAddress) -> bool {
-            // Migration to components planned ; disregard the `unsafe` keyword,
-            // it is actually safe.
-            let state = SpaceManager::unsafe_new_contract_state();
-            SpaceManager::InternalImpl::is_space_enabled(@state, space)
+            self.space_manager.is_space_enabled(space)
         }
     }
 
