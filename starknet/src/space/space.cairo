@@ -79,7 +79,7 @@ mod Space {
         #[flat]
         ReinitializableEvent: ReinitializableComponent::Event
     }
-    
+
 
     #[derive(Drop, PartialEq, starknet::Event)]
     struct SpaceCreated {
