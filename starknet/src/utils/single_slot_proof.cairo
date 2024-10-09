@@ -1,5 +1,5 @@
-#[starknet::contract]
-mod SingleSlotProof {
+#[starknet::component]
+mod SingleSlotProofComponent {
     use starknet::{ContractAddress, EthAddress};
     use sx::external::herodotus::{
         Words64, BinarySearchTree, ITimestampRemappersDispatcher,
@@ -15,9 +15,11 @@ mod SingleSlotProof {
     }
 
     #[generate_trait]
-    impl InternalImpl of InternalTrait {
+    impl InternalImpl<
+        TContractState, +HasComponent<TContractState>
+    > of InternalTrait<TContractState> {
         fn initializer(
-            ref self: ContractState,
+            ref self: ComponentState<TContractState>,
             timestamp_remappers: ContractAddress,
             facts_registry: ContractAddress
         ) {
@@ -26,7 +28,7 @@ mod SingleSlotProof {
         }
 
         fn get_storage_slot(
-            self: @ContractState,
+            self: @ComponentState<TContractState>,
             timestamp: u32,
             l1_contract_address: EthAddress,
             slot_key: u256,
@@ -45,7 +47,9 @@ mod SingleSlotProof {
             slot_value
         }
 
-        fn cache_timestamp(ref self: ContractState, timestamp: u32, tree: BinarySearchTree) {
+        fn cache_timestamp(
+            ref self: ComponentState<TContractState>, timestamp: u32, tree: BinarySearchTree
+        ) {
             // Maps timestamp to closest L1 block number that occurred before the timestamp. If the queried 
             // timestamp is less than the earliest timestamp or larger than the latest timestamp in the mapper
             // then the call will return Option::None and the transaction will revert.
@@ -59,7 +63,7 @@ mod SingleSlotProof {
             self._cached_remapped_timestamps.write(timestamp, l1_block_number);
         }
 
-        fn cached_timestamps(self: @ContractState, timestamp: u32) -> u256 {
+        fn cached_timestamps(self: @ComponentState<TContractState>, timestamp: u32) -> u256 {
             let l1_block_number = self._cached_remapped_timestamps.read(timestamp);
             assert(l1_block_number.is_non_zero(), 'Timestamp not cached');
             l1_block_number

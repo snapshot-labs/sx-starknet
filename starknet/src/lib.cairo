@@ -148,7 +148,6 @@ mod utils {
     mod simple_quorum;
 
     mod single_slot_proof;
-    use single_slot_proof::SingleSlotProof;
 
     mod snip12;
 

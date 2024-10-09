@@ -4,11 +4,27 @@ mod OZVotesTrace208StorageProofVotingStrategy {
     use sx::external::herodotus::BinarySearchTree;
     use sx::types::{UserAddress, UserAddressTrait};
     use sx::interfaces::IVotingStrategy;
-    use sx::utils::{SingleSlotProof, TIntoU256};
+    use sx::utils::{single_slot_proof::SingleSlotProofComponent, TIntoU256};
     use sx::utils::endian::ByteReverse;
 
+    component!(
+        path: SingleSlotProofComponent, storage: single_slot_proof, event: SingleSlotProofEvent
+    );
+
+    impl SingleSlotProofInternalImpl = SingleSlotProofComponent::InternalImpl<ContractState>;
+
     #[storage]
-    struct Storage {}
+    struct Storage {
+        #[substorage(v0)]
+        single_slot_proof: SingleSlotProofComponent::Storage,
+    }
+
+    #[event]
+    #[derive(Drop, starknet::Event)]
+    enum Event {
+        #[flat]
+        SingleSlotProofEvent: SingleSlotProofComponent::Event
+    }
 
     #[abi(embed_v0)]
     impl OZVotesTrace208StorageProofVotingStrategy of IVotingStrategy<ContractState> {
@@ -55,18 +71,17 @@ mod OZVotesTrace208StorageProofVotingStrategy {
             );
 
             // Get the slot containing the final checkpoint
-            // Migration to components planned ; disregard the `unsafe` keyword,
-            // it is actually safe.
-            let state = SingleSlotProof::unsafe_new_contract_state();
-            let checkpoint = SingleSlotProof::InternalImpl::get_storage_slot(
-                @state, timestamp, evm_contract_address, slot_key, checkpoint_mpt_proof
-            );
+            let checkpoint = self
+                .single_slot_proof
+                .get_storage_slot(timestamp, evm_contract_address, slot_key, checkpoint_mpt_proof);
 
             // Verify the checkpoint is indeed the final checkpoint by checking the next slot is zero.
             assert(
-                SingleSlotProof::InternalImpl::get_storage_slot(
-                    @state, timestamp, evm_contract_address, slot_key + 1, exclusion_mpt_proof
-                )
+                self
+                    .single_slot_proof
+                    .get_storage_slot(
+                        timestamp, evm_contract_address, slot_key + 1, exclusion_mpt_proof
+                    )
                     .is_zero(),
                 'Invalid Checkpoint'
             );
@@ -91,8 +106,7 @@ mod OZVotesTrace208StorageProofVotingStrategy {
         /// * `timestamp` - The timestamp at which to query.
         /// * `tree` - The tree proof required to query the remapper.
         fn cache_timestamp(ref self: ContractState, timestamp: u32, tree: BinarySearchTree) {
-            let mut state = SingleSlotProof::unsafe_new_contract_state();
-            SingleSlotProof::InternalImpl::cache_timestamp(ref state, timestamp, tree);
+            self.single_slot_proof.cache_timestamp(timestamp, tree);
         }
 
         /// View function exposing the cached remapped timestamps. Reverts if the timestamp is not cached.
@@ -105,8 +119,7 @@ mod OZVotesTrace208StorageProofVotingStrategy {
         ///
         /// * `u256` - The cached L1 block number corresponding to the timestamp.
         fn cached_timestamps(self: @ContractState, timestamp: u32) -> u256 {
-            let state = SingleSlotProof::unsafe_new_contract_state();
-            SingleSlotProof::InternalImpl::cached_timestamps(@state, timestamp)
+            self.single_slot_proof.cached_timestamps(timestamp)
         }
     }
 
@@ -146,10 +159,7 @@ mod OZVotesTrace208StorageProofVotingStrategy {
         timestamp_remappers: ContractAddress,
         facts_registry: ContractAddress
     ) {
-        // Migration to components planned ; disregard the `unsafe` keyword,
-        // it is actually safe.
-        let mut state = SingleSlotProof::unsafe_new_contract_state();
-        SingleSlotProof::InternalImpl::initializer(ref state, timestamp_remappers, facts_registry);
+        self.single_slot_proof.initializer(timestamp_remappers, facts_registry);
     }
 }
 
