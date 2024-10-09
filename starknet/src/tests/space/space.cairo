@@ -446,7 +446,7 @@ mod tests {
 
     #[test]
     #[available_gas(10000000000)]
-    #[should_panic(expected: ('Proposal is not valid', 'ENTRYPOINT_FAILED'))]
+    #[should_panic(expected: ('User cannot create a proposal', 'ENTRYPOINT_FAILED'))]
     fn propose_failed_validation() {
         let config = setup();
         let (_, space) = deploy(@config);
