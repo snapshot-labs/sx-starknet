@@ -16,15 +16,22 @@ mod Space {
         proposal::ProposalDefault
     };
     use sx::utils::{
-        Reinitializable, BitSetter, LegacyHashChoice, LegacyHashUserAddress, LegacyHashVotePower,
+        BitSetter, LegacyHashChoice, LegacyHashUserAddress, LegacyHashVotePower,
         LegacyHashVoteRegistry, constants::{INITIALIZE_SELECTOR, POST_UPGRADE_INITIALIZER_SELECTOR}
     };
+    use sx::utils::reinitializable::ReinitializableComponent;
 
     component!(path: OwnableComponent, storage: ownable, event: OwnableEvent);
 
     #[abi(embed_v0)]
     impl OwnableImpl = OwnableComponent::OwnableImpl<ContractState>;
     impl OwnableInternalImpl = OwnableComponent::InternalImpl<ContractState>;
+
+    component!(
+        path: ReinitializableComponent, storage: reinitializable, event: ReinitializableEvent
+    );
+
+    impl ReinitializableInternalImpl = ReinitializableComponent::InternalImpl<ContractState>;
 
     #[storage]
     struct Storage {
@@ -43,6 +50,8 @@ mod Space {
         _vote_registry: LegacyMap::<(u256, UserAddress), bool>,
         #[substorage(v0)]
         ownable: OwnableComponent::Storage,
+        #[substorage(v0)]
+        reinitializable: ReinitializableComponent::Storage
     }
 
     #[event]
@@ -66,8 +75,11 @@ mod Space {
         VotingDelayUpdated: VotingDelayUpdated,
         Upgraded: Upgraded,
         #[flat]
-        OwnableEvent: OwnableComponent::Event
+        OwnableEvent: OwnableComponent::Event,
+        #[flat]
+        ReinitializableEvent: ReinitializableComponent::Event
     }
+    
 
     #[derive(Drop, PartialEq, starknet::Event)]
     struct SpaceCreated {
@@ -216,11 +228,7 @@ mod Space {
                 );
 
             // Checking that the contract is not already initialized
-            // Migration to components planned ; disregard the `unsafe` keyword,
-            // it is actually safe.
-            let mut state: Reinitializable::ContractState =
-                Reinitializable::unsafe_new_contract_state();
-            Reinitializable::InternalImpl::initialize(ref state);
+            self.reinitializable.initialize();
 
             assert(voting_strategies.len() != 0, 'empty voting strategies');
             assert(authenticators.len() != 0, 'empty authenticators');
@@ -456,9 +464,7 @@ mod Space {
             starknet::replace_class_syscall(class_hash)?;
 
             // Allowing initializer to be called again.
-            let mut state: Reinitializable::ContractState =
-                Reinitializable::unsafe_new_contract_state();
-            Reinitializable::InternalImpl::reset(ref state);
+            self.reinitializable.reset();
 
             // Call `post_upgrade_initializer` on the new version.
             syscalls::call_contract_syscall(
@@ -481,8 +487,7 @@ mod Space {
         fn post_upgrade_initializer(ref self: ContractState, initialize_calldata: Array<felt252>,) {
             // This code is left here to indicate to future developers that this
             // function should be called only once!
-            let mut state = Reinitializable::unsafe_new_contract_state();
-            Reinitializable::InternalImpl::initialize(ref state);
+            self.reinitializable.initialize();
         // This contract being the first version, we don't expect anyone to upgrade to it.
         // We leave the implementation empty.
         }

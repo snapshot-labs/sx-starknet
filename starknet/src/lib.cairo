@@ -142,7 +142,6 @@ mod utils {
     mod proposition_power;
 
     mod reinitializable;
-    use reinitializable::Reinitializable;
 
     mod simple_majority;
 
