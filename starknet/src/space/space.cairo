@@ -259,7 +259,7 @@ mod Space {
                     proposal_validation_strategy.params.span(),
                     user_proposal_validation_params.span()
                 );
-            assert(is_valid, 'Proposal is not valid');
+            assert(is_valid, 'User cannot create a proposal');
 
             // The snapshot block timestamp is the start of the voting period
             let start_timestamp = info::get_block_timestamp().try_into().unwrap()
