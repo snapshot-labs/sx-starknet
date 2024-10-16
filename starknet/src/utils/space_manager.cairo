@@ -4,7 +4,7 @@ mod SpaceManagerComponent {
 
     #[storage]
     struct Storage {
-        _spaces: LegacyMap::<ContractAddress, bool>
+        Spacemanager_spaces: LegacyMap::<ContractAddress, bool>
     }
 
     #[event]
@@ -35,9 +35,10 @@ mod SpaceManagerComponent {
                 match spaces.pop_front() {
                     Option::Some(space) => {
                         assert(
-                            (*space).is_non_zero() && !self._spaces.read(*space), 'Invalid Space'
+                            (*space).is_non_zero() && !self.Spacemanager_spaces.read(*space),
+                            'Invalid Space'
                         );
-                        self._spaces.write(*space, true);
+                        self.Spacemanager_spaces.write(*space, true);
                     },
                     Option::None(()) => { break; }
                 };
@@ -45,23 +46,23 @@ mod SpaceManagerComponent {
         }
 
         fn enable_space(ref self: ComponentState<TContractState>, space: ContractAddress) {
-            assert(space.is_non_zero() && !self._spaces.read(space), 'Invalid Space');
-            self._spaces.write(space, true);
+            assert(space.is_non_zero() && !self.Spacemanager_spaces.read(space), 'Invalid Space');
+            self.Spacemanager_spaces.write(space, true);
             self.emit(Event::SpaceEnabled(SpaceEnabled { space: space }));
         }
 
         fn disable_space(ref self: ComponentState<TContractState>, space: ContractAddress) {
-            assert(self._spaces.read(space), 'Invalid Space');
-            self._spaces.write(space, false);
+            assert(self.Spacemanager_spaces.read(space), 'Invalid Space');
+            self.Spacemanager_spaces.write(space, false);
             self.emit(Event::SpaceDisabled(SpaceDisabled { space: space }));
         }
 
         fn is_space_enabled(self: @ComponentState<TContractState>, space: ContractAddress) -> bool {
-            return self._spaces.read(space);
+            return self.Spacemanager_spaces.read(space);
         }
 
         fn assert_only_spaces(self: @ComponentState<TContractState>) {
-            assert(self._spaces.read(info::get_caller_address()), 'Unauthorized Space');
+            assert(self.Spacemanager_spaces.read(info::get_caller_address()), 'Unauthorized Space');
         }
     }
 }

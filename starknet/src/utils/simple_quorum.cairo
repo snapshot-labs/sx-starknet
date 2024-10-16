@@ -6,7 +6,7 @@ mod SimpleQuorumComponent {
 
     #[storage]
     struct Storage {
-        _quorum: u256
+        Simplequorum_quorum: u256
     }
 
     #[generate_trait]
@@ -14,7 +14,7 @@ mod SimpleQuorumComponent {
         TContractState, +HasComponent<TContractState>
     > of InternalTrait<TContractState> {
         fn initializer(ref self: ComponentState<TContractState>, quorum: u256) {
-            self._quorum.write(quorum);
+            self.Simplequorum_quorum.write(quorum);
         }
 
         /// Returns the status of a proposal.
@@ -32,7 +32,7 @@ mod SimpleQuorumComponent {
             votes_against: u256,
             votes_abstain: u256,
         ) -> ProposalStatus {
-            let quorum_reached = votes_for + votes_abstain >= self._quorum.read();
+            let quorum_reached = votes_for + votes_abstain >= self.Simplequorum_quorum.read();
             let supported = votes_for > votes_against;
             let accepted = quorum_reached && supported;
 
@@ -64,7 +64,7 @@ mod SimpleQuorumComponent {
         TContractState, +HasComponent<TContractState>
     > of IQuorum<ComponentState<TContractState>> {
         fn quorum(self: @ComponentState<TContractState>) -> u256 {
-            self._quorum.read()
+            self.Simplequorum_quorum.read()
         }
     }
 }

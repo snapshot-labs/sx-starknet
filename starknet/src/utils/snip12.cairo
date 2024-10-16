@@ -13,7 +13,7 @@ mod SNIP12Component {
 
     #[storage]
     struct Storage {
-        _domain_hash: felt252
+        Snip12_domain_hash: felt252
     }
 
     #[generate_trait]
@@ -21,7 +21,7 @@ mod SNIP12Component {
         TContractState, +HasComponent<TContractState>
     > of InternalTrait<TContractState> {
         fn initializer(ref self: ComponentState<TContractState>, name: felt252, version: felt252) {
-            self._domain_hash.write(get_domain_hash(name, version));
+            self.Snip12_domain_hash.write(get_domain_hash(name, version));
         }
 
         /// Verifies the signature of the propose calldata.
@@ -154,7 +154,7 @@ mod SNIP12Component {
         ) -> felt252 {
             let mut encoded_data = array![];
             STARKNET_MESSAGE.serialize(ref encoded_data);
-            self._domain_hash.read().serialize(ref encoded_data);
+            self.Snip12_domain_hash.read().serialize(ref encoded_data);
             signer.serialize(ref encoded_data);
             message_hash.serialize(ref encoded_data);
             encoded_data.span().struct_hash()
