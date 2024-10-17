@@ -166,6 +166,5 @@ mod external {
     mod herodotus;
 }
 
-#[cfg(test)]
 mod tests;
 
