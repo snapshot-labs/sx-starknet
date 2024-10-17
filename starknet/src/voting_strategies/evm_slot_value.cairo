@@ -12,7 +12,8 @@ mod EvmSlotValueVotingStrategy {
     );
 
     #[abi(embed_v0)]
-    impl SingleSlotProofImpl = SingleSlotProofComponent::SingleSlotProofImpl<ContractState>;
+    impl SingleSlotProofImpl =
+        SingleSlotProofComponent::SingleSlotProofImpl<ContractState>;
     impl SingleSlotProofInternalImpl = SingleSlotProofComponent::InternalImpl<ContractState>;
 
     #[storage]
