@@ -85,7 +85,7 @@ jobs:
 
       - name: Build Cairo contracts
         working-directory: ./starknet
-        run: scarb build --verbose
+        run: scarb build --test --verbose
 
       - name: Run Cairo tests
         working-directory: ./starknet
