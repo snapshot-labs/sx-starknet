@@ -6,6 +6,7 @@ mod tests {
     use sx::tests::mocks::vanilla_authenticator::{
         VanillaAuthenticator, IVanillaAuthenticatorDispatcher, IVanillaAuthenticatorDispatcherTrait
     };
+    use openzeppelin::access::ownable::interface::{IOwnableDispatcher, IOwnableDispatcherTrait};
     use sx::tests::mocks::vanilla_execution_strategy::VanillaExecutionStrategy;
     use sx::tests::mocks::vanilla_voting_strategy::VanillaVotingStrategy;
     use sx::tests::mocks::vanilla_proposal_validation::VanillaProposalValidationStrategy;
@@ -61,7 +62,8 @@ mod tests {
 
         // Set the owner to be the execution strategy
         testing::set_contract_address(config.owner);
-        space.transfer_ownership(execution_contract_address);
+        let ownable_space = IOwnableDispatcher { contract_address: space.contract_address };
+        ownable_space.transfer_ownership(execution_contract_address);
 
         let selector = sx::utils::constants::UPGRADE_SELECTOR;
         let mut tx_calldata = array![];

@@ -81,11 +81,23 @@ mod StarkSigAuthenticator {
     use starknet::{ContractAddress, info};
     use sx::interfaces::{ISpaceDispatcher, ISpaceDispatcherTrait};
     use sx::types::{Strategy, IndexedStrategy, UserAddress, Choice};
-    use sx::utils::SNIP12;
+    use sx::utils::snip12::SNIP12Component;
+
+    component!(path: SNIP12Component, storage: snip12, event: SNIP12Event);
+
+    impl SNIP12InternalImpl = SNIP12Component::InternalImpl<ContractState>;
 
     #[storage]
     struct Storage {
-        _used_salts: LegacyMap::<(ContractAddress, felt252), bool>
+        _used_salts: LegacyMap::<(ContractAddress, felt252), bool>,
+        #[substorage(v0)]
+        snip12: SNIP12Component::Storage
+    }
+
+    #[event]
+    #[derive(Drop, starknet::Event)]
+    enum Event {
+        SNIP12Event: SNIP12Component::Event
     }
 
     #[abi(embed_v0)]
@@ -102,17 +114,17 @@ mod StarkSigAuthenticator {
         ) {
             assert(!self._used_salts.read((author, salt)), 'Salt Already Used');
 
-            let state = SNIP12::unsafe_new_contract_state();
-            SNIP12::InternalImpl::verify_propose_sig(
-                @state,
-                signature,
-                space,
-                author,
-                metadata_uri.span(),
-                @execution_strategy,
-                user_proposal_validation_params.span(),
-                salt
-            );
+            self
+                .snip12
+                .verify_propose_sig(
+                    signature,
+                    space,
+                    author,
+                    metadata_uri.span(),
+                    @execution_strategy,
+                    user_proposal_validation_params.span(),
+                    salt
+                );
 
             self._used_salts.write((author, salt), true);
             ISpaceDispatcher { contract_address: space }
@@ -136,17 +148,17 @@ mod StarkSigAuthenticator {
         ) {
             // No need to check salts here, as double voting is prevented by the space itself.
 
-            let state = SNIP12::unsafe_new_contract_state();
-            SNIP12::InternalImpl::verify_vote_sig(
-                @state,
-                signature,
-                space,
-                voter,
-                proposal_id,
-                choice,
-                user_voting_strategies.span(),
-                metadata_uri.span()
-            );
+            self
+                .snip12
+                .verify_vote_sig(
+                    signature,
+                    space,
+                    voter,
+                    proposal_id,
+                    choice,
+                    user_voting_strategies.span(),
+                    metadata_uri.span()
+                );
 
             ISpaceDispatcher { contract_address: space }
                 .vote(
@@ -170,17 +182,17 @@ mod StarkSigAuthenticator {
         ) {
             assert(!self._used_salts.read((author, salt)), 'Salt Already Used');
 
-            let state = SNIP12::unsafe_new_contract_state();
-            SNIP12::InternalImpl::verify_update_proposal_sig(
-                @state,
-                signature,
-                space,
-                author,
-                proposal_id,
-                @execution_strategy,
-                metadata_uri.span(),
-                salt
-            );
+            self
+                .snip12
+                .verify_update_proposal_sig(
+                    signature,
+                    space,
+                    author,
+                    proposal_id,
+                    @execution_strategy,
+                    metadata_uri.span(),
+                    salt
+                );
 
             self._used_salts.write((author, salt), true);
             ISpaceDispatcher { contract_address: space }
@@ -191,7 +203,6 @@ mod StarkSigAuthenticator {
     }
     #[constructor]
     fn constructor(ref self: ContractState, name: felt252, version: felt252) {
-        let mut state = SNIP12::unsafe_new_contract_state();
-        SNIP12::InternalImpl::initializer(ref state, name, version);
+        self.snip12.initializer(name, version);
     }
 }

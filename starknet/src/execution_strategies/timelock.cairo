@@ -20,13 +20,6 @@ trait ITimelockExecutionStrategy<TContractState> {
     fn disable_space(ref self: TContractState, space: ContractAddress);
 
     fn is_space_enabled(self: @TContractState, space: ContractAddress) -> bool;
-
-    /// Transfers the ownership to `new_owner`.
-    fn transfer_ownership(ref self: TContractState, new_owner: ContractAddress);
-    /// Renounces the ownership of the contract. CAUTION: This is a one-way operation.
-    fn renounce_ownership(ref self: TContractState);
-
-    fn owner(self: @TContractState) -> ContractAddress;
 }
 
 #[starknet::contract]
@@ -37,12 +30,22 @@ mod TimelockExecutionStrategy {
     use sx::interfaces::IExecutionStrategy;
     use super::ITimelockExecutionStrategy;
     use sx::types::{Proposal, ProposalStatus};
-    use sx::utils::{SimpleQuorum, SpaceManager};
+    use sx::utils::{simple_quorum::SimpleQuorumComponent, space_manager::SpaceManagerComponent};
 
     component!(path: OwnableComponent, storage: ownable, event: OwnableEvent);
 
-    impl OwnableInternalImpl = OwnableComponent::InternalImpl<ContractState>;
+    #[abi(embed_v0)]
     impl OwnableImpl = OwnableComponent::OwnableImpl<ContractState>;
+    impl OwnableInternalImpl = OwnableComponent::InternalImpl<ContractState>;
+
+    component!(path: SimpleQuorumComponent, storage: simple_quorum, event: SimpleQuorumEvent);
+
+    #[abi(embed_v0)]
+    impl SimpleQuorumImpl = SimpleQuorumComponent::SimpleQuorumImpl<ContractState>;
+    impl SimpleQuorumInternalImpl = SimpleQuorumComponent::InternalImpl<ContractState>;
+
+    component!(path: SpaceManagerComponent, storage: space_manager, event: SpaceManagerEvent);
+    impl SpaceManagerInternalImpl = SpaceManagerComponent::InternalImpl<ContractState>;
 
     #[storage]
     struct Storage {
@@ -50,7 +53,11 @@ mod TimelockExecutionStrategy {
         _veto_guardian: ContractAddress,
         _proposal_execution_time: LegacyMap::<felt252, u32>,
         #[substorage(v0)]
-        ownable: OwnableComponent::Storage
+        ownable: OwnableComponent::Storage,
+        #[substorage(v0)]
+        simple_quorum: SimpleQuorumComponent::Storage,
+        #[substorage(v0)]
+        space_manager: SpaceManagerComponent::Storage,
     }
 
     #[event]
@@ -65,7 +72,11 @@ mod TimelockExecutionStrategy {
         ProposalExecuted: ProposalExecuted,
         ProposalVetoed: ProposalVetoed,
         #[flat]
-        OwnableEvent: OwnableComponent::Event
+        OwnableEvent: OwnableComponent::Event,
+        #[flat]
+        SimpleQuorumEvent: SimpleQuorumComponent::Event,
+        #[flat]
+        SpaceManagerEvent: SpaceManagerComponent::Event,
     }
 
     #[derive(Drop, PartialEq, starknet::Event)]
@@ -132,11 +143,9 @@ mod TimelockExecutionStrategy {
     ) {
         self.ownable.initializer(owner);
 
-        let mut state = SimpleQuorum::unsafe_new_contract_state();
-        SimpleQuorum::InternalImpl::initializer(ref state, quorum);
+        self.simple_quorum.initializer(quorum);
 
-        let mut state = SpaceManager::unsafe_new_contract_state();
-        SpaceManager::InternalImpl::initializer(ref state, spaces);
+        self.space_manager.initializer(spaces);
 
         self._timelock_delay.write(timelock_delay);
         self._veto_guardian.write(veto_guardian);
@@ -153,14 +162,10 @@ mod TimelockExecutionStrategy {
             votes_abstain: u256,
             payload: Array<felt252>
         ) {
-            // Migration to components planned ; disregard the `unsafe` keyword,
-            // it is actually safe.
-            let state = SpaceManager::unsafe_new_contract_state();
-            SpaceManager::InternalImpl::assert_only_spaces(@state);
-            let state = SimpleQuorum::unsafe_new_contract_state();
-            let proposal_status = SimpleQuorum::InternalImpl::get_proposal_status(
-                @state, @proposal, votes_for, votes_against, votes_abstain
-            );
+            self.space_manager.assert_only_spaces();
+            let proposal_status = self
+                .simple_quorum
+                .get_proposal_status(@proposal, votes_for, votes_against, votes_abstain);
             assert(
                 proposal_status == ProposalStatus::Accepted(())
                     || proposal_status == ProposalStatus::VotingPeriodAccepted(()),
@@ -201,10 +206,9 @@ mod TimelockExecutionStrategy {
             votes_against: u256,
             votes_abstain: u256,
         ) -> ProposalStatus {
-            let state = SimpleQuorum::unsafe_new_contract_state();
-            SimpleQuorum::InternalImpl::get_proposal_status(
-                @state, @proposal, votes_for, votes_against, votes_abstain
-            )
+            self
+                .simple_quorum
+                .get_proposal_status(@proposal, votes_for, votes_against, votes_abstain)
         }
 
         fn get_strategy_type(self: @ContractState) -> felt252 {
@@ -295,34 +299,16 @@ mod TimelockExecutionStrategy {
 
         fn enable_space(ref self: ContractState, space: ContractAddress) {
             self.ownable.assert_only_owner();
-            let mut state = SpaceManager::unsafe_new_contract_state();
-            SpaceManager::InternalImpl::enable_space(ref state, space);
+            self.space_manager.enable_space(space);
         }
 
         fn disable_space(ref self: ContractState, space: ContractAddress) {
             self.ownable.assert_only_owner();
-            let mut state = SpaceManager::unsafe_new_contract_state();
-            SpaceManager::InternalImpl::disable_space(ref state, space);
+            self.space_manager.disable_space(space);
         }
 
         fn is_space_enabled(self: @ContractState, space: ContractAddress) -> bool {
-            // Migration to components planned ; disregard the `unsafe` keyword,
-            // it is actually safe.
-            let state = SpaceManager::unsafe_new_contract_state();
-            SpaceManager::InternalImpl::is_space_enabled(@state, space)
-        }
-
-        // TODO: use Ownable impl as abi_embed(v0)?
-        fn owner(self: @ContractState) -> ContractAddress {
-            self.ownable.owner()
-        }
-
-        fn transfer_ownership(ref self: ContractState, new_owner: ContractAddress) {
-            self.ownable.transfer_ownership(new_owner);
-        }
-
-        fn renounce_ownership(ref self: ContractState) {
-            self.ownable.renounce_ownership();
+            self.space_manager.is_space_enabled(space)
         }
     }
 

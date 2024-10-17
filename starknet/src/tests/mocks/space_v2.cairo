@@ -7,20 +7,32 @@ trait ISpaceV2<TContractState> {
 #[starknet::contract]
 mod SpaceV2 {
     use super::ISpaceV2;
-    use sx::utils::reinitializable::Reinitializable;
+    use sx::utils::reinitializable::ReinitializableComponent;
+
+    component!(
+        path: ReinitializableComponent, storage: reinitializable, event: ReinitializableEvent
+    );
+
+    impl ReinitializableInternalImpl = ReinitializableComponent::InternalImpl<ContractState>;
 
     #[storage]
     struct Storage {
-        _var: felt252
+        _var: felt252,
+        #[substorage(v0)]
+        reinitializable: ReinitializableComponent::Storage,
+    }
+
+    #[event]
+    #[derive(Drop, PartialEq, starknet::Event)]
+    enum Event {
+        #[flat]
+        ReinitializableEvent: ReinitializableComponent::Event
     }
 
     #[abi(embed_v0)]
     impl SpaceV2 of ISpaceV2<ContractState> {
         fn post_upgrade_initializer(ref self: ContractState, var: felt252) {
-            // Migration to components planned ; disregard the `unsafe` keyword,
-            // it is actually safe.
-            let mut state = Reinitializable::unsafe_new_contract_state();
-            Reinitializable::InternalImpl::initialize(ref state);
+            self.reinitializable.initialize();
             self._var.write(var);
         }
 

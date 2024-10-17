@@ -5,6 +5,7 @@ mod tests {
     use sx::interfaces::{
         IQuorum, IQuorumDispatcher, IQuorumDispatcherTrait, ISpaceDispatcher, ISpaceDispatcherTrait
     };
+    use openzeppelin::access::ownable::interface::{IOwnableDispatcher, IOwnableDispatcherTrait};
     use sx::execution_strategies::{
         TimelockExecutionStrategy, TimelockExecutionStrategy::CallWithSalt,
         timelock::{ITimelockExecutionStrategyDispatcher, ITimelockExecutionStrategyDispatcherTrait}
@@ -27,6 +28,7 @@ mod tests {
         let mut config = setup::setup();
         config.min_voting_duration = 0;
         let (_, space) = setup::deploy(@config);
+        let ownable_space = IOwnableDispatcher { contract_address: space.contract_address };
 
         let spaces = array![space.contract_address];
         let timelock_delay = 100;
@@ -55,7 +57,7 @@ mod tests {
         // Set timelock as space controller
         testing::set_caller_address(config.owner);
         testing::set_contract_address(config.owner);
-        space.transfer_ownership(timelock.contract_address);
+        ownable_space.transfer_ownership(timelock.contract_address);
         (config, space, timelock)
     }
 
@@ -129,7 +131,9 @@ mod tests {
         );
         // Execute proposal on timelock - should renounce ownership of space
         timelock.execute_queued_proposal(payload.span());
-        assert(space.owner().is_zero(), 'renounce ownership failed');
+
+        let ownable_space = IOwnableDispatcher { contract_address: space.contract_address };
+        assert(ownable_space.owner().is_zero(), 'renounce ownership failed');
     }
 
     #[test]
@@ -150,8 +154,10 @@ mod tests {
                 }
             ]
         );
-        testing::set_caller_address(timelock.owner());
-        testing::set_contract_address(timelock.owner());
+
+        let ownable_timelock = IOwnableDispatcher { contract_address: timelock.contract_address };
+        testing::set_caller_address(ownable_timelock.owner());
+        testing::set_contract_address(ownable_timelock.owner());
         timelock.disable_space(space.contract_address);
         assert(timelock.is_space_enabled(space.contract_address) == false, 'disable space failed');
         // Try to execute proposal on space, should fail because the space is disabled
@@ -424,7 +430,9 @@ mod tests {
         // Execute proposal on timelock - should renounce ownership of space and update settings
         timelock.execute_queued_proposal(payload.span());
         assert(space.max_voting_duration() == 1000, 'update settings failed');
-        assert(space.owner().is_zero(), 'renounce ownership failed');
+
+        let ownable_space = IOwnableDispatcher { contract_address: space.contract_address };
+        assert(ownable_space.owner().is_zero(), 'renounce ownership failed');
     }
 
     #[test]
@@ -515,9 +523,12 @@ mod tests {
             ]
         );
         space.execute(proposal_id, payload.clone());
+
+        let ownable_timelock = IOwnableDispatcher { contract_address: timelock.contract_address };
+        testing::set_caller_address(ownable_timelock.owner());
+        testing::set_contract_address(ownable_timelock.owner());
+
         // Veto proposal from unauthorized account
-        testing::set_caller_address(timelock.owner());
-        testing::set_contract_address(timelock.owner());
         timelock.veto(poseidon::poseidon_hash_span(payload.span()));
     }
 
@@ -526,8 +537,9 @@ mod tests {
     fn set_timelock_delay() {
         let (_, _, timelock) = setup_test();
 
-        testing::set_caller_address(timelock.owner());
-        testing::set_contract_address(timelock.owner());
+        let ownable_timelock = IOwnableDispatcher { contract_address: timelock.contract_address };
+        testing::set_caller_address(ownable_timelock.owner());
+        testing::set_contract_address(ownable_timelock.owner());
         timelock.set_timelock_delay(1000);
         assert(timelock.timelock_delay() == 1000, 'timelock delay not set');
     }
@@ -549,8 +561,9 @@ mod tests {
     fn set_veto_guardian() {
         let (_, _, timelock) = setup_test();
 
-        testing::set_caller_address(timelock.owner());
-        testing::set_contract_address(timelock.owner());
+        let ownable_timelock = IOwnableDispatcher { contract_address: timelock.contract_address };
+        testing::set_caller_address(ownable_timelock.owner());
+        testing::set_contract_address(ownable_timelock.owner());
         timelock.set_veto_guardian(timelock.veto_guardian());
         assert(timelock.veto_guardian() == timelock.veto_guardian(), 'veto guardian not set');
     }
@@ -571,10 +584,11 @@ mod tests {
     fn set_owner() {
         let (_, _, timelock) = setup_test();
 
-        testing::set_caller_address(timelock.owner());
-        testing::set_contract_address(timelock.owner());
-        timelock.transfer_ownership(timelock.owner());
-        assert(timelock.owner() == timelock.owner(), 'owner not set');
+        let ownable_timelock = IOwnableDispatcher { contract_address: timelock.contract_address };
+        testing::set_caller_address(ownable_timelock.owner());
+        testing::set_contract_address(ownable_timelock.owner());
+        ownable_timelock.transfer_ownership(timelock.veto_guardian());
+        assert(ownable_timelock.owner() == timelock.veto_guardian(), 'owner not set');
     }
 
     #[test]
@@ -585,7 +599,9 @@ mod tests {
         // Only the owner can transfer ownership
         testing::set_caller_address(timelock.veto_guardian());
         testing::set_contract_address(timelock.veto_guardian());
-        timelock.transfer_ownership(starknet::contract_address_const::<0x9999>());
+
+        let ownable_timelock = IOwnableDispatcher { contract_address: timelock.contract_address };
+        ownable_timelock.transfer_ownership(starknet::contract_address_const::<0x9999>());
     }
 
     #[test]
@@ -593,8 +609,9 @@ mod tests {
     fn enable_space() {
         let (_, _, timelock) = setup_test();
 
-        testing::set_caller_address(timelock.owner());
-        testing::set_contract_address(timelock.owner());
+        let ownable_timelock = IOwnableDispatcher { contract_address: timelock.contract_address };
+        testing::set_caller_address(ownable_timelock.owner());
+        testing::set_contract_address(ownable_timelock.owner());
         timelock.enable_space(starknet::contract_address_const::<0x123456789>());
         assert(
             timelock.is_space_enabled(starknet::contract_address_const::<0x123456789>()),
@@ -618,8 +635,9 @@ mod tests {
     fn disable_space() {
         let (_, _, timelock) = setup_test();
 
-        testing::set_caller_address(timelock.owner());
-        testing::set_contract_address(timelock.owner());
+        let ownable_timelock = IOwnableDispatcher { contract_address: timelock.contract_address };
+        testing::set_caller_address(ownable_timelock.owner());
+        testing::set_contract_address(ownable_timelock.owner());
         timelock.enable_space(starknet::contract_address_const::<0x123456789>());
         timelock.disable_space(starknet::contract_address_const::<0x123456789>());
         assert(

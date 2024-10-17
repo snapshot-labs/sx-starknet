@@ -2,6 +2,7 @@
 mod tests {
     use starknet::{ContractAddress, syscalls, testing, info};
     use openzeppelin::tests::utils;
+    use openzeppelin::access::ownable::interface::{IOwnableDispatcher, IOwnableDispatcherTrait};
     use sx::interfaces::{ISpaceDispatcher, ISpaceDispatcherTrait};
     use sx::space::space::{Space, Space::{ProposalCreated, VoteCast, ProposalUpdated},};
     use sx::tests::mocks::vanilla_authenticator::{
@@ -111,6 +112,7 @@ mod tests {
             .unwrap();
 
         let space = ISpaceDispatcher { contract_address: space_address };
+        let ownable_space = IOwnableDispatcher { contract_address: space_address };
 
         space
             .initialize(
@@ -127,7 +129,7 @@ mod tests {
                 array![]
             );
 
-        assert(space.owner() == owner, 'owner incorrect');
+        assert(ownable_space.owner() == owner, 'owner incorrect');
         assert(space.min_voting_duration() == min_voting_duration, 'min incorrect');
         assert(space.max_voting_duration() == max_voting_duration, 'max incorrect');
         assert(space.voting_delay() == voting_delay, 'voting delay incorrect');

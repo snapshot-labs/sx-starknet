@@ -72,6 +72,11 @@ mod interfaces {
         IVotingStrategy, IVotingStrategyDispatcher, IVotingStrategyDispatcherTrait
     };
 
+    mod i_single_slot_proof;
+    use i_single_slot_proof::{
+        ISingleSlotProof, ISingleSlotProofDispatcher, ISingleSlotProofDispatcherTrait
+    };
+
     mod i_space;
     use i_space::{ISpace, ISpaceDispatcher, ISpaceDispatcherTrait};
 
@@ -118,7 +123,6 @@ mod utils {
     use default::ContractAddressDefault;
 
     mod eip712;
-    use eip712::EIP712;
 
     mod endian;
     use endian::ByteReverse;
@@ -143,24 +147,19 @@ mod utils {
     mod proposition_power;
 
     mod reinitializable;
-    use reinitializable::Reinitializable;
 
     mod simple_majority;
 
     mod simple_quorum;
-    use simple_quorum::SimpleQuorum;
 
     mod single_slot_proof;
-    use single_slot_proof::SingleSlotProof;
 
     mod snip12;
-    use snip12::SNIP12;
 
     mod struct_hash;
     use struct_hash::StructHash;
 
     mod space_manager;
-    use space_manager::SpaceManager;
 }
 
 mod external {
