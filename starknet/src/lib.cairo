@@ -72,6 +72,11 @@ mod interfaces {
         IVotingStrategy, IVotingStrategyDispatcher, IVotingStrategyDispatcherTrait
     };
 
+    mod i_single_slot_proof;
+    use i_single_slot_proof::{
+        ISingleSlotProof, ISingleSlotProofDispatcher, ISingleSlotProofDispatcherTrait
+    };
+
     mod i_space;
     use i_space::{ISpace, ISpaceDispatcher, ISpaceDispatcherTrait};
 

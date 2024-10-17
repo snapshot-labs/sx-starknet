@@ -6,6 +6,7 @@ mod SingleSlotProofComponent {
         ITimestampRemappersDispatcherTrait, IEVMFactsRegistryDispatcher,
         IEVMFactsRegistryDispatcherTrait
     };
+    use sx::interfaces::i_single_slot_proof::ISingleSlotProof;
 
     #[storage]
     struct Storage {
@@ -46,7 +47,12 @@ mod SingleSlotProofComponent {
 
             slot_value
         }
+    }
 
+    #[embeddable_as(SingleSlotProofImpl)]
+    impl SimpleQuorum<
+        TContractState, +HasComponent<TContractState>
+    > of ISingleSlotProof<ComponentState<TContractState>> {
         fn cache_timestamp(
             ref self: ComponentState<TContractState>, timestamp: u32, tree: BinarySearchTree
         ) {
