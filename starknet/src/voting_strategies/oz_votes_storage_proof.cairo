@@ -142,6 +142,36 @@ mod OZVotesStorageProofVotingStrategy {
 #[cfg(test)]
 mod tests {
     use super::OZVotesStorageProofVotingStrategy;
+    use sx::interfaces::{
+        ISingleSlotProof, ISingleSlotProofDispatcher, ISingleSlotProofDispatcherTrait
+    };
+    use sx::tests::mocks::timestamp_remappers::MockTimestampRemappers;
+    use sx::tests::mocks::facts_registry::MockFactsRegistry;
+    use sx::external::herodotus::BinarySearchTree;
+    use sx::tests::utils::single_slot_proof::{
+        deploy_timestamp_remappers, deploy_facts_registry, DefaultBinarySearchTree
+    };
+
+    #[test]
+    #[available_gas(10000000)]
+    fn ensure_ssp_is_exposed() {
+        let constructor_calldata = array![
+            deploy_timestamp_remappers().into(), deploy_facts_registry().into()
+        ];
+        let (contract_address, _) = starknet::syscalls::deploy_syscall(
+            OZVotesStorageProofVotingStrategy::TEST_CLASS_HASH.try_into().unwrap(),
+            0,
+            constructor_calldata.span(),
+            false,
+        )
+            .unwrap();
+
+        let ssp = ISingleSlotProofDispatcher { contract_address };
+        let tt = 1337;
+        ssp.cache_timestamp(tt, DefaultBinarySearchTree::default());
+
+        assert(ssp.cached_timestamps(tt) == 1, 'Timestamp not cached');
+    }
 
     #[test]
     #[available_gas(10000000)]
