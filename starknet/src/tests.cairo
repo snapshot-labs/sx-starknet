@@ -53,5 +53,6 @@ mod setup {
 
 mod utils {
     mod strategy_trait;
+    #[cfg(test)]
     mod single_slot_proof;
 }
