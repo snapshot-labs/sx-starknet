@@ -89,7 +89,7 @@ mod EthSigAuthenticator {
     use starknet::{ContractAddress, EthAddress};
     use sx::interfaces::{ISpaceDispatcher, ISpaceDispatcherTrait};
     use sx::types::{Strategy, IndexedStrategy, Choice, UserAddress};
-    use sx::utils::{EIP712, LegacyHashEthAddress, ByteReverse};
+    use sx::utils::{eip712, LegacyHashEthAddress, ByteReverse};
 
     #[storage]
     struct Storage {
@@ -112,9 +112,7 @@ mod EthSigAuthenticator {
         ) {
             assert(!self._used_salts.read((author, salt)), 'Salt Already Used');
 
-            let state = EIP712::unsafe_new_contract_state();
-            EIP712::InternalImpl::verify_propose_sig(
-                @state,
+            eip712::verify_propose_sig(
                 r,
                 s,
                 v,
@@ -149,9 +147,7 @@ mod EthSigAuthenticator {
         ) {
             // No need to check salts here, as double voting is prevented by the space itself.
 
-            let state = EIP712::unsafe_new_contract_state();
-            EIP712::InternalImpl::verify_vote_sig(
-                @state,
+            eip712::verify_vote_sig(
                 r,
                 s,
                 v,
@@ -187,18 +183,8 @@ mod EthSigAuthenticator {
         ) {
             assert(!self._used_salts.read((author, salt)), 'Salt Already Used');
 
-            let state = EIP712::unsafe_new_contract_state();
-            EIP712::InternalImpl::verify_update_proposal_sig(
-                @state,
-                r,
-                s,
-                v,
-                space,
-                author,
-                proposal_id,
-                @execution_strategy,
-                metadata_uri.span(),
-                salt
+            eip712::verify_update_proposal_sig(
+                r, s, v, space, author, proposal_id, @execution_strategy, metadata_uri.span(), salt
             );
             self._used_salts.write((author, salt), true);
             ISpaceDispatcher { contract_address: space }

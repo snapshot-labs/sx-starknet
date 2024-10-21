@@ -2,20 +2,26 @@
 mod VanillaExecutionStrategy {
     use sx::interfaces::{IExecutionStrategy, IQuorum};
     use sx::types::{Proposal, ProposalStatus};
-    use sx::utils::SimpleQuorum;
+    use sx::utils::simple_quorum::SimpleQuorumComponent;
 
+    component!(path: SimpleQuorumComponent, storage: simple_quorum, event: SimpleQuorumEvent);
+
+    #[abi(embed_v0)]
+    impl SimpleQuorumImpl = SimpleQuorumComponent::SimpleQuorumImpl<ContractState>;
+    impl SimpleQuorumInternalImpl = SimpleQuorumComponent::InternalImpl<ContractState>;
 
     #[storage]
     struct Storage {
-        _num_executed: felt252
+        _num_executed: felt252,
+        #[substorage(v0)]
+        simple_quorum: SimpleQuorumComponent::Storage,
     }
 
-    #[abi(embed_v0)]
-    impl QuorumImpl of IQuorum<ContractState> {
-        fn quorum(self: @ContractState) -> u256 {
-            let mut state: SimpleQuorum::ContractState = SimpleQuorum::unsafe_new_contract_state();
-            SimpleQuorum::InternalImpl::quorum(@state)
-        }
+    #[event]
+    #[derive(Drop, starknet::Event)]
+    enum Event {
+        #[flat]
+        SimpleQuorumEvent: SimpleQuorumComponent::Event,
     }
 
     /// The vanilla execution strategy is a dummy execution strategy that simply increments a `_num_executed` variable for every
@@ -48,11 +54,9 @@ mod VanillaExecutionStrategy {
             votes_against: u256,
             votes_abstain: u256,
         ) -> ProposalStatus {
-            let mut state: SimpleQuorum::ContractState = SimpleQuorum::unsafe_new_contract_state();
-
-            SimpleQuorum::InternalImpl::get_proposal_status(
-                @state, @proposal, votes_for, votes_against, votes_abstain,
-            )
+            self
+                .simple_quorum
+                .get_proposal_status(@proposal, votes_for, votes_against, votes_abstain,)
         }
 
         fn get_strategy_type(self: @ContractState) -> felt252 {
@@ -62,10 +66,7 @@ mod VanillaExecutionStrategy {
 
     #[constructor]
     fn constructor(ref self: ContractState, quorum: u256) {
-        // Migration to components planned ; disregard the `unsafe` keyword,
-        // it is actually safe.
-        let mut state = SimpleQuorum::unsafe_new_contract_state();
-        SimpleQuorum::InternalImpl::initializer(ref state, quorum);
+        self.simple_quorum.initializer(quorum);
     }
 
     #[generate_trait]
