@@ -27,6 +27,9 @@ mod voting_strategies {
     mod erc20_votes;
     use erc20_votes::ERC20VotesVotingStrategy;
 
+    mod erc721_votes;
+    use erc721_votes::ERC721VotesVotingStrategy;
+
     mod evm_slot_value;
     use evm_slot_value::EvmSlotValueVotingStrategy;
 
