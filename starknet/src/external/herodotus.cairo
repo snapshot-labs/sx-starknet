@@ -1,45 +1,22 @@
-type Peaks = Span<felt252>;
-
-type Proof = Span<felt252>;
-
-type Words64 = Span<u64>;
-
-type MapperId = u256;
-
-type MmrSize =
-    u256; // From 'https://github.com/HerodotusDev/cairo-lib/blob/update-cairo/src/data_structures/mmr/mmr.cairo'
-
-
-#[derive(Drop, Serde)]
-struct ProofElement {
-    index: MmrSize,
-    value: u256,
-    proof: Proof,
-}
-
-#[derive(Drop, Serde)]
-struct BinarySearchTree {
-    mapper_id: MapperId,
-    last_pos: MmrSize, // last_pos in mapper's MMR
-    peaks: Peaks,
-    proofs: Span<ProofElement>, // Midpoint elements inclusion proofs
-    left_neighbor: Option<ProofElement>, // Optional left neighbor inclusion proof
-}
+use starknet::EthAddress;
 
 #[starknet::interface]
-trait ITimestampRemappers<TContractState> {
-    // Retrieves the block number of the L1 closest timestamp to the given timestamp.
-    fn get_closest_l1_block_number(
-        self: @TContractState, tree: BinarySearchTree, timestamp: u256
-    ) -> Result<Option<u256>, felt252>;
-
-    // Getter for the last timestamp of a given mapper.
-    fn get_last_mapper_timestamp(self: @TContractState, mapper_id: MapperId) -> u256;
-}
-
-#[starknet::interface]
-trait IEVMFactsRegistry<TContractState> {
-    fn get_storage(
-        self: @TContractState, block: u256, account: felt252, slot: u256, mpt_proof: Span<Words64>
+pub trait ISatellite<TContractState> {
+    /// Returns value of a given storage slot of a given account, at a given block number on a given
+    /// chain id.
+    /// Reverts with "STORAGE_PROOF_SLOT_NOT_SAVED" if the slot is not saved.
+    fn storageSlot(
+        self: @TContractState,
+        chain_id: u256,
+        block_number: u256,
+        account: EthAddress,
+        slot_index: u256,
     ) -> u256;
+
+    /// Returns block number with a biggest timestamp that is less than or equal to the given
+    /// timestamp.
+    /// In other words, it answers what was the latest block at a given timestamp (including block
+    /// with equal timestamp).
+    /// Reverts with "STORAGE_PROOF_TIMESTAMP_NOT_SAVED" if the timestamp is not saved.
+    fn timestamp(self: @TContractState, chain_id: u256, timestamp: u256) -> u256;
 }

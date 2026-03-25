@@ -36,11 +36,10 @@ mod space {
 mod mocks {
     mod erc20_votes_preset;
     mod executor;
-    mod facts_registry;
+    mod satellite;
     mod no_voting_power;
     mod proposal_validation_always_fail;
     mod space_v2;
-    mod timestamp_remappers;
     mod vanilla_authenticator;
     mod vanilla_execution_strategy;
     mod vanilla_proposal_validation;

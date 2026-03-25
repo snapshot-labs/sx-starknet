@@ -1,7 +1,6 @@
 #[starknet::contract]
 mod OZVotesTrace208StorageProofVotingStrategy {
     use starknet::{EthAddress, ContractAddress};
-    use sx::external::herodotus::BinarySearchTree;
     use sx::types::{UserAddress, UserAddressTrait};
     use sx::interfaces::IVotingStrategy;
     use sx::utils::{single_slot_proof::SingleSlotProofComponent, TIntoU256};
@@ -39,8 +38,7 @@ mod OZVotesTrace208StorageProofVotingStrategy {
         ///   the Herodotus Timestamp Remapper within the SingleSlotProof module call. 
         /// * `voter` - The address of the voter. Expected to be an ethereum address.
         /// * `params` - Should contain the token contract address and the slot index.
-        /// * `user_params` - Should contain the index of the final checkpoint in the checkpoints array for `voter` and
-        ///   the encoded storage proofs required prove the corresponding slot and the slot after it. 
+        /// * `user_params` - Should contain the index of the final checkpoint in the checkpoints array for `voter`
         ///
         /// # Returns
         ///
@@ -50,9 +48,7 @@ mod OZVotesTrace208StorageProofVotingStrategy {
             timestamp: u32,
             voter: UserAddress,
             mut params: Span<felt252>, // [contract_address: address, slot_index: u256]
-            mut user_params: Span<
-                felt252
-            >, // [checkpoint_index: u32, checkpoint_mpt_proof: u64[][], exclusion_mpt_proof: u64[][]]
+            mut user_params: Span<felt252>, // [checkpoint_index: u32]
         ) -> u256 {
             // Cast voter address to an Ethereum address
             // Will revert if the address is not a valid Ethereum address
@@ -63,10 +59,7 @@ mod OZVotesTrace208StorageProofVotingStrategy {
                 (EthAddress, u256)
             >::deserialize(ref params)
                 .unwrap();
-            let (checkpoint_index, checkpoint_mpt_proof, exclusion_mpt_proof) = Serde::<
-                (u32, Span<Span<u64>>, Span<Span<u64>>)
-            >::deserialize(ref user_params)
-                .unwrap();
+            let (checkpoint_index) = Serde::<(u32,)>::deserialize(ref user_params).unwrap();
 
             // Get the slot key for the final checkpoint
             let slot_key = InternalImpl::final_checkpoint_slot_key(
@@ -76,15 +69,13 @@ mod OZVotesTrace208StorageProofVotingStrategy {
             // Get the slot containing the final checkpoint
             let checkpoint = self
                 .single_slot_proof
-                .get_storage_slot(timestamp, evm_contract_address, slot_key, checkpoint_mpt_proof);
+                .get_storage_slot(timestamp, evm_contract_address, slot_key);
 
             // Verify the checkpoint is indeed the final checkpoint by checking the next slot is zero.
             assert(
                 self
                     .single_slot_proof
-                    .get_storage_slot(
-                        timestamp, evm_contract_address, slot_key + 1, exclusion_mpt_proof
-                    )
+                    .get_storage_slot(timestamp, evm_contract_address, slot_key + 1)
                     .is_zero(),
                 'Invalid Checkpoint'
             );
@@ -127,12 +118,8 @@ mod OZVotesTrace208StorageProofVotingStrategy {
     }
 
     #[constructor]
-    fn constructor(
-        ref self: ContractState,
-        timestamp_remappers: ContractAddress,
-        facts_registry: ContractAddress
-    ) {
-        self.single_slot_proof.initializer(timestamp_remappers, facts_registry);
+    fn constructor(ref self: ContractState, satellite_contract: ContractAddress, chain_id: u128) {
+        self.single_slot_proof.initializer(satellite_contract, chain_id);
     }
 }
 
@@ -142,19 +129,12 @@ mod tests {
     use sx::interfaces::{
         ISingleSlotProof, ISingleSlotProofDispatcher, ISingleSlotProofDispatcherTrait
     };
-    use sx::tests::mocks::timestamp_remappers::MockTimestampRemappers;
-    use sx::tests::mocks::facts_registry::MockFactsRegistry;
-    use sx::external::herodotus::BinarySearchTree;
-    use sx::tests::utils::single_slot_proof::{
-        deploy_timestamp_remappers, deploy_facts_registry, DefaultBinarySearchTree
-    };
+    use sx::tests::utils::single_slot_proof::deploy_satellite;
 
     #[test]
     #[available_gas(10000000)]
     fn ensure_ssp_is_exposed() {
-        let constructor_calldata = array![
-            deploy_timestamp_remappers().into(), deploy_facts_registry().into()
-        ];
+        let constructor_calldata = array![deploy_satellite().into(), 11155111.into()];
         let (contract_address, _) = starknet::syscalls::deploy_syscall(
             OZVotesTrace208StorageProofVotingStrategy::TEST_CLASS_HASH.try_into().unwrap(),
             0,
@@ -165,9 +145,9 @@ mod tests {
 
         let ssp = ISingleSlotProofDispatcher { contract_address };
         let tt = 1337;
-        ssp.cache_timestamp(tt, DefaultBinarySearchTree::default());
+        let block_number = ssp.get_block_by_timestamp(tt);
 
-        assert(ssp.cached_timestamps(tt) == 1, 'Timestamp not cached');
+        assert(block_number == 1, 'Block number is not 1');
     }
 
     #[test]
