@@ -1,7 +1,9 @@
 #[starknet::component]
 mod SingleSlotProofComponent {
     use starknet::{ContractAddress, EthAddress, contract_address_to_felt252};
-    use sx::external::herodotus::{ISatelliteDispatcher, ISatelliteDispatcherTrait};
+    use sx::external::herodotus::{
+        ISatelliteDispatcher, ISatelliteDispatcherTrait, Words64, AccountField
+    };
     use sx::interfaces::i_single_slot_proof::ISingleSlotProof;
 
     #[storage]
@@ -29,20 +31,27 @@ mod SingleSlotProofComponent {
             timestamp: u32,
             l1_contract_address: EthAddress,
             slot_key: u256,
+            mpt_proof: Span<Words64>
         ) -> u256 {
             // Get the L1 block from the satellite contract.
             let l1_block_number = self.get_block_by_timestamp(timestamp);
 
-            // Returns the value of the storage slot of account: `l1_contract_address` at key: `slot_key` and block number: `l1_block_number`.
-            let slot_value = ISatelliteDispatcher {
+            // Get the storage root of the account `l1_contract_address` at block `l1_block_number`
+            let storage_root = ISatelliteDispatcher {
                 contract_address: self.Singleslotproof_satellite_contract.read()
             }
-                .storageSlot(
+                .accountField(
                     self.Singleslotproof_chain_id.read().into(),
                     l1_block_number,
                     l1_contract_address.into(),
-                    slot_key
+                    AccountField::STORAGE_ROOT
                 );
+
+            // Verify the `mpt_proof` and get the value of the storage slot from the using the `storage_root` and the `slot_key`
+            let slot_value = ISatelliteDispatcher {
+                contract_address: self.Singleslotproof_satellite_contract.read()
+            }
+                .verifyOnlyStorage(slot_key, storage_root, mpt_proof);
 
             slot_value
         }

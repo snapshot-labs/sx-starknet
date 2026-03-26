@@ -41,7 +41,7 @@ mod EvmSlotValueVotingStrategy {
         /// * `timestamp` - The timestamp of the block at which the voting power is calculated.
         /// * `voter` - The address of the voter. Expected to be an ethereum address.
         /// * `params` - Should contain the contract address and the slot index.
-        /// * `_user_params` - Unused.
+        /// * `user_params` - Should contain the encoded proofs for the L1 contract and the slot index.
         ///
         /// # Returns
         ///
@@ -51,17 +51,18 @@ mod EvmSlotValueVotingStrategy {
             timestamp: u32,
             voter: UserAddress,
             mut params: Span<felt252>, // [contract_address: address, slot_index: u256]
-            user_params: Span<felt252>,
+            mut user_params: Span<felt252>, // [mpt_proof: u64[][]]
         ) -> u256 {
             // Cast voter address to an Ethereum address
             // Will revert if the address is not a valid Ethereum address
             let voter = voter.to_ethereum_address();
 
-            // Decode params
+            // Decode params and user_params
             let (evm_contract_address, slot_index) = Serde::<
                 (EthAddress, u256)
             >::deserialize(ref params)
                 .unwrap();
+            let mpt_proof = Serde::<Span<Span<u64>>>::deserialize(ref user_params).unwrap();
 
             // Computes the key of the EVM storage slot from the mapping key and the index of the mapping in storage.
             let slot_key = InternalImpl::get_mapping_slot_key(voter.into(), slot_index);
@@ -69,7 +70,7 @@ mod EvmSlotValueVotingStrategy {
             // Returns the value of the storage slot at the block number corresponding to the given timestamp.
             let slot_value = self
                 .single_slot_proof
-                .get_storage_slot(timestamp, evm_contract_address, slot_key);
+                .get_storage_slot(timestamp, evm_contract_address, slot_key, mpt_proof);
 
             slot_value
         }

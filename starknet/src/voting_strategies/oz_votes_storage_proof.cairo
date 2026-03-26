@@ -39,7 +39,8 @@ mod OZVotesStorageProofVotingStrategy {
         ///   the Herodotus Timestamp Remapper within the SingleSlotProof module call. 
         /// * `voter` - The address of the voter. Expected to be an ethereum address.
         /// * `params` - Should contain the token contract address and the slot index.
-        /// * `user_params` - Should contain the index of the final checkpoint in the checkpoints array for `voter`
+        /// * `user_params` - Should contain the index of the final checkpoint in the checkpoints array for `voter` and
+        ///   the encoded storage proofs required prove the corresponding slot and the slot after it. 
         ///
         /// # Returns
         ///
@@ -49,7 +50,9 @@ mod OZVotesStorageProofVotingStrategy {
             timestamp: u32,
             voter: UserAddress,
             mut params: Span<felt252>, // [contract_address: address, slot_index: u256]
-            mut user_params: Span<felt252>, // [checkpoint_index: u32]
+            mut user_params: Span<
+                felt252
+            >, // [checkpoint_index: u32, checkpoint_mpt_proof: u64[][], exclusion_mpt_proof: u64[][]]
         ) -> u256 {
             // Cast voter address to an Ethereum address
             // Will revert if the address is not a valid Ethereum address
@@ -60,7 +63,10 @@ mod OZVotesStorageProofVotingStrategy {
                 (EthAddress, u256)
             >::deserialize(ref params)
                 .unwrap();
-            let (checkpoint_index) = Serde::<(u32,)>::deserialize(ref user_params).unwrap();
+            let (checkpoint_index, checkpoint_mpt_proof, exclusion_mpt_proof) = Serde::<
+                (u32, Span<Span<u64>>, Span<Span<u64>>)
+            >::deserialize(ref user_params)
+                .unwrap();
 
             // Get the slot key for the final checkpoint
             let slot_key = InternalImpl::final_checkpoint_slot_key(
@@ -72,13 +78,15 @@ mod OZVotesStorageProofVotingStrategy {
             // it is actually safe.
             let checkpoint = self
                 .single_slot_proof
-                .get_storage_slot(timestamp, evm_contract_address, slot_key);
+                .get_storage_slot(timestamp, evm_contract_address, slot_key, checkpoint_mpt_proof);
 
             // Verify the checkpoint is indeed the final checkpoint by checking the next slot is zero.
             assert(
                 self
                     .single_slot_proof
-                    .get_storage_slot(timestamp, evm_contract_address, slot_key + 1)
+                    .get_storage_slot(
+                        timestamp, evm_contract_address, slot_key + 1, exclusion_mpt_proof
+                    )
                     .is_zero(),
                 'Invalid Checkpoint'
             );
