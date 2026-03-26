@@ -19,20 +19,24 @@ const accountAddress = process.env.ADDRESS || '';
 const accountPk = process.env.PK || '';
 const starknetNetworkUrl = process.env.STARKNET_NETWORK_URL || '';
 
+// 1 or 11155111
+const l1ChainId = process.env.L1_CHAIN_ID || '';
+
+// TODO: refactor deployment scripts
 async function main() {
   const provider = new RpcProvider({ nodeUrl: starknetNetworkUrl });
   const account = new Account(provider, accountAddress, accountPk);
 
   // OZ Votes token 18 decimals
-  const l1TokenAddress = '0xd96844c9B21CB6cCf2c236257c7fc703E43BA071'; 
+  const l1TokenAddress = '0xd96844c9B21CB6cCf2c236257c7fc703E43BA071';
 
-  // Slot index of the checkpoints mapping in the token contract, 
-  // obtained using Foundry's Cast Storage Layout tool. 
-  const slotIndex = cairo.uint256(8); 
-  
-  const factsRegistryAddress = '0x01b2111317EB693c3EE46633edd45A4876db14A3a53ACDBf4E5166976d8e869d';
-  const timestampsRemapperAddress =
-    '0x2ee57d848297bc7dfc8675111b9aa3bd3085e4038e475250770afe303b772af';
+  // Slot index of the checkpoints mapping in the token contract,
+  // obtained using Foundry's Cast Storage Layout tool.
+  const slotIndex = cairo.uint256(8);
+
+  // Herodotus Satellite contract deployed on Starknet mainnet
+  const satelliteContractAddress =
+    '0x01ba7d4b5707f8878c22fb335763abfc26c2ae157c434d597f6416fe6a79bf2e';
 
   const evmSlotValueVotingStrategySierra = json.parse(
     fs
@@ -61,8 +65,8 @@ async function main() {
   //   contract: evmSlotValueVotingStrategySierra,
   //   casm: evmSlotValueVotingStrategyCasm,
   //   constructorCalldata: CallData.compile({
-  //     timestamp_remappers: timestampsRemapperAddress,
-  //     facts_registry: factsRegistryAddress,
+  //     satellite_contract: satelliteContractAddress,
+  //     chain_id: l1ChainId,
   //   }),
   // });
   // const evmSlotValueVotingStrategyAddress = deployResponse.deploy.contract_address;
