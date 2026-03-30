@@ -1,68 +1,84 @@
-import dotenv from 'dotenv';
+import * as dotenv from 'dotenv';
 import axios from 'axios';
 import { ethers } from 'ethers';
-import {
-  RpcProvider,
-  Account,
-  CallData,
-  cairo,
-  Contract,
-  CairoOption,
-  CairoOptionVariant,
-} from 'starknet';
+import { RpcProvider, Account, CallData, cairo, Contract, ETransactionVersion } from 'starknetV9';
 import { utils } from '@snapshot-labs/sx';
-import { check } from 'prettier';
 
 dotenv.config();
-
-type ProofElement = {
-  index: number;
-  value: string;
-  proof: string[];
-};
 
 const accountAddress = process.env.ADDRESS || '';
 const accountPk = process.env.PK || '';
 const starknetNetworkUrl = process.env.STARKNET_NETWORK_URL || '';
 const ethNetworkUrl = process.env.ETH_NETWORK_URL || '';
+const herodotusBaseUrl = process.env.HERODOTUS_BASE_URL || '';
 const herodotusApiKey = process.env.HERODOTUS_API_KEY || '';
+
+const spaceAddress = process.env.SPACE_ADDRESS || '';
+const vanillaAuthenticatorAddress = process.env.VANILLA_AUTHENTICATOR_ADDRESS || '';
+const votingStrategyAddress = process.env.VOTING_STRATEGY_ADDRESS || '';
+const l1TokenAddress = process.env.L1_TOKEN_ADDRESS || '';
+
+// The Ethereum address that holds voting power
+const voterAddress = process.env.VOTER_ADDRESS || '';
+
+// Slot index of _delegateCheckpoints in OZVotesToken (OZ v5), obtained via:
+//   cd ethereum && forge inspect OZVotesToken storage-layout
+const slotIndex = 9;
+
+const POLL_INTERVAL_MS = 15_000;
+const MAX_POLL_ATTEMPTS = 90;
+
+async function pollRequestStatus(requestId: string): Promise<void> {
+  for (let i = 0; i < MAX_POLL_ATTEMPTS; i++) {
+    const response = await axios({
+      method: 'get',
+      url: `${herodotusBaseUrl}/get_queries/${requestId}`,
+      headers: { accept: 'application/json', 'api-key': herodotusApiKey },
+    });
+    const queries: { status: string }[] = response.data.queries;
+    const allCompleted = queries.every((q) => q.status === 'COMPLETED');
+    const anyFailed = queries.some((q) => q.status === 'FAILED' || q.status === 'REJECTED');
+    const statuses = queries.map((q) => q.status).join(', ');
+    console.log(`Query statuses: [${statuses}] (attempt ${i + 1}/${MAX_POLL_ATTEMPTS})`);
+    if (allCompleted) return;
+    if (anyFailed) {
+      throw new Error(`Herodotus query failed. Statuses: [${statuses}]`);
+    }
+    await new Promise((r) => setTimeout(r, POLL_INTERVAL_MS));
+  }
+  throw new Error('Herodotus request timed out');
+}
 
 async function main() {
   const provider = new RpcProvider({ nodeUrl: starknetNetworkUrl });
-  const account = new Account(provider, accountAddress, accountPk);
-
-  const spaceAddress = '0x2f998d51f78d2b23fea4e8af8306d67095fafaa2a6f76e7e328db6ba3e87bcd';
-  const vanillaAuthenticatorAddress =
-    '0x046ad946f22ac4e14e271f24309f14ac36f0fde92c6831a605813fefa46e0893';
-  const evmSlotValueVotingStrategyAddress =
-    '0x474edaba6e88a1478d0680bb97f43f01e6a311593ddc496da58d5a7e7a647cf';
-
-  // OZ Votes token 18 decimals
-  const l1TokenAddress = '0xd96844c9B21CB6cCf2c236257c7fc703E43BA071';
-  // Slot index of the checkpoints mapping in the token contract,
-  //obtained using Foundry's Cast Storage Layout tool.
-  const slotIndex = 8;
-
-  const voterAddress = '0x1fb824f4a6f82de72ae015931e5cf6923f9acb0f';
+  const account = new Account({
+    provider,
+    address: accountAddress,
+    signer: accountPk,
+    transactionVersion: ETransactionVersion.V3,
+  });
 
   const { abi: spaceAbi } = await provider.getClassAt(spaceAddress);
-  const space = new Contract(spaceAbi, spaceAddress, provider);
+  const space = new Contract({
+    abi: spaceAbi,
+    address: spaceAddress,
+    providerOrAccount: provider,
+  });
 
-  const { abi: vanillaAuthenticatorAbi } = await provider.getClassAt(vanillaAuthenticatorAddress);
-  const vanillaAuthenticator = new Contract(
-    vanillaAuthenticatorAbi,
-    vanillaAuthenticatorAddress,
-    provider,
-  );
-  vanillaAuthenticator.connect(account);
+  const { abi: votingStrategyAbi } = await provider.getClassAt(votingStrategyAddress);
+  const votingStrategyContract = new Contract({
+    abi: votingStrategyAbi,
+    address: votingStrategyAddress,
+    providerOrAccount: provider,
+  });
 
   const l1Token = new ethers.Contract(
     l1TokenAddress,
-    ['function numCheckpoints(address account) public view returns (uint256)'],
+    ['function numCheckpoints(address account) public view returns (uint32)'],
     new ethers.JsonRpcProvider(ethNetworkUrl),
   );
   const numCheckpoints = await l1Token.numCheckpoints(voterAddress);
-  console.log(numCheckpoints);
+  console.log('numCheckpoints:', numCheckpoints);
 
   // Deriving the keys of the final slot in the checkpoints array for the voter and the next empty slot
   const checkpointSlotKey =
@@ -77,10 +93,8 @@ async function main() {
     BigInt(1);
   const nextEmptySlotKey = checkpointSlotKey + BigInt(1);
 
-  let response;
-
-  // Create a proposal
-  await account.execute({
+  // ── Step 1: Create a proposal ──
+  const authenticateTx = await account.execute({
     contractAddress: vanillaAuthenticatorAddress,
     entrypoint: 'authenticate',
     calldata: CallData.compile({
@@ -97,27 +111,31 @@ async function main() {
       }),
     }),
   });
+  console.log('Authenticate transaction submitted:', authenticateTx.transaction_hash);
+  await account.waitForTransaction(authenticateTx.transaction_hash);
+  console.log('Proposal created successfully');
 
   // Get the snapshot timestamp of the proposal just created
   const proposalId = Number(await space.call('next_proposal_id', [])) - 1;
   const proposalStruct = (await space.call('proposals', [proposalId])) as any;
   const snapshotTimestamp = proposalStruct.start_timestamp;
+  console.log('Proposal ID:', proposalId, 'Snapshot timestamp:', snapshotTimestamp);
 
-  // Proving the token storage root of the token at the snapshot timestamp
-  // Webhook here is just a random address, can update
-  response = await axios({
+  // ── Step 2: Submit Herodotus request to prove token storage root ──
+  let response = await axios({
     method: 'post',
-    url: 'https://api.herodotus.cloud/submit-batch-query?apiKey=' + herodotusApiKey,
+    url: `${herodotusBaseUrl}/submit-request`,
     headers: {
       accept: 'application/json',
       'content-type': 'application/json',
+      'api-key': herodotusApiKey,
     },
     data: {
-      destinationChainId: 'SN_GOERLI',
-      fee: '0',
+      destination_chain_id: 'SN_SEPOLIA',
+      fee: 0,
       data: {
-        '5': {
-          [`${'timestamp:'}${snapshotTimestamp}`]: {
+        '11155111': {
+          [`timestamp:${snapshotTimestamp}`]: {
             accounts: {
               [l1TokenAddress]: {
                 props: ['STORAGE_ROOT'],
@@ -126,70 +144,25 @@ async function main() {
           },
         },
       },
-      webhook: {
-        url: 'https://webhook.site/1f3a9b5d-5c8c-4e2a-9d7e-6c3c5a0a0e2f',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-      },
     },
   });
-  console.log(response.data);
+  const requestId = response.data.request_id;
+  console.log('Herodotus request submitted:', requestId);
 
-  // Wait for the query to be processed. This will return a query status of DONE when it's ready
-  // Webhooks can be used to get notified when the query is ready.
-  response = await axios({
-    method: 'get',
-    url:
-      'https://api.herodotus.cloud/batch-query-status?apiKey=' +
-      herodotusApiKey +
-      '&batchQueryId=' +
-      response.data.internalId,
-    headers: {
-      accept: 'application/json',
-    },
-  });
-  console.log(response.data);
+  // ── Step 3: Poll until all queries in the request are COMPLETED ──
+  await pollRequestStatus(requestId);
 
-  // Get the binary search tree to remap the snapshot timestamp to the L1 block number
-  response = await axios({
-    method: 'get',
-    url:
-      'https://ds-indexer.api.herodotus.cloud/binsearch-path?timestamp=' +
-      snapshotTimestamp +
-      '&deployed_on_chain=SN_GOERLI&accumulates_chain=5',
-    headers: {
-      accept: 'application/json',
-    },
-  });
+  // ── Step 4: Get the L1 block number from the voting strategy contract ──
+  // The Herodotus batch query has now stored the timestamp→block mapping
+  // in the Satellite contract. We read it via the voting strategy's exposed
+  // `get_block_by_timestamp` function.
+  const l1BlockNumberResult = await votingStrategyContract.call('get_block_by_timestamp', [
+    snapshotTimestamp,
+  ]);
+  const l1BlockNumber = BigInt(l1BlockNumberResult as any);
+  console.log('L1 block number:', l1BlockNumber);
 
-  // This is the snapshot L1 block number
-  const l1BlockNumber = response.data.path[1].blockNumber;
-  console.log(l1BlockNumber);
-
-  // cache block number in voting strategy
-  await account.execute({
-    contractAddress: evmSlotValueVotingStrategyAddress,
-    entrypoint: 'cache_timestamp',
-    calldata: CallData.compile({
-      timestamp: snapshotTimestamp,
-      tree: {
-        mapped_id: response.data.remapper.onchainRemapperId,
-        last_pos: 3,
-        peaks: response.data.proofs[0].peaksHashes,
-        proofs: response.data.proofs.map((proof: any) => {
-          return {
-            index: proof.elementIndex,
-            value: cairo.uint256(proof.elementHash),
-            proof: proof.siblingsHashes,
-          };
-        }),
-        left_neighbor: new CairoOption<ProofElement>(CairoOptionVariant.None),
-      },
-    }),
-  });
-
-  // Query the node for the storage proofs of the 2 slots at the snapshot block number
+  // ── Step 5: Get storage proofs from L1 ──
   response = await axios({
     method: 'post',
     url: ethNetworkUrl,
@@ -209,27 +182,26 @@ async function main() {
     },
   });
 
-  // This takes the proofs from the response and converts them to a list of 64 bit little endian words
+  // Convert proofs to lists of 64-bit little-endian words
   const storageProofsLittleEndianWords64 = response.data.result.storageProof.map(
     (proofWrapper: any) =>
-      proofWrapper.proof.map(
-        (node: string) =>
-          node
-            .slice(2)
-            .match(/.{1,16}/g)
-            ?.map(
-              (word: string) =>
-                `0x${word
-                  .replace(/^(.(..)*)$/, '0$1')
-                  .match(/../g)
-                  ?.reverse()
-                  .join('')}`,
-            ),
+      proofWrapper.proof.map((node: string) =>
+        node
+          .slice(2)
+          .match(/.{1,16}/g)
+          ?.map(
+            (word: string) =>
+              `0x${word
+                .replace(/^(.(..)*)$/, '0$1')
+                .match(/../g)
+                ?.reverse()
+                .join('')}`,
+          ),
       ),
   );
 
-  // Cast Vote
-  await account.execute({
+  // ── Step 6: Cast Vote ──
+  const voteTx = await account.execute({
     contractAddress: vanillaAuthenticatorAddress,
     entrypoint: 'authenticate',
     calldata: CallData.compile({
@@ -253,6 +225,9 @@ async function main() {
       }),
     }),
   });
+  console.log('Vote transaction submitted:', voteTx.transaction_hash);
+  await account.waitForTransaction(voteTx.transaction_hash);
+  console.log('Vote cast successfully');
 }
 
 main();
