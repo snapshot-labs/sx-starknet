@@ -4,7 +4,7 @@ pragma solidity ^0.8.20;
 import {Script, console} from 'forge-std/Script.sol';
 import {OZVotesToken} from '../src/token/OZVotesToken.sol';
 
-contract DeployToken is Script {
+contract DeployDemoToken is Script {
   function run() public {
     uint256 deployerPk = vm.envUint('ETH_PRIVATE_KEY');
     address deployer = vm.addr(deployerPk);
