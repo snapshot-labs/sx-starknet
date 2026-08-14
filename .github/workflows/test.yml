@@ -27,7 +27,7 @@ jobs:
       - name: Install Foundry
         uses: foundry-rs/foundry-toolchain@v1
         with:
-          version: nightly
+          version: v1.7.1
 
       - name: Check formatting
         working-directory: ./ethereum
@@ -37,7 +37,7 @@ jobs:
         working-directory: ./ethereum
         run: |
           forge --version
-          forge build --sizes
+          forge build
         id: build
 
       - name: Run Forge tests
@@ -51,7 +51,7 @@ jobs:
       fail-fast: true
 
     name: Cairo tests
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-latest
     steps:
       - name: Check out main branch
         uses: actions/checkout@v3

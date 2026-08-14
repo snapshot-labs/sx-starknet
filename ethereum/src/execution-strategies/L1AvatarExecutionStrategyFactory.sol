@@ -37,9 +37,8 @@ contract L1AvatarExecutionStrategyFactory {
 
         emit ContractDeployed(clone);
 
-        L1AvatarExecutionStrategy(clone).setUp(
-            _owner, _target, _starknetCore, _executionRelayer, _starknetSpaces, _quorum
-        );
+        L1AvatarExecutionStrategy(clone)
+            .setUp(_owner, _target, _starknetCore, _executionRelayer, _starknetSpaces, _quorum);
         deployedContracts.push(L1AvatarExecutionStrategy(clone));
     }
 }

@@ -163,9 +163,10 @@ contract L1AvatarExecutionStrategy is SimpleQuorumExecutionStrategy {
     /// @dev Decodes and executes the payload via the avatar.
     function _execute(MetaTransaction[] memory transactions) internal {
         for (uint256 i = 0; i < transactions.length; i++) {
-            bool success = IAvatar(target).execTransactionFromModule(
-                transactions[i].to, transactions[i].value, transactions[i].data, transactions[i].operation
-            );
+            bool success = IAvatar(target)
+                .execTransactionFromModule(
+                    transactions[i].to, transactions[i].value, transactions[i].data, transactions[i].operation
+                );
             // If any transaction fails, the entire execution will revert.
             if (!success) revert ExecutionFailed();
         }
