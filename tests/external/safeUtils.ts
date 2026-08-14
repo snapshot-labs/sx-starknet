@@ -1,40 +1,35 @@
-/* eslint-disable  @typescript-eslint/no-non-null-assertion */
-/* eslint-disable  @typescript-eslint/explicit-module-boundary-types */
-
-import { Contract, BigNumberish, Signer, ethers, Typed } from 'ethers';
-import { TypedDataSigner } from '@ethersproject/abstract-signer';
-import { AddressZero } from '@ethersproject/constants';
+import { BigNumberish, Contract, ethers, Signer, ZeroAddress } from 'ethers';
 
 export const EIP712_TYPES = {
   Transaction: [
     {
       name: 'to',
-      type: 'address',
+      type: 'address'
     },
     {
       name: 'value',
-      type: 'uint256',
+      type: 'uint256'
     },
     {
       name: 'data',
-      type: 'bytes',
+      type: 'bytes'
     },
     {
       name: 'operation',
-      type: 'uint8',
+      type: 'uint8'
     },
     {
       name: 'nonce',
-      type: 'uint256',
-    },
-  ],
+      type: 'uint256'
+    }
+  ]
 };
 
 export const EIP_DOMAIN = {
   EIP712Domain: [
     { type: 'uint256', name: 'chainId' },
-    { type: 'address', name: 'verifyingContract' },
-  ],
+    { type: 'address', name: 'verifyingContract' }
+  ]
 };
 
 export const EIP712_SAFE_TX_TYPE = {
@@ -49,18 +44,18 @@ export const EIP712_SAFE_TX_TYPE = {
     { type: 'uint256', name: 'gasPrice' },
     { type: 'address', name: 'gasToken' },
     { type: 'address', name: 'refundReceiver' },
-    { type: 'uint256', name: 'nonce' },
-  ],
+    { type: 'uint256', name: 'nonce' }
+  ]
 };
 
 export const EIP712_SAFE_MESSAGE_TYPE = {
   // "SafeMessage(bytes message)"
-  SafeMessage: [{ type: 'bytes', name: 'message' }],
+  SafeMessage: [{ type: 'bytes', name: 'message' }]
 };
 
 export interface MetaTransaction {
   to: string;
-  value: string | number | BigInt;
+  value: string | number | bigint;
   data: string;
   operation: number;
 }
@@ -83,63 +78,76 @@ const encodeMetaTransaction = (tx: MetaTransaction): string => {
   const data = ethers.getBytes(tx.data);
   const encoded = ethers.solidityPacked(
     ['uint8', 'address', 'uint256', 'uint256', 'bytes'],
-    [tx.operation, tx.to, tx.value, data.length, data],
+    [tx.operation, tx.to, tx.value, data.length, data]
   );
   return encoded.slice(2);
 };
 
 export const encodeMultiSend = (txs: MetaTransaction[]): string => {
-  return '0x' + txs.map((tx) => encodeMetaTransaction(tx)).join('');
+  return `0x${txs.map(tx => encodeMetaTransaction(tx)).join('')}`;
 };
 
 export const buildMultiSendSafeTx = async (
   multiSend: Contract,
   txs: MetaTransaction[],
   nonce: number,
-  overrides?: Partial<SafeTransaction>,
+  overrides?: Partial<SafeTransaction>
 ): Promise<SafeTransaction> => {
-  return buildContractCall(multiSend, 'multiSend', [encodeMultiSend(txs)], nonce, true, overrides);
+  return buildContractCall(
+    multiSend,
+    'multiSend',
+    [encodeMultiSend(txs)],
+    nonce,
+    true,
+    overrides
+  );
 };
 
-export const calculateSafeDomainSeparator = (safeAddress: string, chainId: BigNumberish): string => {
-  return ethers.TypedDataEncoder.hashDomain({ verifyingContract: safeAddress, chainId });
+export const calculateSafeDomainSeparator = (
+  safeAddress: string,
+  chainId: BigNumberish
+): string => {
+  return ethers.TypedDataEncoder.hashDomain({
+    verifyingContract: safeAddress,
+    chainId
+  });
 };
 
 export const preimageSafeTransactionHash = (
   safeAddress: string,
   safeTx: SafeTransaction,
-  chainId: BigNumberish,
+  chainId: BigNumberish
 ): string => {
   return ethers.TypedDataEncoder.encode(
     { verifyingContract: safeAddress, chainId },
     EIP712_SAFE_TX_TYPE,
-    safeTx,
+    safeTx
   );
 };
 
 export const calculateSafeTransactionHash = (
   safeAddress: string,
   safeTx: SafeTransaction,
-  chainId: BigNumberish,
+  chainId: BigNumberish
 ): string => {
   return ethers.TypedDataEncoder.hash(
     { verifyingContract: safeAddress, chainId },
     EIP712_SAFE_TX_TYPE,
-    safeTx,
+    safeTx
   );
 };
 
 export const calculateSafeMessageHash = (
   safeAddress: string,
   message: string,
-  chainId: BigNumberish,
+  chainId: BigNumberish
 ): string => {
   return ethers.TypedDataEncoder.hash(
     { verifyingContract: safeAddress, chainId },
     EIP712_SAFE_MESSAGE_TYPE,
     {
-      message,
-    },
+      message
+    }
   );
 };
 
@@ -147,12 +155,15 @@ export const safeApproveHash = async (
   signer: Signer,
   safe: Contract,
   safeTx: SafeTransaction,
-  skipOnChainApproval?: boolean,
+  skipOnChainApproval?: boolean
 ): Promise<SafeSignature> => {
   if (!skipOnChainApproval) {
-    if (!signer.provider) throw Error('Provider required for on-chain approval');
+    if (!signer.provider)
+      throw Error('Provider required for on-chain approval');
     const chainId = (await signer.provider.getNetwork()).chainId;
-    const typedDataHash = ethers.getBytes(calculateSafeTransactionHash(await safe.getAddress(), safeTx, chainId));
+    const typedDataHash = ethers.getBytes(
+      calculateSafeTransactionHash(await safe.getAddress(), safeTx, chainId)
+    );
     const signerSafe = safe.connect(signer);
     await signerSafe.approveHash(typedDataHash);
   }
@@ -160,10 +171,9 @@ export const safeApproveHash = async (
   return {
     signer: signerAddress,
     data:
-      '0x000000000000000000000000' +
-      signerAddress.slice(2) +
-      '0000000000000000000000000000000000000000000000000000000000000000' +
-      '01',
+      `0x000000000000000000000000${signerAddress.slice(
+        2
+      )}0000000000000000000000000000000000000000000000000000000000000000` + `01`
   };
 };
 
@@ -171,9 +181,10 @@ export const safeSignTypedData = async (
   signer: Signer,
   safe: Contract,
   safeTx: SafeTransaction,
-  chainId?: BigNumberish,
+  chainId?: BigNumberish
 ): Promise<SafeSignature> => {
-  if (!chainId && !signer.provider) throw Error('Provider required to retrieve chainId');
+  if (!chainId && !signer.provider)
+    throw Error('Provider required to retrieve chainId');
   const cid = (await signer.provider!.getNetwork()).chainId;
   const signerAddress = await signer.getAddress();
   return {
@@ -181,17 +192,22 @@ export const safeSignTypedData = async (
     data: await signer.signTypedData(
       { verifyingContract: await safe.getAddress(), chainId: cid },
       EIP712_SAFE_TX_TYPE,
-      safeTx,
-    ),
+      safeTx
+    )
   };
 };
 
-export const signHash = async (signer: Signer, hash: string): Promise<SafeSignature> => {
+export const signHash = async (
+  signer: Signer,
+  hash: string
+): Promise<SafeSignature> => {
   const typedDataHash = ethers.getBytes(hash);
   const signerAddress = await signer.getAddress();
   return {
     signer: signerAddress,
-    data: (await signer.signMessage(typedDataHash)).replace(/1b$/, '1f').replace(/1c$/, '20'),
+    data: (await signer.signMessage(typedDataHash))
+      .replace(/1b$/, '1f')
+      .replace(/1c$/, '20')
   };
 };
 
@@ -199,15 +215,18 @@ export const safeSignMessage = async (
   signer: Signer,
   safeAddress: string,
   safeTx: SafeTransaction,
-  chainId?: BigNumberish,
+  chainId?: BigNumberish
 ): Promise<SafeSignature> => {
   const cid = chainId || (await signer.provider!.getNetwork()).chainId;
-  return signHash(signer, calculateSafeTransactionHash(safeAddress, safeTx, cid));
+  return signHash(
+    signer,
+    calculateSafeTransactionHash(safeAddress, safeTx, cid)
+  );
 };
 
 export const buildSignatureBytes = (signatures: SafeSignature[]): string => {
   signatures.sort((left, right) =>
-    left.signer.toLowerCase().localeCompare(right.signer.toLowerCase()),
+    left.signer.toLowerCase().localeCompare(right.signer.toLowerCase())
   );
   let signatureBytes = '0x';
   for (const sig of signatures) {
@@ -216,10 +235,19 @@ export const buildSignatureBytes = (signatures: SafeSignature[]): string => {
   return signatureBytes;
 };
 
-export const logGas = async (message: string, tx: Promise<any>, skip?: boolean): Promise<any> => {
-  return tx.then(async (result) => {
+export const logGas = async (
+  message: string,
+  tx: Promise<any>,
+  skip?: boolean
+): Promise<any> => {
+  return tx.then(async result => {
     const receipt = await result.wait();
-    if (!skip) console.log('           Used', receipt.gasUsed.toNumber(), `gas for >${message}<`);
+    if (!skip)
+      console.log(
+        '           Used',
+        receipt.gasUsed.toNumber(),
+        `gas for >${message}<`
+      );
     return result;
   });
 };
@@ -228,7 +256,7 @@ export const executeTx = async (
   safe: Contract,
   safeTx: SafeTransaction,
   signatures: SafeSignature[],
-  overrides?: any,
+  overrides?: any
 ): Promise<any> => {
   const signatureBytes = buildSignatureBytes(signatures);
   return safe.execTransaction(
@@ -242,7 +270,7 @@ export const executeTx = async (
     safeTx.gasToken,
     safeTx.refundReceiver,
     signatureBytes,
-    overrides || {},
+    overrides || {}
   );
 };
 
@@ -250,7 +278,7 @@ export const populateExecuteTx = async (
   safe: Contract,
   safeTx: SafeTransaction,
   signatures: SafeSignature[],
-  overrides?: any,
+  overrides?: any
 ): Promise<ethers.ContractTransaction> => {
   const signatureBytes = buildSignatureBytes(signatures);
   return safe.execTransaction.populateTransaction(
@@ -264,7 +292,7 @@ export const populateExecuteTx = async (
     safeTx.gasToken,
     safeTx.refundReceiver,
     signatureBytes,
-    overrides || {},
+    overrides || {}
   );
 };
 
@@ -274,7 +302,7 @@ export const buildContractCall = async (
   params: any[],
   nonce: number,
   delegateCall?: boolean,
-  overrides?: Partial<SafeTransaction>,
+  overrides?: Partial<SafeTransaction>
 ): Promise<SafeTransaction> => {
   const data = contract.interface.encodeFunctionData(method, params);
   return buildSafeTransaction(
@@ -283,10 +311,10 @@ export const buildContractCall = async (
         to: await contract.getAddress(),
         data,
         operation: delegateCall ? 1 : 0,
-        nonce,
+        nonce
       },
-      overrides,
-    ),
+      overrides
+    )
   );
 };
 
@@ -297,7 +325,7 @@ export const buildContractCallVariable = (
   params: any[],
   nonce: number,
   delegateCall?: boolean,
-  overrides?: Partial<SafeTransaction>,
+  overrides?: Partial<SafeTransaction>
 ): SafeTransaction => {
   const data = contract.interface.encodeFunctionData(method, params);
   return buildSafeTransaction(
@@ -306,10 +334,10 @@ export const buildContractCallVariable = (
         to: address,
         data,
         operation: delegateCall ? 1 : 0,
-        nonce,
+        nonce
       },
-      overrides,
-    ),
+      overrides
+    )
   );
 };
 
@@ -317,9 +345,11 @@ export const executeTxWithSigners = async (
   safe: Contract,
   tx: SafeTransaction,
   signers: Signer[],
-  overrides?: any,
+  overrides?: any
 ) => {
-  const sigs = await Promise.all(signers.map((signer) => safeSignTypedData(signer, safe, tx)));
+  const sigs = await Promise.all(
+    signers.map(signer => safeSignTypedData(signer, safe, tx))
+  );
   return executeTx(safe, tx, sigs, overrides);
 };
 
@@ -330,7 +360,7 @@ export const executeContractCallWithSigners = async (
   params: any[],
   signers: Signer[],
   delegateCall?: boolean,
-  overrides?: Partial<SafeTransaction>,
+  overrides?: Partial<SafeTransaction>
 ) => {
   const tx = await buildContractCall(
     contract,
@@ -338,14 +368,14 @@ export const executeContractCallWithSigners = async (
     params,
     await safe.nonce(),
     delegateCall,
-    overrides,
+    overrides
   );
   return executeTxWithSigners(safe, tx, signers);
 };
 
 export const buildSafeTransaction = (template: {
   to: string;
-  value?: BigInt | number | string;
+  value?: bigint | number | string;
   data?: string;
   operation?: number;
   safeTxGas?: number | string;
@@ -363,8 +393,8 @@ export const buildSafeTransaction = (template: {
     safeTxGas: template.safeTxGas || 0,
     baseGas: template.baseGas || 0,
     gasPrice: template.gasPrice || 0,
-    gasToken: template.gasToken || AddressZero,
-    refundReceiver: template.refundReceiver || AddressZero,
-    nonce: template.nonce,
+    gasToken: template.gasToken || ZeroAddress,
+    refundReceiver: template.refundReceiver || ZeroAddress,
+    nonce: template.nonce
   };
 };

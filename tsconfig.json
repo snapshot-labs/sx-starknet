@@ -1,13 +1,16 @@
 {
-    "compilerOptions": {
-        "esModuleInterop": true,
-        "module": "commonjs",
-        "outDir": "dist",
-        "resolveJsonModule": true,
-        "strict": true,
-        "target": "es5"
-    },
-    "include": [
-        "starknet/test"
-    ]
+  "compilerOptions": {
+    "esModuleInterop": true,
+    "module": "commonjs",
+    "outDir": "dist",
+    "resolveJsonModule": true,
+    "strict": true,
+    "target": "es2020",
+    "skipLibCheck": true
+  },
+  "include": [
+    "hardhat.config.ts",
+    "scripts/**/*.ts",
+    "tests/**/*.ts"
+  ]
 }

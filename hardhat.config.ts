@@ -1,6 +1,5 @@
 import dotenv from 'dotenv';
 dotenv.config();
-import { task } from 'hardhat/config';
 import { HardhatUserConfig } from 'hardhat/types';
 import 'starknet';
 import '@nomicfoundation/hardhat-toolbox';
@@ -16,37 +15,37 @@ const config: HardhatUserConfig = {
         settings: {
           optimizer: {
             enabled: true,
-            runs: 10,
-          },
-        },
+            runs: 10
+          }
+        }
       },
       {
         version: '0.8.24',
         settings: {
           optimizer: {
             enabled: true,
-            runs: 10,
-          },
-        },
-      },
-    ],
+            runs: 10
+          }
+        }
+      }
+    ]
   },
   networks: {
     ethereumLocal: {
       url: 'http://127.0.0.1:8545/',
-      chainId: 31337,
+      chainId: 31337
     },
     starknetLocal: {
-      url: 'http://127.0.0.1:5050',
-    },
+      url: 'http://127.0.0.1:5050'
+    }
   },
   etherscan: {
-    apiKey: process.env.ETHERSCAN_API_KEY,
+    apiKey: process.env.ETHERSCAN_API_KEY
   },
   paths: {
     sources: 'ethereum/src/',
-    tests: './tests',
-  },
+    tests: './tests'
+  }
 };
 
 export default config;

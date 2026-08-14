@@ -1,12 +1,12 @@
 export const sharedTypes = {
   Strategy: [
     { name: 'address', type: 'uint256' },
-    { name: 'params', type: 'uint256[]' },
+    { name: 'params', type: 'uint256[]' }
   ],
   IndexedStrategy: [
     { name: 'index', type: 'uint256' },
-    { name: 'params', type: 'uint256[]' },
-  ],
+    { name: 'params', type: 'uint256[]' }
+  ]
 };
 
 export const proposeTypes = {
@@ -18,9 +18,9 @@ export const proposeTypes = {
     { name: 'metadataUri', type: 'uint256[]' },
     { name: 'executionStrategy', type: 'Strategy' },
     { name: 'userProposalValidationParams', type: 'uint256[]' },
-    { name: 'salt', type: 'uint256' },
+    { name: 'salt', type: 'uint256' }
   ],
-  Strategy: sharedTypes.Strategy,
+  Strategy: sharedTypes.Strategy
 };
 
 export const voteTypes = {
@@ -32,9 +32,9 @@ export const voteTypes = {
     { name: 'proposalId', type: 'uint256' },
     { name: 'choice', type: 'uint256' },
     { name: 'userVotingStrategies', type: 'IndexedStrategy[]' },
-    { name: 'metadataUri', type: 'uint256[]' },
+    { name: 'metadataUri', type: 'uint256[]' }
   ],
-  IndexedStrategy: sharedTypes.IndexedStrategy,
+  IndexedStrategy: sharedTypes.IndexedStrategy
 };
 
 export const updateProposalTypes = {
@@ -46,9 +46,9 @@ export const updateProposalTypes = {
     { name: 'proposalId', type: 'uint256' },
     { name: 'executionStrategy', type: 'Strategy' },
     { name: 'metadataUri', type: 'uint256[]' },
-    { name: 'salt', type: 'uint256' },
+    { name: 'salt', type: 'uint256' }
   ],
-  Strategy: sharedTypes.Strategy,
+  Strategy: sharedTypes.Strategy
 };
 
 export interface Propose {

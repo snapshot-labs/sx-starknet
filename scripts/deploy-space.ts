@@ -1,17 +1,6 @@
-import dotenv from 'dotenv';
 import fs from 'fs';
-import {
-  defaultProvider,
-  Provider,
-  RpcProvider,
-  Account,
-  ec,
-  json,
-  CallData,
-  constants,
-  shortString,
-  cairo,
-} from 'starknet';
+import dotenv from 'dotenv';
+import { Account, cairo, CallData, json, RpcProvider } from 'starknet';
 
 dotenv.config();
 
@@ -24,31 +13,19 @@ async function main() {
   const account = new Account(provider, accountAddress, accountPk);
 
   // OZ Votes token 18 decimals
-  const l1TokenAddress = '0xd96844c9B21CB6cCf2c236257c7fc703E43BA071'; 
+  const l1TokenAddress = '0xd96844c9B21CB6cCf2c236257c7fc703E43BA071';
 
-  // Slot index of the checkpoints mapping in the token contract, 
-  // obtained using Foundry's Cast Storage Layout tool. 
-  const slotIndex = cairo.uint256(8); 
-  
-  const factsRegistryAddress = '0x01b2111317EB693c3EE46633edd45A4876db14A3a53ACDBf4E5166976d8e869d';
-  const timestampsRemapperAddress =
-    '0x2ee57d848297bc7dfc8675111b9aa3bd3085e4038e475250770afe303b772af';
+  // Slot index of the checkpoints mapping in the token contract,
+  // obtained using Foundry's Cast Storage Layout tool.
+  const slotIndex = cairo.uint256(8);
 
-  const evmSlotValueVotingStrategySierra = json.parse(
-    fs
-      .readFileSync('starknet/target/dev/sx_OZVotesStorageProofVotingStrategy.sierra.json')
-      .toString('ascii'),
-  );
-  const evmSlotValueVotingStrategyCasm = json.parse(
-    fs
-      .readFileSync('starknet/target/dev/sx_OZVotesStorageProofVotingStrategy.casm.json')
-      .toString('ascii'),
-  );
   const spaceSierra = json.parse(
-    fs.readFileSync('starknet/target/dev/sx_Space.sierra.json').toString('ascii'),
+    fs
+      .readFileSync('starknet/target/dev/sx_Space.sierra.json')
+      .toString('ascii')
   );
   const spaceCasm = json.parse(
-    fs.readFileSync('starknet/target/dev/sx_Space.casm.json').toString('ascii'),
+    fs.readFileSync('starknet/target/dev/sx_Space.casm.json').toString('ascii')
   );
 
   const vanillaAuthenticatorAddress =
@@ -74,13 +51,13 @@ async function main() {
   const spaceDeployResponse = await account.declareAndDeploy({
     contract: spaceSierra,
     casm: spaceCasm,
-    constructorCalldata: CallData.compile({}),
+    constructorCalldata: CallData.compile({})
   });
   const spaceAddress = spaceDeployResponse.deploy.contract_address;
   console.log('Space Address: ', spaceAddress);
 
   // initialize space
-  const result = await account.execute({
+  await account.execute({
     contractAddress: spaceAddress,
     entrypoint: 'initialize',
     calldata: CallData.compile({
@@ -90,20 +67,20 @@ async function main() {
       _voting_delay: 0,
       _proposal_validation_strategy: {
         address: vanillaProposalValidationStrategyAddress,
-        params: [],
+        params: []
       },
       _proposal_validation_strategy_metadata_uri: [],
       _voting_strategies: [
         {
           address: evmSlotValueVotingStrategyAddress,
-          params: [l1TokenAddress, slotIndex.low, slotIndex.high],
-        },
+          params: [l1TokenAddress, slotIndex.low, slotIndex.high]
+        }
       ],
       _voting_strategies_metadata_uri: [[]],
       _authenticators: [vanillaAuthenticatorAddress],
       _metadata_uri: [],
-      _dao_uri: [],
-    }),
+      _dao_uri: []
+    })
   });
 }
 
