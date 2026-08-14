@@ -29,7 +29,7 @@
     "@openzeppelin/contracts": "^5.0.2",
     "@openzeppelin/hardhat-upgrades": "^3.2.0",
     "@safe-global/safe-contracts": "^1.4.1-build.0",
-    "@snapshot-labs/sx": "^0.1.0-beta.46",
+    "@snapshot-labs/sx": "^0.1.11",
     "@typechain/ethers-v6": "^0.5.1",
     "@typechain/hardhat": "^9.1.0",
     "@types/mocha": "^10.0.7",
@@ -51,13 +51,13 @@
     "micro-starknet": "^0.2.3",
     "prettier": "^3.0.0",
     "solidity-coverage": "^0.8.12",
-    "starknet": "^6.11.0",
+    "starknet": "7.6.4",
     "ts-node": "^10.9.1",
     "typechain": "^8.3.2",
     "typescript": "^5.1.6",
     "wait-on": "^7.0.1"
   },
   "dependencies": {
-    "starknet-devnet": "^0.1.2"
+    "starknet-devnet": "^0.4.2"
   }
 }

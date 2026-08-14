@@ -53,7 +53,7 @@ describe('Ethereum Signature Authenticator', function () {
       args: ["--seed", "42", "--lite-mode", "--dump-on", "request", "--dump-path", "./dump.pkl"],
     };
     console.log("Spawning devnet...");
-    devnet = await StarknetDevnet.spawnVersion("v0.2.0-rc.3", devnetConfig);
+    devnet = await StarknetDevnet.spawnVersion("v0.4.2", devnetConfig);
     console.log("Devnet spawned");
 
     const signers = await ethers.getSigners();

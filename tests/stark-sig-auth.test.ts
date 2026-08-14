@@ -53,7 +53,7 @@ describe('Starknet Signature Authenticator Tests', function () {
       args: ["--seed", "42", "--lite-mode", "--dump-on", "request", "--dump-path", "./dump.pkl"],
     };
     console.log("Spawning devnet...");
-    devnet = await Devnet.spawnVersion("v0.2.0-rc.3", devnetConfig);
+    devnet = await Devnet.spawnVersion("v0.4.2", devnetConfig);
 
     provider = new RpcProvider({ nodeUrl: devnet.provider.url });
 

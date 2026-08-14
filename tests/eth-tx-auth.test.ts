@@ -51,7 +51,7 @@ describe('Ethereum Transaction Authenticator', function () {
       args: ["--seed", "42", "--lite-mode", "--dump-on", "request", "--dump-path", "./dump.pkl", "--host", "127.0.0.1", "--port", "5050"],
     };
     console.log("Spawning devnet...");
-    starknetDevnet = await StarknetDevnet.spawnVersion("v0.2.0-rc.3", devnetConfig);
+    starknetDevnet = await StarknetDevnet.spawnVersion("v0.4.2", devnetConfig);
     starknetDevnetProvider = new StarknetDevnetProvider();
     console.log("Devnet spawned!");
 
