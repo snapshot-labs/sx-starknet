@@ -19,3 +19,4 @@ out/
 /broadcast/**/dry-run/
 
 .VSCodeCounter
+cache_hardhat/

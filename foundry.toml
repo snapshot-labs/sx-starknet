@@ -1,0 +1,17 @@
+[profile.default]
+src = 'ethereum/src'
+out = 'ethereum/out'
+test = 'ethereum/test'
+script = 'ethereum/script'
+libs = []
+solc = "0.8.24"
+evm_version = 'cancun'
+remappings = [
+  '@gnosis.pm/safe-contracts/=node_modules/@gnosis.pm/safe-contracts/',
+  '@gnosis.pm/zodiac/=node_modules/@gnosis.pm/zodiac/',
+  '@openzeppelin/contracts/=node_modules/@openzeppelin/contracts/contracts/',
+  '@openzeppelin/contracts-upgradeable/=node_modules/@openzeppelin/contracts-upgradeable/contracts/',
+  '@safe-global/safe-contracts/=node_modules/@safe-global/safe-contracts/',
+  'forge-std/=node_modules/forge-std/src/',
+  'openzeppelin-contracts/=node_modules/@openzeppelin/contracts/',
+]
