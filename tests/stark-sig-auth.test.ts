@@ -48,12 +48,12 @@ describe('Starknet Signature Authenticator Tests', function () {
   const _max_voting_duration = 200;
   const _voting_delay = 100;
   let _proposal_validation_strategy: { address: string; params: any[] };
-  const _proposal_validation_strategy_metadata_uri = [];
+  const _proposal_validation_strategy_metadata_uri: string[] = [];
   let _voting_strategies: { address: string; params: any[] }[];
   const _voting_strategies_metadata_uri = [[]];
   let _authenticators: string[];
-  const _metadata_uri = [];
-  const _dao_uri = [];
+  const _metadata_uri: string[] = [];
+  const _dao_uri: string[] = [];
 
   before(async function () {
     console.log('account address:', account_address, 'account pk:', account_pk);
@@ -181,7 +181,8 @@ describe('Starknet Signature Authenticator Tests', function () {
 
   it('can authenticate a proposal, a vote, and a proposal update', async () => {
     // PROPOSE
-    const proposalId = uint256.bnToUint256(await space.next_proposal_id());
+    const { low, high } = uint256.bnToUint256(await space.next_proposal_id());
+    const proposalId = { low: String(low), high: String(high) };
 
     const proposeMsg: Propose = {
       space: space.address,
@@ -304,7 +305,8 @@ describe('Starknet Signature Authenticator Tests', function () {
     );
 
     // PROPOSE
-    const proposalId = uint256.bnToUint256(await space.next_proposal_id());
+    const { low, high } = uint256.bnToUint256(await space.next_proposal_id());
+    const proposalId = { low: String(low), high: String(high) };
 
     const proposeMsg: Propose = {
       space: space.address,
@@ -349,7 +351,7 @@ describe('Starknet Signature Authenticator Tests', function () {
       await provider.waitForTransaction(invalidProposeRes.transaction_hash);
       expect.fail('Should have failed');
     } catch (err: any) {
-      expect(err.message).to.contain(
+      expect((err as Error).message).to.contain(
         shortString.encodeShortString('Invalid Signature')
       );
       console.log('Invalid proposal failed as expected');
@@ -419,7 +421,7 @@ describe('Starknet Signature Authenticator Tests', function () {
       );
       expect.fail('Should have failed');
     } catch (err: any) {
-      expect(err.message).to.contain(
+      expect((err as Error).message).to.contain(
         shortString.encodeShortString('Invalid Signature')
       );
       console.log('Invalid update proposal failed as expected');
@@ -488,7 +490,7 @@ describe('Starknet Signature Authenticator Tests', function () {
       await provider.waitForTransaction(invalidVoteRes.transaction_hash);
       expect.fail('Should have failed');
     } catch (err: any) {
-      expect(err.message).to.contain(
+      expect((err as Error).message).to.contain(
         shortString.encodeShortString('Invalid Signature')
       );
       console.log('Invalid vote failed as expected');
@@ -519,7 +521,8 @@ describe('Starknet Signature Authenticator Tests', function () {
     starkSigAuthenticator.connect(account);
 
     // PROPOSE
-    const proposalId = uint256.bnToUint256(await space.next_proposal_id());
+    const { low, high } = uint256.bnToUint256(await space.next_proposal_id());
+    const proposalId = { low: String(low), high: String(high) };
 
     const proposeMsg: Propose = {
       space: space.address,
@@ -573,7 +576,7 @@ describe('Starknet Signature Authenticator Tests', function () {
       await provider.waitForTransaction(invalidProposeRes.transaction_hash);
       expect.fail('Should have failed');
     } catch (err: any) {
-      expect(err.message).to.contain(
+      expect((err as Error).message).to.contain(
         shortString.encodeShortString('Salt Already Used')
       );
     }
@@ -634,7 +637,7 @@ describe('Starknet Signature Authenticator Tests', function () {
       await provider.waitForTransaction(invalidProposalRes.transaction_hash);
       expect.fail('Should have failed');
     } catch (err: any) {
-      expect(err.message).to.contain(
+      expect((err as Error).message).to.contain(
         shortString.encodeShortString('Salt Already Used')
       );
     }

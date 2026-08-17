@@ -51,12 +51,12 @@ describe('Ethereum Signature Authenticator', function () {
   const _max_voting_duration = 200;
   const _voting_delay = 100;
   let _proposal_validation_strategy: { address: string; params: string[] };
-  const _proposal_validation_strategy_metadata_uri = [];
+  const _proposal_validation_strategy_metadata_uri: string[] = [];
   let _voting_strategies: { address: string; params: string[] }[];
   const _voting_strategies_metadata_uri = [[]];
   let _authenticators: string[];
-  const _metadata_uri = [];
-  const _dao_uri = [];
+  const _metadata_uri: string[] = [];
+  const _dao_uri: string[] = [];
 
   before(async function () {
     const devnetConfig = {
@@ -361,7 +361,7 @@ describe('Ethereum Signature Authenticator', function () {
       await provider.waitForTransaction(invalidRes.transaction_hash);
       expect.fail('Should have failed');
     } catch (err: any) {
-      expect(err.message).to.contain(
+      expect((err as Error).message).to.contain(
         shortString.encodeShortString('Invalid signature')
       );
       console.log('Invalid proposal was correctly rejected');
@@ -435,7 +435,7 @@ describe('Ethereum Signature Authenticator', function () {
 
       expect.fail('Should have failed');
     } catch (err: any) {
-      expect(err.message).to.contain(
+      expect((err as Error).message).to.contain(
         shortString.encodeShortString('Invalid signature')
       );
       console.log('Invalid update proposal was correctly rejected');
@@ -513,7 +513,7 @@ describe('Ethereum Signature Authenticator', function () {
       await provider.waitForTransaction(invalidVoteRes.transaction_hash);
       expect.fail('Should have failed');
     } catch (err: any) {
-      expect(err.message).to.contain(
+      expect((err as Error).message).to.contain(
         shortString.encodeShortString('Invalid signature')
       );
       console.log('Invalid vote was correctly rejected');
@@ -607,7 +607,7 @@ describe('Ethereum Signature Authenticator', function () {
       await provider.waitForTransaction(invalidRes.transaction);
       expect.fail('Should have failed');
     } catch (err: any) {
-      expect(err.message).to.contain(
+      expect((err as Error).message).to.contain(
         shortString.encodeShortString('Salt Already Used')
       );
       console.log('Salt reuse was correctly rejected');
@@ -674,7 +674,7 @@ describe('Ethereum Signature Authenticator', function () {
 
       expect.fail('Should have failed');
     } catch (err: any) {
-      expect(err.message).to.contain(
+      expect((err as Error).message).to.contain(
         shortString.encodeShortString('Salt Already Used')
       );
       console.log('Salt reuse was correctly rejected');

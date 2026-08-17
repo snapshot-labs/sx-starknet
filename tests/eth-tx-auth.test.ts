@@ -51,12 +51,12 @@ describe('Ethereum Transaction Authenticator', function () {
   const _max_voting_duration = 200;
   const _voting_delay = 100;
   let _proposal_validation_strategy: { address: string; params: string[] };
-  const _proposal_validation_strategy_metadata_uri = [];
+  const _proposal_validation_strategy_metadata_uri: string[] = [];
   let _voting_strategies: { address: string; params: string[] }[];
   const _voting_strategies_metadata_uri = [[]];
   let _authenticators: string[];
-  const _metadata_uri = [];
-  const _dao_uri = [];
+  const _metadata_uri: string[] = [];
+  const _dao_uri: string[] = [];
 
   before(async function () {
     const devnetConfig = {
@@ -404,7 +404,7 @@ describe('Ethereum Transaction Authenticator', function () {
       console.log('Proposal authenticated');
       expect.fail('Should have failed');
     } catch (err) {
-      expect(err.message).to.contain('Commit not found');
+      expect((err as Error).message).to.contain('Commit not found');
       console.log('Proposal authentication failed as expected');
     }
 
@@ -466,7 +466,7 @@ describe('Ethereum Transaction Authenticator', function () {
       console.log('Update proposal authenticated');
       expect.fail('Should have failed');
     } catch (err) {
-      expect(err.message).to.contain('Commit not found');
+      expect((err as Error).message).to.contain('Commit not found');
       console.log('Update proposal authentication failed as expected');
     }
 
@@ -532,7 +532,7 @@ describe('Ethereum Transaction Authenticator', function () {
       console.log('Vote authenticated');
       expect.fail('Should have failed');
     } catch (err) {
-      expect(err.message).to.contain('Commit not found');
+      expect((err as Error).message).to.contain('Commit not found');
       console.log('Vote authentication failed as expected');
     }
 
@@ -581,11 +581,13 @@ describe('Ethereum Transaction Authenticator', function () {
     console.log('Proposal commit: ', proposalCommit);
 
     console.log('Committing proposal on L1...');
-    await starknetCommit
-      .connect(invalidSigner)
-      .commit(ethTxAuthenticator.address, proposalCommit, {
+    await (starknetCommit.connect(invalidSigner) as any).commit(
+      ethTxAuthenticator.address,
+      proposalCommit,
+      {
         value: 18485000000000
-      });
+      }
+    );
     console.log('Committed!');
 
     // Checking that the L1 -> L2 message has been propagated
@@ -605,7 +607,7 @@ describe('Ethereum Transaction Authenticator', function () {
       await provider.waitForTransaction(proposeRes.transaction_hash);
       expect.fail('Should have failed');
     } catch (err) {
-      expect(err.message).to.contain('Commit not found');
+      expect((err as Error).message).to.contain('Commit not found');
       console.log('Proposal authentication failed as expected');
     }
   });
@@ -641,11 +643,13 @@ describe('Ethereum Transaction Authenticator', function () {
     console.log('Proposal commit: ', proposalCommit);
 
     console.log('Committing proposal on L1 from another signer...');
-    await starknetCommit
-      .connect(invalidSigner)
-      .commit(ethTxAuthenticator.address, proposalCommit, {
+    await (starknetCommit.connect(invalidSigner) as any).commit(
+      ethTxAuthenticator.address,
+      proposalCommit,
+      {
         value: 18485000000000
-      });
+      }
+    );
     console.log('Committed!');
 
     // Checking that the L1 -> L2 message has been propagated
@@ -741,7 +745,7 @@ describe('Ethereum Transaction Authenticator', function () {
       await provider.waitForTransaction(proposeRes.transaction_hash);
       expect.fail('Should have failed');
     } catch (err) {
-      expect(err.message).to.contain('Commit not found');
+      expect((err as Error).message).to.contain('Commit not found');
       console.log('Proposal authentication failed as expected');
     }
   });
@@ -783,11 +787,13 @@ describe('Ethereum Transaction Authenticator', function () {
     console.log('Committed!');
 
     console.log('Committing proposal on L1 from another signer...');
-    await starknetCommit
-      .connect(invalidSigner)
-      .commit(ethTxAuthenticator.address, proposalCommit, {
+    await (starknetCommit.connect(invalidSigner) as any).commit(
+      ethTxAuthenticator.address,
+      proposalCommit,
+      {
         value: 18485000000000
-      });
+      }
+    );
     console.log('Committed!');
 
     // Checking that the L1 -> L2 message has been propagated

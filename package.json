@@ -7,14 +7,14 @@
     "url": "git+https://github.com/snapshot-labs/sx-starknet.git"
   },
   "scripts": {
-    "format:json": "json-format ./tests/data/*.json",
     "test:stark-sig-auth": "bash './scripts/stark-sig-auth-test.sh'",
     "test:eth-sig-auth": "bash './scripts/eth-sig-auth-test.sh'",
     "test:eth-tx-auth": "bash './scripts/eth-tx-auth-test.sh'",
     "test:l1-execution": "bash './scripts/l1-avatar-execution-test.sh'",
     "test-ts": "bun run test:stark-sig-auth && bun run test:eth-sig-auth && bun run test:eth-tx-auth && bun run test:l1-execution",
     "lint": "eslint .",
-    "lint:fix": "eslint . --fix"
+    "lint:fix": "eslint . --fix",
+    "typecheck": "tsc --noEmit"
   },
   "prettier": "@snapshot-labs/prettier-config",
   "dependencies": {
@@ -25,12 +25,10 @@
     "@nomicfoundation/hardhat-chai-matchers": "^2.0.0",
     "@nomicfoundation/hardhat-ethers": "^3.0.6",
     "@nomicfoundation/hardhat-foundry": "^1.1.1",
-    "@nomicfoundation/hardhat-ignition": "^0.15.5",
     "@nomicfoundation/hardhat-ignition-ethers": "^0.15.5",
     "@nomicfoundation/hardhat-network-helpers": "^1.0.11",
     "@nomicfoundation/hardhat-toolbox": "^5.0.0",
     "@nomicfoundation/hardhat-verify": "^2.0.0",
-    "@nomicfoundation/ignition-core": "^0.15.5",
     "@openzeppelin/contracts": "^5.0.2",
     "@openzeppelin/hardhat-upgrades": "^3.2.0",
     "@safe-global/safe-contracts": "^1.4.1-build.0",
@@ -41,23 +39,19 @@
     "@typechain/hardhat": "^9.1.0",
     "@types/mocha": "^10.0.7",
     "@types/node": "^20.4.5",
-    "@types/sinon-chai": "^3.2.9",
     "axios": "1.7.3",
     "chai": "4",
-    "concurrently": "^7.0.0",
     "dotenv": "^16.3.1",
     "eslint": "^9.0.0",
     "ethers": "^6.13.2",
     "hardhat": "^2.17.2",
     "hardhat-gas-reporter": "^1.0.8",
-    "json-format-cli": "^1.1.1",
     "micro-starknet": "^0.2.3",
     "prettier": "3.2.5",
     "solidity-coverage": "^0.8.12",
     "starknet": "7.6.4",
     "ts-node": "^10.9.1",
     "typechain": "^8.3.2",
-    "typescript": "^5.1.6",
-    "wait-on": "^7.0.1"
+    "typescript": "^5.1.6"
   }
 }

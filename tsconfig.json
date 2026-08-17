@@ -1,16 +1,15 @@
 {
   "compilerOptions": {
     "esModuleInterop": true,
-    "module": "commonjs",
-    "outDir": "dist",
+    "skipLibCheck": true,
     "resolveJsonModule": true,
+    "isolatedModules": true,
     "strict": true,
+    "noUncheckedIndexedAccess": false,
+    "module": "commonjs",
     "target": "es2020",
-    "skipLibCheck": true
+    "outDir": "dist",
+    "types": ["node", "mocha", "chai"]
   },
-  "include": [
-    "hardhat.config.ts",
-    "scripts/**/*.ts",
-    "tests/**/*.ts"
-  ]
+  "include": ["hardhat.config.ts", "scripts/**/*.ts", "tests/**/*.ts"]
 }
