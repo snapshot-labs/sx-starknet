@@ -1,18 +1,15 @@
 #[starknet::component]
 mod SingleSlotProofComponent {
-    use starknet::{ContractAddress, EthAddress};
+    use starknet::{ContractAddress, EthAddress, contract_address_to_felt252};
     use sx::external::herodotus::{
-        Words64, BinarySearchTree, ITimestampRemappersDispatcher,
-        ITimestampRemappersDispatcherTrait, IEVMFactsRegistryDispatcher,
-        IEVMFactsRegistryDispatcherTrait
+        ISatelliteDispatcher, ISatelliteDispatcherTrait, Words64, AccountField
     };
     use sx::interfaces::i_single_slot_proof::ISingleSlotProof;
 
     #[storage]
     struct Storage {
-        Singleslotproof_timestamp_remappers: ContractAddress,
-        Singleslotproof_facts_registry: ContractAddress,
-        Singleslotproof_cached_remapped_timestamps: LegacyMap::<u32, u256>
+        Singleslotproof_satellite_contract: ContractAddress,
+        Singleslotproof_chain_id: u128,
     }
 
     #[generate_trait]
@@ -21,11 +18,12 @@ mod SingleSlotProofComponent {
     > of InternalTrait<TContractState> {
         fn initializer(
             ref self: ComponentState<TContractState>,
-            timestamp_remappers: ContractAddress,
-            facts_registry: ContractAddress
+            satellite_contract: ContractAddress,
+            // The L1 chain id to use with the satellite contract.
+            chain_id: u128,
         ) {
-            self.Singleslotproof_timestamp_remappers.write(timestamp_remappers);
-            self.Singleslotproof_facts_registry.write(facts_registry);
+            self.Singleslotproof_satellite_contract.write(satellite_contract);
+            self.Singleslotproof_chain_id.write(chain_id);
         }
 
         fn get_storage_slot(
@@ -35,15 +33,25 @@ mod SingleSlotProofComponent {
             slot_key: u256,
             mpt_proof: Span<Words64>
         ) -> u256 {
-            // Checks if the timestamp is already cached.
-            let l1_block_number = self.Singleslotproof_cached_remapped_timestamps.read(timestamp);
-            assert(l1_block_number.is_non_zero(), 'Timestamp not cached');
+            // Get the L1 block from the satellite contract.
+            let l1_block_number = self.get_block_by_timestamp(timestamp);
 
-            // Returns the value of the storage slot of account: `l1_contract_address` at key: `slot_key` and block number: `l1_block_number`.
-            let slot_value = IEVMFactsRegistryDispatcher {
-                contract_address: self.Singleslotproof_facts_registry.read()
+            // Get the storage root of the account `l1_contract_address` at block `l1_block_number`
+            let storage_root = ISatelliteDispatcher {
+                contract_address: self.Singleslotproof_satellite_contract.read()
             }
-                .get_storage(l1_block_number, l1_contract_address.into(), slot_key, mpt_proof);
+                .accountField(
+                    self.Singleslotproof_chain_id.read().into(),
+                    l1_block_number,
+                    l1_contract_address.into(),
+                    AccountField::STORAGE_ROOT
+                );
+
+            // Verify the `mpt_proof` and get the value of the storage slot from the using the `storage_root` and the `slot_key`
+            let slot_value = ISatelliteDispatcher {
+                contract_address: self.Singleslotproof_satellite_contract.read()
+            }
+                .verifyOnlyStorage(slot_key, storage_root, mpt_proof);
 
             slot_value
         }
@@ -53,25 +61,13 @@ mod SingleSlotProofComponent {
     impl SimpleQuorum<
         TContractState, +HasComponent<TContractState>
     > of ISingleSlotProof<ComponentState<TContractState>> {
-        fn cache_timestamp(
-            ref self: ComponentState<TContractState>, timestamp: u32, tree: BinarySearchTree
-        ) {
-            // Maps timestamp to closest L1 block number that occurred before the timestamp. If the queried 
-            // timestamp is less than the earliest timestamp or larger than the latest timestamp in the mapper
-            // then the call will return Option::None and the transaction will revert.
-            let l1_block_number = ITimestampRemappersDispatcher {
-                contract_address: self.Singleslotproof_timestamp_remappers.read()
+        fn get_block_by_timestamp(self: @ComponentState<TContractState>, timestamp: u32) -> u256 {
+            let l1_block_number = ISatelliteDispatcher {
+                contract_address: self.Singleslotproof_satellite_contract.read()
             }
-                .get_closest_l1_block_number(tree, timestamp.into())
-                .expect('TimestampRemappers call failed')
-                .expect('Timestamp out of range');
+                .timestamp(self.Singleslotproof_chain_id.read().into(), timestamp.into());
 
-            self.Singleslotproof_cached_remapped_timestamps.write(timestamp, l1_block_number);
-        }
-
-        fn cached_timestamps(self: @ComponentState<TContractState>, timestamp: u32) -> u256 {
-            let l1_block_number = self.Singleslotproof_cached_remapped_timestamps.read(timestamp);
-            assert(l1_block_number.is_non_zero(), 'Timestamp not cached');
+            assert(l1_block_number.is_non_zero(), 'Received block number is zero');
             l1_block_number
         }
     }

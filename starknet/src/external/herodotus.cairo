@@ -1,45 +1,65 @@
-type Peaks = Span<felt252>;
-
-type Proof = Span<felt252>;
+use starknet::EthAddress;
 
 type Words64 = Span<u64>;
 
-type MapperId = u256;
-
-type MmrSize =
-    u256; // From 'https://github.com/HerodotusDev/cairo-lib/blob/update-cairo/src/data_structures/mmr/mmr.cairo'
-
-
 #[derive(Drop, Serde)]
-struct ProofElement {
-    index: MmrSize,
-    value: u256,
-    proof: Proof,
+pub enum AccountField {
+    NONCE,
+    BALANCE,
+    STORAGE_ROOT,
+    CODE_HASH,
+    APE_FLAGS,
+    APE_FIXED,
+    APE_SHARES,
+    APE_DEBT,
+    APE_DELEGATE,
 }
 
-#[derive(Drop, Serde)]
-struct BinarySearchTree {
-    mapper_id: MapperId,
-    last_pos: MmrSize, // last_pos in mapper's MMR
-    peaks: Peaks,
-    proofs: Span<ProofElement>, // Midpoint elements inclusion proofs
-    left_neighbor: Option<ProofElement>, // Optional left neighbor inclusion proof
+impl AccountFieldIntoU32 of Into<AccountField, u32> {
+    fn into(self: AccountField) -> u32 {
+        match self {
+            AccountField::NONCE => 0,
+            AccountField::BALANCE => 1,
+            AccountField::STORAGE_ROOT => 2,
+            AccountField::CODE_HASH => 3,
+            AccountField::APE_FLAGS => 4,
+            AccountField::APE_FIXED => 5,
+            AccountField::APE_SHARES => 6,
+            AccountField::APE_DEBT => 7,
+            AccountField::APE_DELEGATE => 8,
+        }
+    }
 }
 
 #[starknet::interface]
-trait ITimestampRemappers<TContractState> {
-    // Retrieves the block number of the L1 closest timestamp to the given timestamp.
-    fn get_closest_l1_block_number(
-        self: @TContractState, tree: BinarySearchTree, timestamp: u256
-    ) -> Result<Option<u256>, felt252>;
-
-    // Getter for the last timestamp of a given mapper.
-    fn get_last_mapper_timestamp(self: @TContractState, mapper_id: MapperId) -> u256;
-}
-
-#[starknet::interface]
-trait IEVMFactsRegistry<TContractState> {
-    fn get_storage(
-        self: @TContractState, block: u256, account: felt252, slot: u256, mpt_proof: Span<Words64>
+pub trait ISatellite<TContractState> {
+    /// Returns account field (e.g. nonce, balance or storage root) of a given account, at a given
+    /// block number on a given chain id.
+    /// Reverts with "STORAGE_PROOF_ACCOUNT_FIELD_NOT_SAVED" if the field is not saved.
+    fn accountField(
+        self: @TContractState,
+        chain_id: u256,
+        block_number: u256,
+        account: EthAddress,
+        field: AccountField,
     ) -> u256;
+
+    /// Verifies the storageSlotMptProof against account's storage root.
+    /// Returns storage slot value.
+    /// IMPORTANT: It DOES NOT check whether storage root is valid given the chain id, block number,
+    /// account address and slot index.
+    /// To verify storage root, use verifyOnlyAccount function.
+    fn verifyOnlyStorage(
+        self: @TContractState,
+        slot: u256,
+        storage_root: u256,
+        storage_slot_mpt_proof: Span<Words64>,
+    ) -> u256;
+
+    /// Returns block number with a biggest timestamp that is less than or equal to the given
+    /// timestamp.
+    /// In other words, it answers what was the latest block at a given timestamp (including block
+    /// with equal timestamp).
+    /// Reverts with "STORAGE_PROOF_TIMESTAMP_NOT_SAVED" if the timestamp is not saved.
+    fn timestamp(self: @TContractState, chain_id: u256, timestamp: u256) -> u256;
 }
