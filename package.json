@@ -1,20 +1,24 @@
 {
-  "name": "sx",
-  "version": "1.0.0",
-  "description": "Cairo 1 implementation of the Snapshot X Protocol",
-  "repository": "https://github.com/snapshot-labs/sx-starknet.git",
-  "author": "Snapshot Labs",
+  "name": "sx-starknet",
+  "private": true,
   "license": "MIT",
-  "main": "index.js",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/snapshot-labs/sx-starknet.git"
+  },
   "scripts": {
     "format:json": "json-format ./tests/data/*.json",
     "test:stark-sig-auth": "bash './scripts/stark-sig-auth-test.sh'",
     "test:eth-sig-auth": "bash './scripts/eth-sig-auth-test.sh'",
     "test:eth-tx-auth": "bash './scripts/eth-tx-auth-test.sh'",
     "test:l1-execution": "bash './scripts/l1-avatar-execution-test.sh'",
-    "test-ts": "yarn test:stark-sig-auth && yarn test:eth-sig-auth && yarn test:eth-tx-auth && yarn test:l1-execution",
+    "test-ts": "bun run test:stark-sig-auth && bun run test:eth-sig-auth && bun run test:eth-tx-auth && bun run test:l1-execution",
     "lint": "eslint .",
     "lint:fix": "eslint . --fix"
+  },
+  "prettier": "@snapshot-labs/prettier-config",
+  "dependencies": {
+    "starknet-devnet": "^0.4.2"
   },
   "devDependencies": {
     "@gnosis.pm/zodiac": "^4.0.3",
@@ -38,13 +42,12 @@
     "@types/mocha": "^10.0.7",
     "@types/node": "^20.4.5",
     "@types/sinon-chai": "^3.2.9",
-    "axios": "^1.5.0",
+    "axios": "1.7.3",
     "chai": "4",
     "concurrently": "^7.0.0",
     "dotenv": "^16.3.1",
     "eslint": "^9.0.0",
     "ethers": "^6.13.2",
-    "fs": "^0.0.1-security",
     "hardhat": "^2.17.2",
     "hardhat-gas-reporter": "^1.0.8",
     "json-format-cli": "^1.1.1",
@@ -56,9 +59,5 @@
     "typechain": "^8.3.2",
     "typescript": "^5.1.6",
     "wait-on": "^7.0.1"
-  },
-  "dependencies": {
-    "starknet-devnet": "^0.4.2"
-  },
-  "prettier": "@snapshot-labs/prettier-config"
+  }
 }

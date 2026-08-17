@@ -49,12 +49,12 @@ forge test
 
 On a separate terminal, spin an L1 node (hardhat in this example, but could be anvil):
 ```sh
-yarn hardhat node
+bunx hardhat node
 ```
 
 Now run the tests:
 ```sh
-yarn test-ts
+bun run test-ts
 ```
 
 #### Run Hardhat Tests

@@ -1,7 +1,7 @@
 #!/bin/bash
 
 kill -9 $(lsof -t -i:5050)
-yarn hardhat test tests/stark-sig-auth.test.ts
+bunx hardhat test tests/stark-sig-auth.test.ts
 if [ $? -eq 0 ]
 then
   kill -9 $(lsof -t -i:5050)

@@ -2,9 +2,9 @@
 
 kill -9 $(lsof -t -i:8545)
 kill -9 $(lsof -t -i:5050)
-yarn hardhat node &
+bunx hardhat node &
 sleep 5 &&
-yarn hardhat test tests/l1-avatar-execution.test.ts --network 'ethereumLocal'
+bunx hardhat test tests/l1-avatar-execution.test.ts --network 'ethereumLocal'
 if [ $? -eq 0 ]
 then
   kill -9 $(lsof -t -i:8545)
