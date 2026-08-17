@@ -8,7 +8,8 @@ import {
   RpcProvider,
   shortString,
   StarknetDomain,
-  TypedData as StarknetTypedData
+  TypedData as StarknetTypedData,
+  uint256
 } from 'starknet';
 import { Devnet } from 'starknet-devnet';
 import {
@@ -22,6 +23,9 @@ import {
 import { getCompiledCode } from './utils';
 
 dotenv.config();
+
+let saltCounter = 0;
+const nextSalt = () => `0x${(++saltCounter).toString(16)}`;
 
 const account_address = process.env.ADDRESS || '';
 const account_pk = process.env.PK || '';
@@ -55,20 +59,15 @@ describe('Starknet Signature Authenticator Tests', function () {
     console.log('account address:', account_address, 'account pk:', account_pk);
 
     const devnetConfig = {
-      args: [
-        '--seed',
-        '42',
-        '--lite-mode',
-        '--dump-on',
-        'request',
-        '--dump-path',
-        './dump.pkl'
-      ]
+      args: ['--seed', '42', '--lite-mode']
     };
     console.log('Spawning devnet...');
     devnet = await Devnet.spawnVersion('v0.4.2', devnetConfig);
 
-    provider = new RpcProvider({ nodeUrl: devnet.provider.url });
+    provider = new RpcProvider({
+      nodeUrl: devnet.provider.url,
+      transactionRetryIntervalFallback: 100
+    });
 
     // Account used for deployments
     account = new Account(provider, account_address, account_pk);
@@ -178,18 +177,12 @@ describe('Starknet Signature Authenticator Tests', function () {
       version: domain_version,
       chainId: '0x534e5f5345504f4c4941' // 'SN_SEPOLIA'
     };
-
-    // Dumping the Starknet state so it can be loaded at the same point for each test
-    console.log('Dumping state...');
-    await devnet.provider.dump('dump.pkl');
-    console.log('State dumped');
   });
 
   it('can authenticate a proposal, a vote, and a proposal update', async () => {
-    await devnet.provider.restart();
-    await devnet.provider.load('./dump.pkl');
-
     // PROPOSE
+    const proposalId = uint256.bnToUint256(await space.next_proposal_id());
+
     const proposeMsg: Propose = {
       space: space.address,
       author: account.address,
@@ -204,7 +197,7 @@ describe('Starknet Signature Authenticator Tests', function () {
         '0x5678',
         '0x9abc'
       ],
-      salt: '0x0'
+      salt: nextSalt()
     };
 
     console.log('Signing proposal message...');
@@ -234,13 +227,13 @@ describe('Starknet Signature Authenticator Tests', function () {
     const updateProposalMsg: UpdateProposal = {
       space: space.address,
       author: account.address,
-      proposalId: { low: '0x1', high: '0x0' },
+      proposalId: proposalId,
       executionStrategy: {
         address: '0x0000000000000000000000000000000000005678',
         params: ['0x5', '0x6', '0x7', '0x8']
       },
       metadataUri: ['0x1', '0x2', '0x3', '0x4'],
-      salt: '0x1'
+      salt: nextSalt()
     };
 
     const updateProposalSig = (await account.signMessage({
@@ -270,7 +263,7 @@ describe('Starknet Signature Authenticator Tests', function () {
     const voteMsg: Vote = {
       space: space.address,
       voter: account.address,
-      proposalId: { low: '0x1', high: '0x0' },
+      proposalId: proposalId,
       choice: '0x1',
       userVotingStrategies: [
         { index: '0x0', params: ['0x1', '0x2', '0x3', '0x4'] }
@@ -301,8 +294,6 @@ describe('Starknet Signature Authenticator Tests', function () {
   });
 
   it('should revert if an incorrect signature is used', async () => {
-    await devnet.provider.restart();
-    await devnet.provider.load('./dump.pkl');
     starkSigAuthenticator.connect(account);
 
     // Account #1 on Starknet devnet with seed 42
@@ -313,6 +304,8 @@ describe('Starknet Signature Authenticator Tests', function () {
     );
 
     // PROPOSE
+    const proposalId = uint256.bnToUint256(await space.next_proposal_id());
+
     const proposeMsg: Propose = {
       space: space.address,
       author: account.address,
@@ -327,7 +320,7 @@ describe('Starknet Signature Authenticator Tests', function () {
         '0x5678',
         '0x9abc'
       ],
-      salt: '0x0'
+      salt: nextSalt()
     };
 
     const invalidProposeSignature = (await invalidAccount.signMessage({
@@ -388,13 +381,13 @@ describe('Starknet Signature Authenticator Tests', function () {
     const updateProposalMsg: UpdateProposal = {
       space: space.address,
       author: account.address,
-      proposalId: { low: '0x1', high: '0x0' },
+      proposalId: proposalId,
       executionStrategy: {
         address: '0x0000000000000000000000000000000000005678',
         params: ['0x5', '0x6', '0x7', '0x8']
       },
       metadataUri: ['0x1', '0x2', '0x3', '0x4'],
-      salt: '0x1'
+      salt: nextSalt()
     };
 
     const invalidUpdateProposalSignature = (await invalidAccount.signMessage({
@@ -464,7 +457,7 @@ describe('Starknet Signature Authenticator Tests', function () {
     const voteMsg: Vote = {
       space: space.address,
       voter: account.address,
-      proposalId: { low: '0x1', high: '0x0' },
+      proposalId: proposalId,
       choice: '0x1',
       userVotingStrategies: [
         { index: '0x0', params: ['0x1', '0x2', '0x3', '0x4'] }
@@ -523,11 +516,11 @@ describe('Starknet Signature Authenticator Tests', function () {
   });
 
   it('should revert if a salt is reused by an author when creating or updating a proposal', async () => {
-    await devnet.provider.restart();
-    await devnet.provider.load('./dump.pkl');
     starkSigAuthenticator.connect(account);
 
     // PROPOSE
+    const proposalId = uint256.bnToUint256(await space.next_proposal_id());
+
     const proposeMsg: Propose = {
       space: space.address,
       author: account.address,
@@ -542,7 +535,7 @@ describe('Starknet Signature Authenticator Tests', function () {
         '0x5678',
         '0x9abc'
       ],
-      salt: '0x0'
+      salt: nextSalt()
     };
 
     const proposeSignature = (await account.signMessage({
@@ -591,13 +584,13 @@ describe('Starknet Signature Authenticator Tests', function () {
     const updateProposalMsg: UpdateProposal = {
       space: space.address,
       author: account.address,
-      proposalId: { low: '0x1', high: '0x0' },
+      proposalId: proposalId,
       executionStrategy: {
         address: '0x0000000000000000000000000000000000005678',
         params: ['0x5', '0x6', '0x7', '0x8']
       },
       metadataUri: ['0x1', '0x2', '0x3', '0x4'],
-      salt: '0x1'
+      salt: nextSalt()
     };
 
     const updateProposalSignature = (await account.signMessage({

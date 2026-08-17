@@ -24,6 +24,9 @@ import { getCompiledCode, getRSVFromSig } from './utils';
 
 dotenv.config();
 
+let saltCounter = 0;
+const nextSalt = () => `0x${(++saltCounter).toString(16)}`;
+
 const chainId = '0x534e5f5345504f4c4941'; // SN_SEPOLIA
 const account_address = process.env.ADDRESS || '';
 const account_pk = process.env.PK || '';
@@ -57,15 +60,7 @@ describe('Ethereum Signature Authenticator', function () {
 
   before(async function () {
     const devnetConfig = {
-      args: [
-        '--seed',
-        '42',
-        '--lite-mode',
-        '--dump-on',
-        'request',
-        '--dump-path',
-        './dump.pkl'
-      ]
+      args: ['--seed', '42', '--lite-mode']
     };
     console.log('Spawning devnet...');
     devnet = await StarknetDevnet.spawnVersion('v0.4.2', devnetConfig);
@@ -74,7 +69,10 @@ describe('Ethereum Signature Authenticator', function () {
     const signers = await ethers.getSigners();
     signer = signers[0];
 
-    provider = new StarknetRpcProvider({ nodeUrl: devnet.provider.url });
+    provider = new StarknetRpcProvider({
+      nodeUrl: devnet.provider.url,
+      transactionRetryIntervalFallback: 100
+    });
 
     // Account used for deployments
     account = new StarknetAccount(provider, account_address, account_pk);
@@ -172,19 +170,14 @@ describe('Ethereum Signature Authenticator', function () {
     console.log('Space initialized');
 
     await devnet.provider.createBlock();
-
-    // Dumping the Starknet state so it can be loaded at the same point for each test
-    console.log('Dumping state...');
-    await devnet.provider.dump('dump.pkl');
-    console.log('State dumped');
   });
 
   it('can authenticate a proposal, a vote, and a proposal update', async () => {
-    await devnet.provider.restart();
-    await devnet.provider.load('./dump.pkl');
     ethSigAuthenticator.connect(account);
 
     // PROPOSE
+    const proposalId = `0x${(await space.next_proposal_id()).toString(16)}`;
+
     const proposeMsg: Propose = {
       chainId,
       authenticator: ethSigAuthenticator.address,
@@ -201,7 +194,7 @@ describe('Ethereum Signature Authenticator', function () {
         '0x5678',
         '0x9abc'
       ],
-      salt: '0x0'
+      salt: nextSalt()
     };
 
     let sig = await signer.signTypedData(domain, proposeTypes, proposeMsg);
@@ -234,13 +227,13 @@ describe('Ethereum Signature Authenticator', function () {
       authenticator: ethSigAuthenticator.address,
       space: space.address,
       author: signer.address,
-      proposalId: '0x1',
+      proposalId: proposalId,
       executionStrategy: {
         address: '0x0000000000000000000000000000000000005678',
         params: ['0x0']
       },
       metadataUri: ['0x1', '0x2', '0x3', '0x4'],
-      salt: '0x1'
+      salt: nextSalt()
     };
 
     sig = await signer.signTypedData(
@@ -281,7 +274,7 @@ describe('Ethereum Signature Authenticator', function () {
       authenticator: ethSigAuthenticator.address,
       space: space.address,
       voter: signer.address,
-      proposalId: '0x1',
+      proposalId: proposalId,
       choice: '0x1',
       userVotingStrategies: [
         { index: '0x0', params: ['0x1', '0x2', '0x3', '0x4'] }
@@ -314,11 +307,11 @@ describe('Ethereum Signature Authenticator', function () {
   });
 
   it('should revert if an incorrect signature is used', async () => {
-    await devnet.provider.restart();
-    await devnet.provider.load('./dump.pkl');
     ethSigAuthenticator.connect(account);
 
     // PROPOSE
+    const proposalId = `0x${(await space.next_proposal_id()).toString(16)}`;
+
     const proposeMsg: Propose = {
       chainId,
       authenticator: ethSigAuthenticator.address,
@@ -335,7 +328,7 @@ describe('Ethereum Signature Authenticator', function () {
         '0x5678',
         '0x9abc'
       ],
-      salt: '0x0'
+      salt: nextSalt()
     };
 
     // Random, signer that does not correspond to the proposal author
@@ -405,13 +398,13 @@ describe('Ethereum Signature Authenticator', function () {
       authenticator: ethSigAuthenticator.address,
       space: space.address,
       author: signer.address,
-      proposalId: '0x1',
+      proposalId: proposalId,
       executionStrategy: {
         address: '0x0000000000000000000000000000000000005678',
         params: ['0x0']
       },
       metadataUri: ['0x1', '0x2', '0x3', '0x4'],
-      salt: '0x1'
+      salt: nextSalt()
     };
 
     try {
@@ -484,7 +477,7 @@ describe('Ethereum Signature Authenticator', function () {
       authenticator: ethSigAuthenticator.address,
       space: space.address,
       voter: signer.address,
-      proposalId: '0x1',
+      proposalId: proposalId,
       choice: '0x1',
       userVotingStrategies: [
         { index: '0x0', params: ['0x1', '0x2', '0x3', '0x4'] }
@@ -551,11 +544,11 @@ describe('Ethereum Signature Authenticator', function () {
   });
 
   it('should revert if a salt is reused by an author when creating or updating a proposal', async () => {
-    await devnet.provider.restart();
-    await devnet.provider.load('./dump.pkl');
     ethSigAuthenticator.connect(account);
 
     // PROPOSE
+    const proposalId = `0x${(await space.next_proposal_id()).toString(16)}`;
+
     const proposeMsg: Propose = {
       chainId,
       authenticator: ethSigAuthenticator.address,
@@ -572,7 +565,7 @@ describe('Ethereum Signature Authenticator', function () {
         '0x5678',
         '0x9abc'
       ],
-      salt: '0x0'
+      salt: nextSalt()
     };
 
     let sig = await signer.signTypedData(domain, proposeTypes, proposeMsg);
@@ -627,13 +620,13 @@ describe('Ethereum Signature Authenticator', function () {
       authenticator: ethSigAuthenticator.address,
       space: space.address,
       author: signer.address,
-      proposalId: '0x1',
+      proposalId: proposalId,
       executionStrategy: {
         address: '0x0000000000000000000000000000000000005678',
         params: ['0x0']
       },
       metadataUri: ['0x1', '0x2', '0x3', '0x4'],
-      salt: '0x1'
+      salt: nextSalt()
     };
 
     sig = await signer.signTypedData(

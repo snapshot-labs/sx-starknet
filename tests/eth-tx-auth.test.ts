@@ -6,13 +6,13 @@ import { config, ethers } from 'hardhat';
 import { HttpNetworkConfig } from 'hardhat/types';
 import { poseidonHashMany } from 'micro-starknet';
 import {
-  cairo,
   CairoCustomEnum,
   CallData,
   selector,
   Account as StarknetAccount,
   Contract as StarknetContract,
-  RpcProvider as StarknetRpcProvider
+  RpcProvider as StarknetRpcProvider,
+  uint256
 } from 'starknet';
 import {
   Devnet as StarknetDevnet,
@@ -64,10 +64,6 @@ describe('Ethereum Transaction Authenticator', function () {
         '--seed',
         '42',
         '--lite-mode',
-        '--dump-on',
-        'request',
-        '--dump-path',
-        './dump.pkl',
         '--host',
         '127.0.0.1',
         '--port',
@@ -87,7 +83,8 @@ describe('Ethereum Transaction Authenticator', function () {
     console.log('Mock messaging contract: ', mockMessagingContractAddress);
 
     provider = new StarknetRpcProvider({
-      nodeUrl: starknetDevnet.provider.url
+      nodeUrl: starknetDevnet.provider.url,
+      transactionRetryIntervalFallback: 100
     });
 
     // Account used for deployments
@@ -204,20 +201,9 @@ describe('Ethereum Transaction Authenticator', function () {
     );
     await provider.waitForTransaction(initializeRes.transaction_hash);
     console.log('Space initialized');
-
-    // Dumping the Starknet state so it can be loaded at the same point for each test
-    console.log('Dumping state...');
-    await starknetDevnet.provider.dump('dump.pkl');
-    console.log('State dumped');
   });
 
   it('can authenticate a proposal, a vote, and a proposal update', async () => {
-    await starknetDevnet.provider.restart();
-    await starknetDevnet.provider.load('./dump.pkl');
-    await starknetDevnetProvider.postman.loadL1MessagingContract(
-      eth_network,
-      mockMessagingContractAddress
-    );
     ethTxAuthenticator.connect(account);
 
     const proposal = {
@@ -259,6 +245,8 @@ describe('Ethereum Transaction Authenticator', function () {
     console.log('Messages flushed!');
 
     console.log('Authenticating proposal...');
+    const proposalId = uint256.bnToUint256(await space.next_proposal_id());
+
     const proposeRes = await ethTxAuthenticator.authenticate_propose(
       space.address,
       proposal.author,
@@ -271,7 +259,7 @@ describe('Ethereum Transaction Authenticator', function () {
 
     const updateProposal = {
       author: signer.address,
-      proposalId: cairo.uint256('0x1'),
+      proposalId: proposalId,
       executionStrategy: {
         address: '0x0000000000000000000000000000000000005678',
         params: ['0x0']
@@ -316,7 +304,7 @@ describe('Ethereum Transaction Authenticator', function () {
 
     const vote = {
       voter: signer.address,
-      proposalId: cairo.uint256('0x1'),
+      proposalId: proposalId,
       choice: '0x1',
       userVotingStrategies: [
         { index: '0x0', params: ['0x1', '0x2', '0x3', '0x4'] }
@@ -361,12 +349,6 @@ describe('Ethereum Transaction Authenticator', function () {
   });
 
   it('should revert if an invalid hash of an action was committed', async () => {
-    await starknetDevnet.provider.restart();
-    await starknetDevnet.provider.load('./dump.pkl');
-    await starknetDevnetProvider.postman.loadL1MessagingContract(
-      eth_network,
-      mockMessagingContractAddress
-    );
     ethTxAuthenticator.connect(account);
 
     const proposal = {
@@ -427,6 +409,8 @@ describe('Ethereum Transaction Authenticator', function () {
     }
 
     console.log('Authenticating proposal...');
+    const proposalId = uint256.bnToUint256(await space.next_proposal_id());
+
     const proposeRes = await ethTxAuthenticator.authenticate_propose(
       space.address,
       proposal.author,
@@ -439,7 +423,7 @@ describe('Ethereum Transaction Authenticator', function () {
 
     const updateProposal = {
       author: signer.address,
-      proposalId: cairo.uint256('0x1'),
+      proposalId: proposalId,
       executionStrategy: {
         address: '0x0000000000000000000000000000000000005678',
         params: ['0x0']
@@ -502,7 +486,7 @@ describe('Ethereum Transaction Authenticator', function () {
 
     const vote = {
       voter: signer.address,
-      proposalId: cairo.uint256('0x1'),
+      proposalId: proposalId,
       choice: '0x1',
       userVotingStrategies: [
         { index: '0x0', params: ['0x1', '0x2', '0x3', '0x4'] }
@@ -567,12 +551,6 @@ describe('Ethereum Transaction Authenticator', function () {
   });
 
   it('should revert if a commit was made by a different address to the author/voter address', async () => {
-    await starknetDevnet.provider.restart();
-    await starknetDevnet.provider.load('./dump.pkl');
-    await starknetDevnetProvider.postman.loadL1MessagingContract(
-      eth_network,
-      mockMessagingContractAddress
-    );
     ethTxAuthenticator.connect(account);
 
     const proposal = {
@@ -633,12 +611,6 @@ describe('Ethereum Transaction Authenticator', function () {
   });
 
   it('should not revert if the same commit was made twice', async () => {
-    await starknetDevnet.provider.restart();
-    await starknetDevnet.provider.load('./dump.pkl');
-    await starknetDevnetProvider.postman.loadL1MessagingContract(
-      eth_network,
-      mockMessagingContractAddress
-    );
     ethTxAuthenticator.connect(account);
 
     const proposal = {
@@ -705,12 +677,6 @@ describe('Ethereum Transaction Authenticator', function () {
   });
 
   it('a commit cannot be consumed twice', async () => {
-    await starknetDevnet.provider.restart();
-    await starknetDevnet.provider.load('./dump.pkl');
-    await starknetDevnetProvider.postman.loadL1MessagingContract(
-      eth_network,
-      mockMessagingContractAddress
-    );
     ethTxAuthenticator.connect(account);
 
     const proposal = {
@@ -781,12 +747,6 @@ describe('Ethereum Transaction Authenticator', function () {
   });
 
   it('a commit cannot be overwritten by a different sender', async () => {
-    await starknetDevnet.provider.restart();
-    await starknetDevnet.provider.load('./dump.pkl');
-    await starknetDevnetProvider.postman.loadL1MessagingContract(
-      eth_network,
-      mockMessagingContractAddress
-    );
     ethTxAuthenticator.connect(account);
 
     const proposal = {
