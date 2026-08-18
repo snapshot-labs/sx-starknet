@@ -39,6 +39,7 @@
     "@snapshot-labs/sx": "^0.1.11",
     "@typechain/ethers-v6": "^0.5.1",
     "@typechain/hardhat": "^9.1.0",
+    "@types/chai": "^4.2.0",
     "@types/mocha": "^10.0.7",
     "@types/node": "^20.4.5",
     "axios": "1.7.3",
