@@ -1,3 +1,8 @@
+> [!WARNING]
+>
+> This repo has been migrated to
+> [snapshot-labs/sx-monorepo](https://github.com/snapshot-labs/sx-monorepo/tree/master/contracts/sx-evm).
+
 # Snapshot X
 
 A Cairo implementation of the Snapshot X Protocol. Refer to the [documentation](https://docs.snapshot.box) for more
