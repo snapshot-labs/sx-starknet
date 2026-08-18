@@ -45,10 +45,10 @@ export async function safeWithL1AvatarExecutionStrategySetup(
   quorum: number
 ) {
   const GnosisSafeL2 = await ethers.getContractFactory(
-    '@safe-global/safe-contracts/contracts/SafeL2.sol:SafeL2'
+    '@gnosis.pm/safe-contracts/contracts/SafeL2.sol:SafeL2'
   );
   const FactoryContract = await ethers.getContractFactory(
-    '@safe-global/safe-contracts/contracts/proxies/SafeProxyFactory.sol:SafeProxyFactory'
+    '@gnosis.pm/safe-contracts/contracts/proxies/SafeProxyFactory.sol:SafeProxyFactory'
   );
   const singleton = await GnosisSafeL2.deploy();
   const factory = await FactoryContract.deploy();

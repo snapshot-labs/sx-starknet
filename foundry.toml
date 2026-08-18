@@ -11,7 +11,6 @@ remappings = [
   '@gnosis.pm/zodiac/=node_modules/@gnosis.pm/zodiac/',
   '@openzeppelin/contracts/=node_modules/@openzeppelin/contracts/contracts/',
   '@openzeppelin/contracts-upgradeable/=node_modules/@openzeppelin/contracts-upgradeable/contracts/',
-  '@safe-global/safe-contracts/=node_modules/@safe-global/safe-contracts/',
   'forge-std/=node_modules/forge-std/src/',
   'openzeppelin-contracts/=node_modules/@openzeppelin/contracts/',
 ]

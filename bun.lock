@@ -20,7 +20,6 @@
         "@openzeppelin/contracts": "github:OpenZeppelin/openzeppelin-contracts#05f218fb6617932e56bf5388c3b389c3028a7b73",
         "@openzeppelin/contracts-upgradeable": "github:OpenZeppelin/openzeppelin-contracts-upgradeable#56118009a30763d6b635676bed7968874036bb53",
         "@openzeppelin/hardhat-upgrades": "^3.2.0",
-        "@safe-global/safe-contracts": "github:safe-global/safe-contracts#v1.4.0",
         "@snapshot-labs/eslint-config": "^0.1.0",
         "@snapshot-labs/prettier-config": "^0.1.0",
         "@snapshot-labs/sx": "^0.1.11",
@@ -283,8 +282,6 @@
     "@openzeppelin/upgrades-core": ["@openzeppelin/upgrades-core@1.46.0", "", { "dependencies": { "@nomicfoundation/slang": "^0.18.3", "bignumber.js": "^9.1.2", "cbor": "^10.0.0", "chalk": "^4.1.0", "compare-versions": "^6.0.0", "debug": "^4.1.1", "ethereumjs-util": "^7.0.3", "minimatch": "^10.2.5", "minimist": "^1.2.7", "proper-lockfile": "^4.1.1", "solidity-ast": "^0.4.60" }, "bin": { "openzeppelin-upgrades-core": "dist/cli/cli.js" } }, "sha512-UFSeO/4r8eeXj0C/HAwV+J4b72sE1HX0aALQFs5S2RBOsfXvKweyjQf35vrK32LQiyHdP6IPShAsEBVvpSEgGQ=="],
 
     "@pkgr/core": ["@pkgr/core@0.3.6", "", {}, "sha512-SEeaJLb3qBNF/OaXnaR1NmmBbFYk1zC0ZH/52fATcRPLFg/p791YrcyFFy44Bo9sLaGuSuLp5Q6axbb/O+v/RA=="],
-
-    "@safe-global/safe-contracts": ["@safe-global/safe-contracts@github:safe-global/safe-contracts#e870f51", { "peerDependencies": { "ethers": "5.4.0" } }, "safe-fndn-safe-smart-account-e870f51", "sha512-u75WRztgn1CP6wXhggp7H9IZ4moK660t5qAh2lc33oamha0fOmlv2AGL7h2FL0/O+CPElBLUix01SL7vYPYqVA=="],
 
     "@scure/base": ["@scure/base@1.2.1", "", {}, "sha512-DGmGtC8Tt63J5GfHgfl5CuAXh96VF/LD8K9Hr/Gv0J2lAoRGlPOMpqMpMbCTOoOJMZCk2Xt+DskdDyn6dEFdzQ=="],
 
