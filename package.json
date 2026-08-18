@@ -26,9 +26,7 @@
     "@nomicfoundation/hardhat-chai-matchers": "^2.0.0",
     "@nomicfoundation/hardhat-ethers": "^3.0.6",
     "@nomicfoundation/hardhat-foundry": "^1.1.1",
-    "@nomicfoundation/hardhat-ignition-ethers": "^0.15.5",
     "@nomicfoundation/hardhat-network-helpers": "^1.0.11",
-    "@nomicfoundation/hardhat-toolbox": "^5.0.0",
     "@nomicfoundation/hardhat-verify": "^2.0.0",
     "@openzeppelin/contracts": "github:OpenZeppelin/openzeppelin-contracts#05f218fb6617932e56bf5388c3b389c3028a7b73",
     "@openzeppelin/contracts-upgradeable": "github:OpenZeppelin/openzeppelin-contracts-upgradeable#56118009a30763d6b635676bed7968874036bb53",
@@ -36,8 +34,6 @@
     "@snapshot-labs/eslint-config": "^0.1.0",
     "@snapshot-labs/prettier-config": "^0.1.0",
     "@snapshot-labs/sx": "^0.1.11",
-    "@typechain/ethers-v6": "^0.5.1",
-    "@typechain/hardhat": "^9.1.0",
     "@types/chai": "^4.2.0",
     "@types/mocha": "^10.0.7",
     "@types/node": "^20.4.5",
@@ -48,13 +44,10 @@
     "ethers": "^6.13.2",
     "forge-std": "github:foundry-rs/forge-std#v1.9.1",
     "hardhat": "^2.17.2",
-    "hardhat-gas-reporter": "^1.0.8",
     "micro-starknet": "^0.2.3",
     "prettier": "3.2.5",
-    "solidity-coverage": "^0.8.12",
     "starknet": "7.6.4",
     "ts-node": "^10.9.1",
-    "typechain": "^8.3.2",
     "typescript": "^5.1.6"
   }
 }
