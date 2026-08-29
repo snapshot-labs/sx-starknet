@@ -64,4 +64,4 @@ bun run test-ts
 
 #### Run Hardhat Tests
 
-The Hardhat tests can be run following the procedure followed in the [CI](.github/workflows/test.yml). You will need local Starknet Devnet and Ethereum devnet instances running. 
+The Hardhat tests can be run following the procedure in the [CI](.github/workflows/test.yml). You will need local Starknet Devnet and Ethereum devnet instances running. 
